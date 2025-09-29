@@ -1,302 +1,644 @@
---!strict
--- RvrseUI: Rayfield-style UI framework + Dropdown, Keybind, Notify
+-- RvrseUI |  external UI
+-- Single-file bundle (drop-in). No console spam (DEBUG=false).
+-- API: CreateWindow → CreateTab → CreateSection → {CreateButton, CreateToggle, CreateDropdown, CreateKeybind}
+-- Extras: RvrseUI:Notify(...), Theme Light/Dark, mobile chip, keybind toggle, LockGroup system.
 
 local Players = game:GetService("Players")
 local UIS     = game:GetService("UserInputService")
-local LP      = Players.LocalPlayer
+local RS      = game:GetService("RunService")
+
+local LP          = Players.LocalPlayer
+local PlayerGui   = LP:WaitForChild("PlayerGui")
 
 local RvrseUI = {}
+RvrseUI.DEBUG = false
 
--- ========== Theme ==========
-local Theme = {
-  mode = "Dark",
-  Light = {
-    Bg=Color3.fromRGB(245,245,248), Panel=Color3.fromRGB(235,235,240),
-    Text=Color3.fromRGB(20,24,32),  Muted=Color3.fromRGB(110,116,134),
-    Accent=Color3.fromRGB(60,120,250), Good=Color3.fromRGB(46,204,113),
-    Bad=Color3.fromRGB(231,76,60), Warn=Color3.fromRGB(245,181,61),
-    Border=Color3.fromRGB(210,214,222), Lock=Color3.fromRGB(190,195,206)
-  },
+-- =========================
+-- Theme
+-- =========================
+local Theme = {}
+Theme.Palettes = {
   Dark = {
-    Bg=Color3.fromRGB(18,18,22), Panel=Color3.fromRGB(28,28,36),
-    Text=Color3.fromRGB(235,236,242), Muted=Color3.fromRGB(150,153,170),
-    Accent=Color3.fromRGB(80,140,255), Good=Color3.fromRGB(46,204,113),
-    Bad=Color3.fromRGB(231,76,60), Warn=Color3.fromRGB(245,181,61),
-    Border=Color3.fromRGB(52,56,66), Lock=Color3.fromRGB(62,66,78)
+    Bg     = Color3.fromRGB(14,14,18),
+    Card   = Color3.fromRGB(24,24,30),
+    Muted  = Color3.fromRGB(32,32,40),
+    Text   = Color3.fromRGB(235,235,245),
+    Sub    = Color3.fromRGB(180,180,190),
+    Success= Color3.fromRGB(35,120,60),
+    Info   = Color3.fromRGB(40,90,160),
+    Warn   = Color3.fromRGB(180,120,30),
+    Error  = Color3.fromRGB(170,50,60),
   },
-  subscribers = {},
+  Light = {
+    Bg     = Color3.fromRGB(244,244,248),
+    Card   = Color3.fromRGB(255,255,255),
+    Muted  = Color3.fromRGB(235,235,240),
+    Text   = Color3.fromRGB(20,20,24),
+    Sub    = Color3.fromRGB(80,80,90),
+    Success= Color3.fromRGB(30,160,80),
+    Info   = Color3.fromRGB(40,110,210),
+    Warn   = Color3.fromRGB(210,150,40),
+    Error  = Color3.fromRGB(200,60,70),
+  }
 }
-local function T(k) return (Theme[Theme.mode] :: any)[k] end
-function RvrseUI.SetTheme(mode) Theme.mode = mode; for inst,fn in pairs(Theme.subscribers) do if inst and inst.Parent then fn() else Theme.subscribers[inst]=nil end end end
-local function themable(inst, fn) Theme.subscribers[inst]=fn; fn() end
+Theme.Current = "Dark"
+function Theme:Get() return self.Palettes[self.Current] end
 
--- ========== Primitives ==========
-local function newScreenGui(name)
-  local g=Instance.new("ScreenGui"); g.IgnoreGuiInset=true; g.ResetOnSpawn=false; g.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
-  g.Name=name; g.Parent=LP:WaitForChild("PlayerGui"); return g
-end
-local function mkFrame(p, sz, bg, r)
-  local f=Instance.new("Frame"); f.Size=sz; f.BackgroundColor3=bg; f.BorderSizePixel=0; f.ClipsDescendants=false; f.Parent=p
-  if r then local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,r); c.Parent=f end; return f
-end
-local function mkList(p, pad, horiz)
-  local l=Instance.new("UIListLayout"); l.Padding=UDim.new(0,pad)
-  l.FillDirection=horiz and Enum.FillDirection.Horizontal or Enum.FillDirection.Vertical
-  l.HorizontalAlignment=Enum.HorizontalAlignment.Left; l.VerticalAlignment=Enum.VerticalAlignment.Top; l.Parent=p; return l
-end
-local function mkText(p, txt, sz, bold)
-  local t=Instance.new("TextLabel"); t.BackgroundTransparency=1; t.Text=txt; t.Font=(bold and Enum.Font.GothamBold or Enum.Font.Gotham)
-  t.TextSize=sz; t.TextXAlignment=Enum.TextXAlignment.Left; t.Parent=p; themable(t,function() t.TextColor3=T("Text") end); return t
-end
-local function mkButtonLike(p, h)
-  local b=Instance.new("TextButton"); b.AutoButtonColor=false; b.Size=UDim2.new(1,0,0,h); b.Text=""; b.BorderSizePixel=0; b.Parent=p
-  local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,10); c.Parent=b; themable(b,function() b.BackgroundColor3=T("Panel") end); return b
-end
-
--- ========== Elements ==========
-local function addLabel(container, label)
-  local row=mkButtonLike(container,32)
-  local txt=mkText(row,label,16,true); txt.Position=UDim2.new(0,12,0,6); txt.Size=UDim2.new(1,-24,1,-12)
-  return { SetText=function(_,s) txt.Text=s end }
-end
-
-local function addToggle(container, label, initial, onChanged)
-  local row=mkButtonLike(container,36)
-  local txt=mkText(row,label,16,true); txt.Position=UDim2.new(0,12,0,8); txt.Size=UDim2.new(1,-80,1,-16)
-  local knob=mkFrame(row,UDim2.fromOffset(44,24),Color3.new(),12); knob.Position=UDim2.new(1,-56,0.5,-12)
-  local dot =mkFrame(knob,UDim2.fromOffset(20,20),Color3.new(),10); dot.Position=UDim2.new(0,2,0.5,-10)
-  local state=initial; local locked=false
-  local function paint()
-    themable(knob,function() knob.BackgroundColor3 = state and T("Good") or T("Border") end)
-    dot.BackgroundColor3 = Theme.mode=="Light" and Color3.new(1,1,1) or Color3.fromRGB(230,232,238)
-    dot.Position = state and UDim2.new(1,-22,0.5,-10) or UDim2.new(0,2,0.5,-10)
-    row.AutoButtonColor=not locked; row.Active=not locked; row.TextTransparency= locked and 0.35 or 0
-    themable(row,function() row.BackgroundColor3 = locked and T("Lock") or T("Panel") end)
-  end
-  paint()
-  row.MouseButton1Click:Connect(function() if locked then return end; state=not state; paint(); if onChanged then onChanged(state) end end)
-  return { Set=function(_,v) state=v; paint() end, Get=function() return state end, SetLocked=function(_,v) locked=v; paint() end, SetText=function(_,s) txt.Text=s end }
-end
-
-local function addSlider(container, label, min,max,step,initial,onChanged)
-  local row=mkButtonLike(container,44)
-  local txt=mkText(row, ("%s: %d"):format(label,initial),16,true); txt.Position=UDim2.new(0,12,0,6); txt.Size=UDim2.new(1,-24,0,18)
-  local bar=mkFrame(row,UDim2.new(1,-24,0,6),Color3.new(),3); bar.Position=UDim2.new(0,12,0,28)
-  local fill=mkFrame(bar,UDim2.new(0,0,1,0),Color3.new(),3)
-  local value=initial; local locked=false
-  local function pct() return (value-min)/(max-min) end
-  local function paint()
-    txt.Text = ("%s: %d"):format(label, value)
-    fill.Size = UDim2.new(math.clamp(pct(),0,1),0,1,0)
-    themable(bar,function()  bar.BackgroundColor3=T("Border") end)
-    themable(fill,function() fill.BackgroundColor3=T("Accent") end)
-    row.AutoButtonColor=not locked; row.Active=not locked
-    themable(row,function() row.BackgroundColor3= locked and T("Lock") or T("Panel") end)
-  end
-  paint()
-  row.InputBegan:Connect(function(io)
-    if locked then return end
-    if io.UserInputType.Name:find("MouseButton") then
-      local abs=bar.AbsoluteSize.X
-      local rel=math.clamp((UIS:GetMouseLocation().X - bar.AbsolutePosition.X)/abs,0,1)
-      local raw=min + rel*(max-min)
-      value = math.round(raw/step)*step
-      paint(); if onChanged then onChanged(value) end
+-- =========================
+-- Store (locks, ui refs, binding)
+-- =========================
+RvrseUI.Store = {
+  _locks = {}, -- [group] = true/false
+}
+function RvrseUI.Store:SetLocked(group, isLocked)
+  self._locks[group] = isLocked and true or false
+  -- broadcast to UI to refresh visuals
+  if RvrseUI._refreshLockListeners then
+    for _,fn in ipairs(RvrseUI._refreshLockListeners) do
+      pcall(fn)
     end
-  end)
-  return { Set=function(_,v) value=math.clamp(v,min,max); paint() end, Get=function() return value end, SetLocked=function(_,v) locked=v; paint() end }
-end
-
-local function addButton(container,label,cb)
-  local row=mkButtonLike(container,32)
-  local txt=mkText(row,label,16,true); txt.Position=UDim2.new(0,12,0,6); txt.Size=UDim2.new(1,-24,1,-12)
-  row.MouseButton1Click:Connect(function() if cb then cb() end end)
-  return { SetLocked=function(_,v) row.AutoButtonColor=not v; row.Active=not v; themable(row,function() row.BackgroundColor3= v and T("Lock") or T("Panel") end) end, SetText=function(_,s) txt.Text=s end }
-end
-
--- NEW: Dropdown
-local function addDropdown(container,label,options,defaultIndex,onChanged)
-  options = options or {}
-  local idx = defaultIndex or 1
-  local row = mkButtonLike(container, 36)
-  local txt = mkText(row, ("%s: %s"):format(label, options[idx] or "-"), 16, true)
-  txt.Position = UDim2.new(0,12,0,8); txt.Size = UDim2.new(1,-40,1,-16)
-
-  local chev = mkText(row, "▼", 16, true); chev.Position = UDim2.new(1,-26,0,8); chev.Size=UDim2.new(0,20,0,20)
-  themable(chev,function() chev.TextColor3 = T("Muted") end)
-
-  local locked=false; local open=false
-  local popup
-
-  local function paintLabel() txt.Text = ("%s: %s"):format(label, options[idx] or "-") end
-  local function close()
-    open=false; if popup then popup:Destroy(); popup=nil end
   end
-
-  row.MouseButton1Click:Connect(function()
-    if locked then return end
-    if open then close() return end
-    open=true
-    popup = mkFrame(row, UDim2.new(1,-12, 0, math.min(#options,6)*28 + 8), T("Panel"), 10)
-    popup.Position = UDim2.new(0,6,1,4); mkList(popup,6)
-    themable(popup,function() popup.BackgroundColor3=T("Panel") end)
-    local pad = Instance.new("UIPadding"); pad.PaddingTop=UDim.new(0,6); pad.PaddingLeft=UDim.new(0,6); pad.Parent=popup
-
-    for i,opt in ipairs(options) do
-      local b=mkButtonLike(popup,24); b.Text="" -- reused primitive
-      local t=mkText(b, opt, 14, false); t.Position=UDim2.new(0,8,0,4); t.Size=UDim2.new(1,-16,1,-8)
-      b.MouseButton1Click:Connect(function()
-        idx=i; paintLabel(); if onChanged then onChanged(options[idx], idx) end; close()
-      end)
-    end
-  end)
-
-  UIS.InputBegan:Connect(function(io)
-    if open and io.UserInputType == Enum.UserInputType.MouseButton1 then
-      local m = UIS:GetMouseLocation()
-      local abs = row.AbsolutePosition; local size = row.AbsoluteSize
-      local inside = m.X>=abs.X and m.X<=abs.X+size.X and m.Y>=abs.Y and m.Y<=abs.Y+size.Y+ (popup and popup.AbsoluteSize.Y or 0)
-      if not inside then close() end
-    end
-  end)
-
-  return {
-    SetLocked=function(_,v) locked=v; row.AutoButtonColor=not v; row.Active=not v; themable(row,function() row.BackgroundColor3= v and T("Lock") or T("Panel") end) end,
-    Set=function(_,i) if options[i] then idx=i; paintLabel() end end,
-    Get=function() return options[idx], idx end,
-    SetOptions=function(_,opts) options=opts or {}; idx=math.clamp(idx,1,#options); paintLabel() end,
-  }
+end
+function RvrseUI.Store:IsLocked(group)
+  return self._locks[group] == true
 end
 
--- NEW: Keybind
-local function addKeybind(container,label,initialKeyCode,onChanged)
-  local row=mkButtonLike(container,36)
-  local txt=mkText(row,label,16,true); txt.Position=UDim2.new(0,12,0,8); txt.Size=UDim2.new(1,-120,1,-16)
-
-  local btn=mkFrame(row, UDim2.fromOffset(90,24), T("Border"), 8)
-  btn.Position=UDim2.new(1,-102,0.5,-12)
-  local btxt=mkText(btn, initialKeyCode and initialKeyCode.Name or "Unbound", 14, false)
-  btxt.Size=UDim2.new(1,0,1,0); btxt.TextXAlignment=Enum.TextXAlignment.Center
-
-  local current = initialKeyCode
-  local listening=false
-  local locked=false
-
-  local function paint()
-    themable(btn,function() btn.BackgroundColor3 = listening and T("Accent") or T("Border") end)
-    row.AutoButtonColor = not locked; row.Active = not locked
-    themable(row,function() row.BackgroundColor3 = locked and T("Lock") or T("Panel") end)
-    btxt.Text = current and current.Name or "Unbound"
+-- =========================
+-- Utils
+-- =========================
+local function coerceKeycode(k)
+  if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
+  if typeof(k) == "string" then
+    local up = k:upper()
+    if Enum.KeyCode[up] then return Enum.KeyCode[up] end
+    if #up == 1 and Enum.KeyCode[up] then return Enum.KeyCode[up] end
   end
-  paint()
-
-  row.MouseButton1Click:Connect(function()
-    if locked then return end
-    listening=true; paint()
-  end)
-
-  UIS.InputBegan:Connect(function(io,gp)
-    if not listening or gp then return end
-    if io.KeyCode == Enum.KeyCode.Backspace or io.KeyCode == Enum.KeyCode.Escape then
-      current=nil; listening=false; paint(); if onChanged then onChanged(nil) end; return
-    end
-    if io.KeyCode ~= Enum.KeyCode.Unknown then
-      current = io.KeyCode; listening=false; paint(); if onChanged then onChanged(current) end
-    end
-  end)
-
-  return {
-    SetLocked=function(_,v) locked=v; paint() end,
-    Set=function(_,kc) current=kc; listening=false; paint() end,
-    Get=function() return current end,
-  }
+  return Enum.KeyCode.K
 end
 
--- ========== Containers ==========
-local Section = {}; Section.__index=Section
-function Section:AddLabel(t) return addLabel(self._container,t) end
-function Section:AddToggle(t,i,cb) return addToggle(self._container,t,i,cb) end
-function Section:AddSlider(t,min,max,step,i,cb) return addSlider(self._container,t,min,max,step,i,cb) end
-function Section:AddButton(t,cb) return addButton(self._container,t,cb) end
-function Section:AddDropdown(t,opts,idx,cb) return addDropdown(self._container,t,opts,idx,cb) end
-function Section:AddKeybind(t,kc,cb) return addKeybind(self._container,t,kc,cb) end
-
-local Tab = {}; Tab.__index=Tab
-function Tab:CreateSection(title)
-  local secWrap=mkFrame(self._scroll, UDim2.new(1,-12,0,0), T("Panel"), 10)
-  secWrap.AutomaticSize=Enum.AutomaticSize.Y; themable(secWrap,function() secWrap.BackgroundColor3=T("Panel") end)
-  local pad=Instance.new("UIPadding"); pad.PaddingTop=UDim.new(0,8); pad.PaddingBottom=UDim.new(0,8); pad.PaddingLeft=UDim.new(0,12); pad.PaddingRight=UDim.new(0,12); pad.Parent=secWrap
-  local titleLbl=mkText(secWrap,title,18,true); titleLbl.Size=UDim2.new(1,0,0,20)
-  local body=mkFrame(secWrap,UDim2.new(1,0,0,0),T("Panel")); body.BackgroundTransparency=1; body.AutomaticSize=Enum.AutomaticSize.Y; body.Parent=secWrap
-  mkList(body,8)
-  local s=setmetatable({_container=body},Section); table.insert(self._sections,s); return s
+local function corner(inst, r)
+  local u = Instance.new("UICorner")
+  u.CornerRadius = UDim.new(0, r or 10)
+  u.Parent = inst
+  return u
 end
 
-local Window={}; Window.__index=Window
-function Window:CreateTab(name)
-  local btn=addButton(self._tabbar,name,function() for _,t in ipairs(self._tabs) do t._page.Visible=false end; self._pages[name].Visible=true end)
-  local page=mkFrame(self._body,UDim2.new(1,-24,1,-60),T("Bg")); page.Position=UDim2.new(0,12,0,48); themable(page,function() page.BackgroundColor3=T("Bg") end); page.Visible=(#self._tabs==0)
-  local scroll=Instance.new("ScrollingFrame"); scroll.Size=UDim2.new(1,0,1,0); scroll.BackgroundTransparency=1; scroll.BorderSizePixel=0; scroll.Parent=page; scroll.CanvasSize=UDim2.new(0,0,0,0); mkList(scroll,10)
-  local tab=setmetatable({_page=page,_scroll=scroll,_sections={},_button=btn},Tab); self._pages[name]=page; table.insert(self._tabs,tab); return tab
-end
+-- =========================
+-- Root Host + Notify
+-- =========================
+local host = Instance.new("ScreenGui")
+host.Name = "RvrseUI"
+host.ResetOnSpawn = false
+host.IgnoreGuiInset = true
+host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+host.Parent = PlayerGui
 
--- ========== Notifications ==========
-local notifyGui: ScreenGui? = nil
-local stackHolder: Frame? = nil
+-- Notify stack
+local notifyRoot = Instance.new("Frame")
+notifyRoot.Name = "NotifyStack"
+notifyRoot.BackgroundTransparency = 1
+notifyRoot.AnchorPoint = Vector2.new(1,1)
+notifyRoot.Position = UDim2.new(1,-12, 1,-12)
+notifyRoot.Size = UDim2.new(0, 320, 1, -24)
+notifyRoot.Parent = host
+local notifyLayout = Instance.new("UIListLayout")
+notifyLayout.Padding = UDim.new(0,6)
+notifyLayout.FillDirection = Enum.FillDirection.Vertical
+notifyLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+notifyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+notifyLayout.Parent = notifyRoot
 
-local function ensureNotify()
-  if notifyGui then return end
-  notifyGui = newScreenGui("RvrseUI_Notify")
-  stackHolder = mkFrame(notifyGui, UDim2.new(0, 320, 1, -20), T("Bg"))
-  stackHolder.AnchorPoint = Vector2.new(1,1)
-  stackHolder.Position = UDim2.new(1,-12,1,-12)
-  stackHolder.BackgroundTransparency = 1
-  mkList(stackHolder,8)
-end
+function RvrseUI:Notify(opt)
+  local pal = Theme:Get()
+  local f = Instance.new("Frame")
+  f.Size = UDim2.new(1, 0, 0, 56)
+  f.BackgroundColor3 = pal.Card
+  f.BorderSizePixel = 0
+  f.Parent = notifyRoot
+  corner(f, 10)
 
-function RvrseUI.Notify(opts: {Title:string?, Message:string?, Duration:number?, Type:string?})
-  ensureNotify()
-  local dur = opts.Duration or 3
-  local kind = (opts.Type or "info")
-  local color = (kind=="success" and T("Good")) or (kind=="warn" and T("Warn")) or (kind=="error" and T("Bad")) or T("Accent")
+  local stripe = Instance.new("Frame")
+  stripe.Size = UDim2.new(0,4,1,0)
+  stripe.BackgroundColor3 = pal.Info
+  stripe.BorderSizePixel = 0
+  stripe.Parent = f
+  if opt.Type == "success" then stripe.BackgroundColor3 = pal.Success
+  elseif opt.Type == "warn" then stripe.BackgroundColor3 = pal.Warn
+  elseif opt.Type == "error" then stripe.BackgroundColor3 = pal.Error end
 
-  local card = mkFrame(stackHolder, UDim2.new(1,0,0,0), T("Panel"), 10)
-  card.AutomaticSize = Enum.AutomaticSize.Y
-  themable(card,function() card.BackgroundColor3=T("Panel") end)
-  local pad = Instance.new("UIPadding"); pad.PaddingTop=UDim.new(0,10); pad.PaddingBottom=UDim.new(0,10); pad.PaddingLeft=UDim.new(0,12); pad.PaddingRight=UDim.new(0,12); pad.Parent=card
+  local title = Instance.new("TextLabel")
+  title.BackgroundTransparency = 1
+  title.Font = Enum.Font.GothamBold
+  title.TextSize = 14
+  title.TextXAlignment = Enum.TextXAlignment.Left
+  title.TextColor3 = pal.Text
+  title.Text = opt.Title or "Info"
+  title.Position = UDim2.new(0,10,0,6)
+  title.Size = UDim2.new(1,-20,0,18)
+  title.Parent = f
 
-  local title = mkText(card, opts.Title or "Notification", 16, true)
-  title.Size = UDim2.new(1, -10, 0, 18)
-  themable(title,function() title.TextColor3 = color end)
+  local msg = Instance.new("TextLabel")
+  msg.BackgroundTransparency = 1
+  msg.Font = Enum.Font.Gotham
+  msg.TextSize = 13
+  msg.TextXAlignment = Enum.TextXAlignment.Left
+  msg.TextColor3 = pal.Sub
+  msg.TextWrapped = true
+  msg.Text = opt.Message or ""
+  msg.Position = UDim2.new(0,10,0,24)
+  msg.Size = UDim2.new(1,-20,0,28)
+  msg.Parent = f
 
-  if opts.Message and #opts.Message>0 then
-    local msg = mkText(card, opts.Message, 14, false)
-    msg.Position = UDim2.new(0,0,0,22)
-    msg.Size = UDim2.new(1,0,0,18)
-    themable(msg,function() msg.TextColor3 = T("Text") end)
-  end
+  f.BackgroundTransparency = 1
+  stripe.Size = UDim2.new(0,0,1,0)
+  game:GetService("TweenService"):Create(f, TweenInfo.new(0.18), {BackgroundTransparency=0}):Play()
+  game:GetService("TweenService"):Create(stripe, TweenInfo.new(0.18), {Size=UDim2.new(0,4,1,0)}):Play()
 
-  card.Transparency = 1
-  card:TweenTransparency(0, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
+  local dur = tonumber(opt.Duration) or 2
   task.delay(dur, function()
-    if card and card.Parent then
-      card:TweenTransparency(1, Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.2, true, function()
-        if card then card:Destroy() end
-      end)
-    end
+    pcall(function()
+      game:GetService("TweenService"):Create(f, TweenInfo.new(0.18), {BackgroundTransparency=1}):Play()
+      game:GetService("TweenService"):Create(stripe, TweenInfo.new(0.18), {Size=UDim2.new(0,0,1,0)}):Play()
+      task.wait(0.2)
+      f:Destroy()
+    end)
   end)
 end
 
-function RvrseUI.CreateWindow(config: {Name: string, Theme: "Light"|"Dark"?})
-  if config.Theme then RvrseUI.SetTheme(config.Theme) end
-  local gui=newScreenGui("RvrseUI")
-  local root=mkFrame(gui,UDim2.new(0,620,0,420),T("Bg"),16); root.Position=UDim2.new(0.5,-310,0.5,-210); themable(root,function() root.BackgroundColor3=T("Bg") end)
-  local header=mkFrame(root,UDim2.new(1,0,0,40),T("Panel"),16); themable(header,function() header.BackgroundColor3=T("Panel") end)
-  local title=mkText(header,config.Name or "RVRSE UI",18,true); title.Position=UDim2.new(0,12,0,10); title.Size=UDim2.new(1,-24,0,20)
-  local body=mkFrame(root,UDim2.new(1,0,1,-40),T("Bg")); body.Position=UDim2.new(0,0,0,40); themable(body,function() body.BackgroundColor3=T("Bg") end)
-  local tabbar=mkFrame(body,UDim2.new(0,160,1,-24),T("Panel"),12); tabbar.Position=UDim2.new(0,12,0,12); mkList(tabbar,6); themable(tabbar,function() tabbar.BackgroundColor3=T("Panel") end)
-  local main=mkFrame(body,UDim2.new(1,-196,1,-24),T("Bg"),12); main.Position=UDim2.new(0,184,0,12); themable(main,function() main.BackgroundColor3=T("Bg") end)
-  return setmetatable({ _gui=gui,_root=root,_tabbar=tabbar,_body=main,_tabs={},_pages={} }, Window)
+-- =========================
+-- Public UI helpers (bind/unbind toggle key)
+-- =========================
+RvrseUI.UI = { _toggleTargets = {}, _key = Enum.KeyCode.K }
+function RvrseUI.UI:RegisterToggleTarget(frame)
+  self._toggleTargets[frame] = true
+end
+function RvrseUI.UI:BindToggleKey(key)
+  self._key = coerceKeycode(key or "K")
+end
+
+UIS.InputBegan:Connect(function(io, gpe)
+  if gpe then return end
+  if io.KeyCode == RvrseUI.UI._key then
+    for f in pairs(RvrseUI.UI._toggleTargets) do
+      if f and f.Parent then
+        f.Visible = not f.Visible
+      end
+    end
+  end
+end)
+
+-- lock refresh listeners
+RvrseUI._refreshLockListeners = {}
+
+-- =========================
+-- Window Builder
+-- =========================
+function RvrseUI:CreateWindow(w)
+  w = w or {}
+  local pal = Theme:Get()
+  if w.Theme and Theme.Palettes[w.Theme] then Theme.Current = w.Theme; pal = Theme:Get() end
+
+  local name      = w.Name or "RvrseUI"
+  local icon      = w.Icon or 0
+  local showText  = w.ShowText or "RvrseUI"
+  local loadTitle = w.LoadingTitle or name
+  local loadSub   = w.LoadingSubtitle or ""
+  local toggleKey = coerceKeycode(w.ToggleUIKeybind or "K")
+  self.UI:BindToggleKey(toggleKey)
+
+  -- window root
+  local root = Instance.new("Frame")
+  root.Name = "Window_"..name:gsub("%s","")
+  root.Size = UDim2.new(0, 560, 0, 440)
+  root.Position = UDim2.new(0.5, -280, 0.5, -220)
+  root.BackgroundColor3 = pal.Bg
+  root.BorderSizePixel = 0
+  root.Visible = true
+  root.Parent = host
+  corner(root, 12)
+  self.UI:RegisterToggleTarget(root)
+
+  -- top bar
+  local top = Instance.new("Frame")
+  top.Size = UDim2.new(1,0,0,44)
+  top.BackgroundColor3 = pal.Card
+  top.BorderSizePixel = 0
+  top.Parent = root
+  corner(top, 12)
+
+  local iconHolder = Instance.new("Frame")
+  iconHolder.BackgroundTransparency = 1
+  iconHolder.Size = UDim2.new(0,44,1,0)
+  iconHolder.Parent = top
+  if typeof(icon) == "number" and icon ~= 0 then
+    local img = Instance.new("ImageLabel")
+    img.BackgroundTransparency = 1
+    img.Image = "rbxassetid://"..icon
+    img.Size = UDim2.new(0,24,0,24)
+    img.Position = UDim2.new(0,10,0.5,-12)
+    img.Parent = iconHolder
+  elseif typeof(icon) == "string" and icon ~= "" then
+    local txt = Instance.new("TextLabel")
+    txt.BackgroundTransparency = 1
+    txt.Font = Enum.Font.GothamBold
+    txt.TextSize = 20
+    txt.TextColor3 = pal.Text
+    txt.Text = icon
+    txt.Size = UDim2.new(0,24,0,24)
+    txt.Position = UDim2.new(0,10,0.5,-12)
+    txt.Parent = iconHolder
+  end
+
+  local title = Instance.new("TextLabel")
+  title.BackgroundTransparency = 1
+  title.Font = Enum.Font.GothamBold
+  title.TextSize = 18
+  title.TextColor3 = pal.Text
+  title.TextXAlignment = Enum.TextXAlignment.Left
+  title.Text = name
+  title.Position = UDim2.new(0,56,0,0)
+  title.Size = UDim2.new(1,-56,1,0)
+  title.Parent = top
+
+  -- tabbar
+  local tabbar = Instance.new("Frame")
+  tabbar.BackgroundTransparency = 1
+  tabbar.Position = UDim2.new(0,12,0,52)
+  tabbar.Size = UDim2.new(1,-24,0,36)
+  tabbar.Parent = root
+  local tabsLayout = Instance.new("UIListLayout")
+  tabsLayout.Padding = UDim.new(0,8)
+  tabsLayout.FillDirection = Enum.FillDirection.Horizontal
+  tabsLayout.Parent = tabbar
+
+  -- body
+  local body = Instance.new("Frame")
+  body.BackgroundColor3 = pal.Card
+  body.BorderSizePixel = 0
+  body.Position = UDim2.new(0,12,0,96)
+  body.Size = UDim2.new(1,-24,1,-108)
+  body.Parent = root
+  corner(body,10)
+
+  -- splash
+  local splash = Instance.new("Frame")
+  splash.BackgroundColor3 = pal.Card
+  splash.BorderSizePixel = 0
+  splash.Position = UDim2.new(0,12,0,96)
+  splash.Size = UDim2.new(1,-24,1,-108)
+  splash.Parent = root
+  corner(splash,10)
+
+  local lt = Instance.new("TextLabel")
+  lt.BackgroundTransparency = 1
+  lt.Font = Enum.Font.GothamBold
+  lt.TextSize = 20
+  lt.TextColor3 = pal.Text
+  lt.Text = loadTitle
+  lt.Position = UDim2.new(0,16,0,16)
+  lt.Size = UDim2.new(1,-32,0,28)
+  lt.TextXAlignment = Enum.TextXAlignment.Left
+  lt.Parent = splash
+
+  local ls = Instance.new("TextLabel")
+  ls.BackgroundTransparency = 1
+  ls.Font = Enum.Font.Gotham
+  ls.TextSize = 14
+  ls.TextColor3 = pal.Sub
+  ls.Text = loadSub
+  ls.Position = UDim2.new(0,16,0,50)
+  ls.Size = UDim2.new(1,-32,0,22)
+  ls.TextXAlignment = Enum.TextXAlignment.Left
+  ls.Parent = splash
+
+  task.delay(0.8, function() if splash and splash.Parent then splash.Visible = false end end)
+
+  -- mobile chip
+  local chip = Instance.new("TextButton")
+  chip.Text = showText
+  chip.Font = Enum.Font.GothamMedium
+  chip.TextSize = 12
+  chip.TextColor3 = pal.Text
+  chip.BackgroundColor3 = pal.Card
+  chip.Size = UDim2.new(0,110,0,28)
+  chip.AnchorPoint = Vector2.new(1,0)
+  chip.Position = UDim2.new(1,-12,0,12)
+  chip.Parent = host
+  chip.Visible = false
+  corner(chip,14)
+
+  RvrseUI.UI._toggleTargets[chip] = false -- not toggled by key
+  local function setHidden(v)
+    root.Visible = not v
+    chip.Visible = v
+  end
+
+  -- CreateTab/Section/Elements
+  local activePage
+
+  local WindowAPI = {}
+  function WindowAPI:SetTitle(t) title.Text = t or name end
+  function WindowAPI:Show() setHidden(false) end
+  function WindowAPI:Hide() setHidden(true) end
+
+  chip.MouseButton1Click:Connect(function() setHidden(false) end)
+
+  -- lock refresh registry
+  RvrseUI._refreshLockListeners = RvrseUI._refreshLockListeners or {}
+
+  function WindowAPI:CreateTab(t)
+    local palNow = Theme:Get()
+    t = t or {}
+    local b = Instance.new("TextButton")
+    b.AutoButtonColor = true
+    b.Font = Enum.Font.GothamMedium
+    b.TextSize = 14
+    b.TextColor3 = palNow.Text
+    b.BackgroundColor3 = palNow.Muted
+    b.Size = UDim2.new(0, 100, 1, 0)
+    b.Text = ((t.Icon and (t.Icon.." ")) or "") .. (t.Title or "Tab")
+    b.Parent = tabbar
+    corner(b,8)
+
+    local page = Instance.new("ScrollingFrame")
+    page.BackgroundTransparency = 1
+    page.Size = UDim2.new(1,-16,1,-16)
+    page.Position = UDim2.new(0,8,0,8)
+    page.ScrollBarThickness = 4
+    page.Visible = false
+    page.Parent = body
+    local vlist = Instance.new("UIListLayout")
+    vlist.Padding = UDim.new(0,10)
+    vlist.Parent = page
+
+    b.MouseButton1Click:Connect(function()
+      if activePage then activePage.Visible=false end
+      page.Visible=true
+      activePage=page
+    end)
+    if not activePage then page.Visible=true; activePage=page end
+
+    local TabAPI = {}
+    function TabAPI:CreateSection(text)
+      local pal2 = Theme:Get()
+
+      local header = Instance.new("TextLabel")
+      header.BackgroundTransparency = 1
+      header.Font = Enum.Font.GothamBold
+      header.TextSize = 16
+      header.TextColor3 = pal2.Sub
+      header.TextXAlignment = Enum.TextXAlignment.Left
+      header.Text = text or "Section"
+      header.Size = UDim2.new(1,0,0,18)
+      header.Parent = page
+
+      local container = Instance.new("Frame")
+      container.BackgroundTransparency = 1
+      container.Size = UDim2.new(1,0,0,0)
+      container.Parent = page
+      local list = Instance.new("UIListLayout")
+      list.Padding = UDim.new(0,8)
+      list.Parent = container
+
+      local function card(height)
+        local c = Instance.new("Frame")
+        c.BackgroundColor3 = pal2.Muted
+        c.BorderSizePixel = 0
+        c.Size = UDim2.new(1,0,0,height)
+        c.Parent = container
+        corner(c,10)
+        local pad = Instance.new("UIPadding", c)
+        pad.PaddingTop = UDim.new(0,8); pad.PaddingBottom = UDim.new(0,8); pad.PaddingLeft = UDim.new(0,8); pad.PaddingRight = UDim.new(0,8)
+        return c
+      end
+
+      local SectionAPI = {}
+
+      -- Button
+      function SectionAPI:CreateButton(o)
+        o = o or {}
+        local f = card(40)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1,0,1,0)
+        btn.Text = o.Text or "Button"
+        btn.BackgroundTransparency = 1
+        btn.TextColor3 = pal2.Text
+        btn.Font = Enum.Font.GothamMedium
+        btn.TextSize = 14
+        btn.Parent = f
+        btn.MouseButton1Click:Connect(function()
+          if RvrseUI.Store:IsLocked(o.RespectLock) then return end
+          if o.Callback then task.spawn(o.Callback) end
+        end)
+        table.insert(RvrseUI._refreshLockListeners, function()
+          btn.TextTransparency = RvrseUI.Store:IsLocked(o.RespectLock) and 0.3 or 0
+        end)
+        return {
+          SetText = function(_, t) btn.Text = t end
+        }
+      end
+
+      -- Toggle
+      function SectionAPI:CreateToggle(o)
+        o = o or {}
+        local f = card(40)
+        local lbl = Instance.new("TextLabel")
+        lbl.BackgroundTransparency = 1
+        lbl.Font = Enum.Font.GothamMedium
+        lbl.TextSize = 14
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.TextColor3 = pal2.Text
+        lbl.Text = o.Text or "Toggle"
+        lbl.Size = UDim2.new(1,-56,1,0)
+        lbl.Parent = f
+
+        local shell = Instance.new("Frame")
+        shell.AnchorPoint = Vector2.new(1,0.5)
+        shell.Position = UDim2.new(1,-8,0.5,0)
+        shell.Size = UDim2.new(0,44,0,22)
+        shell.BackgroundColor3 = pal2.Card
+        shell.BorderSizePixel = 0
+        shell.Parent = f
+        corner(shell,11)
+
+        local dot = Instance.new("Frame")
+        dot.Size = UDim2.new(0,18,0,18)
+        dot.Position = UDim2.new(0,2,0.5,-9)
+        dot.BackgroundColor3 = pal2.Sub
+        dot.BorderSizePixel = 0
+        dot.Parent = shell
+        corner(dot,9)
+
+        local state = o.State == true
+        -- If LockGroup is provided, this toggle CONTROLS that lock; if RespectLock is provided, it RESPONDS to that lock.
+        local controlsGroup = o.LockGroup
+        local respectGroup  = o.RespectLock
+
+        local function lockedNow()
+          return respectGroup and RvrseUI.Store:IsLocked(respectGroup)
+        end
+
+        local function visual()
+          local locked = lockedNow()
+          shell.BackgroundColor3 = locked and Color3.fromRGB(70,74,83) or (state and pal2.Success or pal2.Card)
+          dot.Position = UDim2.new(state and 1 or 0, state and -20 or 2, 0.5, -9)
+          lbl.TextTransparency = locked and 0.3 or 0
+        end
+        visual()
+
+        f.InputBegan:Connect(function(io)
+          if io.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+          if lockedNow() then return end
+          state = not state
+          visual()
+          if controlsGroup then
+            RvrseUI.Store:SetLocked(controlsGroup, state)
+          end
+          if o.OnChanged then task.spawn(o.OnChanged, state) end
+        end)
+
+        table.insert(RvrseUI._refreshLockListeners, visual)
+
+        return {
+          Set = function(_, v) state = v and true or false; visual(); if controlsGroup then RvrseUI.Store:SetLocked(controlsGroup, state) end end,
+          Get = function() return state end,
+          Refresh = visual
+        }
+      end
+
+      -- Dropdown
+      function SectionAPI:CreateDropdown(o)
+        o = o or {}
+        local f = card(46)
+        local lbl = Instance.new("TextLabel")
+        lbl.BackgroundTransparency = 1
+        lbl.Font = Enum.Font.GothamMedium
+        lbl.TextSize = 14
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.TextColor3 = pal2.Text
+        lbl.Text = o.Text or "Dropdown"
+        lbl.Size = UDim2.new(1,-130,1,0)
+        lbl.Parent = f
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0,120,0,30)
+        btn.AnchorPoint = Vector2.new(1,0.5)
+        btn.Position = UDim2.new(1,-8,0.5,0)
+        btn.BackgroundColor3 = pal2.Card
+        btn.TextColor3 = pal2.Text
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 14
+        btn.Text = tostring(o.Default or (o.Values and o.Values[1]) or "Select")
+        btn.Parent = f
+        corner(btn,8)
+
+        local values = o.Values or {}
+        local idx = 1
+        for i,v in ipairs(values) do if v == o.Default then idx = i break end end
+
+        local function locked() return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock) end
+        local function visual()
+          btn.AutoButtonColor = not locked()
+          lbl.TextTransparency = locked() and 0.3 or 0
+        end
+        visual()
+
+        btn.MouseButton1Click:Connect(function()
+          if locked() then return end
+          idx = (idx % #values) + 1
+          btn.Text = tostring(values[idx])
+          if o.OnChanged then task.spawn(o.OnChanged, values[idx]) end
+        end)
+
+        table.insert(RvrseUI._refreshLockListeners, visual)
+
+        return {
+          Set = function(_, v)
+            for i,val in ipairs(values) do if val==v then idx=i break end end
+            btn.Text = tostring(values[idx])
+            visual()
+          end,
+          Get = function() return values[idx] end
+        }
+      end
+
+      -- Keybind
+      function SectionAPI:CreateKeybind(o)
+        o = o or {}
+        local f = card(40)
+        local lbl = Instance.new("TextLabel")
+        lbl.BackgroundTransparency = 1
+        lbl.Font = Enum.Font.GothamMedium
+        lbl.TextSize = 14
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.TextColor3 = pal2.Text
+        lbl.Text = o.Text or "Keybind"
+        lbl.Size = UDim2.new(1,-140,1,0)
+        lbl.Parent = f
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0,120,0,30)
+        btn.AnchorPoint = Vector2.new(1,0.5)
+        btn.Position = UDim2.new(1,-8,0.5,0)
+        btn.BackgroundColor3 = pal2.Card
+        btn.TextColor3 = pal2.Text
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 14
+        btn.Text = (o.Default and o.Default.Name) or "Set Key"
+        btn.Parent = f
+        corner(btn,8)
+
+        local capturing = false
+        btn.MouseButton1Click:Connect(function()
+          if RvrseUI.Store:IsLocked(o.RespectLock) then return end
+          capturing = true
+          btn.Text = "Press a key..."
+        end)
+
+        UIS.InputBegan:Connect(function(io, gpe)
+          if gpe or not capturing then return end
+          if io.KeyCode ~= Enum.KeyCode.Unknown then
+            capturing = false
+            btn.Text = io.KeyCode.Name
+            if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
+          end
+        end)
+
+        table.insert(RvrseUI._refreshLockListeners, function()
+          btn.AutoButtonColor = not RvrseUI.Store:IsLocked(o.RespectLock)
+          lbl.TextTransparency = RvrseUI.Store:IsLocked(o.RespectLock) and 0.3 or 0
+        end)
+
+        -- init default callback
+        if o.Default then
+          task.spawn(function()
+            if o.OnChanged then o.OnChanged(o.Default) end
+          end)
+        end
+
+        return {
+          Set = function(_, key)
+            btn.Text = (key and key.Name) or "Set Key"
+            if o.OnChanged and key then o.OnChanged(key) end
+          end
+        }
+      end
+
+      return SectionAPI
+    end
+
+    return TabAPI
+  end
+
+  -- optional prompts/warnings
+  if not w.DisableBuildWarnings then
+    RvrseUI:Notify({ Title="RvrseUI", Message="Dev build loaded", Duration=2, Type="success" })
+  end
+  if not w.DisableRvrseUIPrompts then
+    RvrseUI:Notify({ Title="Welcome", Message="Press "..toggleKey.Name.." to toggle UI", Duration=3, Type="info" })
+  end
+
+  return WindowAPI
 end
 
 return RvrseUI
