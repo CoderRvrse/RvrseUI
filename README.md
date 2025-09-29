@@ -1,62 +1,106 @@
-# RvrseUI
+# RvrseUI v2.0
 
-A lightweight, Rayfield-style UI framework for Roblox scripts.
+A **modern, professional, lightweight** UI framework for Roblox scripts with glassmorphism, spring animations, and mobile-first responsive design.
 
-**Flow**: Boot library → Create Window → Tabs → Sections → Elements (buttons, toggles, dropdowns, keybinds, notifications).
+**Flow**: Boot library → Create Window → Tabs → Sections → Elements (buttons, toggles, dropdowns, keybinds, sliders, notifications).
 
 Includes a **LockGroup system** to coordinate "master" controls with dependent elements (e.g., Aura + Target All master that locks per-enemy toggles).
 
 ## ✨ Features
 
-- **Familiar API**: Rayfield-style creation (`CreateWindow` → `CreateTab` → `CreateSection` → `CreateButton`/`Toggle`/`Dropdown`/`Keybind`).
-- **LockGroup System**: One toggle can lock/disable a set of other controls (e.g. master aura locks per-enemy toggles).
-- **Notifications**: In-UI toast system (info, success, warn, error).
-- **Keybind Rebinding**: Built-in hotkey toggling for UI visibility.
-- **Theming**: Dark / Light.
-- **Zero Boilerplate**: Single file loader; works with `loadstring(game:HttpGet(...))()`.
+### 🎨 Modern Design
+- **Glassmorphism/Acrylic Effects**: Frosted glass blur backgrounds with layered transparency
+- **Spring Animations**: Smooth micro-interactions with Snappy, Bounce, and Smooth easing
+- **Material Ripple Effects**: Touch-responsive ripple animations on buttons
+- **Gradients & Shadows**: Elevated depth with subtle shadow layers and accent gradients
+- **Modern Color Palette**: Indigo accents, refined dark/light themes with proper text hierarchy
+
+### 📱 Mobile-First Responsive
+- **Auto-Scaling**: Detects mobile/tablet and adjusts window dimensions (380x520 mobile, 580x480 desktop)
+- **Touch-Optimized**: 44px minimum tap targets, drag-to-move header
+- **Mobile Chip**: Floating re-open button for hidden UI on mobile
+- **Smooth Scrolling**: Auto-sizing canvas with slim scrollbars
+
+### 🚀 Advanced Features
+- **Drag-to-Reposition**: Click and drag window header to move UI anywhere
+- **Theme Switcher**: Runtime theme switching with `Window:SetTheme("Dark"/"Light")`
+- **LockGroup System**: Master toggles control dependent element states
+- **Animated Notifications**: Toast system with slide-in/fade-out animations
+- **Loading Splash**: Animated loading bar with configurable title/subtitle
+- **Version Badge**: Display framework version in header
+
+### 🧩 Component Library
+- **Button**: Material ripple effect, hover states, lock support
+- **Toggle**: iOS-style switch with spring animation, controls/respects locks
+- **Dropdown**: Cycle through values with hover feedback
+- **Keybind**: Interactive key capture with visual feedback
+- **Slider**: Draggable thumb with gradient fill, real-time value updates
+- **Notifications**: 4 types (info, success, warn, error) with icon indicators
+
+### 🎛 Developer Experience
+- **Familiar API**: Rayfield-style creation pattern
+- **Zero Boilerplate**: Single-file `loadstring()` loader
+- **Type Hints**: Clear API with consistent naming
+- **Lightweight**: ~1100 lines, optimized for performance
 
 ## 🚀 Quick Start
 
 ```lua
--- Load the library (from your repo)
+-- Load the library
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
 -- Create a window
 local Window = RvrseUI:CreateWindow({
-  Name                 = "RvrseUI Example Window",
-  Icon                 = 0,           -- Roblox image id or string icon; 0 = none
+  Name                 = "RvrseUI v2.0",
+  Icon                 = "🎨",          -- Roblox asset ID or emoji
   LoadingTitle         = "RvrseUI Interface Suite",
-  LoadingSubtitle      = "RvrseUI",
-  ShowText             = "RvrseUI",   -- mobile hint to reopen UI
-  Theme                = "Dark",      -- "Dark" | "Light"
-  ToggleUIKeybind      = "K",         -- press K to show/hide UI
+  LoadingSubtitle      = "Professional UI Framework",
+  ShowText             = "RvrseUI",    -- Mobile chip text
+  Theme                = "Dark",       -- "Dark" | "Light"
+  ToggleUIKeybind      = "K",          -- Press K to toggle
   DisableRvrseUIPrompts = false,
   DisableBuildWarnings  = false,
 })
 
 -- Add a tab & section
-local Tab    = Window:CreateTab({ Title = "Overview", Icon = "ℹ" })
-local Sect   = Tab:CreateSection("Welcome")
+local Tab  = Window:CreateTab({ Title = "Overview", Icon = "ℹ" })
+local Sect = Tab:CreateSection("Getting Started")
 
--- Elements
+-- Add elements
 Sect:CreateButton({
-  Text = "Hello",
+  Text = "Hello World",
   Callback = function()
-    RvrseUI:Notify({ Title="Hi", Message="Welcome to RvrseUI", Duration=2, Type="info" })
+    RvrseUI:Notify({
+      Title = "Welcome",
+      Message = "Modern UI loaded successfully!",
+      Duration = 2,
+      Type = "success"
+    })
   end
 })
 
 Sect:CreateToggle({
-  Text = "Master Toggle",
+  Text = "Master Mode",
   State = false,
-  LockGroup = "AuraAll",    -- this toggle CONTROLS lock state for group "AuraAll"
+  LockGroup = "MainGroup",  -- This toggle CONTROLS the lock
   OnChanged = function(on)
-    -- wire your game logic here
+    print("Master toggle:", on)
+  end
+})
+
+Sect:CreateSlider({
+  Text = "Speed",
+  Min = 0,
+  Max = 100,
+  Step = 1,
+  Default = 50,
+  OnChanged = function(value)
+    print("Speed:", value)
   end
 })
 ```
 
-## 📦 Booting the Library
+## 📦 Installation
 
 ```lua
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
@@ -64,17 +108,17 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 The library returns a module table with constructors and utility helpers.
 
-## 🪟 Window
+## 🪟 Window API
 
 ```lua
 local Window = RvrseUI:CreateWindow({
-  Name                 = "RvrseUI Example Window",
-  Icon                 = 0,            -- number (Roblox) or string (icon), 0 = none
-  LoadingTitle         = "RvrseUI Interface Suite",
-  LoadingSubtitle      = "RvrseUI",
-  ShowText             = "RvrseUI",
+  Name                 = "Window Title",
+  Icon                 = 0,            -- number (Roblox asset) or string (emoji), 0 = none
+  LoadingTitle         = "Loading...",
+  LoadingSubtitle      = "Please wait",
+  ShowText             = "RvrseUI",    -- Mobile chip text
   Theme                = "Dark",       -- "Dark" | "Light"
-  ToggleUIKeybind      = "K",          -- string "K" or Enum.KeyCode
+  ToggleUIKeybind      = "K",          -- string "K" or Enum.KeyCode.K
   DisableRvrseUIPrompts = false,
   DisableBuildWarnings  = false,
 })
@@ -82,18 +126,22 @@ local Window = RvrseUI:CreateWindow({
 
 ### Window Methods
 
-- `CreateTab({ Title: string, Icon: string|number? })` → Tab
+- `Window:SetTitle(title)` - Update window title
+- `Window:Show()` - Show window
+- `Window:Hide()` - Hide window
+- `Window:SetTheme("Dark"/"Light")` - Switch theme at runtime
+- `Window:CreateTab({ Title: string, Icon: string? })` → Tab
 
 ## 🗂 Tabs & Sections
 
 ```lua
-local Tab      = Window:CreateTab({ Title = "Controls", Icon = "★" })
-local Section  = Tab:CreateSection("Master Mode")
+local Tab      = Window:CreateTab({ Title = "Controls", Icon = "⚙" })
+local Section  = Tab:CreateSection("Main Settings")
 ```
 
 ### Tab Methods
 
-- `CreateSection(title: string)` → Section
+- `Tab:CreateSection(title: string)` → Section
 
 ## 🔘 Elements
 
@@ -101,119 +149,251 @@ local Section  = Tab:CreateSection("Master Mode")
 
 ```lua
 Section:CreateButton({
-  Text = "Apply Settings",
-  Callback = function() end
+  Text = "Execute",
+  RespectLock = "GroupName",  -- Optional: disabled when lock active
+  Callback = function()
+    -- Your code here
+  end
 })
 ```
+
+**Features**: Material ripple effect, hover animation, lock support
 
 ### Toggle
 
 ```lua
 Section:CreateToggle({
-  Text      = "Aura + Target All (MASTER)",
-  State     = false,
-  LockGroup = "AuraAll",     -- this toggle CONTROLS the lock for a named group
-  OnChanged = function(on) end
+  Text = "Enable Feature",
+  State = false,
+  LockGroup = "MyGroup",      -- Optional: this toggle CONTROLS the lock
+  RespectLock = "OtherGroup", -- Optional: this toggle RESPECTS another lock
+  OnChanged = function(on)
+    print("Toggled:", on)
+  end
 })
 ```
 
-### Toggle (Respect Lock)
+**Features**: iOS-style switch, spring animations, dual lock modes
 
-```lua
-Section:CreateToggle({
-  Text        = "Enable: Bunny",
-  State       = true,
-  RespectLock = "AuraAll",   -- becomes locked while the named LockGroup is ON
-  OnChanged   = function(on) end
-})
-```
+**API**:
+- `toggle:Set(boolean)` - Set state programmatically
+- `toggle:Get()` → boolean - Get current state
+- `toggle:Refresh()` - Force visual update
 
 ### Dropdown
 
 ```lua
 Section:CreateDropdown({
-  Text      = "Mode",
-  Values    = { "Standard", "Aggressive", "Passive" },
-  Default   = "Standard",
-  OnChanged = function(v) end
+  Text = "Mode",
+  Values = { "Standard", "Aggressive", "Passive" },
+  Default = "Standard",
+  RespectLock = "GroupName",  -- Optional
+  OnChanged = function(value)
+    print("Selected:", value)
+  end
 })
 ```
+
+**Features**: Cycle through values, hover states, lock support
+
+**API**:
+- `dropdown:Set(value)` - Select specific value
+- `dropdown:Get()` → value - Get current selection
 
 ### Keybind
 
 ```lua
 Section:CreateKeybind({
-  Text      = "Toggle UI Keybind",
-  Default   = Enum.KeyCode.K,    -- or "K"
+  Text = "Toggle Key",
+  Default = Enum.KeyCode.E,   -- or "E"
+  RespectLock = "GroupName",  -- Optional
   OnChanged = function(keyCode)
-    -- the library also auto-binds the UI visibility toggle
+    print("Key changed:", keyCode.Name)
   end
 })
 ```
 
+**Features**: Interactive key capture, visual feedback, lock support
+
+**API**:
+- `keybind:Set(KeyCode)` - Set key programmatically
+
+### Slider
+
+```lua
+Section:CreateSlider({
+  Text = "Speed",
+  Min = 0,
+  Max = 100,
+  Step = 1,
+  Default = 50,
+  RespectLock = "GroupName",  -- Optional
+  OnChanged = function(value)
+    print("Value:", value)
+  end
+})
+```
+
+**Features**: Gradient fill, draggable thumb with shadow, smooth animations, lock support
+
+**API**:
+- `slider:Set(value)` - Set value programmatically
+- `slider:Get()` → value - Get current value
+
 ## 🔒 Lock Groups
 
-**Goal**: One control (e.g., Aura + Target All) should lock related controls (e.g., per-enemy toggles).
+**Purpose**: Coordinate master/child control relationships (e.g., "Enable All" disables individual toggles)
 
-- **To CREATE/CONTROL a lock**: pass `LockGroup = "GroupName"` to a toggle. When ON → lock active.
-- **To RESPECT a lock**: pass `RespectLock = "GroupName"` to any element. It will:
-  - visually enter a locked state (disabled) while the lock is ON
-  - ignore user input until the lock is OFF again
+### Creating a Lock Controller
 
-Internally, RvrseUI manages a shared state map of `GroupName` → boolean and will re-render element states on changes.
+```lua
+-- This toggle CONTROLS the lock state
+Section:CreateToggle({
+  Text = "Master: Enable All",
+  State = false,
+  LockGroup = "AllEnemies",  -- When ON → locks "AllEnemies" group
+  OnChanged = function(on) end
+})
+```
+
+### Respecting a Lock
+
+```lua
+-- These elements are DISABLED when "AllEnemies" lock is active
+Section:CreateToggle({
+  Text = "Enemy: Bandit",
+  State = true,
+  RespectLock = "AllEnemies",  -- Becomes locked/disabled
+  OnChanged = function(on) end
+})
+
+Section:CreateButton({
+  Text = "Attack Bandit",
+  RespectLock = "AllEnemies",  -- Also locked
+  Callback = function() end
+})
+```
+
+### How It Works
+
+1. **LockGroup** = "Name" → This element **controls** the lock (toggle ON = lock active)
+2. **RespectLock** = "Name" → This element **respects** the lock (becomes disabled while locked)
+3. Internally managed by `RvrseUI.Store:SetLocked(group, bool)` / `IsLocked(group)`
+4. All locked elements show visual feedback (dimmed text, disabled interaction)
 
 ## 🔔 Notifications
 
 ```lua
 RvrseUI:Notify({
   Title    = "Saved",
-  Message  = "Preferences applied.",
-  Duration = 2.0,
-  Type     = "info"  -- "info" | "success" | "warn" | "error"
+  Message  = "Settings saved successfully!",
+  Duration = 3.0,              -- seconds
+  Type     = "success"         -- "info" | "success" | "warn" | "error"
 })
 ```
 
-## 🎛 Demo Script
-
-A full demo (window → tabs → sections → elements, master lock + per-enemy toggles, dropdown, keybind, toasts) is coming soon.
-
-It uses this loader:
-
-```lua
-local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
-```
-
-## 🧩 Integrating With Your Systems
-
-1. Wire your game logic in each element's `OnChanged`/`Callback`.
-2. For master/child patterns (e.g., Aura+All vs per-enemy toggles):
-   - Set `LockGroup = "AuraAll"` on the master toggle.
-   - Set `RespectLock = "AuraAll"` on each per-enemy toggle.
-   - In your game script, listen to the master toggle's `OnChanged` and update your runtime state.
+**Features**:
+- Slide-in/fade-out animations
+- Colored accent stripe + icon
+- Auto-dismiss after duration
+- Stacks vertically in bottom-right
 
 ## 🎨 Themes
 
-- Set at window creation: `Theme = "Dark"` or `"Light"`.
-- You can expose a future `RvrseUI:SetTheme(themeName)` if you want hot-swapping; the base skin supports both palettes.
+### Built-in Themes
+
+**Dark Theme** (default):
+- Modern indigo accent (#6366F1)
+- Deep backgrounds with glassmorphism
+- High contrast text hierarchy
+
+**Light Theme**:
+- Clean white cards
+- Subtle shadows and borders
+- Softer accent colors
+
+### Theme Switching
+
+```lua
+-- At window creation
+local Window = RvrseUI:CreateWindow({ Theme = "Light" })
+
+-- At runtime
+Window:SetTheme("Dark")
+Window:SetTheme("Light")
+```
 
 ## ⌨️ UI Visibility Keybind
 
-- Set at window creation with `ToggleUIKeybind`. The value can be `"K"` or `Enum.KeyCode.K`.
-- Users can rebind via a Keybind element in your Preferences tab (see demo).
+```lua
+-- Set at window creation
+local Window = RvrseUI:CreateWindow({ ToggleUIKeybind = "K" })
+
+-- Or rebind via keybind element
+Section:CreateKeybind({
+  Text = "Toggle UI",
+  Default = Enum.KeyCode.K,
+  OnChanged = function(key)
+    -- Automatically rebinds the UI toggle key
+  end
+})
+```
+
+## 📱 Mobile Support
+
+RvrseUI v2.0 automatically detects mobile/tablet devices and:
+- Scales window to 380x520 (vs 580x480 desktop)
+- Optimizes touch targets (48px minimum)
+- Shows floating mobile chip when UI is hidden
+- Supports touch drag-to-move on header
+
+## 🎯 Advanced Usage
+
+### Manual Lock Control
+
+```lua
+-- Manually set lock state (without toggle)
+RvrseUI.Store:SetLocked("MyGroup", true)
+
+-- Check lock state
+local isLocked = RvrseUI.Store:IsLocked("MyGroup")
+```
+
+### Theme Listeners
+
+```lua
+-- React to theme changes (internal use)
+table.insert(RvrseUI._themeListeners, function()
+  print("Theme changed!")
+end)
+```
+
+## 🗺 Roadmap
+
+- [ ] Color picker element
+- [ ] Textbox input element
+- [ ] Multi-select dropdown
+- [ ] Persistent settings (save/load to JSON)
+- [ ] Search/filter for sections
+- [ ] Collapsible sections (accordion)
+- [ ] Custom theme builder API
+- [ ] Window resize handles
+- [ ] Notification action buttons
 
 ## 🧾 License
 
 MIT
 
-## 🗺 Roadmap
-
-- [ ] Sliders, color pickers, textbox inputs
-- [ ] Persisted user themes & element states
-- [ ] Built-in layout presets (compact / spacious)
-- [ ] Optional JSON schema for declarative UI
-
 ## 🙌 Credits
 
-Designed and implemented by **Rvrse**.
+**Designed and implemented by Rvrse**
 
-UX/API inspired by Rayfield's mental model, reimagined for custom workflow and lock-group logic.
+UX/API inspired by Rayfield's mental model, redesigned with modern 2025 UI/UX best practices:
+- Glassmorphism from Fluent Design System
+- Spring animations from iOS/Material Design
+- Mobile-first responsive patterns
+- Professional indigo accent palette
+
+---
+
+**RvrseUI v2.0** - Modern. Lightweight. Professional.
