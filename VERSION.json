@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 5,
-    "full": "2.1.5",
+    "patch": 6,
+    "full": "2.1.6",
     "build": "20250930",
-    "hash": "F9D4E7B3",
+    "hash": "A8D3FBC5",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Critical Fixes (Theme, Keybind, Lucide Icons)",
+    "name": "Tab Overflow Fix",
     "codename": "Aurora",
-    "notes": "Fixed theme switching, verified keybind system, added Lucide icon support (80+ icons)"
+    "notes": "Fixed tab bar overflow with scrollable design - tabs now stay within UI bounds"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -35,6 +35,18 @@
     "lucide_icons": true
   },
   "changelog": {
+    "2.1.6": {
+      "date": "2025-09-30",
+      "hash": "A8D3FBC5",
+      "changes": [
+        "Fixed tab bar overflow - converted to ScrollingFrame",
+        "Tabs now scroll horizontally when many tabs are created",
+        "Auto-sizing canvas prevents UI overflow",
+        "Scrollbar styled to match glassmorphic theme",
+        "Smooth scrolling with elastic behavior",
+        "Theme switching now updates scrollbar color"
+      ]
+    },
     "2.1.5": {
       "date": "2025-09-30",
       "hash": "F9D4E7B3",

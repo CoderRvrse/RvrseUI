@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 1,
-	Patch = 5,
+	Patch = 6,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.1.5",
-	Hash = "F9D4E7B3",  -- Release hash for integrity verification
+	Full = "2.1.6",
+	Hash = "A8D3FBC5",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1015,6 +1015,9 @@ function RvrseUI:CreateWindow(cfg)
 		body.BackgroundColor3 = newPal.Card
 		stroke(body, newPal.Border, 1)
 
+		-- Update tab bar scrollbar
+		tabBar.ScrollBarImageColor3 = newPal.Border
+
 		-- Update all tabs (including tab icons)
 		for _, tabData in ipairs(tabs) do
 			tabData.btn.BackgroundColor3 = newPal.Card
@@ -1081,11 +1084,19 @@ function RvrseUI:CreateWindow(cfg)
 		})
 	end)
 
-	-- Tab bar (horizontal)
-	local tabBar = Instance.new("Frame")
+	-- Tab bar (horizontal ScrollingFrame to prevent overflow)
+	local tabBar = Instance.new("ScrollingFrame")
 	tabBar.BackgroundTransparency = 1
+	tabBar.BorderSizePixel = 0
 	tabBar.Position = UDim2.new(0, 12, 0, 60)
 	tabBar.Size = UDim2.new(1, -24, 0, 40)
+	tabBar.CanvasSize = UDim2.new(0, 0, 0, 40)
+	tabBar.AutomaticCanvasSize = Enum.AutomaticSize.X
+	tabBar.ScrollBarThickness = 4
+	tabBar.ScrollBarImageColor3 = pal.Border
+	tabBar.ScrollBarImageTransparency = 0.5
+	tabBar.ScrollingDirection = Enum.ScrollingDirection.X
+	tabBar.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
 	tabBar.Parent = root
 
 	local tabLayout = Instance.new("UIListLayout")

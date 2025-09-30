@@ -1,5 +1,46 @@
 # RvrseUI Release History
 
+## Version 2.1.6 "Aurora" - Tab Overflow Fix
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `A8D3FBC5`
+**Channel**: Stable
+
+### 🔧 Critical Fix
+- **Tab Bar Overflow** - Complete fix for tab overflow when many tabs are created
+  - Converted tab bar Frame to ScrollingFrame
+  - Horizontal scrolling with auto-sizing canvas
+  - Tabs stay within UI bounds regardless of count
+  - Smooth elastic scrolling behavior
+  - Scrollbar styled to match glassmorphic theme (4px thin bar)
+  - Theme switching updates scrollbar color
+  - Touch and mouse wheel support
+
+### 🎨 Visual Improvements
+- Subtle scrollbar (4px thickness, 50% transparency)
+- Scrollbar automatically hides when not needed (ElasticBehavior.WhenScrollable)
+- Consistent theme integration across all UI elements
+
+### 📊 Technical Details
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 1,
+  Patch = 6,
+  Build = "20250930",
+  Full = "2.1.6",
+  Hash = "A8D3FBC5",
+  Channel = "Stable"
+}
+```
+
+### 📥 Download
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+---
+
 ## Version 2.1.5 "Aurora" - Critical Fixes Release
 **Release Date**: September 30, 2025
 **Build**: 20250930
@@ -324,6 +365,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 | Version | Date | Hash | Codename | Key Feature |
 |---------|------|------|----------|-------------|
+| 2.1.6 | 2025-09-30 | A8D3FBC5 | Aurora | Tab Overflow Fix |
 | 2.1.5 | 2025-09-30 | F9D4E7B3 | Aurora | Critical Fixes + Lucide |
 | 2.1.4 | 2025-09-29 | E8B3C9A2 | Aurora | UI Layout Polish |
 | 2.1.3 | 2025-09-29 | D7A2E5F4 | Aurora | Global UI Control |
@@ -348,6 +390,7 @@ print("Channel:", info.Channel)
 ```
 
 ### Expected Hashes
+- **v2.1.6**: `A8D3FBC5`
 - **v2.1.5**: `F9D4E7B3`
 - **v2.1.4**: `E8B3C9A2`
 - **v2.1.3**: `D7A2E5F4`
