@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 1,
-	Patch = 1,
+	Patch = 2,
 	Build = "20250929",  -- YYYYMMDD format
-	Full = "2.1.1",
-	Hash = "B9E4D7F1",  -- Release hash for integrity verification
+	Full = "2.1.2",
+	Hash = "C3F8A6E9",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -730,7 +730,31 @@ function RvrseUI:CreateWindow(cfg)
 
 	closeBtn.MouseButton1Click:Connect(function()
 		Animator:Ripple(closeBtn, 16, 16)
-		root.Visible = false
+
+		-- Fade out animation before destruction
+		Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
+		Animator:Tween(glassOverlay, {BackgroundTransparency = 1}, Animator.Spring.Fast)
+
+		-- Wait for animation then completely destroy everything
+		task.wait(0.3)
+
+		-- Destroy the entire ScreenGui host (removes all UI and connections)
+		if host and host.Parent then
+			host:Destroy()
+		end
+
+		-- Clear all stored references and listeners
+		if RvrseUI.UI._toggleTargets then
+			table.clear(RvrseUI.UI._toggleTargets)
+		end
+		if RvrseUI._lockListeners then
+			table.clear(RvrseUI._lockListeners)
+		end
+		if RvrseUI._themeListeners then
+			table.clear(RvrseUI._themeListeners)
+		end
+
+		print("[RvrseUI] Interface destroyed - No trace remaining")
 	end)
 
 	-- Version badge with hash (bottom left corner)
@@ -892,6 +916,36 @@ function RvrseUI:CreateWindow(cfg)
 	function WindowAPI:SetTheme(mode)
 		Theme:Switch(mode)
 		pal = Theme:Get()
+	end
+
+	-- Destroy method - completely removes UI and cleans up all traces
+	function WindowAPI:Destroy()
+		-- Fade out animation
+		Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
+		Animator:Tween(chip, {BackgroundTransparency = 1}, Animator.Spring.Fast)
+		task.wait(0.3)
+
+		-- Destroy the entire ScreenGui host
+		if host and host.Parent then
+			host:Destroy()
+		end
+
+		-- Clear all stored references
+		if RvrseUI.UI._toggleTargets then
+			table.clear(RvrseUI.UI._toggleTargets)
+		end
+
+		-- Clear lock listeners
+		if RvrseUI._lockListeners then
+			table.clear(RvrseUI._lockListeners)
+		end
+
+		-- Clear theme listeners
+		if RvrseUI._themeListeners then
+			table.clear(RvrseUI._themeListeners)
+		end
+
+		print("[RvrseUI] Interface destroyed - All traces removed")
 	end
 
 	function WindowAPI:CreateTab(t)

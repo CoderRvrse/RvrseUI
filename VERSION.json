@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 1,
-    "full": "2.1.1",
+    "patch": 2,
+    "full": "2.1.2",
     "build": "20250929",
-    "hash": "B9E4D7F1",
+    "hash": "C3F8A6E9",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-29",
-    "name": "UI Control Refinements",
+    "name": "Complete Destruction System",
     "codename": "Aurora",
-    "notes": "Close button, repositioned version badge, improved UI controls"
+    "notes": "Close button destroys UI completely with no trace, cleanup all connections and listeners"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -34,6 +34,18 @@
     "drag_to_move": true
   },
   "changelog": {
+    "2.1.2": {
+      "date": "2025-09-29",
+      "hash": "C3F8A6E9",
+      "changes": [
+        "Close button now completely destroys UI (host:Destroy())",
+        "Added Window:Destroy() method for programmatic cleanup",
+        "Clears all toggle targets, lock listeners, and theme listeners",
+        "Fade out animation before destruction",
+        "Removes all traces - ScreenGui, connections, and references",
+        "Console log confirmation when destroyed"
+      ]
+    },
     "2.1.1": {
       "date": "2025-09-29",
       "hash": "B9E4D7F1",

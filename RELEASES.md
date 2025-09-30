@@ -1,5 +1,50 @@
 # RvrseUI Release History
 
+## Version 2.1.2 "Aurora" - Complete Destruction System
+**Release Date**: September 29, 2025
+**Build**: 20250929
+**Hash**: `C3F8A6E9`
+**Channel**: Stable
+
+### 🗑️ Major Feature: Complete UI Cleanup
+- **Close Button Destruction**: Clicking X button completely destroys the ScreenGui
+- **Window:Destroy() Method**: Programmatically destroy UI from scripts
+- **Full Cleanup**: Removes all connections, listeners, and references
+- **No Trace Remaining**: ScreenGui, toggle targets, lock listeners, theme listeners all cleared
+- **Smooth Fade Out**: Beautiful animation before destruction
+- **Console Confirmation**: Logs destruction confirmation message
+
+### 🧹 What Gets Cleaned Up
+- ScreenGui host (all UI elements)
+- Toggle target references
+- Lock group listeners
+- Theme change listeners
+- All event connections
+
+### 📊 Technical Details
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 1,
+  Patch = 2,
+  Build = "20250929",
+  Full = "2.1.2",
+  Hash = "C3F8A6E9",
+  Channel = "Stable"
+}
+
+-- Destroy UI completely
+Window:Destroy()
+-- Output: [RvrseUI] Interface destroyed - All traces removed
+```
+
+### 📥 Download
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+---
+
 ## Version 2.1.1 "Aurora" - UI Control Refinements
 **Release Date**: September 29, 2025
 **Build**: 20250929
@@ -123,6 +168,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 | Version | Date | Hash | Codename | Key Feature |
 |---------|------|------|----------|-------------|
+| 2.1.2 | 2025-09-29 | C3F8A6E9 | Aurora | Complete Destruction |
 | 2.1.1 | 2025-09-29 | B9E4D7F1 | Aurora | UI Controls |
 | 2.1.0 | 2025-01-29 | A7F3E8C2 | Aurora | Notification Controls |
 | 2.0.0 | 2025-01-28 | F36F3A8 | Phoenix | Modern Redesign |
@@ -143,6 +189,7 @@ print("Channel:", info.Channel)
 ```
 
 ### Expected Hashes
+- **v2.1.2**: `C3F8A6E9`
 - **v2.1.1**: `B9E4D7F1`
 - **v2.1.0**: `A7F3E8C2`
 - **v2.0.0**: `F36F3A8`

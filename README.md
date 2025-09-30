@@ -9,11 +9,14 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 ## ✨ Features
 
 ### 🔔 NEW in v2.1: Revolutionary Controls
+- **Close Button**: ✕ Professional close button in top right - completely destroys UI with no trace
 - **Notification Bell Toggle**: 🔔/🔕 Professional 50x20px pill in header for instant mute/unmute
 - **Mini Theme Toggle**: 🌙/🌞 Switch between Dark/Light themes with one click
+- **Version Badge**: Bottom left corner badge showing version info (clickable for details)
 - **Professional Tooltips**: Hover feedback system for all header controls
 - **Glowing Animations**: Pulsing glow effects on active notification bell
 - **Enhanced Glass**: True 95% transparency with white tinting and edge shine
+- **Complete Cleanup**: Close button and `Destroy()` method remove all UI elements, connections, and listeners
 
 ### 🎨 Modern Design
 - **True Glassmorphism**: 93-97% transparent elements with professional glass appearance
@@ -397,6 +400,7 @@ local Window = RvrseUI:CreateWindow({
 - `Window:Show()` - Show window
 - `Window:Hide()` - Hide window
 - `Window:SetTheme("Dark"/"Light")` - Switch theme at runtime
+- `Window:Destroy()` - **Completely destroy UI and remove all traces** (cleans up ScreenGui, connections, listeners)
 - `Window:CreateTab({ Title: string, Icon: string? })` → Tab
 
 ## 🗂 Tabs & Sections
