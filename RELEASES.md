@@ -1,5 +1,119 @@
 # RvrseUI Release History
 
+## Version 2.2.2 "Nexus Pro" - Dynamic UI Control
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `4DD9E8A6`
+**Channel**: Stable
+
+### 🎯 Enhancement Release - Complete Dynamic Control
+
+#### New Methods Added
+1. **Element:SetVisible(bool)** - Added to ALL 12 elements
+   - Button, Toggle, Dropdown, Slider, Keybind
+   - TextBox, ColorPicker
+   - Label, Paragraph, Divider
+   - Programmatic show/hide control for every UI element
+
+2. **Notification Priority System**
+   ```lua
+   RvrseUI:Notify({
+     Title = "Critical Alert",
+     Message = "Urgent issue detected",
+     Priority = "critical",  -- critical, high, normal (default), low
+     Type = "error",
+     Duration = 5
+   })
+   ```
+   - Priority levels: `critical`, `high`, `normal` (default), `low`
+   - Higher priority notifications appear at bottom (most visible position)
+   - Uses LayoutOrder for proper stacking
+
+3. **Section:Update(title)** - Change section headers dynamically
+   ```lua
+   local MySection = Tab:CreateSection("Initial Title")
+   MySection:Update("New Title")
+   ```
+
+4. **Section:SetVisible(visible)** - Hide/show entire sections
+   ```lua
+   MySection:SetVisible(false)  -- Hide section
+   MySection:SetVisible(true)   -- Show section
+   ```
+
+5. **Tab:SetIcon(icon)** - Change tab icons at runtime
+   ```lua
+   local MyTab = Window:CreateTab({ Title = "Main", Icon = "home" })
+   MyTab:SetIcon("settings")  -- Change to settings icon
+   MyTab:SetIcon("trophy")    -- Change to trophy icon
+   ```
+
+6. **Window:SetIcon(icon)** - Change window icon at runtime
+   ```lua
+   Window:SetIcon("game")
+   Window:SetIcon("trophy")
+   ```
+
+### 📋 Complete API Enhancement Example
+```lua
+-- Create elements
+local MySection = Tab:CreateSection("Player Features")
+local SpeedToggle = MySection:CreateToggle({ Text = "Speed Boost" })
+
+-- Dynamic visibility control
+SpeedToggle:SetVisible(false)  -- Hide element
+task.wait(2)
+SpeedToggle:SetVisible(true)   -- Show element
+
+-- Dynamic section control
+MySection:Update("Advanced Player Features")  -- Update title
+MySection:SetVisible(false)  -- Hide entire section
+
+-- Priority notifications
+RvrseUI:Notify({
+  Title = "System Critical",
+  Priority = "critical",
+  Type = "error",
+  Duration = 10
+})
+```
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 2,
+  Patch = 2,
+  Full = "2.2.2",
+  Hash = "4DD9E8A6"
+}
+```
+
+---
+
+## Version 2.2.1 "Mobile Optimize" - Multi-Device Enhancement
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `3BC2BDD5`
+**Channel**: Stable
+
+### 📱 Mobile Notification Improvements
+- Reduced notification width from 340px to 300px for small screens
+- Adjusted padding from -16 to -8 for better mobile layout
+- Enhanced compatibility across all device sizes
+
+---
+
+## Version 2.2.0 "Nexus" - Complete Element System
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `2A68C9C3`
+**Channel**: Stable
+
+### 🎉 MAJOR RELEASE - All 12 Elements Implemented
+
+---
+
 ## Version 2.1.7 "Aurora" - Unicode Icon System
 **Release Date**: September 30, 2025
 **Build**: 20250930

@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 2,
-    "patch": 0,
-    "full": "2.2.0",
+    "patch": 2,
+    "full": "2.2.2",
     "build": "20250930",
-    "hash": "2A68C9C3",
+    "hash": "4DD9E8A6",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Complete Element System",
-    "codename": "Nexus",
-    "notes": "ALL elements implemented - Label, Paragraph, Divider, TextBox, ColorPicker + Flags system + CurrentValue properties"
+    "name": "Dynamic UI Control",
+    "codename": "Nexus Pro",
+    "notes": "Enhanced element control with SetVisible(), notification priority, and dynamic UI updates"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -37,6 +37,32 @@
     "complete_elements": true
   },
   "changelog": {
+    "2.2.2": {
+      "date": "2025-09-30",
+      "hash": "4DD9E8A6",
+      "changes": [
+        "🎯 ENHANCEMENT RELEASE - Dynamic UI Control",
+        "Added Element:SetVisible(bool) to ALL 12 elements",
+        "Added notification Priority system (critical/high/normal/low)",
+        "Added Section:Update(title) - dynamically change section headers",
+        "Added Section:SetVisible(visible) - hide/show entire sections",
+        "Added Tab:SetIcon(icon) - change tab icons at runtime",
+        "Added Window:SetIcon(icon) - change window icon at runtime",
+        "All elements now support programmatic visibility control",
+        "Priority notifications stack correctly (critical on bottom = most visible)",
+        "Enhanced dynamic UI manipulation capabilities"
+      ]
+    },
+    "2.2.1": {
+      "date": "2025-09-30",
+      "hash": "3BC2BDD5",
+      "changes": [
+        "📱 Mobile notification improvement",
+        "Reduced notification width from 340px to 300px for small screens",
+        "Adjusted padding from -16 to -8 for better mobile layout",
+        "Enhanced multi-device compatibility"
+      ]
+    },
     "2.2.0": {
       "date": "2025-09-30",
       "hash": "2A68C9C3",

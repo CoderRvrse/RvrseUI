@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 2,
-	Patch = 1,
+	Patch = 2,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.2.1",
-	Hash = "3BC2BDD5",  -- Release hash for integrity verification
+	Full = "2.2.2",
+	Hash = "4DD9E8A6",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -645,6 +645,11 @@ function RvrseUI:Notify(opt)
 	card.Parent = notifyRoot
 	corner(card, 12)
 	stroke(card, pal.Border, 1)
+
+	-- Priority system: Higher priority = lower LayoutOrder = appears at bottom (most visible)
+	-- Priority levels: "critical" = 1, "high" = 2, "normal" = 3 (default), "low" = 4
+	local priorityMap = { critical = 1, high = 2, normal = 3, low = 4 }
+	card.LayoutOrder = priorityMap[opt.Priority] or 3
 
 	-- Accent stripe
 	local typeColors = {
@@ -1295,6 +1300,39 @@ function RvrseUI:CreateWindow(cfg)
 	function WindowAPI:Hide() setHidden(true) end
 	-- SetTheme removed - theme switching is now exclusively controlled by the topbar pill toggle
 
+	-- SetIcon method - dynamically change window icon
+	function WindowAPI:SetIcon(newIcon)
+		if not newIcon then return end
+
+		-- Clear existing icon
+		for _, child in ipairs(iconHolder:GetChildren()) do
+			if child:IsA("ImageLabel") or child:IsA("TextLabel") then
+				child:Destroy()
+			end
+		end
+
+		local iconAsset, iconType = resolveIcon(newIcon)
+
+		if iconType == "image" then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.Image = iconAsset
+			img.Size = UDim2.new(1, 0, 1, 0)
+			img.ImageColor3 = pal.Accent
+			img.Parent = iconHolder
+			corner(img, 8)
+		elseif iconType == "text" then
+			local iconTxt = Instance.new("TextLabel")
+			iconTxt.BackgroundTransparency = 1
+			iconTxt.Font = Enum.Font.GothamBold
+			iconTxt.TextSize = 20
+			iconTxt.TextColor3 = pal.Accent
+			iconTxt.Text = iconAsset
+			iconTxt.Size = UDim2.new(1, 0, 1, 0)
+			iconTxt.Parent = iconHolder
+		end
+	end
+
 	-- Destroy method - completely removes UI and cleans up all traces
 	function WindowAPI:Destroy()
 		-- Fade out animation
@@ -1433,6 +1471,44 @@ function RvrseUI:CreateWindow(cfg)
 
 		local TabAPI = {}
 
+		-- Tab SetIcon Method
+		function TabAPI:SetIcon(newIcon)
+			if not newIcon then return end
+
+			local iconAsset, iconType = resolveIcon(newIcon)
+
+			-- Remove old icon if exists
+			if tabIcon and tabIcon.Parent then
+				tabIcon:Destroy()
+				tabIcon = nil
+			end
+
+			if iconType == "image" then
+				-- Create new image icon
+				tabIcon = Instance.new("ImageLabel")
+				tabIcon.BackgroundTransparency = 1
+				tabIcon.Image = iconAsset
+				tabIcon.Size = UDim2.new(0, 16, 0, 16)
+				tabIcon.Position = UDim2.new(0, 8, 0.5, -8)
+				tabIcon.ImageColor3 = pal2.TextSub
+				tabIcon.Parent = tabBtn
+
+				tabBtn.Text = "     " .. tabText
+				tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+			elseif iconType == "text" then
+				-- Use emoji/text icon inline
+				tabBtn.Text = iconAsset .. " " .. tabText
+			end
+
+			-- Update the tabs table reference
+			for i, tabData in ipairs(tabs) do
+				if tabData.btn == tabBtn then
+					tabs[i].icon = tabIcon
+					break
+				end
+			end
+		end
+
 		function TabAPI:CreateSection(sectionTitle)
 			local pal3 = Theme:Get()
 
@@ -1521,6 +1597,9 @@ function RvrseUI:CreateWindow(cfg)
 						btn.Text = txt
 						currentText = txt
 					end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
+					end,
 					CurrentValue = currentText
 				}
 
@@ -1607,6 +1686,9 @@ function RvrseUI:CreateWindow(cfg)
 					end,
 					Get = function() return state end,
 					Refresh = visual,
+					SetVisible = function(_, visible)
+						f.Visible = visible
+					end,
 					CurrentValue = state
 				}
 
@@ -1705,6 +1787,9 @@ function RvrseUI:CreateWindow(cfg)
 						end
 						visual()
 					end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
+					end,
 					CurrentOption = values[idx]
 				}
 
@@ -1794,6 +1879,9 @@ function RvrseUI:CreateWindow(cfg)
 						if o.OnChanged and key then o.OnChanged(key) end
 					end,
 					Get = function() return currentKey end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
+					end,
 					CurrentKeybind = currentKey
 				}
 
@@ -1899,6 +1987,9 @@ function RvrseUI:CreateWindow(cfg)
 						thumb.Position = UDim2.new(relativeX, 0, 0.5, 0)
 					end,
 					Get = function() return value end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
+					end,
 					CurrentValue = value
 				}
 
@@ -1930,6 +2021,9 @@ function RvrseUI:CreateWindow(cfg)
 					end,
 					Get = function()
 						return lbl.Text
+					end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
 					end,
 					CurrentValue = lbl.Text
 				}
@@ -1972,6 +2066,9 @@ function RvrseUI:CreateWindow(cfg)
 					Get = function()
 						return lbl.Text
 					end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
+					end,
 					CurrentValue = text
 				}
 
@@ -1998,6 +2095,9 @@ function RvrseUI:CreateWindow(cfg)
 				return {
 					SetColor = function(_, color)
 						line.BackgroundColor3 = color
+					end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
 					end
 				}
 			end
@@ -2064,6 +2164,9 @@ function RvrseUI:CreateWindow(cfg)
 					end,
 					Get = function()
 						return currentValue
+					end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
 					end,
 					CurrentValue = currentValue
 				}
@@ -2149,6 +2252,9 @@ function RvrseUI:CreateWindow(cfg)
 					Get = function()
 						return currentColor
 					end,
+					SetVisible = function(_, visible)
+						f.Visible = visible
+					end,
 					CurrentValue = currentColor
 				}
 
@@ -2157,6 +2263,17 @@ function RvrseUI:CreateWindow(cfg)
 				end
 
 				return colorpickerAPI
+			end
+
+			-- Section Update Method
+			function SectionAPI:Update(newTitle)
+				sectionLabel.Text = newTitle or sectionTitle
+			end
+
+			-- Section SetVisible Method
+			function SectionAPI:SetVisible(visible)
+				sectionHeader.Visible = visible
+				container.Visible = visible
 			end
 
 			return SectionAPI
