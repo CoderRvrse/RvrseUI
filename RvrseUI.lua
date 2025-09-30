@@ -16,6 +16,13 @@ local RvrseUI = {}
 RvrseUI.DEBUG = false
 RvrseUI.Version = "2.0.0"
 
+-- Debug print helper (only prints when DEBUG = true)
+local function dprintf(...)
+	if RvrseUI.DEBUG then
+		print("[RvrseUI]", ...)
+	end
+end
+
 -- =========================
 -- Modern Theme System
 -- =========================
@@ -161,8 +168,8 @@ end
 -- =========================
 local function coerceKeycode(k)
 	if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
-	if typeof(k) == "string" then
-		local up = k:upper()
+	if typeof(k) == "string" and #k > 0 then
+		local up = k:upper():gsub("%s", "")
 		if Enum.KeyCode[up] then return Enum.KeyCode[up] end
 	end
 	return Enum.KeyCode.K
@@ -966,7 +973,7 @@ function RvrseUI:CreateWindow(cfg)
 				btn.Size = UDim2.new(0, 130, 0, 32)
 				btn.BackgroundColor3 = pal3.Card
 				btn.BorderSizePixel = 0
-				btn.Font = Enum.Font.GothamMono
+				btn.Font = Enum.Font.Code
 				btn.TextSize = 12
 				btn.TextColor3 = pal3.Text
 				btn.Text = (o.Default and o.Default.Name) or "Set Key"
