@@ -699,22 +699,56 @@ function RvrseUI:CreateWindow(cfg)
 		})
 	end)
 
-	-- Version badge with hash
+	-- Close button (top right)
+	local closeBtn = Instance.new("TextButton")
+	closeBtn.Name = "CloseButton"
+	closeBtn.AnchorPoint = Vector2.new(1, 0.5)
+	closeBtn.Position = UDim2.new(1, -16, 0.5, 0)
+	closeBtn.Size = UDim2.new(0, 32, 0, 32)
+	closeBtn.BackgroundColor3 = pal.Error
+	closeBtn.BackgroundTransparency = 0.9
+	closeBtn.BorderSizePixel = 0
+	closeBtn.Font = Enum.Font.GothamBold
+	closeBtn.TextSize = 16
+	closeBtn.Text = "✕"
+	closeBtn.TextColor3 = pal.Error
+	closeBtn.AutoButtonColor = false
+	closeBtn.Parent = header
+	corner(closeBtn, 8)
+	stroke(closeBtn, pal.Error, 1)
+
+	local closeTooltip = createTooltip(closeBtn, "Close UI")
+
+	closeBtn.MouseEnter:Connect(function()
+		closeTooltip.Visible = true
+		Animator:Tween(closeBtn, {BackgroundTransparency = 0.7}, Animator.Spring.Fast)
+	end)
+	closeBtn.MouseLeave:Connect(function()
+		closeTooltip.Visible = false
+		Animator:Tween(closeBtn, {BackgroundTransparency = 0.9}, Animator.Spring.Fast)
+	end)
+
+	closeBtn.MouseButton1Click:Connect(function()
+		Animator:Ripple(closeBtn, 16, 16)
+		root.Visible = false
+	end)
+
+	-- Version badge with hash (bottom left corner)
 	local versionBadge = Instance.new("TextButton")
 	versionBadge.Name = "VersionBadge"
 	versionBadge.BackgroundColor3 = pal.Accent
 	versionBadge.BackgroundTransparency = 0.9
-	versionBadge.Position = UDim2.new(1, -132, 0.5, -10)
-	versionBadge.Size = UDim2.new(0, 50, 0, 20)
+	versionBadge.Position = UDim2.new(0, 12, 1, -32)
+	versionBadge.Size = UDim2.new(0, 70, 0, 24)
 	versionBadge.Font = Enum.Font.GothamMedium
 	versionBadge.TextSize = 10
 	versionBadge.TextColor3 = pal.Accent
 	versionBadge.Text = "v" .. RvrseUI.Version.Full
 	versionBadge.AutoButtonColor = false
-	versionBadge.Parent = header
-	corner(versionBadge, 6)
+	versionBadge.Parent = root
+	corner(versionBadge, 8)
+	stroke(versionBadge, pal.Accent, 1)
 
-	-- Version info tooltip with hash
 	local versionTooltip = createTooltip(versionBadge, string.format(
 		"Version: %s | Build: %s | Hash: %s | Channel: %s",
 		RvrseUI.Version.Full,
