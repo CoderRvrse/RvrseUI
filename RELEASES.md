@@ -1,5 +1,175 @@
 # RvrseUI Release History
 
+## Version 2.3.5 "Buttery Smooth" - Premium Slider UX
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `D4F7B9E2`
+**Channel**: Stable
+
+### 🎨 UX Overhaul - Premium Slider Feel
+
+The slider has been completely overhauled with premium interactions that feel **buttery smooth** and responsive. Every interaction now provides satisfying visual and tactile feedback.
+
+---
+
+#### ✨ Grow-on-Grab Animation
+
+The thumb now **grows when you grab it**, providing immediate visual feedback that you're in control:
+
+**Sizes**:
+- **Default**: 18px (resting state)
+- **Hover**: 20px (preview of grab)
+- **Dragging**: 24px (active, grabbed state)
+
+**Springs Used**:
+- Grab: `Animator.Spring.Snappy` (0.2s Back) - punchy, responsive
+- Release: `Animator.Spring.Bounce` (0.4s Elastic) - satisfying bounce back
+
+```lua
+-- When grabbed
+Animator:Tween(thumb, {Size = UDim2.new(0, 24, 0, 24)}, Animator.Spring.Snappy)
+
+-- When released
+local targetSize = hovering and 20 or 18
+Animator:Tween(thumb, {Size = UDim2.new(0, targetSize, 0, targetSize)}, Animator.Spring.Bounce)
+```
+
+---
+
+#### ✨ Glow Effect on Active
+
+When dragging, an **accent-colored glow ring** appears around the thumb:
+
+**Glow Ring**:
+- Color: Accent theme color
+- Thickness: 3px stroke
+- Transparency: 30%
+- Animates in with `Animator.Spring.Smooth`
+
+**Behavior**:
+- Appears instantly when grab starts
+- Fades out when released
+- Subtle 1px glow remains on hover
+
+```lua
+-- Glow stroke animation
+glowStroke.Color = pal3.Accent
+glowStroke.Thickness = 0  -- Hidden by default
+
+-- On grab
+Animator:Tween(glowStroke, {Thickness = 3}, Animator.Spring.Smooth)
+
+-- On release
+Animator:Tween(glowStroke, {Thickness = hovering and 1 or 0}, Animator.Spring.Fast)
+```
+
+---
+
+#### 🎯 Enhanced Interaction States
+
+**1. Resting State** (18px):
+- Subtle shadow (40% transparency, 4px blur)
+- Clean white thumb on track
+
+**2. Hover State** (20px):
+- Thumb grows slightly
+- Previews the grab interaction
+- Prepares user for click
+
+**3. Dragging State** (24px):
+- Thumb at maximum size
+- Accent glow ring at 3px
+- Buttery smooth movement
+
+**4. Release State**:
+- Bouncy shrink animation
+- Returns to hover size if still hovering
+- Glow fades out smoothly
+
+---
+
+#### 🎨 Visual Improvements
+
+**Track**:
+- Height: 6px → **8px** (better hit area, easier to click)
+- Corner radius: 3px → **4px** (matches new proportions)
+
+**Thumb**:
+- Default size: 16px → **18px** (more substantial)
+- Corner radius: 8px → **9px** (perfect circle at all sizes)
+- Shadow: 50% → **40%** transparency, 3px → **4px** size (deeper shadow)
+
+**Fill**:
+- Gradient remains (Accent → AccentHover)
+- Animates with `Animator.Spring.Smooth` (was Fast)
+- Buttery smooth fill animation as you drag
+
+---
+
+#### ⚡ Performance Optimizations
+
+**Hover State Tracking**:
+```lua
+local hovering = false
+
+track.MouseEnter:Connect(function()
+  hovering = true
+  -- Grow to 20px
+end)
+
+track.MouseLeave:Connect(function()
+  if dragging then return end  -- Don't shrink if dragging!
+  hovering = false
+  -- Shrink to 18px
+end)
+```
+
+**Smart Release Sizing**:
+```lua
+-- Release returns to hover size if mouse still over track
+local targetSize = hovering and 20 or 18
+```
+
+This prevents jarring size changes if you release while still hovering.
+
+---
+
+#### 🎯 Animation Timeline
+
+**User Hovers**:
+1. Thumb: 18px → 20px (`Fast` 0.15s)
+2. Glow ring: 18px → 20px (`Fast` 0.15s)
+
+**User Grabs**:
+1. Thumb: 20px → 24px (`Snappy` 0.2s with Back easing)
+2. Glow: 0px → 3px stroke (`Smooth` 0.3s)
+3. Value updates as user drags
+
+**User Drags**:
+1. Thumb position: Follows mouse (`Snappy` 0.2s)
+2. Fill: Expands/shrinks (`Smooth` 0.3s)
+3. Glow: Remains at 3px
+
+**User Releases**:
+1. Thumb: 24px → 20px or 18px (`Bounce` 0.4s Elastic)
+2. Glow: 3px → 1px or 0px (`Fast` 0.15s)
+3. Satisfying bounce-back feel
+
+---
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 3,
+  Patch = 5,
+  Full = "2.3.5",
+  Hash = "D4F7B9E2"
+}
+```
+
+---
+
 ## Version 2.3.4 "Clean Layout" - Tab Bar Spacing Fix
 **Release Date**: September 30, 2025
 **Build**: 20250930

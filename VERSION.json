@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 3,
-    "patch": 4,
-    "full": "2.3.4",
+    "patch": 5,
+    "full": "2.3.5",
     "build": "20250930",
-    "hash": "C7E9F2A5",
+    "hash": "D4F7B9E2",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Tab Bar Spacing Fix",
-    "codename": "Clean Layout",
-    "notes": "Tab bar now has proper left margin to create clear visual space above version badge"
+    "name": "Premium Slider UX",
+    "codename": "Buttery Smooth",
+    "notes": "Slider now has premium feel with grow-on-grab, glow effects, smooth animations, and enhanced interaction feedback"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,25 @@
     "auto_save": true
   },
   "changelog": {
+    "2.3.5": {
+      "date": "2025-09-30",
+      "hash": "D4F7B9E2",
+      "changes": [
+        "🎨 UX OVERHAUL - Premium Slider Feel",
+        "✨ GROW ON GRAB: Thumb expands 18px → 24px when dragging",
+        "✨ HOVER PREVIEW: Thumb grows to 20px on hover (previews grab)",
+        "✨ GLOW EFFECT: Accent-colored ring appears when grabbed (3px stroke)",
+        "✨ SMOOTH RELEASE: Bouncy animation on release (Bounce spring)",
+        "🎨 IMPROVED: Track height 6px → 8px for better hit area",
+        "🎨 IMPROVED: Thumb default size 16px → 18px (more substantial)",
+        "🎨 IMPROVED: Enhanced shadow (0.5 → 0.4 transparency, 3px → 4px size)",
+        "🎨 IMPROVED: Buttery smooth animations (Smooth fill, Snappy thumb)",
+        "🎨 IMPROVED: Corner radius adjustments for premium look",
+        "⚡ PERFORMANCE: Hover state tracking prevents unnecessary animations",
+        "⚡ PERFORMANCE: Glow ring only animates when needed",
+        "🎯 All slider interactions now feel premium and responsive"
+      ]
+    },
     "2.3.4": {
       "date": "2025-09-30",
       "hash": "C7E9F2A5",
