@@ -35,6 +35,15 @@ Thumbs.db
 # Test files
 test_*
 *_test.lua
+TEST_FIXES.lua
+
+# Anti-cheat testing files (DO NOT COMMIT - keeps our defensive security private)
+AntiCheat_*.lua
+AntiCheat_*.md
+ANTICHEAT_*.md
+*anticheat*
+*anti-cheat*
+*AntiCheat*
 
 # Local configuration
 config.local.lua
