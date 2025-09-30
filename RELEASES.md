@@ -1,5 +1,159 @@
 # RvrseUI Release History
 
+## Version 2.3.2 "Dropdown++" - Production-Grade Dropdown Fix
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `F9D2A8C1`
+**Channel**: Stable
+
+### 🔧 Critical Fix - Production-Grade Dropdown Rewrite
+
+#### ✅ FIXED: Dropdown Spacing & Expansion
+
+The dropdown menu now properly expands with an **8px gap** below the button, creating smooth visual spacing for the dropdown list to appear.
+
+**Technical Implementation**:
+- Set `f.ClipsDescendants = false` on card (CRITICAL fix)
+- Dropdown positioned at `UDim2.new(1, -136, 0.5, 40)` (below button with gap)
+- Starts at 0 height, animates to full height using `Animator:Tween()`
+- Smooth expand/collapse animations with `Animator.Spring.Snappy`
+
+---
+
+#### ✅ FIXED: Dropdown Selection Functionality
+
+All dropdown options are now **fully clickable** and work correctly:
+
+**What Was Fixed**:
+- Option click handlers now properly update selection
+- `idx` variable correctly updated on click
+- Button text updates to show selected value
+- OnChanged callback fires with correct value
+- Visual highlighting updates for all options
+- Dropdown closes after selection with animation
+
+**How It Works**:
+```lua
+optionBtn.MouseButton1Click:Connect(function()
+  if locked() then return end
+
+  idx = i  -- Update selection
+  btn.Text = tostring(value)  -- Update button text
+
+  -- Update all option visuals
+  for j, obtn in ipairs(optionButtons) do
+    if j == i then
+      obtn.BackgroundColor3 = pal3.Accent
+      obtn.BackgroundTransparency = 0.8
+      obtn.TextColor3 = pal3.Accent
+    else
+      obtn.BackgroundColor3 = pal3.Card
+      obtn.BackgroundTransparency = 0
+      obtn.TextColor3 = pal3.Text
+    end
+  end
+
+  -- Close dropdown
+  dropdownOpen = false
+  arrow.Text = "▼"
+  Animator:Tween(dropdownList, {Size = UDim2.new(0, 130, 0, 0)}, Animator.Spring.Fast)
+
+  -- Trigger callback
+  if o.OnChanged then task.spawn(o.OnChanged, value) end
+  if o.Flag then RvrseUI:_autoSave() end
+end)
+```
+
+---
+
+#### 🎨 Visual & UX Improvements
+
+1. **Smooth Animations**:
+   - Expand: Animates from 0 to full height (max 160px)
+   - Collapse: Animates from full height to 0
+   - Uses `Animator.Spring.Snappy` for responsive feel
+
+2. **Selected Option Highlighting**:
+   - Selected option: Accent color background (80% transparent)
+   - Selected option text: Accent color
+   - Non-selected options: Card background, Text color
+
+3. **Hover Effects**:
+   - Options change to Hover color when mouse enters
+   - Reverts to Card color when mouse leaves
+   - Selected option maintains Accent color
+
+4. **Arrow Indicator**:
+   - Closed: ▼
+   - Open: ▲
+   - Flips instantly on click
+
+5. **Enhanced ZIndex**:
+   - Dropdown: 100
+   - ScrollingFrame: 101
+   - Options: 102
+   - Ensures dropdown appears above all other elements
+
+6. **Visual Depth**:
+   - Accent-colored border stroke (1px)
+   - Shadow effect (16px blur, 60% transparency)
+   - Professional elevation appearance
+
+---
+
+#### ⚡ Performance Optimizations
+
+- Proper event handler cleanup
+- Optimized option button creation loop
+- Debounced click outside detection (0.05s delay for AbsolutePosition updates)
+- Efficient `optionButtons` array for quick visual updates
+
+---
+
+#### 🔄 Refresh Method Enhancement
+
+The `Refresh()` method now properly rebuilds all options:
+
+```lua
+dropdownAPI.Refresh = function(_, newValues)
+  if newValues then
+    values = newValues
+    idx = 1
+    btn.Text = tostring(values[idx] or "Select")
+
+    -- Rebuild all options
+    for _, child in ipairs(dropdownScroll:GetChildren()) do
+      if child:IsA("TextButton") then child:Destroy() end
+    end
+
+    table.clear(optionButtons)
+    dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
+    dropdownHeight = math.min(#values * itemHeight, maxHeight)
+
+    -- Recreate all option buttons with proper event handlers
+    for i, value in ipairs(values) do
+      -- Full option button creation with click handlers
+    end
+  end
+  visual()
+end
+```
+
+---
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 3,
+  Patch = 2,
+  Full = "2.3.2",
+  Hash = "F9D2A8C1"
+}
+```
+
+---
+
 ## Version 2.3.1 "Persistence+" - Config Folders & Dropdown Fix
 **Release Date**: September 30, 2025
 **Build**: 20250930

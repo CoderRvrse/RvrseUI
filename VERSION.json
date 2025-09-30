@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 3,
-    "patch": 1,
-    "full": "2.3.1",
+    "patch": 2,
+    "full": "2.3.2",
     "build": "20250930",
-    "hash": "8A4F6D3E",
+    "hash": "F9D2A8C1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Configuration Folders & Dropdown Fix",
-    "codename": "Persistence+",
-    "notes": "Enhanced config with folder support, fixed dropdown menu, improved version badge"
+    "name": "Dropdown Production Fix",
+    "codename": "Dropdown++",
+    "notes": "Complete dropdown rewrite with smooth animations, proper spacing, and bulletproof click handling"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,28 @@
     "auto_save": true
   },
   "changelog": {
+    "2.3.2": {
+      "date": "2025-09-30",
+      "hash": "F9D2A8C1",
+      "changes": [
+        "🔧 CRITICAL FIX - Production-Grade Dropdown Rewrite",
+        "✅ FIXED: Dropdown menu now expands with proper spacing (8px gap below button)",
+        "✅ FIXED: Dropdown selections now work correctly - all options clickable",
+        "✅ FIXED: Card clipping disabled (f.ClipsDescendants = false) for dropdown overflow",
+        "🎨 IMPROVED: Smooth expand/collapse animations using Animator:Tween()",
+        "🎨 IMPROVED: Dropdown starts at 0 height and animates to full height",
+        "🎨 IMPROVED: Selected options highlighted with Accent color (80% transparency)",
+        "🎨 IMPROVED: Hover effects on all dropdown options",
+        "🎨 IMPROVED: Arrow indicator flips (▼/▲) when opening/closing",
+        "🎨 IMPROVED: Click outside detection with proper delay for AbsolutePosition updates",
+        "🎨 IMPROVED: Enhanced ZIndex management (dropdown at 100, scroll at 101, options at 102)",
+        "🎨 IMPROVED: Accent-colored border stroke on dropdown list",
+        "🎨 IMPROVED: Shadow effect on dropdown for depth perception",
+        "🎨 IMPROVED: Refresh() method now properly rebuilds all options with animations",
+        "⚡ PERFORMANCE: Optimized option button creation and event handling",
+        "✨ All dropdown issues resolved - production-grade implementation complete"
+      ]
+    },
     "2.3.1": {
       "date": "2025-09-30",
       "hash": "8A4F6D3E",
