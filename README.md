@@ -346,6 +346,28 @@ Section:CreateToggle({
     print("Toggle:", enabled)
   end
 })
+
+-- Global UI control examples
+Section:CreateButton({
+  Text = "Hide UI",
+  Callback = function()
+    RvrseUI:SetVisibility(false)
+  end
+})
+
+Section:CreateButton({
+  Text = "Toggle UI",
+  Callback = function()
+    RvrseUI:ToggleVisibility()
+  end
+})
+
+Section:CreateButton({
+  Text = "Destroy UI",
+  Callback = function()
+    RvrseUI:Destroy()  -- Completely removes all UI
+  end
+})
 ```
 
 ## 📦 Installation
@@ -400,8 +422,29 @@ local Window = RvrseUI:CreateWindow({
 - `Window:Show()` - Show window
 - `Window:Hide()` - Hide window
 - `Window:SetTheme("Dark"/"Light")` - Switch theme at runtime
-- `Window:Destroy()` - **Completely destroy UI and remove all traces** (cleans up ScreenGui, connections, listeners)
+- `Window:Destroy()` - **Completely destroy THIS window** (cleans up ScreenGui, connections, listeners)
 - `Window:CreateTab({ Title: string, Icon: string? })` → Tab
+
+### Global RvrseUI Methods
+
+These methods work across ALL windows:
+
+```lua
+-- Destroy ALL UI completely (no trace remaining)
+RvrseUI:Destroy()
+
+-- Toggle visibility of ALL windows (hide/show)
+local isVisible = RvrseUI:ToggleVisibility()
+
+-- Set visibility explicitly
+RvrseUI:SetVisibility(true)   -- Show all
+RvrseUI:SetVisibility(false)  -- Hide all
+```
+
+**Use Cases**:
+- `RvrseUI:Destroy()` - When player wants to completely unload the UI
+- `RvrseUI:ToggleVisibility()` - Quick hide/show for screenshots or gameplay
+- `RvrseUI:SetVisibility(false)` - Hide UI during specific game events
 
 ## 🗂 Tabs & Sections
 

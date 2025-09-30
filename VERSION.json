@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 2,
-    "full": "2.1.2",
+    "patch": 3,
+    "full": "2.1.3",
     "build": "20250929",
-    "hash": "C3F8A6E9",
+    "hash": "D7A2E5F4",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-29",
-    "name": "Complete Destruction System",
+    "name": "Global UI Control Methods",
     "codename": "Aurora",
-    "notes": "Close button destroys UI completely with no trace, cleanup all connections and listeners"
+    "notes": "RvrseUI:Destroy(), RvrseUI:ToggleVisibility(), RvrseUI:SetVisibility() for complete UI control"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -34,6 +34,19 @@
     "drag_to_move": true
   },
   "changelog": {
+    "2.1.3": {
+      "date": "2025-09-29",
+      "hash": "D7A2E5F4",
+      "changes": [
+        "Added RvrseUI:Destroy() - global method to destroy ALL UI",
+        "Added RvrseUI:ToggleVisibility() - hide/show all windows",
+        "Added RvrseUI:SetVisibility(bool) - explicitly set visibility",
+        "Global UI control works across multiple windows",
+        "Window registration system for global management",
+        "Use ScreenGui.Enabled for instant visibility toggle",
+        "Returns boolean status for all methods"
+      ]
+    },
     "2.1.2": {
       "date": "2025-09-29",
       "hash": "C3F8A6E9",

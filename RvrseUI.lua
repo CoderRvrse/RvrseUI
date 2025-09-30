@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 1,
-	Patch = 2,
+	Patch = 3,
 	Build = "20250929",  -- YYYYMMDD format
-	Full = "2.1.2",
-	Hash = "C3F8A6E9",  -- Release hash for integrity verification
+	Full = "2.1.3",
+	Hash = "D7A2E5F4",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -59,6 +59,65 @@ local function dprintf(...)
 	if RvrseUI.DEBUG then
 		print("[RvrseUI]", ...)
 	end
+end
+
+-- =========================
+-- Global UI Management
+-- =========================
+-- Store reference to host for global destruction/visibility control
+RvrseUI._host = nil
+RvrseUI._windows = {}
+
+-- Global destroy method - destroys ALL UI
+function RvrseUI:Destroy()
+	if self._host and self._host.Parent then
+		-- Fade out animation
+		for _, window in pairs(self._windows) do
+			if window and window.Destroy then
+				pcall(function() window:Destroy() end)
+			end
+		end
+
+		-- Wait for animations
+		task.wait(0.3)
+
+		-- Destroy host
+		self._host:Destroy()
+
+		-- Clear all references
+		if self.UI._toggleTargets then
+			table.clear(self.UI._toggleTargets)
+		end
+		if self._lockListeners then
+			table.clear(self._lockListeners)
+		end
+		if self._themeListeners then
+			table.clear(self._themeListeners)
+		end
+		table.clear(self._windows)
+
+		print("[RvrseUI] All interfaces destroyed - No trace remaining")
+		return true
+	end
+	return false
+end
+
+-- Global visibility toggle - hides/shows ALL windows
+function RvrseUI:ToggleVisibility()
+	if self._host and self._host.Parent then
+		self._host.Enabled = not self._host.Enabled
+		return self._host.Enabled
+	end
+	return false
+end
+
+-- Set visibility explicitly
+function RvrseUI:SetVisibility(visible)
+	if self._host and self._host.Parent then
+		self._host.Enabled = visible
+		return true
+	end
+	return false
 end
 
 -- =========================
@@ -329,6 +388,9 @@ host.IgnoreGuiInset = true
 host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 host.DisplayOrder = 999
 host.Parent = PlayerGui
+
+-- Store global reference for RvrseUI:Destroy() and visibility methods
+RvrseUI._host = host
 
 -- =========================
 -- Notification System
@@ -1462,6 +1524,9 @@ function RvrseUI:CreateWindow(cfg)
 	if not cfg.DisableRvrseUIPrompts then
 		RvrseUI:Notify({Title = "Tip", Message = "Press " .. toggleKey.Name .. " to toggle UI", Duration = 3, Type = "info"})
 	end
+
+	-- Register window for global management
+	table.insert(RvrseUI._windows, WindowAPI)
 
 	return WindowAPI
 end

@@ -1,5 +1,65 @@
 # RvrseUI Release History
 
+## Version 2.1.3 "Aurora" - Global UI Control Methods
+**Release Date**: September 29, 2025
+**Build**: 20250929
+**Hash**: `D7A2E5F4`
+**Channel**: Stable
+
+### 🌐 Major Feature: Global UI Management
+- **RvrseUI:Destroy()**: Destroy ALL UI windows from anywhere in your code
+- **RvrseUI:ToggleVisibility()**: Instantly hide/show entire interface
+- **RvrseUI:SetVisibility(bool)**: Explicitly control UI visibility
+- **Multi-Window Support**: Works seamlessly with multiple windows
+- **Instant Response**: Uses ScreenGui.Enabled for zero-delay visibility toggle
+
+### 🎮 Use Cases
+```lua
+-- Destroy everything (no trace remaining)
+RvrseUI:Destroy()
+
+-- Quick hide/show for screenshots
+RvrseUI:ToggleVisibility()
+
+-- Hide during cutscenes
+RvrseUI:SetVisibility(false)
+
+-- Show after event
+RvrseUI:SetVisibility(true)
+```
+
+### ✨ Benefits
+- Control UI from any script context
+- Works across all windows simultaneously
+- Perfect for game events, cinematics, screenshots
+- Returns boolean status for validation
+- Maintains all window-specific destroy methods
+
+### 📊 Technical Details
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 1,
+  Patch = 3,
+  Build = "20250929",
+  Full = "2.1.3",
+  Hash = "D7A2E5F4",
+  Channel = "Stable"
+}
+
+-- Global methods available
+RvrseUI:Destroy()              -- Returns: bool
+RvrseUI:ToggleVisibility()     -- Returns: bool (new state)
+RvrseUI:SetVisibility(visible) -- Returns: bool (success)
+```
+
+### 📥 Download
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+---
+
 ## Version 2.1.2 "Aurora" - Complete Destruction System
 **Release Date**: September 29, 2025
 **Build**: 20250929
@@ -168,6 +228,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 | Version | Date | Hash | Codename | Key Feature |
 |---------|------|------|----------|-------------|
+| 2.1.3 | 2025-09-29 | D7A2E5F4 | Aurora | Global UI Control |
 | 2.1.2 | 2025-09-29 | C3F8A6E9 | Aurora | Complete Destruction |
 | 2.1.1 | 2025-09-29 | B9E4D7F1 | Aurora | UI Controls |
 | 2.1.0 | 2025-01-29 | A7F3E8C2 | Aurora | Notification Controls |
@@ -189,6 +250,7 @@ print("Channel:", info.Channel)
 ```
 
 ### Expected Hashes
+- **v2.1.3**: `D7A2E5F4`
 - **v2.1.2**: `C3F8A6E9`
 - **v2.1.1**: `B9E4D7F1`
 - **v2.1.0**: `A7F3E8C2`
