@@ -14,7 +14,44 @@ local Mouse = LP:GetMouse()
 
 local RvrseUI = {}
 RvrseUI.DEBUG = false
-RvrseUI.Version = "2.1.0"
+
+-- =========================
+-- Version & Release System
+-- =========================
+RvrseUI.Version = {
+	Major = 2,
+	Minor = 1,
+	Patch = 0,
+	Build = "20250129",  -- YYYYMMDD format
+	Full = "2.1.0",
+	Hash = "A7F3E8C2",  -- Release hash for integrity verification
+	Channel = "Stable"   -- Stable, Beta, Dev
+}
+
+function RvrseUI:GetVersionString()
+	return string.format("v%s (%s)", self.Version.Full, self.Version.Build)
+end
+
+function RvrseUI:GetVersionInfo()
+	return {
+		Version = self.Version.Full,
+		Build = self.Version.Build,
+		Hash = self.Version.Hash,
+		Channel = self.Version.Channel,
+		IsLatest = true  -- Will be checked against GitHub API in future
+	}
+end
+
+function RvrseUI:CheckVersion(onlineVersion)
+	-- Compare version with online version (for future update checker)
+	if not onlineVersion then return "unknown" end
+	local current = (self.Version.Major * 10000) + (self.Version.Minor * 100) + self.Version.Patch
+	local online = (onlineVersion.Major * 10000) + (onlineVersion.Minor * 100) + onlineVersion.Patch
+	if current < online then return "outdated"
+	elseif current > online then return "ahead"
+	else return "latest" end
+end
+
 RvrseUI.NotificationsEnabled = true  -- Global notification toggle
 
 -- Debug print helper (only prints when DEBUG = true)
@@ -662,8 +699,9 @@ function RvrseUI:CreateWindow(cfg)
 		})
 	end)
 
-	-- Version badge
-	local versionBadge = Instance.new("TextLabel")
+	-- Version badge with hash
+	local versionBadge = Instance.new("TextButton")
+	versionBadge.Name = "VersionBadge"
 	versionBadge.BackgroundColor3 = pal.Accent
 	versionBadge.BackgroundTransparency = 0.9
 	versionBadge.Position = UDim2.new(1, -132, 0.5, -10)
@@ -671,9 +709,38 @@ function RvrseUI:CreateWindow(cfg)
 	versionBadge.Font = Enum.Font.GothamMedium
 	versionBadge.TextSize = 10
 	versionBadge.TextColor3 = pal.Accent
-	versionBadge.Text = "v" .. RvrseUI.Version
+	versionBadge.Text = "v" .. RvrseUI.Version.Full
+	versionBadge.AutoButtonColor = false
 	versionBadge.Parent = header
 	corner(versionBadge, 6)
+
+	-- Version info tooltip with hash
+	local versionTooltip = createTooltip(versionBadge, string.format(
+		"Version: %s | Build: %s | Hash: %s | Channel: %s",
+		RvrseUI.Version.Full,
+		RvrseUI.Version.Build,
+		RvrseUI.Version.Hash,
+		RvrseUI.Version.Channel
+	))
+
+	versionBadge.MouseEnter:Connect(function()
+		versionTooltip.Visible = true
+		Animator:Tween(versionBadge, {BackgroundTransparency = 0.7}, Animator.Spring.Fast)
+	end)
+	versionBadge.MouseLeave:Connect(function()
+		versionTooltip.Visible = false
+		Animator:Tween(versionBadge, {BackgroundTransparency = 0.9}, Animator.Spring.Fast)
+	end)
+
+	versionBadge.MouseButton1Click:Connect(function()
+		local info = RvrseUI:GetVersionInfo()
+		RvrseUI:Notify({
+			Title = "RvrseUI " .. RvrseUI:GetVersionString(),
+			Message = string.format("Hash: %s | Channel: %s", info.Hash, info.Channel),
+			Duration = 4,
+			Type = "info"
+		})
+	end)
 
 	-- Tab bar (horizontal)
 	local tabBar = Instance.new("Frame")

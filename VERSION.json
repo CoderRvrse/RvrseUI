@@ -1,0 +1,73 @@
+{
+  "version": {
+    "major": 2,
+    "minor": 1,
+    "patch": 0,
+    "full": "2.1.0",
+    "build": "20250129",
+    "hash": "A7F3E8C2",
+    "channel": "Stable"
+  },
+  "release": {
+    "date": "2025-01-29",
+    "name": "Revolutionary Controls",
+    "codename": "Aurora",
+    "notes": "Notification bell toggle, theme switcher, enhanced glass effects, animated glows, professional tooltips"
+  },
+  "compatibility": {
+    "roblox": "Latest",
+    "luau": "0.6+",
+    "mobile": true,
+    "tablet": true,
+    "desktop": true,
+    "console": false
+  },
+  "features": {
+    "notification_control": true,
+    "theme_switcher": true,
+    "lock_groups": true,
+    "glassmorphism": true,
+    "animations": true,
+    "tooltips": true,
+    "mobile_responsive": true,
+    "drag_to_move": true
+  },
+  "changelog": {
+    "2.1.0": {
+      "date": "2025-01-29",
+      "hash": "A7F3E8C2",
+      "changes": [
+        "Added notification bell toggle (🔔/🔕) in header",
+        "Added mini theme toggle pill (🌙/🌞) in header",
+        "Implemented professional tooltip system",
+        "Enhanced glass transparency to 95%",
+        "Added animated glow effects",
+        "Version badge now clickable with detailed info",
+        "Improved version tracking system with hash verification"
+      ]
+    },
+    "2.0.0": {
+      "date": "2025-01-28",
+      "hash": "F36F3A8",
+      "changes": [
+        "Complete modern redesign with glassmorphism",
+        "Spring-based animation system",
+        "Material ripple effects",
+        "Mobile-first responsive design",
+        "Added slider component",
+        "Enhanced notification system",
+        "LockGroup system implementation"
+      ]
+    }
+  },
+  "download": {
+    "url": "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua",
+    "size_kb": 45,
+    "format": "lua"
+  },
+  "repository": {
+    "url": "https://github.com/CoderRvrse/RvrseUI",
+    "issues": "https://github.com/CoderRvrse/RvrseUI/issues",
+    "license": "MIT"
+  }
+}

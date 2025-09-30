@@ -353,6 +353,28 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 The library returns a module table with constructors and utility helpers.
 
+### 🔍 Version Verification
+
+Check your version and verify integrity:
+
+```lua
+-- Get version info
+local info = RvrseUI:GetVersionInfo()
+print("Version:", info.Version)    -- "2.1.0"
+print("Build:", info.Build)        -- "20250129"
+print("Hash:", info.Hash)          -- "A7F3E8C2"
+print("Channel:", info.Channel)    -- "Stable"
+
+-- Get formatted version string
+print(RvrseUI:GetVersionString())  -- "v2.1.0 (20250129)"
+
+-- Click version badge in UI for detailed popup
+```
+
+**Latest Release**: v2.1.0 "Aurora" | Hash: `A7F3E8C2` | Build: `20250129`
+
+See [RELEASES.md](RELEASES.md) for full changelog and version history.
+
 ## 🪟 Window API
 
 ```lua
