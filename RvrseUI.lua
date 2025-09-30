@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 2,
-	Patch = 0,
+	Patch = 1,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.2.0",
-	Hash = "2A68C9C3",  -- Release hash for integrity verification
+	Full = "2.2.1",
+	Hash = "3BC2BDD5",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -618,8 +618,8 @@ local notifyRoot = Instance.new("Frame")
 notifyRoot.Name = "NotifyStack"
 notifyRoot.BackgroundTransparency = 1
 notifyRoot.AnchorPoint = Vector2.new(1, 1)
-notifyRoot.Position = UDim2.new(1, -16, 1, -16)
-notifyRoot.Size = UDim2.new(0, 340, 1, -32)
+notifyRoot.Position = UDim2.new(1, -8, 1, -8)
+notifyRoot.Size = UDim2.new(0, 300, 1, -16)  -- Reduced from 340 to 300 for small screens
 notifyRoot.Parent = host
 
 local notifyLayout = Instance.new("UIListLayout")
