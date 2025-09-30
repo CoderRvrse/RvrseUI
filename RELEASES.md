@@ -1,5 +1,70 @@
 # RvrseUI Release History
 
+## Version 2.1.7 "Aurora" - Unicode Icon System
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `08B730DF`
+**Channel**: Stable
+
+### 🎨 Major Update - Universal Icons
+- **Unicode Icon System** - Replaced Lucide asset IDs with universal Unicode/emoji icons
+  - **150+ icons** that work everywhere without external dependencies
+  - Mix of emojis (🏠 ⚙ 👤) and Unicode symbols (✓ ✕ ⚠)
+  - **Roblox-specific icons**: Robux, Premium, Verified (using `utf8.char`)
+  - Categories: Navigation, Actions, Media, Status, User, Security, Currency, Items, Files, Tech, Nature, Games, Combat, UI Elements
+  - Simple usage: `Icon = "home"`, `Icon = "settings"`, `Icon = "user"`
+  - **Backward compatible**: Still supports custom Roblox asset IDs and direct emojis
+
+### ✨ Icon Categories & Examples
+```lua
+-- Navigation & UI
+Icon = "home"      -- 🏠
+Icon = "settings"  -- ⚙
+Icon = "menu"      -- ☰
+
+-- Security & Currency
+Icon = "lock"      -- 🔒
+Icon = "robux"     -- (Roblox Robux symbol)
+Icon = "premium"   -- (Roblox Premium symbol)
+
+-- Actions & Media
+Icon = "play"      -- ▶
+Icon = "edit"      -- ✎
+Icon = "trash"     -- 🗑
+
+-- Combat & Games
+Icon = "sword"     -- ⚔
+Icon = "target"    -- 🎯
+Icon = "trophy"    -- 🏆
+```
+
+### 🔧 Technical Changes
+- Renamed `resolveLucideIcon()` to `resolveIcon()`
+- Replaced `LucideIcons` table with `UnicodeIcons` table
+- No more broken/inaccessible asset IDs
+- All icons render instantly (no asset loading)
+- Full theme integration maintained
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 1,
+  Patch = 7,
+  Build = "20250930",
+  Full = "2.1.7",
+  Hash = "08B730DF",
+  Channel = "Stable"
+}
+```
+
+### 📥 Download
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+---
+
 ## Version 2.1.6 "Aurora" - Tab Overflow Fix
 **Release Date**: September 30, 2025
 **Build**: 20250930
@@ -365,6 +430,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 | Version | Date | Hash | Codename | Key Feature |
 |---------|------|------|----------|-------------|
+| 2.1.7 | 2025-09-30 | 08B730DF | Aurora | Unicode Icon System |
 | 2.1.6 | 2025-09-30 | A8D3FBC5 | Aurora | Tab Overflow Fix |
 | 2.1.5 | 2025-09-30 | F9D4E7B3 | Aurora | Critical Fixes + Lucide |
 | 2.1.4 | 2025-09-29 | E8B3C9A2 | Aurora | UI Layout Polish |
@@ -390,6 +456,7 @@ print("Channel:", info.Channel)
 ```
 
 ### Expected Hashes
+- **v2.1.7**: `08B730DF`
 - **v2.1.6**: `A8D3FBC5`
 - **v2.1.5**: `F9D4E7B3`
 - **v2.1.4**: `E8B3C9A2`

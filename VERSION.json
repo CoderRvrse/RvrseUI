@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 6,
-    "full": "2.1.6",
+    "patch": 7,
+    "full": "2.1.7",
     "build": "20250930",
-    "hash": "A8D3FBC5",
+    "hash": "08B730DF",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Tab Overflow Fix",
+    "name": "Unicode Icon System",
     "codename": "Aurora",
-    "notes": "Fixed tab bar overflow with scrollable design - tabs now stay within UI bounds"
+    "notes": "Replaced Lucide icons with universal Unicode icon system - 150+ icons that work everywhere"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -35,6 +35,20 @@
     "lucide_icons": true
   },
   "changelog": {
+    "2.1.7": {
+      "date": "2025-09-30",
+      "hash": "08B730DF",
+      "changes": [
+        "Replaced Lucide asset IDs with Unicode icon system",
+        "150+ universal icons (emojis + Unicode symbols)",
+        "All icons work everywhere without external dependencies",
+        "Includes Roblox-specific icons (Robux, Premium, Verified)",
+        "Icon categories: Navigation, Actions, Media, Status, User, Security, Currency, Items, Files, Tech, Nature, Games, Combat, UI",
+        "Simple usage: Icon = 'home', 'settings', 'user', etc.",
+        "Backward compatible: Still supports custom asset IDs and emojis",
+        "No more broken icon asset IDs"
+      ]
+    },
     "2.1.6": {
       "date": "2025-09-30",
       "hash": "A8D3FBC5",

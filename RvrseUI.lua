@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 1,
-	Patch = 6,
+	Patch = 7,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.1.6",
-	Hash = "A8D3FBC5",  -- Release hash for integrity verification
+	Full = "2.1.7",
+	Hash = "08B730DF",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -121,109 +121,196 @@ function RvrseUI:SetVisibility(visible)
 end
 
 -- =========================
--- Lucide Icon System
+-- Unicode Icon System
 -- =========================
--- Lucide icon ID mapping (credit: Lucide + Latte Softworks)
--- Icon format: "lucide://iconname" or just "iconname" (auto-detected)
-local LucideIcons = {
-	-- Common icons
-	["home"] = "rbxassetid://10723434711",
-	["settings"] = "rbxassetid://10734950309",
-	["user"] = "rbxassetid://10734952967",
-	["users"] = "rbxassetid://10747372992",
-	["search"] = "rbxassetid://10734898355",
-	["menu"] = "rbxassetid://10734919477",
-	["x"] = "rbxassetid://10747384394",
-	["check"] = "rbxassetid://10734896356",
-	["chevron-right"] = "rbxassetid://10734896967",
-	["chevron-left"] = "rbxassetid://10734896431",
-	["chevron-down"] = "rbxassetid://10734896206",
-	["chevron-up"] = "rbxassetid://10734896841",
-	["plus"] = "rbxassetid://10734943046",
-	["minus"] = "rbxassetid://10734920879",
-	["info"] = "rbxassetid://10734919945",
-	["alert-circle"] = "rbxassetid://10734919691",
-	["alert-triangle"] = "rbxassetid://10747383505",
-	["bell"] = "rbxassetid://10734920149",
-	["star"] = "rbxassetid://10734952234",
-	["heart"] = "rbxassetid://10734919811",
-	["trash"] = "rbxassetid://10734952628",
-	["edit"] = "rbxassetid://10734924532",
-	["eye"] = "rbxassetid://10734924668",
-	["eye-off"] = "rbxassetid://10747377219",
-	["lock"] = "rbxassetid://10734921033",
-	["unlock"] = "rbxassetid://10734952884",
-	["shield"] = "rbxassetid://10734947814",
-	["zap"] = "rbxassetid://10747387375",
-	["activity"] = "rbxassetid://10734918795",
-	["box"] = "rbxassetid://10734920495",
-	["package"] = "rbxassetid://10734939644",
-	["download"] = "rbxassetid://10734924269",
-	["upload"] = "rbxassetid://10734952773",
-	["folder"] = "rbxassetid://10734926167",
-	["file"] = "rbxassetid://10734924532",
-	["code"] = "rbxassetid://10734921356",
-	["terminal"] = "rbxassetid://10734950309",
-	["compass"] = "rbxassetid://10734921751",
-	["map"] = "rbxassetid://10734920342",
-	["target"] = "rbxassetid://10734952377",
-	["crosshair"] = "rbxassetid://10734922111",
-	["aperture"] = "rbxassetid://10734919946",
-	["command"] = "rbxassetid://10734921451",
-	["maximize"] = "rbxassetid://10734920482",
-	["minimize"] = "rbxassetid://10734920686",
-	["play"] = "rbxassetid://10734942024",
-	["pause"] = "rbxassetid://10734940489",
-	["skip-forward"] = "rbxassetid://10734950195",
-	["skip-back"] = "rbxassetid://10734950037",
-	["rewind"] = "rbxassetid://10734946670",
-	["fast-forward"] = "rbxassetid://10734924845",
-	["volume"] = "rbxassetid://10734953053",
-	["volume-2"] = "rbxassetid://10734952926",
-	["volume-x"] = "rbxassetid://10734953201",
-	["camera"] = "rbxassetid://10734921072",
-	["image"] = "rbxassetid://10734919904",
-	["award"] = "rbxassetid://10734920011",
-	["gift"] = "rbxassetid://10734927174",
-	["trophy"] = "rbxassetid://10734952644",
-	["crown"] = "rbxassetid://10734922111",
-	["cpu"] = "rbxassetid://10734921920",
-	["server"] = "rbxassetid://10734947654",
-	["database"] = "rbxassetid://10734922478",
-	["hard-drive"] = "rbxassetid://10734929094",
-	["wifi"] = "rbxassetid://10747383737",
-	["bluetooth"] = "rbxassetid://10734920383",
-	["battery"] = "rbxassetid://10734920254",
-	["power"] = "rbxassetid://10734943335",
-	["plug"] = "rbxassetid://10734942766",
-	["sun"] = "rbxassetid://10734952427",
-	["moon"] = "rbxassetid://10734934624",
-	["cloud"] = "rbxassetid://10734921481",
-	["umbrella"] = "rbxassetid://10734952749",
-	["droplet"] = "rbxassetid://10734924221",
-	["wind"] = "rbxassetid://10747384033",
-	["feather"] = "rbxassetid://10734924945",
-	["bookmark"] = "rbxassetid://10734920495",
-	["calendar"] = "rbxassetid://10734921020",
-	["clock"] = "rbxassetid://10734921388",
-	["watch"] = "rbxassetid://10747383737",
-	["timer"] = "rbxassetid://10734952456",
-	["flag"] = "rbxassetid://10734925119",
-	["tag"] = "rbxassetid://10734952377",
-	["link"] = "rbxassetid://10734920153",
-	["paperclip"] = "rbxassetid://10734940228",
-	["layout"] = "rbxassetid://10734920153",
-	["grid"] = "rbxassetid://10734928894",
-	["list"] = "rbxassetid://10734920482",
-	["sliders"] = "rbxassetid://10734950134",
-	["filter"] = "rbxassetid://10734925317",
-	["percent"] = "rbxassetid://10734940830",
-	["hash"] = "rbxassetid://10734929094",
-	["at-sign"] = "rbxassetid://10734919989",
-	["dollar-sign"] = "rbxassetid://10734923977",
+-- Universal Unicode icon mapping (works everywhere, including Roblox)
+-- Icon format: "icon:name" or just "name" (auto-detected)
+-- Supports: Unicode symbols, emojis, Roblox-specific icons, and asset IDs
+local UnicodeIcons = {
+	-- Navigation & UI
+	["home"] = "🏠",
+	["settings"] = "⚙",
+	["menu"] = "☰",
+	["search"] = "🔍",
+	["info"] = "ℹ",
+	["help"] = "❓",
+	["close"] = "✕",
+	["x"] = "✕",
+	["check"] = "✓",
+	["checkmark"] = "✓",
+
+	-- Arrows
+	["arrow-up"] = "↑",
+	["arrow-down"] = "↓",
+	["arrow-left"] = "←",
+	["arrow-right"] = "→",
+	["chevron-up"] = "▲",
+	["chevron-down"] = "▼",
+	["chevron-left"] = "◀",
+	["chevron-right"] = "▶",
+	["caret-up"] = "˄",
+	["caret-down"] = "˅",
+
+	-- Actions
+	["plus"] = "+",
+	["minus"] = "-",
+	["add"] = "➕",
+	["remove"] = "➖",
+	["edit"] = "✎",
+	["pencil"] = "✎",
+	["trash"] = "🗑",
+	["delete"] = "🗑",
+	["save"] = "💾",
+	["download"] = "⬇",
+	["upload"] = "⬆",
+	["refresh"] = "↻",
+	["reload"] = "⟳",
+
+	-- Media Controls
+	["play"] = "▶",
+	["pause"] = "⏸",
+	["stop"] = "⏹",
+	["skip-forward"] = "⏭",
+	["skip-back"] = "⏮",
+	["fast-forward"] = "⏩",
+	["rewind"] = "⏪",
+	["volume"] = "🔊",
+	["volume-high"] = "🔊",
+	["volume-low"] = "🔉",
+	["volume-mute"] = "🔇",
+
+	-- Status & Alerts
+	["success"] = "✓",
+	["error"] = "✕",
+	["warning"] = "⚠",
+	["alert"] = "⚠",
+	["bell"] = "🔔",
+	["notification"] = "🔔",
+	["flag"] = "⚑",
+
+	-- User & Social
+	["user"] = "👤",
+	["users"] = "👥",
+	["profile"] = "👤",
+	["team"] = "👥",
+	["chat"] = "💬",
+	["message"] = "✉",
+	["mail"] = "✉",
+
+	-- Security
+	["lock"] = "🔒",
+	["unlock"] = "🔓",
+	["key"] = "🔑",
+	["shield"] = "🛡",
+	["verified"] = utf8.char(0xE000),  -- Roblox Verified
+	["premium"] = utf8.char(0xE001),   -- Roblox Premium
+
+	-- Currency & Economy
+	["robux"] = utf8.char(0xE002),     -- Roblox Robux
+	["dollar"] = "$",
+	["coin"] = "🪙",
+	["money"] = "💰",
+	["diamond"] = "💎",
+	["gem"] = "💎",
+
+	-- Items & Objects
+	["box"] = "📦",
+	["package"] = "📦",
+	["gift"] = "🎁",
+	["shopping"] = "🛒",
+	["cart"] = "🛒",
+	["bag"] = "🎒",
+	["backpack"] = "🎒",
+
+	-- Files & Data
+	["file"] = "📄",
+	["folder"] = "📁",
+	["document"] = "📄",
+	["page"] = "📃",
+	["clipboard"] = "📋",
+	["link"] = "🔗",
+
+	-- Tech & System
+	["code"] = "⌨",
+	["terminal"] = "⌨",
+	["command"] = "⌘",
+	["database"] = "🗄",
+	["server"] = "🖥",
+	["cpu"] = "⚙",
+	["hard-drive"] = "💾",
+	["wifi"] = "📶",
+	["signal"] = "📶",
+	["bluetooth"] = "🔵",
+	["battery"] = "🔋",
+	["power"] = "⚡",
+	["plug"] = "🔌",
+
+	-- Nature & Weather
+	["sun"] = "☀",
+	["moon"] = "🌙",
+	["star"] = "⭐",
+	["cloud"] = "☁",
+	["rain"] = "🌧",
+	["snow"] = "❄",
+	["fire"] = "🔥",
+	["water"] = "💧",
+	["droplet"] = "💧",
+	["wind"] = "💨",
+
+	-- Emotions & Symbols
+	["heart"] = "❤",
+	["like"] = "👍",
+	["dislike"] = "👎",
+	["smile"] = "😊",
+	["sad"] = "😢",
+	["angry"] = "😠",
+
+	-- Games & Activities
+	["trophy"] = "🏆",
+	["award"] = "🏅",
+	["medal"] = "🏅",
+	["target"] = "🎯",
+	["crosshair"] = "⊕",
+	["crown"] = "👑",
+	["game"] = "🎮",
+	["controller"] = "🎮",
+
+	-- Combat & Weapons
+	["sword"] = "⚔",
+	["weapon"] = "⚔",
+	["gun"] = "🔫",
+	["bomb"] = "💣",
+	["explosion"] = "💥",
+
+	-- UI Elements
+	["maximize"] = "⛶",
+	["minimize"] = "⚊",
+	["window"] = "❐",
+	["grid"] = "▦",
+	["list"] = "☰",
+	["layout"] = "▦",
+	["sliders"] = "🎚",
+	["filter"] = "⚗",
+
+	-- Misc
+	["eye"] = "👁",
+	["eye-open"] = "👁",
+	["eye-closed"] = "⚊",
+	["camera"] = "📷",
+	["image"] = "🖼",
+	["calendar"] = "📅",
+	["clock"] = "🕐",
+	["timer"] = "⏲",
+	["hourglass"] = "⏳",
+	["map"] = "🗺",
+	["compass"] = "🧭",
+	["pin"] = "📍",
+	["location"] = "📍",
+	["bookmark"] = "🔖",
+	["tag"] = "🏷",
 }
 
-local function resolveLucideIcon(icon)
+local function resolveIcon(icon)
 	-- If it's a number, it's a Roblox asset ID
 	if typeof(icon) == "number" then
 		return "rbxassetid://" .. icon, "image"
@@ -231,10 +318,10 @@ local function resolveLucideIcon(icon)
 
 	-- If it's a string
 	if typeof(icon) == "string" then
-		-- Check if it's a Lucide icon name
-		local iconName = icon:lower():gsub("lucide://", "")
-		if LucideIcons[iconName] then
-			return LucideIcons[iconName], "image"
+		-- Check if it's a named icon from our Unicode library
+		local iconName = icon:lower():gsub("icon://", "")
+		if UnicodeIcons[iconName] then
+			return UnicodeIcons[iconName], "text"
 		end
 
 		-- Check if it's already a rbxassetid
@@ -242,7 +329,7 @@ local function resolveLucideIcon(icon)
 			return icon, "image"
 		end
 
-		-- Otherwise, treat as emoji/text
+		-- Otherwise, treat as emoji/text (user provided)
 		return icon, "text"
 	end
 
@@ -801,7 +888,7 @@ function RvrseUI:CreateWindow(cfg)
 	iconHolder.Parent = header
 
 	if cfg.Icon and cfg.Icon ~= 0 then
-		local iconAsset, iconType = resolveLucideIcon(cfg.Icon)
+		local iconAsset, iconType = resolveIcon(cfg.Icon)
 
 		if iconType == "image" then
 			local img = Instance.new("ImageLabel")
@@ -1258,7 +1345,7 @@ function RvrseUI:CreateWindow(cfg)
 		local tabText = t.Title or "Tab"
 
 		if t.Icon then
-			local iconAsset, iconType = resolveLucideIcon(t.Icon)
+			local iconAsset, iconType = resolveIcon(t.Icon)
 
 			if iconType == "image" then
 				-- Create image icon
