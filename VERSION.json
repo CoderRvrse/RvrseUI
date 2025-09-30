@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 1,
-    "patch": 7,
-    "full": "2.1.7",
+    "minor": 2,
+    "patch": 0,
+    "full": "2.2.0",
     "build": "20250930",
-    "hash": "08B730DF",
+    "hash": "2A68C9C3",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Unicode Icon System",
-    "codename": "Aurora",
-    "notes": "Replaced Lucide icons with universal Unicode icon system - 150+ icons that work everywhere"
+    "name": "Complete Element System",
+    "codename": "Nexus",
+    "notes": "ALL elements implemented - Label, Paragraph, Divider, TextBox, ColorPicker + Flags system + CurrentValue properties"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -35,6 +35,26 @@
     "lucide_icons": true
   },
   "changelog": {
+    "2.2.0": {
+      "date": "2025-09-30",
+      "hash": "2A68C9C3",
+      "changes": [
+        "🎉 MAJOR RELEASE - Complete element system",
+        "Added 5 NEW elements: Label, Paragraph, Divider, TextBox, ColorPicker",
+        "RvrseUI.Flags global storage system",
+        "All 12 elements now support Flag parameter",
+        "CurrentValue properties on ALL elements",
+        "Dropdown:Refresh(newValues) method added",
+        "Element.CurrentOption for dropdowns",
+        "Element.CurrentKeybind for keybinds",
+        "Button: CurrentValue + Flag support",
+        "Toggle: CurrentValue + Flag support",
+        "Slider: CurrentValue + Flag support",
+        "Keybind: CurrentKeybind + Flag support",
+        "Created FULL_DEMO.lua with complete element showcase",
+        "All elements fully documented and tested"
+      ]
+    },
     "2.1.7": {
       "date": "2025-09-30",
       "hash": "08B730DF",
