@@ -32,7 +32,9 @@
     "tooltips": true,
     "mobile_responsive": true,
     "drag_to_move": true,
-    "lucide_icons": true
+    "unicode_icons": true,
+    "flags_system": true,
+    "complete_elements": true
   },
   "changelog": {
     "2.2.0": {
