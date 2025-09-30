@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 3,
-	Patch = 2,
+	Patch = 3,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.2",
-	Hash = "F9D2A8C1",  -- Release hash for integrity verification
+	Full = "2.3.3",
+	Hash = "A1B8E4D7",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1307,20 +1307,20 @@ function RvrseUI:CreateWindow(cfg)
 		})
 	end)
 
-	-- Version badge with hash (bottom left corner - smaller, more outside, more down)
+	-- Version badge with hash (bottom left corner - fully contained with proper insets)
 	local versionBadge = Instance.new("TextButton")
 	versionBadge.Name = "VersionBadge"
 	versionBadge.BackgroundColor3 = Color3.fromRGB(0, 255, 255)  -- Cyan/Neon Blue
 	versionBadge.BackgroundTransparency = 0.9
-	versionBadge.Position = UDim2.new(0, -4, 1, -20)  -- More left (-4 instead of 8), more down (-20 instead of -26)
-	versionBadge.Size = UDim2.new(0, 42, 0, 16)  -- Smaller (42x16 instead of 50x18)
+	versionBadge.Position = UDim2.new(0, 8, 1, -24)  -- 8px inset from left, 24px from bottom (8px inset + 16px height)
+	versionBadge.Size = UDim2.new(0, 38, 0, 14)  -- Smaller pill: 38x14 (was 42x16)
 	versionBadge.Font = Enum.Font.GothamBold  -- Bold for better visibility
-	versionBadge.TextSize = 8  -- Smaller text (8 instead of 9)
+	versionBadge.TextSize = 7  -- Smaller text: 7px (was 8px)
 	versionBadge.TextColor3 = Color3.fromRGB(0, 255, 200)  -- Bright neon cyan/green
 	versionBadge.Text = "v" .. RvrseUI.Version.Full
 	versionBadge.AutoButtonColor = false
 	versionBadge.Parent = root
-	corner(versionBadge, 6)  -- Smaller radius (6 instead of 8)
+	corner(versionBadge, 5)  -- Smaller radius: 5px (was 6px)
 	stroke(versionBadge, Color3.fromRGB(0, 255, 200), 1)  -- Neon stroke
 
 	local versionTooltip = createTooltip(versionBadge, string.format(

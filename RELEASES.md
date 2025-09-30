@@ -1,5 +1,82 @@
 # RvrseUI Release History
 
+## Version 2.3.3 "Clean UI" - Version Badge Containment Fix
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `A1B8E4D7`
+**Channel**: Stable
+
+### 🎨 UI Fix - Version Badge Fully Contained
+
+#### Problem
+The version badge (v2.x.x pill) was positioned at `UDim2.new(0, -4, 1, -20)`, causing it to:
+- **Hang 4px outside** the left edge of the panel
+- **Overlap panel border lines**
+- Look visually inconsistent and unprofessional
+
+#### Solution
+Repositioned and resized the version badge to be **fully contained** within the panel:
+
+**Position**: Changed from `(0, -4, 1, -20)` → `(0, 8, 1, -24)`
+- **8px inset from left edge** (was hanging -4px outside)
+- **8px inset from bottom edge** (24px from bottom = 8px gap + 14px height + 2px for stroke)
+
+**Size**: Reduced from `42x16` → `38x14`
+- Smaller, more refined pill appearance
+- Better proportions for contained layout
+
+**Text Size**: Reduced from `8px` → `7px`
+- Matches smaller badge size
+- Maintains readability
+
+**Corner Radius**: Reduced from `6px` → `5px`
+- Proportional to smaller size
+- Cleaner pill shape
+
+---
+
+### Visual Comparison
+
+**Before (v2.3.2)**:
+```lua
+Position = UDim2.new(0, -4, 1, -20)  -- Hanging outside
+Size = UDim2.new(0, 42, 0, 16)
+TextSize = 8
+CornerRadius = 6
+```
+
+**After (v2.3.3)**:
+```lua
+Position = UDim2.new(0, 8, 1, -24)   -- Fully contained with 8px insets
+Size = UDim2.new(0, 38, 0, 14)
+TextSize = 7
+CornerRadius = 5
+```
+
+---
+
+### Benefits
+✅ Badge never touches or overlaps panel borders
+✅ Consistent 8px spacing from panel edges
+✅ Cleaner, more professional appearance
+✅ Works across all screen sizes and breakpoints
+✅ No visual clutter or overlap issues
+
+---
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 3,
+  Patch = 3,
+  Full = "2.3.3",
+  Hash = "A1B8E4D7"
+}
+```
+
+---
+
 ## Version 2.3.2 "Dropdown++" - Production-Grade Dropdown Fix
 **Release Date**: September 30, 2025
 **Build**: 20250930

@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 3,
-    "patch": 2,
-    "full": "2.3.2",
+    "patch": 3,
+    "full": "2.3.3",
     "build": "20250930",
-    "hash": "F9D2A8C1",
+    "hash": "A1B8E4D7",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Dropdown Production Fix",
-    "codename": "Dropdown++",
-    "notes": "Complete dropdown rewrite with smooth animations, proper spacing, and bulletproof click handling"
+    "name": "Version Badge Containment Fix",
+    "codename": "Clean UI",
+    "notes": "Version badge now fully contained within panel with proper 8px insets, no border overflow"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,22 @@
     "auto_save": true
   },
   "changelog": {
+    "2.3.3": {
+      "date": "2025-09-30",
+      "hash": "A1B8E4D7",
+      "changes": [
+        "🎨 UI FIX - Version Badge Containment",
+        "✅ FIXED: Version badge now fully contained within panel boundaries",
+        "✅ FIXED: Badge no longer overflows or touches border lines",
+        "Position: Changed from (0, -4, 1, -20) to (0, 8, 1, -24)",
+        "8px inset from left edge (was hanging 4px outside)",
+        "8px inset from bottom edge (24px from bottom = 8px gap + 16px height)",
+        "Size reduced: 38x14 (was 42x16) for cleaner appearance",
+        "Text size: 7px (was 8px) for better proportion",
+        "Corner radius: 5px (was 6px) for refined look",
+        "Badge now stays inside panel on all screen sizes and breakpoints"
+      ]
+    },
     "2.3.2": {
       "date": "2025-09-30",
       "hash": "F9D2A8C1",
