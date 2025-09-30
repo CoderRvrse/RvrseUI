@@ -98,71 +98,156 @@ The main factory function `RvrseUI:CreateWindow(cfg)` creates the window hierarc
 
 ## API Usage
 
+### Complete Example
+
 ```lua
+local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+
 -- Create window
 local Window = RvrseUI:CreateWindow({
-  Name = "My UI",
-  Icon = "🎨",          -- emoji or Roblox asset ID
-  Theme = "Dark",       -- "Dark" | "Light"
-  ToggleUIKeybind = "K",
-  LoadingTitle = "Loading...",
-  LoadingSubtitle = "Please wait"
+  Name = "Game Script",
+  Icon = "🎮",
+  LoadingTitle = "Game Script v1.0",
+  LoadingSubtitle = "Loading features...",
+  Theme = "Dark",
+  ToggleUIKeybind = "K"
 })
 
--- Create tab and section
-local Tab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
-local Section = Tab:CreateSection("Controls")
+-- Create tabs
+local MainTab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
+local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "🔧" })
 
--- Add elements (returns control objects)
-local toggle = Section:CreateToggle({
-  Text = "Master Mode",
+-- Main tab sections
+local PlayerSection = MainTab:CreateSection("Player Enhancements")
+
+local speedSlider = PlayerSection:CreateSlider({
+  Text = "Walk Speed",
+  Min = 16,
+  Max = 100,
+  Step = 2,
+  Default = 16,
+  OnChanged = function(speed)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+    RvrseUI:Notify({
+      Title = "Speed Changed",
+      Message = "Walk speed set to " .. speed,
+      Duration = 1,
+      Type = "info"
+    })
+  end
+})
+
+local flyToggle = PlayerSection:CreateToggle({
+  Text = "Enable Flying",
   State = false,
-  LockGroup = "Group1",      -- This toggle CONTROLS the lock
-  OnChanged = function(on) end
+  OnChanged = function(enabled)
+    if enabled then
+      -- Enable fly logic here
+      RvrseUI:Notify({ Title = "Flight Enabled", Type = "success", Duration = 2 })
+    else
+      -- Disable fly logic here
+      RvrseUI:Notify({ Title = "Flight Disabled", Type = "warn", Duration = 2 })
+    end
+  end
 })
 
-local button = Section:CreateButton({
-  Text = "Execute",
-  RespectLock = "Group1",     -- This button RESPECTS the lock
-  Callback = function() end
+-- Combat section with lock system
+local CombatSection = MainTab:CreateSection("Combat Features")
+
+local masterToggle = CombatSection:CreateToggle({
+  Text = "🎯 Auto Target All (MASTER)",
+  State = false,
+  LockGroup = "AutoTarget",  -- Controls the lock
+  OnChanged = function(enabled)
+    if enabled then
+      -- Enable auto-target for all enemies
+      RvrseUI:Notify({
+        Title = "Auto Target Enabled",
+        Message = "Targeting all enemies. Individual controls locked.",
+        Duration = 3,
+        Type = "success"
+      })
+    end
+  end
 })
 
-local slider = Section:CreateSlider({
-  Text = "Speed",
-  Min = 0, Max = 100, Step = 1, Default = 50,
-  OnChanged = function(val) end
+-- Individual enemy toggles (locked when master is ON)
+CombatSection:CreateToggle({
+  Text = "Target: Bandit",
+  State = false,
+  RespectLock = "AutoTarget",
+  OnChanged = function(on) print("Targeting Bandit:", on) end
 })
 
-local dropdown = Section:CreateDropdown({
-  Text = "Mode",
-  Values = {"A", "B", "C"},
-  Default = "A",
-  OnChanged = function(val) end
+CombatSection:CreateToggle({
+  Text = "Target: Guard",
+  State = false,
+  RespectLock = "AutoTarget",
+  OnChanged = function(on) print("Targeting Guard:", on) end
 })
 
-local keybind = Section:CreateKeybind({
-  Text = "Hotkey",
-  Default = Enum.KeyCode.E,
-  OnChanged = function(keyCode) end
+-- Settings tab
+local ThemeSection = SettingsTab:CreateSection("Appearance")
+
+ThemeSection:CreateDropdown({
+  Text = "Theme",
+  Values = { "Dark", "Light" },
+  Default = "Dark",
+  OnChanged = function(theme)
+    Window:SetTheme(theme)
+    RvrseUI:Notify({
+      Title = "Theme Changed",
+      Message = "UI theme set to " .. theme,
+      Duration = 2,
+      Type = "info"
+    })
+  end
+})
+
+local KeybindSection = SettingsTab:CreateSection("Controls")
+
+KeybindSection:CreateKeybind({
+  Text = "Toggle UI",
+  Default = Enum.KeyCode.K,
+  OnChanged = function(key)
+    RvrseUI:Notify({
+      Title = "Keybind Updated",
+      Message = "Press " .. key.Name .. " to toggle UI",
+      Duration = 2,
+      Type = "info"
+    })
+  end
 })
 
 -- Notifications
 RvrseUI:Notify({
-  Title = "Success",
-  Message = "Task completed!",
-  Duration = 2,
-  Type = "success"  -- "info" | "success" | "warn" | "error"
+  Title = "Script Loaded",
+  Message = "Press K to toggle UI. Explore all features!",
+  Duration = 4,
+  Type = "success"
 })
 
--- Runtime theme switch
-Window:SetTheme("Light")
+-- Using element methods
+speedSlider:Set(32)  -- Set speed to 32
+flyToggle:Set(true)  -- Enable fly toggle
+local currentSpeed = speedSlider:Get()  -- Get current speed value
+```
 
--- Element methods
-toggle:Set(true)
-local state = toggle:Get()
-slider:Set(75)
-local val = slider:Get()
-dropdown:Set("B")
+### Minimal Example
+
+```lua
+local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+
+local Window = RvrseUI:CreateWindow({ Name = "Quick Script" })
+local Tab = Window:CreateTab({ Title = "Main" })
+local Section = Tab:CreateSection("Controls")
+
+Section:CreateButton({
+  Text = "Execute",
+  Callback = function()
+    print("Executed!")
+  end
+})
 ```
 
 ## Modifying the Framework

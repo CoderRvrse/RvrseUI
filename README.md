@@ -45,57 +45,292 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 
 ## 🚀 Quick Start
 
+### Copy & Paste Demo (Full Showcase)
+
 ```lua
--- Load the library
+-- ============================================
+-- RvrseUI v2.0 - Complete Feature Demo
+-- Copy this entire script to test all features
+-- ============================================
+
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
--- Create a window
+-- Create main window with modern styling
 local Window = RvrseUI:CreateWindow({
-  Name                 = "RvrseUI v2.0",
-  Icon                 = "🎨",          -- Roblox asset ID or emoji
-  LoadingTitle         = "RvrseUI Interface Suite",
-  LoadingSubtitle      = "Professional UI Framework",
-  ShowText             = "RvrseUI",    -- Mobile chip text
-  Theme                = "Dark",       -- "Dark" | "Light"
-  ToggleUIKeybind      = "K",          -- Press K to toggle
-  DisableRvrseUIPrompts = false,
-  DisableBuildWarnings  = false,
+  Name = "RvrseUI Demo",
+  Icon = "🎨",
+  LoadingTitle = "RvrseUI v2.0",
+  LoadingSubtitle = "Loading modern interface...",
+  Theme = "Dark",
+  ToggleUIKeybind = "K"
 })
 
--- Add a tab & section
-local Tab  = Window:CreateTab({ Title = "Overview", Icon = "ℹ" })
-local Sect = Tab:CreateSection("Getting Started")
+-- ==================== TAB 1: SHOWCASE ====================
+local ShowcaseTab = Window:CreateTab({ Title = "Showcase", Icon = "✨" })
 
--- Add elements
-Sect:CreateButton({
-  Text = "Hello World",
+-- Welcome Section
+local WelcomeSection = ShowcaseTab:CreateSection("Welcome to RvrseUI v2.0")
+
+WelcomeSection:CreateButton({
+  Text = "🎉 Click Me - Test Ripple Effect!",
   Callback = function()
     RvrseUI:Notify({
-      Title = "Welcome",
-      Message = "Modern UI loaded successfully!",
+      Title = "Success!",
+      Message = "You just experienced material ripple animations!",
+      Duration = 3,
+      Type = "success"
+    })
+  end
+})
+
+-- Interactive Demo Section
+local DemoSection = ShowcaseTab:CreateSection("Interactive Elements")
+
+local speedValue = 50
+local flyEnabled = false
+
+local speedSlider = DemoSection:CreateSlider({
+  Text = "Movement Speed",
+  Min = 0,
+  Max = 200,
+  Step = 5,
+  Default = 50,
+  OnChanged = function(value)
+    speedValue = value
+    RvrseUI:Notify({
+      Title = "Speed Updated",
+      Message = "New speed: " .. value,
+      Duration = 1,
+      Type = "info"
+    })
+  end
+})
+
+local flyToggle = DemoSection:CreateToggle({
+  Text = "Enable Flying",
+  State = false,
+  OnChanged = function(enabled)
+    flyEnabled = enabled
+    if enabled then
+      RvrseUI:Notify({
+        Title = "Flight Enabled",
+        Message = "You can now fly at speed " .. speedValue,
+        Duration = 2,
+        Type = "success"
+      })
+    else
+      RvrseUI:Notify({
+        Title = "Flight Disabled",
+        Message = "Flying mode deactivated",
+        Duration = 2,
+        Type = "warn"
+      })
+    end
+  end
+})
+
+local modeDropdown = DemoSection:CreateDropdown({
+  Text = "Movement Mode",
+  Values = { "Walk", "Run", "Sprint", "Teleport" },
+  Default = "Walk",
+  OnChanged = function(mode)
+    RvrseUI:Notify({
+      Title = "Mode Changed",
+      Message = "Now using: " .. mode,
+      Duration = 2,
+      Type = "info"
+    })
+  end
+})
+
+-- ==================== TAB 2: LOCK SYSTEM DEMO ====================
+local LockTab = Window:CreateTab({ Title = "Lock System", Icon = "🔒" })
+
+local LockDemoSection = LockTab:CreateSection("Master/Child Controls")
+
+-- Master toggle that controls a lock group
+LockDemoSection:CreateToggle({
+  Text = "🎯 MASTER: Enable All Features",
+  State = false,
+  LockGroup = "AllFeatures",  -- This CONTROLS the lock
+  OnChanged = function(enabled)
+    if enabled then
+      RvrseUI:Notify({
+        Title = "Master Enabled",
+        Message = "All features unlocked! Individual controls are now disabled.",
+        Duration = 3,
+        Type = "success"
+      })
+    else
+      RvrseUI:Notify({
+        Title = "Master Disabled",
+        Message = "Individual controls re-enabled.",
+        Duration = 2,
+        Type = "warn"
+      })
+    end
+  end
+})
+
+-- Child controls that respect the lock
+LockDemoSection:CreateToggle({
+  Text = "Feature A (Locked by Master)",
+  State = true,
+  RespectLock = "AllFeatures",  -- This RESPECTS the lock
+  OnChanged = function(on)
+    print("Feature A:", on)
+  end
+})
+
+LockDemoSection:CreateToggle({
+  Text = "Feature B (Locked by Master)",
+  State = false,
+  RespectLock = "AllFeatures",
+  OnChanged = function(on)
+    print("Feature B:", on)
+  end
+})
+
+LockDemoSection:CreateButton({
+  Text = "Execute Feature (Locked by Master)",
+  RespectLock = "AllFeatures",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Feature Executed",
+      Message = "This only works when master is OFF!",
       Duration = 2,
       Type = "success"
     })
   end
 })
 
-Sect:CreateToggle({
-  Text = "Master Mode",
-  State = false,
-  LockGroup = "MainGroup",  -- This toggle CONTROLS the lock
-  OnChanged = function(on)
-    print("Master toggle:", on)
+-- ==================== TAB 3: SETTINGS ====================
+local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "⚙" })
+
+local ThemeSection = SettingsTab:CreateSection("Appearance")
+
+ThemeSection:CreateDropdown({
+  Text = "UI Theme",
+  Values = { "Dark", "Light" },
+  Default = "Dark",
+  OnChanged = function(theme)
+    Window:SetTheme(theme)
+    RvrseUI:Notify({
+      Title = "Theme Changed",
+      Message = "Switched to " .. theme .. " mode",
+      Duration = 2,
+      Type = "info"
+    })
   end
 })
 
-Sect:CreateSlider({
-  Text = "Speed",
-  Min = 0,
-  Max = 100,
-  Step = 1,
-  Default = 50,
-  OnChanged = function(value)
-    print("Speed:", value)
+local KeybindSection = SettingsTab:CreateSection("Keybinds")
+
+KeybindSection:CreateKeybind({
+  Text = "Toggle UI Visibility",
+  Default = Enum.KeyCode.K,
+  OnChanged = function(key)
+    RvrseUI:Notify({
+      Title = "Keybind Updated",
+      Message = "Press " .. key.Name .. " to toggle UI",
+      Duration = 2,
+      Type = "info"
+    })
+  end
+})
+
+KeybindSection:CreateKeybind({
+  Text = "Emergency Stop",
+  Default = Enum.KeyCode.X,
+  OnChanged = function(key)
+    print("Emergency stop bound to:", key.Name)
+  end
+})
+
+-- ==================== TAB 4: NOTIFICATIONS ====================
+local NotifyTab = Window:CreateTab({ Title = "Notifications", Icon = "🔔" })
+
+local NotifySection = NotifyTab:CreateSection("Test Notification System")
+
+NotifySection:CreateButton({
+  Text = "✓ Success Notification",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Success!",
+      Message = "Operation completed successfully with smooth animations!",
+      Duration = 3,
+      Type = "success"
+    })
+  end
+})
+
+NotifySection:CreateButton({
+  Text = "ℹ Info Notification",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Information",
+      Message = "This is an informational message with blue accent.",
+      Duration = 3,
+      Type = "info"
+    })
+  end
+})
+
+NotifySection:CreateButton({
+  Text = "⚠ Warning Notification",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Warning!",
+      Message = "This action may have consequences. Proceed with caution.",
+      Duration = 3,
+      Type = "warn"
+    })
+  end
+})
+
+NotifySection:CreateButton({
+  Text = "✕ Error Notification",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Error!",
+      Message = "Something went wrong. Please check your settings.",
+      Duration = 3,
+      Type = "error"
+    })
+  end
+})
+
+-- Final welcome message
+RvrseUI:Notify({
+  Title = "🎉 RvrseUI v2.0 Loaded!",
+  Message = "Explore all tabs to see modern features in action. Press K to toggle!",
+  Duration = 5,
+  Type = "success"
+})
+```
+
+### Minimal Example (Just the Basics)
+
+```lua
+-- Quick minimal setup
+local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+
+local Window = RvrseUI:CreateWindow({ Name = "My Script", Theme = "Dark" })
+local Tab = Window:CreateTab({ Title = "Main" })
+local Section = Tab:CreateSection("Controls")
+
+Section:CreateButton({
+  Text = "Execute",
+  Callback = function()
+    print("Button clicked!")
+  end
+})
+
+Section:CreateToggle({
+  Text = "Enable Feature",
+  State = false,
+  OnChanged = function(enabled)
+    print("Toggle:", enabled)
   end
 })
 ```
