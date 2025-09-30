@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 0,
-    "full": "2.1.0",
-    "build": "20250129",
-    "hash": "A7F3E8C2",
+    "patch": 1,
+    "full": "2.1.1",
+    "build": "20250929",
+    "hash": "B9E4D7F1",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-01-29",
-    "name": "Revolutionary Controls",
+    "date": "2025-09-29",
+    "name": "UI Control Refinements",
     "codename": "Aurora",
-    "notes": "Notification bell toggle, theme switcher, enhanced glass effects, animated glows, professional tooltips"
+    "notes": "Close button, repositioned version badge, improved UI controls"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -25,6 +25,7 @@
   "features": {
     "notification_control": true,
     "theme_switcher": true,
+    "close_button": true,
     "lock_groups": true,
     "glassmorphism": true,
     "animations": true,
@@ -33,6 +34,17 @@
     "drag_to_move": true
   },
   "changelog": {
+    "2.1.1": {
+      "date": "2025-09-29",
+      "hash": "B9E4D7F1",
+      "changes": [
+        "Added close X button in top right corner of header",
+        "Moved version badge to bottom left corner",
+        "Version badge now has accent stroke border",
+        "Close button has hover tooltip and ripple animation",
+        "Both controls maintain glassmorphic aesthetic"
+      ]
+    },
     "2.1.0": {
       "date": "2025-01-29",
       "hash": "A7F3E8C2",

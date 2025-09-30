@@ -1,5 +1,42 @@
 # RvrseUI Release History
 
+## Version 2.1.1 "Aurora" - UI Control Refinements
+**Release Date**: September 29, 2025
+**Build**: 20250929
+**Hash**: `B9E4D7F1`
+**Channel**: Stable
+
+### ✨ New Features
+- **Close Button**: Professional X button in top right corner of header
+- **Repositioned Version Badge**: Now in bottom left corner with accent border
+- **Enhanced UX**: Both controls have hover tooltips and smooth animations
+
+### 🎨 Improvements
+- Version badge moved to bottom left for better visibility
+- Close button with ripple animation and fade effect
+- Version badge now has accent stroke border
+- All controls maintain glassmorphic design language
+
+### 📊 Technical Details
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 1,
+  Patch = 1,
+  Build = "20250929",
+  Full = "2.1.1",
+  Hash = "B9E4D7F1",
+  Channel = "Stable"
+}
+```
+
+### 📥 Download
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+---
+
 ## Version 2.1.0 "Aurora" - Revolutionary Controls
 **Release Date**: January 29, 2025
 **Build**: 20250129
@@ -86,6 +123,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 | Version | Date | Hash | Codename | Key Feature |
 |---------|------|------|----------|-------------|
+| 2.1.1 | 2025-09-29 | B9E4D7F1 | Aurora | UI Controls |
 | 2.1.0 | 2025-01-29 | A7F3E8C2 | Aurora | Notification Controls |
 | 2.0.0 | 2025-01-28 | F36F3A8 | Phoenix | Modern Redesign |
 
@@ -105,6 +143,7 @@ print("Channel:", info.Channel)
 ```
 
 ### Expected Hashes
+- **v2.1.1**: `B9E4D7F1`
 - **v2.1.0**: `A7F3E8C2`
 - **v2.0.0**: `F36F3A8`
 

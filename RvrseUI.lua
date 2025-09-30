@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 1,
-	Patch = 0,
-	Build = "20250129",  -- YYYYMMDD format
-	Full = "2.1.0",
-	Hash = "A7F3E8C2",  -- Release hash for integrity verification
+	Patch = 1,
+	Build = "20250929",  -- YYYYMMDD format
+	Full = "2.1.1",
+	Hash = "B9E4D7F1",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
