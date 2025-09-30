@@ -819,21 +819,21 @@ function RvrseUI:CreateWindow(cfg)
 		})
 	end)
 
-	-- Version badge with hash (bottom left corner - smaller)
+	-- Version badge with hash (bottom left corner - smaller with neon color)
 	local versionBadge = Instance.new("TextButton")
 	versionBadge.Name = "VersionBadge"
-	versionBadge.BackgroundColor3 = pal.Accent
+	versionBadge.BackgroundColor3 = Color3.fromRGB(0, 255, 255)  -- Cyan/Neon Blue
 	versionBadge.BackgroundTransparency = 0.9
 	versionBadge.Position = UDim2.new(0, 8, 1, -26)
 	versionBadge.Size = UDim2.new(0, 50, 0, 18)
-	versionBadge.Font = Enum.Font.GothamMedium
+	versionBadge.Font = Enum.Font.GothamBold  -- Bold for better visibility
 	versionBadge.TextSize = 9
-	versionBadge.TextColor3 = pal.Accent
+	versionBadge.TextColor3 = Color3.fromRGB(0, 255, 200)  -- Bright neon cyan/green
 	versionBadge.Text = "v" .. RvrseUI.Version.Full
 	versionBadge.AutoButtonColor = false
 	versionBadge.Parent = root
 	corner(versionBadge, 8)
-	stroke(versionBadge, pal.Accent, 1)
+	stroke(versionBadge, Color3.fromRGB(0, 255, 200), 1)  -- Neon stroke
 
 	local versionTooltip = createTooltip(versionBadge, string.format(
 		"Version: %s | Build: %s | Hash: %s | Channel: %s",
