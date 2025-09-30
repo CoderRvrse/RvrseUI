@@ -1,19 +1,20 @@
-# RvrseUI v2.1.5
+# RvrseUI v2.2.0
 
-A **modern, professional, lightweight** UI framework for Roblox scripts with glassmorphism, spring animations, notification controls, Lucide icon support, and mobile-first responsive design.
+A **modern, professional, lightweight** UI framework for Roblox scripts with glassmorphism, spring animations, notification controls, Unicode icon system, and mobile-first responsive design.
 
-**Flow**: Boot library → Create Window → Tabs → Sections → Elements (buttons, toggles, dropdowns, keybinds, sliders, notifications).
+**Flow**: Boot library → Create Window → Tabs → Sections → Elements (12 element types available).
 
-Includes a **LockGroup system** to coordinate "master" controls with dependent elements (e.g., Aura + Target All master that locks per-enemy toggles).
+Includes a **LockGroup system** to coordinate "master" controls with dependent elements + **Flags system** for global element access.
 
 ## ✨ Features
 
-### 🔔 NEW in v2.1.5: Critical Fixes + Lucide Icons
-- **Theme Switching Fixed**: Dark/Light theme toggle now updates ALL UI elements instantly
-- **Lucide Icon Support**: 80+ icons from Lucide library (string names like `"home"`, `"settings"`)
-- **Multiple Icon Formats**: Supports Lucide names, Roblox asset IDs, and emojis
-- **Theme-Aware Icons**: Icons automatically change color with theme
-- **Keybind System Verified**: UI visibility toggle working correctly (default: K)
+### 🎉 NEW in v2.2.0: Complete Element System
+- **ALL 12 Elements Implemented**: Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider, Section, Tab
+- **Flags System**: `RvrseUI.Flags` - Global storage to access any element by flag name
+- **CurrentValue Properties**: All elements have `.CurrentValue`, `.CurrentOption`, or `.CurrentKeybind`
+- **Dropdown:Refresh()**: Update dropdown options dynamically with `Dropdown:Refresh(newValues)`
+- **Complete API**: Every element supports Set(), Get(), and Flag parameters
+- **FULL_DEMO.lua**: Comprehensive showcase testing all 12 elements with examples
 
 ### 🔔 Features from v2.1: Revolutionary Controls
 - **Close Button**: ✕ Professional close button in top right - completely destroys UI with no trace
@@ -68,493 +69,423 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 
 ### Copy & Paste Demo (Full Showcase)
 
-```lua
--- ============================================
--- RvrseUI v2.1.5+ - Complete Feature Demo
--- Copy this entire script to test all features
--- Tests: Theme switching, Lucide icons, Container selection, and more!
--- ============================================
+-- RvrseUI v2.2.0+ Complete Element Showcase
+-- This demo showcases ALL available elements and features
 
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
--- Create main window with Lucide icon (Default: PlayerGui)
+-- Create Window
 local Window = RvrseUI:CreateWindow({
-  Name = "RvrseUI Demo",
-  Icon = "settings",  -- Lucide icon support!
-  LoadingTitle = "RvrseUI v2.1.5+",
-  LoadingSubtitle = "Loading all features...",
-  Theme = "Dark",
-  ToggleUIKeybind = "K",
-  -- Container = "PlayerGui"  -- Default (can also use "CoreGui", "ReplicatedFirst")
+	Name = "RvrseUI v2.2.0 Complete Demo",
+	Icon = "game",  -- Unicode icon system
+	LoadingTitle = "RvrseUI Complete Showcase",
+	LoadingSubtitle = "Testing ALL elements...",
+	Theme = "Dark",
+	ToggleUIKeybind = "K"
 })
 
--- ==================== TAB 1: LUCIDE ICONS ====================
-local LucideTab = Window:CreateTab({ Title = "Lucide Icons", Icon = "home" })  -- Lucide icon
+print("🎮 RvrseUI v2.2.0 Complete Demo")
+print("📊 Testing ALL 12 elements + features")
+print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
--- Lucide Icons Section
-local LucideSection = LucideTab:CreateSection("Lucide Icon Library (80+ icons)")
-
-LucideSection:CreateButton({
-  Text = "ℹ️ What are Lucide Icons?",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Lucide Icons",
-      Message = "Professional icon library with 80+ icons. Use string names like 'home', 'settings', 'shield'",
-      Duration = 5,
-      Type = "info"
-    })
-  end
+-- ═══════════════════════════════════════
+-- TAB 1: INTERACTIVE ELEMENTS
+-- ═══════════════════════════════════════
+local InteractiveTab = Window:CreateTab({
+	Title = "Interactive",
+	Icon = "target"
 })
 
-LucideSection:CreateButton({
-  Text = "✅ Test Theme Switching",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Theme Switching",
-      Message = "Click the 🌙/🌞 pill in the header! All icons and colors will update instantly.",
-      Duration = 4,
-      Type = "success"
-    })
-  end
-})
+local ButtonSection = InteractiveTab:CreateSection("Buttons & Actions")
 
--- ==================== TAB 2: ROBLOX ASSET IDs ====================
-local AssetTab = Window:CreateTab({ Title = "Asset IDs", Icon = 4483362458 })  -- Roblox asset ID (number)
-
-local AssetSection = AssetTab:CreateSection("Roblox Asset ID Icons")
-
-AssetSection:CreateButton({
-  Text = "ℹ️ How to use Asset IDs?",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Asset IDs",
-      Message = "Use any Roblox image asset ID as a number. Example: Icon = 4483362458",
-      Duration = 4,
-      Type = "info"
-    })
-  end
-})
-
-AssetSection:CreateButton({
-  Text = "Test Asset Icon Tab",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Asset Icons Work!",
-      Message = "This tab's icon is from Roblox asset ID 4483362458",
-      Duration = 3,
-      Type = "success"
-    })
-  end
-})
-
--- ==================== TAB 3: EMOJI ICONS ====================
-local EmojiTab = Window:CreateTab({ Title = "Emojis", Icon = "🎨" })  -- Emoji (string)
-
-local EmojiSection = EmojiTab:CreateSection("Emoji & Text Icons")
-
-EmojiSection:CreateButton({
-  Text = "ℹ️ How to use Emojis?",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Emoji Icons",
-      Message = "Use any emoji or text string. Example: Icon = '🎨' or Icon = '⚙️'",
-      Duration = 4,
-      Type = "info"
-    })
-  end
-})
-
-EmojiSection:CreateButton({
-  Text = "Test Emoji Tab",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Emoji Icons Work!",
-      Message = "This tab uses 🎨 emoji as its icon",
-      Duration = 3,
-      Type = "success"
-    })
-  end
-})
-
--- ==================== TAB 4: INTERACTIVE DEMO ====================
-local ShowcaseTab = Window:CreateTab({ Title = "Interactive", Icon = "zap" })  -- Another Lucide icon
-
-local DemoSection = ShowcaseTab:CreateSection("Interactive Elements")
-
-local speedValue = 50
-local flyEnabled = false
-
-local speedSlider = DemoSection:CreateSlider({
-  Text = "Movement Speed",
-  Min = 0,
-  Max = 200,
-  Step = 5,
-  Default = 50,
-  OnChanged = function(value)
-    speedValue = value
-    RvrseUI:Notify({
-      Title = "Speed Updated",
-      Message = "New speed: " .. value,
-      Duration = 1,
-      Type = "info"
-    })
-  end
-})
-
-local flyToggle = DemoSection:CreateToggle({
-  Text = "Enable Flying",
-  State = false,
-  OnChanged = function(enabled)
-    flyEnabled = enabled
-    if enabled then
-      RvrseUI:Notify({
-        Title = "Flight Enabled",
-        Message = "You can now fly at speed " .. speedValue,
-        Duration = 2,
-        Type = "success"
-      })
-    else
-      RvrseUI:Notify({
-        Title = "Flight Disabled",
-        Message = "Flying mode deactivated",
-        Duration = 2,
-        Type = "warn"
-      })
-    end
-  end
-})
-
-local modeDropdown = DemoSection:CreateDropdown({
-  Text = "Movement Mode",
-  Values = { "Walk", "Run", "Sprint", "Teleport" },
-  Default = "Walk",
-  OnChanged = function(mode)
-    RvrseUI:Notify({
-      Title = "Mode Changed",
-      Message = "Now using: " .. mode,
-      Duration = 2,
-      Type = "info"
-    })
-  end
-})
-
--- ==================== TAB 5: MORE LUCIDE ICONS ====================
-local MoreIconsTab = Window:CreateTab({ Title = "More Icons", Icon = "grid" })  -- Lucide grid icon
-
-local MoreIconsSection = MoreIconsTab:CreateSection("Popular Lucide Icons")
-
--- Showcase different Lucide icons
-local lucideExamples = {
-	{icon = "shield", name = "Shield (security)"},
-	{icon = "lock", name = "Lock (secured)"},
-	{icon = "unlock", name = "Unlock (open)"},
-	{icon = "target", name = "Target (aim)"},
-	{icon = "zap", name = "Zap (power)"},
-	{icon = "star", name = "Star (favorite)"},
-	{icon = "heart", name = "Heart (like)"},
-	{icon = "bell", name = "Bell (notifications)"},
-	{icon = "search", name = "Search (find)"},
-	{icon = "code", name = "Code (programming)"},
-}
-
-for _, example in ipairs(lucideExamples) do
-	MoreIconsSection:CreateButton({
-		Text = example.icon .. " - " .. example.name,
-		Callback = function()
-			RvrseUI:Notify({
-				Title = "Icon: " .. example.icon,
-				Message = example.name .. "\nUsage: Icon = '" .. example.icon .. "'",
-				Duration = 3,
-				Type = "info"
-			})
-		end
-	})
-end
-
--- ==================== TAB 6: LOCK SYSTEM DEMO ====================
-local LockTab = Window:CreateTab({ Title = "Lock System", Icon = "lock" })  -- Lucide lock icon
-
-local LockDemoSection = LockTab:CreateSection("Master/Child Controls")
-
--- Master toggle that controls a lock group
-LockDemoSection:CreateToggle({
-  Text = "🎯 MASTER: Enable All Features",
-  State = false,
-  LockGroup = "AllFeatures",  -- This CONTROLS the lock
-  OnChanged = function(enabled)
-    if enabled then
-      RvrseUI:Notify({
-        Title = "Master Enabled",
-        Message = "All features unlocked! Individual controls are now disabled.",
-        Duration = 3,
-        Type = "success"
-      })
-    else
-      RvrseUI:Notify({
-        Title = "Master Disabled",
-        Message = "Individual controls re-enabled.",
-        Duration = 2,
-        Type = "warn"
-      })
-    end
-  end
-})
-
--- Child controls that respect the lock
-LockDemoSection:CreateToggle({
-  Text = "Feature A (Locked by Master)",
-  State = true,
-  RespectLock = "AllFeatures",  -- This RESPECTS the lock
-  OnChanged = function(on)
-    print("Feature A:", on)
-  end
-})
-
-LockDemoSection:CreateToggle({
-  Text = "Feature B (Locked by Master)",
-  State = false,
-  RespectLock = "AllFeatures",
-  OnChanged = function(on)
-    print("Feature B:", on)
-  end
-})
-
-LockDemoSection:CreateButton({
-  Text = "Execute Feature (Locked by Master)",
-  RespectLock = "AllFeatures",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Feature Executed",
-      Message = "This only works when master is OFF!",
-      Duration = 2,
-      Type = "success"
-    })
-  end
-})
-
--- ==================== TAB 7: SETTINGS ====================
-local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "sliders" })  -- Lucide sliders icon
-
-local ThemeSection = SettingsTab:CreateSection("Appearance")
-
-ThemeSection:CreateButton({
-  Text = "ℹ️ Theme Control Info",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Theme Switching",
-      Message = "Click the 🌙/🌞 pill in the header to switch themes. All UI elements update instantly!",
-      Duration = 5,
-      Type = "info"
-    })
-  end
-})
-
-ThemeSection:CreateButton({
-  Text = "🎨 Test Theme Change",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Theme Instructions",
-      Message = "Look at the header! Click the 🌙 or 🌞 pill button to switch themes.",
-      Duration = 4,
-      Type = "success"
-    })
-  end
-})
-
-local KeybindSection = SettingsTab:CreateSection("Keybinds")
-
-KeybindSection:CreateKeybind({
-  Text = "Toggle UI Visibility",
-  Default = Enum.KeyCode.K,
-  OnChanged = function(key)
-    RvrseUI:Notify({
-      Title = "Keybind Updated",
-      Message = "Press " .. key.Name .. " to toggle UI",
-      Duration = 2,
-      Type = "info"
-    })
-  end
-})
-
-KeybindSection:CreateKeybind({
-  Text = "Emergency Stop",
-  Default = Enum.KeyCode.X,
-  OnChanged = function(key)
-    print("Emergency stop bound to:", key.Name)
-  end
-})
-
--- ==================== TAB 8: CONTAINER FEATURE ====================
-local ContainerTab = Window:CreateTab({ Title = "Containers", Icon = "package" })  -- Lucide package icon
-
-local ContainerSection = ContainerTab:CreateSection("Container Selection Feature")
-
-ContainerSection:CreateButton({
-	Text = "ℹ️ What are Containers?",
+-- 1. BUTTON
+ButtonSection:CreateButton({
+	Text = "Click Me!",
 	Callback = function()
 		RvrseUI:Notify({
-			Title = "Container Feature",
-			Message = "Choose where your UI is hosted: PlayerGui (default), CoreGui, ReplicatedFirst, etc.",
-			Duration = 5,
-			Type = "info"
+			Title = "Button Clicked",
+			Message = "You clicked the button!",
+			Duration = 2,
+			Type = "success"
 		})
-	end
+		print("✓ Button clicked!")
+	end,
+	Flag = "TestButton"
 })
 
-ContainerSection:CreateButton({
-	Text = "📦 Current Container: PlayerGui",
-	Callback = function()
+-- 2. TOGGLE
+local TestToggle = ButtonSection:CreateToggle({
+	Text = "Enable Feature",
+	State = false,
+	OnChanged = function(state)
+		print("✓ Toggle state:", state)
 		RvrseUI:Notify({
-			Title = "Current Container",
-			Message = "This window is in PlayerGui (default location)",
-			Duration = 3,
+			Title = "Toggle Changed",
+			Message = "State: " .. tostring(state),
+			Duration = 1,
 			Type = "info"
 		})
-	end
+	end,
+	Flag = "TestToggle"
 })
 
-ContainerSection:CreateButton({
-	Text = "🛡️ Try CoreGui Container",
-	Callback = function()
-		-- Example: Create a new window in CoreGui
-		local success, adminWindow = pcall(function()
-			return RvrseUI:CreateWindow({
-				Name = "Admin Panel",
-				Container = "CoreGui",
-				Icon = "shield",
-				Theme = "Light",
-				ToggleUIKeybind = "F1"
-			})
-		end)
+-- 3. DROPDOWN
+local TestDropdown = ButtonSection:CreateDropdown({
+	Text = "Select Mode",
+	Values = {"Easy", "Medium", "Hard", "Extreme"},
+	Default = "Medium",
+	OnChanged = function(value)
+		print("✓ Dropdown selected:", value)
+		RvrseUI:Notify({
+			Title = "Mode Changed",
+			Message = "Selected: " .. value,
+			Duration = 1,
+			Type = "info"
+		})
+	end,
+	Flag = "TestDropdown"
+})
 
-		if success then
+-- 4. SLIDER
+local TestSlider = ButtonSection:CreateSlider({
+	Text = "Speed",
+	Min = 0,
+	Max = 100,
+	Step = 5,
+	Default = 50,
+	OnChanged = function(value)
+		print("✓ Slider value:", value)
+	end,
+	Flag = "TestSlider"
+})
+
+-- 5. KEYBIND
+local TestKeybind = ButtonSection:CreateKeybind({
+	Text = "Execute Hotkey",
+	Default = Enum.KeyCode.E,
+	OnChanged = function(key)
+		print("✓ Keybind set to:", key.Name)
+		RvrseUI:Notify({
+			Title = "Keybind Updated",
+			Message = "Press " .. key.Name .. " to execute",
+			Duration = 2,
+			Type = "info"
+		})
+	end,
+	Flag = "TestKeybind"
+})
+
+-- ═══════════════════════════════════════
+-- TAB 2: INPUT ELEMENTS
+-- ═══════════════════════════════════════
+local InputTab = Window:CreateTab({
+	Title = "Inputs",
+	Icon = "edit"
+})
+
+local InputSection = InputTab:CreateSection("Text & Color Inputs")
+
+-- 6. TEXTBOX (Adaptive Input)
+local TestTextBox = InputSection:CreateTextBox({
+	Text = "Username",
+	Placeholder = "Enter your username...",
+	Default = "Player123",
+	OnChanged = function(text, enterPressed)
+		print("✓ TextBox value:", text, "| Enter pressed:", enterPressed)
+		if enterPressed then
 			RvrseUI:Notify({
-				Title = "CoreGui Window Created!",
-				Message = "Admin panel created in CoreGui (Press F1 to toggle)",
-				Duration = 4,
+				Title = "Username Set",
+				Message = "Username: " .. text,
+				Duration = 2,
 				Type = "success"
 			})
-
-			local adminTab = adminWindow:CreateTab({ Title = "Admin", Icon = "users" })
-			local adminSection = adminTab:CreateSection("Admin Tools")
-
-			adminSection:CreateButton({
-				Text = "✓ This is in CoreGui (persistent)",
-				Callback = function()
-					RvrseUI:Notify({
-						Title = "CoreGui Container",
-						Message = "This window persists across respawns!",
-						Duration = 3,
-						Type = "success"
-					})
-				end
-			})
-		else
-			RvrseUI:Notify({
-				Title = "CoreGui Access Denied",
-				Message = "CoreGui may be restricted on live servers",
-				Duration = 3,
-				Type = "warn"
-			})
 		end
+	end,
+	Flag = "TestTextBox"
+})
+
+-- 7. COLORPICKER
+local TestColorPicker = InputSection:CreateColorPicker({
+	Text = "Theme Color",
+	Default = Color3.fromRGB(99, 102, 241),
+	OnChanged = function(color)
+		print("✓ Color changed:", color)
+		RvrseUI:Notify({
+			Title = "Color Selected",
+			Message = string.format("RGB(%d, %d, %d)", color.R * 255, color.G * 255, color.B * 255),
+			Duration = 2,
+			Type = "info"
+		})
+	end,
+	Flag = "TestColorPicker"
+})
+
+-- ═══════════════════════════════════════
+-- TAB 3: DISPLAY ELEMENTS
+-- ═══════════════════════════════════════
+local DisplayTab = Window:CreateTab({
+	Title = "Display",
+	Icon = "eye"
+})
+
+local DisplaySection = DisplayTab:CreateSection("Labels & Text Display")
+
+-- 8. LABEL
+local TestLabel = DisplaySection:CreateLabel({
+	Text = "Status: Ready",
+	Flag = "TestLabel"
+})
+
+-- 9. PARAGRAPH
+local TestParagraph = DisplaySection:CreateParagraph({
+	Text = "This is a paragraph element. It supports long text with automatic wrapping. Perfect for instructions, descriptions, or multi-line information. You can update the text dynamically using the Set method!",
+	Flag = "TestParagraph"
+})
+
+-- 10. DIVIDER
+DisplaySection:CreateDivider()
+
+DisplaySection:CreateLabel({
+	Text = "↑ Divider Above ↑"
+})
+
+-- ═══════════════════════════════════════
+-- TAB 4: LOCK SYSTEM DEMO
+-- ═══════════════════════════════════════
+local LockTab = Window:CreateTab({
+	Title = "Lock System",
+	Icon = "lock"
+})
+
+local LockSection = LockTab:CreateSection("Master/Child Lock Demo")
+
+LockSection:CreateParagraph({
+	Text = "The MASTER toggle controls the lock group. When ON, it disables all child elements in the same lock group."
+})
+
+-- MASTER: Controls the lock
+LockSection:CreateToggle({
+	Text = "🎯 Enable Auto-Mode (MASTER)",
+	State = false,
+	LockGroup = "AutoMode",  -- This controls the lock
+	OnChanged = function(state)
+		RvrseUI:Notify({
+			Title = "Auto-Mode " .. (state and "Enabled" or "Disabled"),
+			Message = state and "Individual controls locked" or "Individual controls unlocked",
+			Duration = 2,
+			Type = state and "warning" or "info"
+		})
 	end
 })
 
-ContainerSection:CreateButton({
-	Text = "📖 Learn More",
+LockSection:CreateDivider()
+
+-- CHILDREN: Respect the lock
+LockSection:CreateToggle({
+	Text = "Option A",
+	State = false,
+	RespectLock = "AutoMode",  -- Locked when master is ON
+	OnChanged = function(on) print("Option A:", on) end
+})
+
+LockSection:CreateToggle({
+	Text = "Option B",
+	State = false,
+	RespectLock = "AutoMode",
+	OnChanged = function(on) print("Option B:", on) end
+})
+
+LockSection:CreateSlider({
+	Text = "Intensity",
+	Min = 0,
+	Max = 100,
+	Default = 50,
+	RespectLock = "AutoMode"
+})
+
+-- ═══════════════════════════════════════
+-- TAB 5: API TESTING
+-- ═══════════════════════════════════════
+local APITab = Window:CreateTab({
+	Title = "API Tests",
+	Icon = "code"
+})
+
+local UpdateSection = APITab:CreateSection("Element Update Methods")
+
+UpdateSection:CreateParagraph({
+	Text = "This tab demonstrates updating elements programmatically using :Set() methods and checking values with :Get() and .CurrentValue"
+})
+
+UpdateSection:CreateButton({
+	Text = "Update All Elements",
 	Callback = function()
+		-- Update via Set() methods
+		TestToggle:Set(true)
+		TestDropdown:Set("Hard")
+		TestSlider:Set(75)
+		TestKeybind:Set(Enum.KeyCode.Q)
+		TestTextBox:Set("UpdatedUser")
+		TestColorPicker:Set(Color3.fromRGB(255, 0, 0))
+		TestLabel:Set("Status: Updated!")
+		TestParagraph:Set("All elements have been updated programmatically!")
+
+		print("✓ All elements updated via :Set() methods")
 		RvrseUI:Notify({
-			Title = "Container Documentation",
-			Message = "See CONTAINER_FEATURE.md for complete guide with examples!",
-			Duration = 4,
+			Title = "Elements Updated",
+			Message = "Check the other tabs!",
+			Duration = 3,
+			Type = "success"
+		})
+	end
+})
+
+UpdateSection:CreateButton({
+	Text = "Check Current Values",
+	Callback = function()
+		print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		print("📊 CURRENT VALUES:")
+		print("Toggle:", TestToggle:Get(), "| CurrentValue:", TestToggle.CurrentValue)
+		print("Dropdown:", TestDropdown:Get(), "| CurrentOption:", TestDropdown.CurrentOption)
+		print("Slider:", TestSlider:Get(), "| CurrentValue:", TestSlider.CurrentValue)
+		print("Keybind:", TestKeybind:Get().Name, "| CurrentKeybind:", TestKeybind.CurrentKeybind.Name)
+		print("TextBox:", TestTextBox:Get(), "| CurrentValue:", TestTextBox.CurrentValue)
+		print("Color:", TestColorPicker:Get())
+		print("Label:", TestLabel:Get())
+		print("Paragraph:", TestParagraph:Get())
+		print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+		RvrseUI:Notify({
+			Title = "Values Logged",
+			Message = "Check console (F9) for output",
+			Duration = 2,
 			Type = "info"
 		})
 	end
 })
 
--- ==================== TAB 9: NOTIFICATIONS ====================
-local NotifyTab = Window:CreateTab({ Title = "Notifications", Icon = "bell" })  -- Lucide bell icon
+UpdateSection:CreateDivider()
 
-local NotifySection = NotifyTab:CreateSection("Test Notification System")
+local FlagsSection = APITab:CreateSection("Flags System Testing")
 
-NotifySection:CreateButton({
-  Text = "✓ Success Notification",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Success!",
-      Message = "Operation completed successfully with smooth animations!",
-      Duration = 3,
-      Type = "success"
-    })
-  end
+FlagsSection:CreateParagraph({
+	Text = "All elements were created with Flag names. You can access them via RvrseUI.Flags['FlagName']"
 })
 
-NotifySection:CreateButton({
-  Text = "ℹ Info Notification",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Information",
-      Message = "This is an informational message with blue accent.",
-      Duration = 3,
-      Type = "info"
-    })
-  end
+FlagsSection:CreateButton({
+	Text = "Test Flags System",
+	Callback = function()
+		print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		print("🚩 FLAGS SYSTEM TEST:")
+
+		-- Access elements via Flags
+		print("Via Flags - Toggle:", RvrseUI.Flags["TestToggle"]:Get())
+		print("Via Flags - Dropdown:", RvrseUI.Flags["TestDropdown"]:Get())
+		print("Via Flags - Slider:", RvrseUI.Flags["TestSlider"]:Get())
+
+		-- Update via Flags
+		RvrseUI.Flags["TestToggle"]:Set(false)
+		RvrseUI.Flags["TestDropdown"]:Set("Easy")
+		RvrseUI.Flags["TestSlider"]:Set(25)
+
+		print("✓ Updated elements via Flags system")
+		print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+		RvrseUI:Notify({
+			Title = "Flags Test Complete",
+			Message = "Elements updated via Flags!",
+			Duration = 2,
+			Type = "success"
+		})
+	end
 })
 
-NotifySection:CreateButton({
-  Text = "⚠ Warning Notification",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Warning!",
-      Message = "This action may have consequences. Proceed with caution.",
-      Duration = 3,
-      Type = "warn"
-    })
-  end
+-- ═══════════════════════════════════════
+-- TAB 6: UNICODE ICONS SHOWCASE
+-- ═══════════════════════════════════════
+local IconsTab = Window:CreateTab({
+	Title = "Icons",
+	Icon = "star"
 })
 
-NotifySection:CreateButton({
-  Text = "✕ Error Notification",
-  Callback = function()
-    RvrseUI:Notify({
-      Title = "Error!",
-      Message = "Something went wrong. Please check your settings.",
-      Duration = 3,
-      Type = "error"
-    })
-  end
+local IconsSection = IconsTab:CreateSection("Unicode Icon System")
+
+IconsSection:CreateParagraph({
+	Text = "RvrseUI v2.2.0 includes 150+ Unicode icons. No external assets required!"
 })
 
--- Final welcome message
+IconsSection:CreateLabel({ Text = "🏠 home | ⚙ settings | 🔍 search | ℹ info" })
+IconsSection:CreateLabel({ Text = "👤 user | 🔒 lock | 🔓 unlock | 🔑 key" })
+IconsSection:CreateLabel({ Text = "💰 money | 💎 diamond | 🎮 game | 🏆 trophy" })
+IconsSection:CreateLabel({ Text = "⚔ sword | 🎯 target | 💥 explosion | 🛡 shield" })
+IconsSection:CreateLabel({ Text = "⚠ warning | ✓ success | ✕ error | 🔔 notification" })
+
+IconsSection:CreateDivider()
+
+IconsSection:CreateButton({
+	Text = "📝 Show All Icon Categories",
+	Callback = function()
+		print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		print("📚 UNICODE ICON CATEGORIES:")
+		print("• Navigation: home, settings, menu, search")
+		print("• Arrows: arrow-up/down/left/right, chevron-*")
+		print("• Actions: play, pause, stop, edit, trash, save")
+		print("• User: user, users, profile, chat, message")
+		print("• Security: lock, unlock, key, shield, verified")
+		print("• Currency: robux, dollar, coin, money, diamond")
+		print("• Items: box, gift, shopping, bag, backpack")
+		print("• Files: file, folder, document, clipboard")
+		print("• Tech: code, terminal, database, server, wifi")
+		print("• Nature: sun, moon, star, cloud, fire, water")
+		print("• Games: trophy, award, target, crown, sword")
+		print("• Combat: sword, weapon, gun, bomb, explosion")
+		print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	end
+})
+
+-- ═══════════════════════════════════════
+-- FINAL SUMMARY
+-- ═══════════════════════════════════════
+print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+print("✅ RvrseUI v2.2.0 Demo Loaded!")
+print("")
+print("📦 12 Elements Tested:")
+print("  1. ✓ Button")
+print("  2. ✓ Toggle")
+print("  3. ✓ Dropdown")
+print("  4. ✓ Slider")
+print("  5. ✓ Keybind")
+print("  6. ✓ TextBox (Adaptive Input)")
+print("  7. ✓ ColorPicker")
+print("  8. ✓ Label")
+print("  9. ✓ Paragraph")
+print(" 10. ✓ Divider")
+print(" 11. ✓ Section")
+print(" 12. ✓ Tab")
+print("")
+print("🎯 Features Tested:")
+print("  • CurrentValue properties")
+print("  • Flags system (RvrseUI.Flags)")
+print("  • Lock Groups (Master/Child)")
+print("  • :Set() / :Get() methods")
+print("  • Dropdown:Refresh()")
+print("  • Unicode icon system (150+ icons)")
+print("")
+print("Press K to toggle UI")
+print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+-- Welcome notification
 RvrseUI:Notify({
-  Title = "🎉 RvrseUI v2.1.5+ Loaded!",
-  Message = "✅ Lucide icons\n✅ Container selection\n✅ Theme switching\n✅ Multiple icon formats\nPress K to toggle UI!",
-  Duration = 6,
-  Type = "success"
+	Title = "Demo Loaded Successfully",
+	Message = "Explore all 6 tabs to test every element!",
+	Duration = 5,
+	Type = "success"
 })
+```
 
-print("===========================================")
-print("RvrseUI v2.1.5+ Demo Loaded")
-print("===========================================")
-print("Features Tested:")
-print("✓ Tab 1: Lucide icons (home)")
-print("✓ Tab 2: Roblox asset IDs (4483362458)")
-print("✓ Tab 3: Emoji icons (🎨)")
-print("✓ Tab 4: Interactive elements (zap)")
-print("✓ Tab 5: More Lucide icons (grid)")
-print("✓ Tab 6: Lock system (lock)")
-print("✓ Tab 7: Settings (sliders)")
-print("✓ Tab 8: Container selection (package)")
-print("✓ Tab 9: Notifications (bell)")
-print("===========================================")
-print("NEW: Container Feature")
-print("  - Choose UI location (PlayerGui, CoreGui, etc.)")
-print("  - See Tab 8 for interactive demo")
-print("  - Read CONTAINER_FEATURE.md for full guide")
-print("===========================================")
-print("Theme Switching: Click 🌙/🌞 pill in header")
-print("UI Toggle: Press K key")
-print("===========================================")
+**Or load the demo directly:**
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/FULL_DEMO.lua"))()
 ```
 
 ### Minimal Example (Just the Basics)
