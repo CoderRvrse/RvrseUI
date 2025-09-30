@@ -1,5 +1,45 @@
 # RvrseUI Release History
 
+## Version 2.1.4 "Aurora" - UI Layout Refinements
+**Release Date**: September 29, 2025
+**Build**: 20250929
+**Hash**: `E8B3C9A2`
+**Channel**: Stable
+
+### 🎨 UI Fixes & Polish
+- **Fixed Header Control Positioning**: Close | Bell | Theme (proper spacing, no overlap)
+- **Close Button**: Repositioned to far right at `(1, -12)` - 32x32px
+- **Bell Toggle**: Repositioned to `(1, -52)` - reduced to 32x24px
+- **Theme Toggle**: Repositioned to `(1, -92)` - reduced to 32x24px
+- **Version Badge**: Smaller 50x18px (was 70x24px), font size 9 (was 10)
+- **Code Cleanup**: Removed duplicate close button code
+
+### ✨ Visual Improvements
+- All header controls properly aligned with 8px spacing
+- Version badge more discreet and better proportioned
+- Professional layout with no overlapping elements
+- Tighter, cleaner UI appearance
+
+### 📊 Technical Details
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 1,
+  Patch = 4,
+  Build = "20250929",
+  Full = "2.1.4",
+  Hash = "E8B3C9A2",
+  Channel = "Stable"
+}
+```
+
+### 📥 Download
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+---
+
 ## Version 2.1.3 "Aurora" - Global UI Control Methods
 **Release Date**: September 29, 2025
 **Build**: 20250929
@@ -228,6 +268,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 | Version | Date | Hash | Codename | Key Feature |
 |---------|------|------|----------|-------------|
+| 2.1.4 | 2025-09-29 | E8B3C9A2 | Aurora | UI Layout Polish |
 | 2.1.3 | 2025-09-29 | D7A2E5F4 | Aurora | Global UI Control |
 | 2.1.2 | 2025-09-29 | C3F8A6E9 | Aurora | Complete Destruction |
 | 2.1.1 | 2025-09-29 | B9E4D7F1 | Aurora | UI Controls |
@@ -250,6 +291,7 @@ print("Channel:", info.Channel)
 ```
 
 ### Expected Hashes
+- **v2.1.4**: `E8B3C9A2`
 - **v2.1.3**: `D7A2E5F4`
 - **v2.1.2**: `C3F8A6E9`
 - **v2.1.1**: `B9E4D7F1`
