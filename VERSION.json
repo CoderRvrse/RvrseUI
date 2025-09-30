@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 3,
-    "patch": 5,
-    "full": "2.3.5",
+    "patch": 6,
+    "full": "2.3.6",
     "build": "20250930",
-    "hash": "D4F7B9E2",
+    "hash": "E8A3C5F1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Premium Slider UX",
-    "codename": "Buttery Smooth",
-    "notes": "Slider now has premium feel with grow-on-grab, glow effects, smooth animations, and enhanced interaction feedback"
+    "name": "Critical Function Order Fix",
+    "codename": "Hotfix",
+    "notes": "Fixed dprintf function ordering error that broke SaveConfiguration - moved dprintf before Config functions"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,19 @@
     "auto_save": true
   },
   "changelog": {
+    "2.3.6": {
+      "date": "2025-09-30",
+      "hash": "E8A3C5F1",
+      "changes": [
+        "🚨 CRITICAL HOTFIX - Function Ordering Error",
+        "✅ FIXED: SaveConfiguration crashing with 'attempt to call a nil value'",
+        "✅ FIXED: dprintf() was defined AFTER configuration functions that used it",
+        "Moved dprintf() from line 216 to line 58 (before Configuration System)",
+        "Removed duplicate dprintf() definition at line 222",
+        "SaveConfiguration, LoadConfiguration, DeleteConfiguration now work correctly",
+        "Configuration system fully functional again"
+      ]
+    },
     "2.3.5": {
       "date": "2025-09-30",
       "hash": "D4F7B9E2",

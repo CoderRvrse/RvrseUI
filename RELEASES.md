@@ -1,5 +1,94 @@
 # RvrseUI Release History
 
+## Version 2.3.6 "Hotfix" - Critical Function Order Fix
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `E8A3C5F1`
+**Channel**: Stable
+
+### 🚨 Critical Hotfix - Function Ordering Error
+
+#### Problem
+The configuration system was **completely broken** with this error:
+```
+:106: attempt to call a nil value
+Stack Begin
+Script 'Script', Line 106 - function SaveConfiguration
+Script 'Script', Line 164
+Stack End
+```
+
+**Root Cause**: `dprintf()` function was defined at **line 216**, but `SaveConfiguration()` (which called it at line 106) was defined at **line 67**. This created a **function ordering error** - trying to call a function before it was defined.
+
+---
+
+#### Solution
+
+**Moved `dprintf()` before the Configuration System**:
+- **Before**: Line 216 (after all config functions)
+- **After**: Line 58 (before config functions)
+
+**Removed duplicate definition** at line 222
+
+---
+
+#### Impact
+
+**Functions Now Working**:
+- ✅ `RvrseUI:SaveConfiguration()` - Now saves correctly
+- ✅ `RvrseUI:LoadConfiguration()` - Now loads correctly
+- ✅ `RvrseUI:DeleteConfiguration()` - Now deletes correctly
+- ✅ `RvrseUI:ConfigurationExists()` - Now checks correctly
+
+**Configuration System**: Fully functional again with folder support and auto-save.
+
+---
+
+### Technical Details
+
+**Original Error Code**:
+```lua
+-- Line 67: SaveConfiguration defined
+function RvrseUI:SaveConfiguration()
+  -- ... code ...
+  dprintf("Configuration saved:", self.ConfigurationFileName)  -- Line 106: ERROR!
+end
+
+-- Line 216: dprintf defined (TOO LATE!)
+local function dprintf(...)
+  if RvrseUI.DEBUG then print("[RvrseUI]", ...) end
+end
+```
+
+**Fixed Code**:
+```lua
+-- Line 58: dprintf NOW defined FIRST
+local function dprintf(...)
+  if RvrseUI.DEBUG then print("[RvrseUI]", ...) end
+end
+
+-- Line 73: SaveConfiguration can now use dprintf
+function RvrseUI:SaveConfiguration()
+  -- ... code ...
+  dprintf("Configuration saved:", self.ConfigurationFileName)  -- WORKS!
+end
+```
+
+---
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 3,
+  Patch = 6,
+  Full = "2.3.6",
+  Hash = "E8A3C5F1"
+}
+```
+
+---
+
 ## Version 2.3.5 "Buttery Smooth" - Premium Slider UX
 **Release Date**: September 30, 2025
 **Build**: 20250930

@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 3,
-	Patch = 5,
+	Patch = 6,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.5",
-	Hash = "D4F7B9E2",  -- Release hash for integrity verification
+	Full = "2.3.6",
+	Hash = "E8A3C5F1",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -54,6 +54,13 @@ end
 
 RvrseUI.NotificationsEnabled = true  -- Global notification toggle
 RvrseUI.Flags = {}  -- Global flag storage for all elements
+
+-- Debug print helper (only prints when DEBUG = true)
+local function dprintf(...)
+	if RvrseUI.DEBUG then
+		print("[RvrseUI]", ...)
+	end
+end
 
 -- =========================
 -- Configuration System
@@ -210,13 +217,6 @@ function RvrseUI:ConfigurationExists()
 	end)
 
 	return success and result
-end
-
--- Debug print helper (only prints when DEBUG = true)
-local function dprintf(...)
-	if RvrseUI.DEBUG then
-		print("[RvrseUI]", ...)
-	end
 end
 
 -- =========================
