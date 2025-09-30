@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 3,
-	Patch = 3,
+	Patch = 4,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.3",
-	Hash = "A1B8E4D7",  -- Release hash for integrity verification
+	Full = "2.3.4",
+	Hash = "C7E9F2A5",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1351,11 +1351,12 @@ function RvrseUI:CreateWindow(cfg)
 	end)
 
 	-- Tab bar (horizontal ScrollingFrame to prevent overflow)
+	-- Extra left padding to create space above version badge
 	local tabBar = Instance.new("ScrollingFrame")
 	tabBar.BackgroundTransparency = 1
 	tabBar.BorderSizePixel = 0
-	tabBar.Position = UDim2.new(0, 12, 0, 60)
-	tabBar.Size = UDim2.new(1, -24, 0, 40)
+	tabBar.Position = UDim2.new(0, 54, 0, 60)  -- 54px from left (was 12px) to clear version badge below
+	tabBar.Size = UDim2.new(1, -66, 0, 40)  -- Adjusted width: -66 (54 left + 12 right)
 	tabBar.CanvasSize = UDim2.new(0, 0, 0, 40)
 	tabBar.AutomaticCanvasSize = Enum.AutomaticSize.X
 	tabBar.ScrollBarThickness = 4

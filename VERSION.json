@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 3,
-    "patch": 3,
-    "full": "2.3.3",
+    "patch": 4,
+    "full": "2.3.4",
     "build": "20250930",
-    "hash": "A1B8E4D7",
+    "hash": "C7E9F2A5",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Version Badge Containment Fix",
-    "codename": "Clean UI",
-    "notes": "Version badge now fully contained within panel with proper 8px insets, no border overflow"
+    "name": "Tab Bar Spacing Fix",
+    "codename": "Clean Layout",
+    "notes": "Tab bar now has proper left margin to create clear visual space above version badge"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,20 @@
     "auto_save": true
   },
   "changelog": {
+    "2.3.4": {
+      "date": "2025-09-30",
+      "hash": "C7E9F2A5",
+      "changes": [
+        "🎨 LAYOUT FIX - Tab Bar Spacing",
+        "✅ FIXED: Tab bar no longer visually clashes with version badge",
+        "✅ FIXED: Clean visual separation between tabs and version pill",
+        "Tab bar left position: 12px → 54px (42px additional space)",
+        "Tab bar width: -24 → -66 (adjusted for new left margin)",
+        "Creates clear visual column for version badge in bottom-left",
+        "Tabs now start well to the right, avoiding any visual overlap",
+        "Professional, clean layout with proper spatial hierarchy"
+      ]
+    },
     "2.3.3": {
       "date": "2025-09-30",
       "hash": "A1B8E4D7",

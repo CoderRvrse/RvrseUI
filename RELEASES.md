@@ -1,5 +1,88 @@
 # RvrseUI Release History
 
+## Version 2.3.4 "Clean Layout" - Tab Bar Spacing Fix
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `C7E9F2A5`
+**Channel**: Stable
+
+### 🎨 Layout Fix - Tab Bar Visual Separation
+
+#### Problem
+The tab bar was positioned too close to the left edge (12px), causing visual clutter and overlap with the version badge below it. The tab buttons appeared to "hit" or clash with the version pill, creating an unprofessional, cramped appearance.
+
+#### Solution
+Increased the tab bar's left margin to create **clear visual space** above the version badge:
+
+**Tab Bar Position**: Changed from `(0, 12, 0, 60)` → `(0, 54, 0, 60)`
+- **Left margin**: 12px → **54px** (+42px additional space)
+- Creates a clean vertical column for the version badge in the bottom-left
+
+**Tab Bar Width**: Adjusted from `-24` → `-66`
+- Compensates for the increased left margin (54px left + 12px right = 66px total)
+- Maintains proper right-side spacing
+
+---
+
+### Visual Impact
+
+**Before (v2.3.3)**:
+```
+┌─────────────────────────────┐
+│  [Tab1] [Tab2] [Tab3]      │  ← Tabs start at 12px
+│                             │
+│                             │
+│  v2.3.3                     │  ← Badge at 8px (visual clash)
+└─────────────────────────────┘
+```
+
+**After (v2.3.4)**:
+```
+┌─────────────────────────────┐
+│             [Tab1] [Tab2]   │  ← Tabs start at 54px
+│                             │
+│                             │
+│  v2.3.4                     │  ← Badge at 8px (clean separation)
+└─────────────────────────────┘
+```
+
+---
+
+### Benefits
+✅ **Clear visual separation** between tabs and version badge
+✅ **No visual clutter** or overlap
+✅ **Professional spatial hierarchy** - version badge has its own dedicated space
+✅ **Clean, readable layout** across all screen sizes
+✅ **Tabs appear properly aligned** without interfering with UI chrome
+
+---
+
+### Technical Details
+```lua
+-- Tab bar positioning
+tabBar.Position = UDim2.new(0, 54, 0, 60)   -- Was: (0, 12, 0, 60)
+tabBar.Size = UDim2.new(1, -66, 0, 40)      -- Was: (1, -24, 0, 40)
+
+-- Version badge (unchanged, but now has clear space above)
+versionBadge.Position = UDim2.new(0, 8, 1, -24)
+versionBadge.Size = UDim2.new(0, 38, 0, 14)
+```
+
+---
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 3,
+  Patch = 4,
+  Full = "2.3.4",
+  Hash = "C7E9F2A5"
+}
+```
+
+---
+
 ## Version 2.3.3 "Clean UI" - Version Badge Containment Fix
 **Release Date**: September 30, 2025
 **Build**: 20250930
