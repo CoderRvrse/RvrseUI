@@ -14,7 +14,8 @@ local Mouse = LP:GetMouse()
 
 local RvrseUI = {}
 RvrseUI.DEBUG = false
-RvrseUI.Version = "2.0.0"
+RvrseUI.Version = "2.1.0"
+RvrseUI.NotificationsEnabled = true  -- Global notification toggle
 
 -- Debug print helper (only prints when DEBUG = true)
 local function dprintf(...)
@@ -233,6 +234,54 @@ local function shadow(inst, transparency, size)
 	return shadow
 end
 
+local function createTooltip(parent, text)
+	local tooltip = Instance.new("TextLabel")
+	tooltip.Name = "Tooltip"
+	tooltip.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	tooltip.BackgroundTransparency = 0.1
+	tooltip.BorderSizePixel = 0
+	tooltip.Size = UDim2.new(0, 0, 0, 24)
+	tooltip.AutomaticSize = Enum.AutomaticSize.X
+	tooltip.Position = UDim2.new(0.5, 0, 1, 4)
+	tooltip.AnchorPoint = Vector2.new(0.5, 0)
+	tooltip.Font = Enum.Font.Gotham
+	tooltip.TextSize = 12
+	tooltip.TextColor3 = Color3.fromRGB(255, 255, 255)
+	tooltip.Text = "  " .. text .. "  "
+	tooltip.Visible = false
+	tooltip.ZIndex = 1000
+	tooltip.Parent = parent
+	corner(tooltip, 6)
+
+	local tooltipStroke = Instance.new("UIStroke")
+	tooltipStroke.Color = Color3.fromRGB(60, 60, 70)
+	tooltipStroke.Thickness = 1
+	tooltipStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	tooltipStroke.Parent = tooltip
+
+	return tooltip
+end
+
+local function addGlow(inst, color, intensity)
+	-- Add glow effect using UIStroke
+	local glow = Instance.new("UIStroke")
+	glow.Name = "Glow"
+	glow.Color = color or Color3.fromRGB(99, 102, 241)
+	glow.Thickness = 0
+	glow.Transparency = 0.5
+	glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	glow.Parent = inst
+
+	-- Animate glow
+	local glowTween = TweenService:Create(glow, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+		Thickness = intensity or 2,
+		Transparency = 0.2
+	})
+	glowTween:Play()
+
+	return glow
+end
+
 -- =========================
 -- Root Host
 -- =========================
@@ -264,6 +313,9 @@ notifyLayout.SortOrder = Enum.SortOrder.LayoutOrder
 notifyLayout.Parent = notifyRoot
 
 function RvrseUI:Notify(opt)
+	-- Check if notifications are enabled
+	if not RvrseUI.NotificationsEnabled then return end
+
 	opt = opt or {}
 	local pal = Theme:Get()
 
@@ -415,15 +467,25 @@ function RvrseUI:CreateWindow(cfg)
 	stroke(root, pal.Border, 1.5)
 	self.UI:RegisterToggleTarget(root)
 
-	-- Glassmorphic overlay (blur sim)
+	-- Enhanced Glassmorphic overlay (93-97% transparency)
 	local glassOverlay = Instance.new("Frame")
 	glassOverlay.Size = UDim2.new(1, 0, 1, 0)
-	glassOverlay.BackgroundColor3 = pal.Glass
-	glassOverlay.BackgroundTransparency = 0.3
+	glassOverlay.BackgroundColor3 = Theme.Current == "Dark"
+		and Color3.fromRGB(255, 255, 255)
+		or Color3.fromRGB(245, 245, 250)
+	glassOverlay.BackgroundTransparency = 0.95  -- 95% transparent for true glass effect
 	glassOverlay.BorderSizePixel = 0
 	glassOverlay.ZIndex = root.ZIndex - 1
 	glassOverlay.Parent = root
 	corner(glassOverlay, 16)
+
+	-- Glass edge shine
+	local glassShine = Instance.new("UIStroke")
+	glassShine.Color = Color3.fromRGB(255, 255, 255)
+	glassShine.Transparency = 0.7
+	glassShine.Thickness = 1
+	glassShine.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	glassShine.Parent = glassOverlay
 
 	-- Header bar
 	local header = Instance.new("Frame")
@@ -496,12 +558,116 @@ function RvrseUI:CreateWindow(cfg)
 	title.Text = name
 	title.Parent = header
 
+	-- Notification Bell Toggle (Revolutionary!)
+	local bellToggle = Instance.new("TextButton")
+	bellToggle.Name = "BellToggle"
+	bellToggle.AnchorPoint = Vector2.new(1, 0.5)
+	bellToggle.Position = UDim2.new(1, -16, 0.5, 0)
+	bellToggle.Size = UDim2.new(0, 50, 0, 24)
+	bellToggle.BackgroundColor3 = pal.Elevated
+	bellToggle.BorderSizePixel = 0
+	bellToggle.Font = Enum.Font.GothamBold
+	bellToggle.TextSize = 14
+	bellToggle.Text = "🔔"
+	bellToggle.TextColor3 = pal.Success
+	bellToggle.AutoButtonColor = false
+	bellToggle.Parent = header
+	corner(bellToggle, 12)
+	stroke(bellToggle, pal.Border, 1)
+	addGlow(bellToggle, pal.Success, 1.5)
+
+	local bellTooltip = createTooltip(bellToggle, "Notifications: ON")
+
+	bellToggle.MouseEnter:Connect(function()
+		bellTooltip.Visible = true
+		Animator:Tween(bellToggle, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
+	end)
+	bellToggle.MouseLeave:Connect(function()
+		bellTooltip.Visible = false
+		Animator:Tween(bellToggle, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
+	end)
+
+	bellToggle.MouseButton1Click:Connect(function()
+		RvrseUI.NotificationsEnabled = not RvrseUI.NotificationsEnabled
+		if RvrseUI.NotificationsEnabled then
+			bellToggle.Text = "🔔"
+			bellToggle.TextColor3 = pal.Success
+			bellTooltip.Text = "  Notifications: ON  "
+			-- Re-add glow
+			if bellToggle:FindFirstChild("Glow") then
+				bellToggle.Glow:Destroy()
+			end
+			addGlow(bellToggle, pal.Success, 1.5)
+		else
+			bellToggle.Text = "🔕"
+			bellToggle.TextColor3 = pal.Error
+			bellTooltip.Text = "  Notifications: OFF  "
+			-- Remove glow
+			if bellToggle:FindFirstChild("Glow") then
+				bellToggle.Glow:Destroy()
+			end
+		end
+		Animator:Ripple(bellToggle, 25, 12)
+	end)
+
+	-- Theme Toggle Pill (Mini Professional)
+	local themeToggle = Instance.new("TextButton")
+	themeToggle.Name = "ThemeToggle"
+	themeToggle.AnchorPoint = Vector2.new(1, 0.5)
+	themeToggle.Position = UDim2.new(1, -74, 0.5, 0)
+	themeToggle.Size = UDim2.new(0, 50, 0, 24)
+	themeToggle.BackgroundColor3 = pal.Elevated
+	themeToggle.BorderSizePixel = 0
+	themeToggle.Font = Enum.Font.GothamBold
+	themeToggle.TextSize = 14
+	themeToggle.Text = Theme.Current == "Dark" and "🌙" or "🌞"
+	themeToggle.TextColor3 = pal.Accent
+	themeToggle.AutoButtonColor = false
+	themeToggle.Parent = header
+	corner(themeToggle, 12)
+	stroke(themeToggle, pal.Border, 1)
+
+	local themeTooltip = createTooltip(themeToggle, "Theme: " .. Theme.Current)
+
+	themeToggle.MouseEnter:Connect(function()
+		themeTooltip.Visible = true
+		Animator:Tween(themeToggle, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
+	end)
+	themeToggle.MouseLeave:Connect(function()
+		themeTooltip.Visible = false
+		Animator:Tween(themeToggle, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
+	end)
+
+	themeToggle.MouseButton1Click:Connect(function()
+		local newTheme = Theme.Current == "Dark" and "Light" or "Dark"
+		Theme:Switch(newTheme)
+		pal = Theme:Get()
+
+		themeToggle.Text = newTheme == "Dark" and "🌙" or "🌞"
+		themeToggle.TextColor3 = pal.Accent
+		themeTooltip.Text = "  Theme: " .. newTheme .. "  "
+
+		-- Update glass overlay
+		glassOverlay.BackgroundColor3 = newTheme == "Dark"
+			and Color3.fromRGB(255, 255, 255)
+			or Color3.fromRGB(245, 245, 250)
+
+		Animator:Ripple(themeToggle, 25, 12)
+
+		RvrseUI:Notify({
+			Title = "Theme Changed",
+			Message = "Switched to " .. newTheme .. " mode",
+			Duration = 2,
+			Type = "info"
+		})
+	end)
+
 	-- Version badge
 	local versionBadge = Instance.new("TextLabel")
 	versionBadge.BackgroundColor3 = pal.Accent
 	versionBadge.BackgroundTransparency = 0.9
-	versionBadge.Position = UDim2.new(1, -80, 0.5, -10)
-	versionBadge.Size = UDim2.new(0, 60, 0, 20)
+	versionBadge.Position = UDim2.new(1, -132, 0.5, -10)
+	versionBadge.Size = UDim2.new(0, 50, 0, 20)
 	versionBadge.Font = Enum.Font.GothamMedium
 	versionBadge.TextSize = 10
 	versionBadge.TextColor3 = pal.Accent

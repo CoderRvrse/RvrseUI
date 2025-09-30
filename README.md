@@ -1,6 +1,6 @@
-# RvrseUI v2.0
+# RvrseUI v2.1
 
-A **modern, professional, lightweight** UI framework for Roblox scripts with glassmorphism, spring animations, and mobile-first responsive design.
+A **modern, professional, lightweight** UI framework for Roblox scripts with glassmorphism, spring animations, notification controls, and mobile-first responsive design.
 
 **Flow**: Boot library → Create Window → Tabs → Sections → Elements (buttons, toggles, dropdowns, keybinds, sliders, notifications).
 
@@ -8,12 +8,20 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 
 ## ✨ Features
 
+### 🔔 NEW in v2.1: Revolutionary Controls
+- **Notification Bell Toggle**: 🔔/🔕 Professional 50x20px pill in header for instant mute/unmute
+- **Mini Theme Toggle**: 🌙/🌞 Switch between Dark/Light themes with one click
+- **Professional Tooltips**: Hover feedback system for all header controls
+- **Glowing Animations**: Pulsing glow effects on active notification bell
+- **Enhanced Glass**: True 95% transparency with white tinting and edge shine
+
 ### 🎨 Modern Design
-- **Glassmorphism/Acrylic Effects**: Frosted glass blur backgrounds with layered transparency
+- **True Glassmorphism**: 93-97% transparent elements with professional glass appearance
 - **Spring Animations**: Smooth micro-interactions with Snappy, Bounce, and Smooth easing
 - **Material Ripple Effects**: Touch-responsive ripple animations on buttons
 - **Gradients & Shadows**: Elevated depth with subtle shadow layers and accent gradients
 - **Modern Color Palette**: Indigo accents, refined dark/light themes with proper text hierarchy
+- **Animated Glows**: Pulsing stroke effects on interactive elements
 
 ### 📱 Mobile-First Responsive
 - **Auto-Scaling**: Detects mobile/tablet and adjusts window dimensions (380x520 mobile, 580x480 desktop)
@@ -22,12 +30,14 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 - **Smooth Scrolling**: Auto-sizing canvas with slim scrollbars
 
 ### 🚀 Advanced Features
+- **Notification Control**: Global bell toggle silences all notifications instantly
 - **Drag-to-Reposition**: Click and drag window header to move UI anywhere
-- **Theme Switcher**: Runtime theme switching with `Window:SetTheme("Dark"/"Light")`
+- **Dual Theme System**: Runtime theme switching with header pill or API
 - **LockGroup System**: Master toggles control dependent element states
-- **Animated Notifications**: Toast system with slide-in/fade-out animations
+- **Animated Notifications**: Toast system with slide-in/fade-out animations (can be muted!)
 - **Loading Splash**: Animated loading bar with configurable title/subtitle
 - **Version Badge**: Display framework version in header
+- **Interactive Tooltips**: Hover feedback on all header controls
 
 ### 🧩 Component Library
 - **Button**: Material ripple effect, hover states, lock support
