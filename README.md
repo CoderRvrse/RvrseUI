@@ -70,21 +70,22 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 
 ```lua
 -- ============================================
--- RvrseUI v2.1.5 - Complete Feature Demo
+-- RvrseUI v2.1.5+ - Complete Feature Demo
 -- Copy this entire script to test all features
--- Tests: Theme switching, Lucide icons, Roblox asset IDs, emojis
+-- Tests: Theme switching, Lucide icons, Container selection, and more!
 -- ============================================
 
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
--- Create main window with Lucide icon
+-- Create main window with Lucide icon (Default: PlayerGui)
 local Window = RvrseUI:CreateWindow({
-  Name = "RvrseUI v2.1.5",
-  Icon = "settings",  -- NEW: Lucide icon support!
-  LoadingTitle = "RvrseUI v2.1.5",
-  LoadingSubtitle = "Loading with Lucide icons...",
+  Name = "RvrseUI Demo",
+  Icon = "settings",  -- Lucide icon support!
+  LoadingTitle = "RvrseUI v2.1.5+",
+  LoadingSubtitle = "Loading all features...",
   Theme = "Dark",
-  ToggleUIKeybind = "K"
+  ToggleUIKeybind = "K",
+  -- Container = "PlayerGui"  -- Default (can also use "CoreGui", "ReplicatedFirst")
 })
 
 -- ==================== TAB 1: LUCIDE ICONS ====================
@@ -383,7 +384,95 @@ KeybindSection:CreateKeybind({
   end
 })
 
--- ==================== TAB 8: NOTIFICATIONS ====================
+-- ==================== TAB 8: CONTAINER FEATURE ====================
+local ContainerTab = Window:CreateTab({ Title = "Containers", Icon = "package" })  -- Lucide package icon
+
+local ContainerSection = ContainerTab:CreateSection("Container Selection Feature")
+
+ContainerSection:CreateButton({
+	Text = "ℹ️ What are Containers?",
+	Callback = function()
+		RvrseUI:Notify({
+			Title = "Container Feature",
+			Message = "Choose where your UI is hosted: PlayerGui (default), CoreGui, ReplicatedFirst, etc.",
+			Duration = 5,
+			Type = "info"
+		})
+	end
+})
+
+ContainerSection:CreateButton({
+	Text = "📦 Current Container: PlayerGui",
+	Callback = function()
+		RvrseUI:Notify({
+			Title = "Current Container",
+			Message = "This window is in PlayerGui (default location)",
+			Duration = 3,
+			Type = "info"
+		})
+	end
+})
+
+ContainerSection:CreateButton({
+	Text = "🛡️ Try CoreGui Container",
+	Callback = function()
+		-- Example: Create a new window in CoreGui
+		local success, adminWindow = pcall(function()
+			return RvrseUI:CreateWindow({
+				Name = "Admin Panel",
+				Container = "CoreGui",
+				Icon = "shield",
+				Theme = "Light",
+				ToggleUIKeybind = "F1"
+			})
+		end)
+
+		if success then
+			RvrseUI:Notify({
+				Title = "CoreGui Window Created!",
+				Message = "Admin panel created in CoreGui (Press F1 to toggle)",
+				Duration = 4,
+				Type = "success"
+			})
+
+			local adminTab = adminWindow:CreateTab({ Title = "Admin", Icon = "users" })
+			local adminSection = adminTab:CreateSection("Admin Tools")
+
+			adminSection:CreateButton({
+				Text = "✓ This is in CoreGui (persistent)",
+				Callback = function()
+					RvrseUI:Notify({
+						Title = "CoreGui Container",
+						Message = "This window persists across respawns!",
+						Duration = 3,
+						Type = "success"
+					})
+				end
+			})
+		else
+			RvrseUI:Notify({
+				Title = "CoreGui Access Denied",
+				Message = "CoreGui may be restricted on live servers",
+				Duration = 3,
+				Type = "warn"
+			})
+		end
+	end
+})
+
+ContainerSection:CreateButton({
+	Text = "📖 Learn More",
+	Callback = function()
+		RvrseUI:Notify({
+			Title = "Container Documentation",
+			Message = "See CONTAINER_FEATURE.md for complete guide with examples!",
+			Duration = 4,
+			Type = "info"
+		})
+	end
+})
+
+-- ==================== TAB 9: NOTIFICATIONS ====================
 local NotifyTab = Window:CreateTab({ Title = "Notifications", Icon = "bell" })  -- Lucide bell icon
 
 local NotifySection = NotifyTab:CreateSection("Test Notification System")
@@ -438,24 +527,30 @@ NotifySection:CreateButton({
 
 -- Final welcome message
 RvrseUI:Notify({
-  Title = "🎉 RvrseUI v2.1.5 Loaded!",
-  Message = "✅ Lucide icons\n✅ Roblox asset IDs\n✅ Emoji icons\n✅ Theme switching\nPress K to toggle UI!",
+  Title = "🎉 RvrseUI v2.1.5+ Loaded!",
+  Message = "✅ Lucide icons\n✅ Container selection\n✅ Theme switching\n✅ Multiple icon formats\nPress K to toggle UI!",
   Duration = 6,
   Type = "success"
 })
 
 print("===========================================")
-print("RvrseUI v2.1.5 Demo Loaded")
+print("RvrseUI v2.1.5+ Demo Loaded")
 print("===========================================")
-print("Icon Formats Tested:")
-print("✓ Tab 1: Lucide icon (home)")
-print("✓ Tab 2: Roblox asset ID (4483362458)")
-print("✓ Tab 3: Emoji (🎨)")
-print("✓ Tab 4: Lucide icon (zap)")
-print("✓ Tab 5: Lucide icon (grid)")
-print("✓ Tab 6: Lucide icon (lock)")
-print("✓ Tab 7: Lucide icon (sliders)")
-print("✓ Tab 8: Lucide icon (bell)")
+print("Features Tested:")
+print("✓ Tab 1: Lucide icons (home)")
+print("✓ Tab 2: Roblox asset IDs (4483362458)")
+print("✓ Tab 3: Emoji icons (🎨)")
+print("✓ Tab 4: Interactive elements (zap)")
+print("✓ Tab 5: More Lucide icons (grid)")
+print("✓ Tab 6: Lock system (lock)")
+print("✓ Tab 7: Settings (sliders)")
+print("✓ Tab 8: Container selection (package)")
+print("✓ Tab 9: Notifications (bell)")
+print("===========================================")
+print("NEW: Container Feature")
+print("  - Choose UI location (PlayerGui, CoreGui, etc.)")
+print("  - See Tab 8 for interactive demo")
+print("  - Read CONTAINER_FEATURE.md for full guide")
 print("===========================================")
 print("Theme Switching: Click 🌙/🌞 pill in header")
 print("UI Toggle: Press K key")
@@ -468,11 +563,12 @@ print("===========================================")
 -- Quick minimal setup with icon support
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
--- Window with Lucide icon
+-- Window with Lucide icon and optional container
 local Window = RvrseUI:CreateWindow({
 	Name = "My Script",
 	Icon = "code",  -- Lucide icon
-	Theme = "Dark"
+	Theme = "Dark",
+	-- Container = "PlayerGui"  -- Optional: PlayerGui (default), CoreGui, ReplicatedFirst
 })
 
 -- Tab with Lucide icon
@@ -562,10 +658,45 @@ local Window = RvrseUI:CreateWindow({
   ShowText             = "RvrseUI",    -- Mobile chip text
   Theme                = "Dark",       -- "Dark" | "Light"
   ToggleUIKeybind      = "K",          -- string "K" or Enum.KeyCode.K
+  Container            = "PlayerGui",  -- NEW: "PlayerGui" (default), "CoreGui", "ReplicatedFirst", "StarterGui", or Instance
+  DisplayOrder         = 999,          -- NEW: Custom render order (default: 999)
   DisableRvrseUIPrompts = false,
   DisableBuildWarnings  = false,
 })
 ```
+
+### 📦 Container Selection (NEW in v2.1.5+)
+
+Choose where your UI is hosted for different use cases:
+
+```lua
+-- Default: PlayerGui (standard player UI)
+local Window1 = RvrseUI:CreateWindow({
+	Name = "Player UI"
+})
+
+-- CoreGui: Persistent admin/mod panels
+local Window2 = RvrseUI:CreateWindow({
+	Name = "Admin Panel",
+	Container = "CoreGui",
+	Icon = "shield"
+})
+
+-- ReplicatedFirst: Custom loading screens
+local Window3 = RvrseUI:CreateWindow({
+	Name = "Loading Screen",
+	Container = "ReplicatedFirst",
+	Icon = "loader"
+})
+
+-- Custom DisplayOrder: Control render layering
+local Window4 = RvrseUI:CreateWindow({
+	Name = "Overlay",
+	DisplayOrder = 9999  -- Higher = renders on top
+})
+```
+
+**See [CONTAINER_FEATURE.md](CONTAINER_FEATURE.md) for complete guide with use cases!**
 
 ### Window Methods
 
