@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 3,
-	Patch = 0,
+	Patch = 1,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.0",
-	Hash = "7F5E2B9C",  -- Release hash for integrity verification
+	Full = "2.3.1",
+	Hash = "8A4F6D3E",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -60,6 +60,7 @@ RvrseUI.Flags = {}  -- Global flag storage for all elements
 -- =========================
 RvrseUI.ConfigurationSaving = false  -- Enabled via CreateWindow
 RvrseUI.ConfigurationFileName = nil  -- Set via CreateWindow
+RvrseUI.ConfigurationFolderName = nil  -- Optional folder name
 RvrseUI._configCache = {}  -- In-memory config cache
 
 -- Save configuration to datastore
@@ -83,10 +84,22 @@ function RvrseUI:SaveConfiguration()
 	-- Cache configuration
 	self._configCache = config
 
+	-- Build full file path with optional folder
+	local fullPath = self.ConfigurationFileName
+	if self.ConfigurationFolderName then
+		-- Create folder if it doesn't exist
+		pcall(function()
+			if not isfolder(self.ConfigurationFolderName) then
+				makefolder(self.ConfigurationFolderName)
+			end
+		end)
+		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
+	end
+
 	-- Save to datastore using writefile
 	local success, err = pcall(function()
 		local jsonData = game:GetService("HttpService"):JSONEncode(config)
-		writefile(self.ConfigurationFileName, jsonData)
+		writefile(fullPath, jsonData)
 	end)
 
 	if success then
@@ -104,12 +117,18 @@ function RvrseUI:LoadConfiguration()
 		return false, "Configuration saving not enabled"
 	end
 
+	-- Build full file path with optional folder
+	local fullPath = self.ConfigurationFileName
+	if self.ConfigurationFolderName then
+		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
+	end
+
 	local success, result = pcall(function()
-		if not isfile(self.ConfigurationFileName) then
+		if not isfile(fullPath) then
 			return nil, "No saved configuration found"
 		end
 
-		local jsonData = readfile(self.ConfigurationFileName)
+		local jsonData = readfile(fullPath)
 		return game:GetService("HttpService"):JSONDecode(jsonData)
 	end)
 
@@ -154,9 +173,15 @@ function RvrseUI:DeleteConfiguration()
 		return false, "No configuration file specified"
 	end
 
+	-- Build full file path with optional folder
+	local fullPath = self.ConfigurationFileName
+	if self.ConfigurationFolderName then
+		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
+	end
+
 	local success, err = pcall(function()
-		if isfile(self.ConfigurationFileName) then
-			delfile(self.ConfigurationFileName)
+		if isfile(fullPath) then
+			delfile(fullPath)
 		end
 	end)
 
@@ -174,8 +199,14 @@ function RvrseUI:ConfigurationExists()
 		return false
 	end
 
+	-- Build full file path with optional folder
+	local fullPath = self.ConfigurationFileName
+	if self.ConfigurationFolderName then
+		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
+	end
+
 	local success, result = pcall(function()
-		return isfile(self.ConfigurationFileName)
+		return isfile(fullPath)
 	end)
 
 	return success and result
@@ -894,9 +925,18 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Configuration system setup
 	if cfg.ConfigurationSaving then
-		self.ConfigurationSaving = true
-		self.ConfigurationFileName = cfg.FileName or "RvrseUI_Config.json"
-		dprintf("Configuration saving enabled:", self.ConfigurationFileName)
+		-- Support both old format (boolean) and new format (table)
+		if typeof(cfg.ConfigurationSaving) == "table" then
+			self.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
+			self.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
+			self.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
+			dprintf("Configuration saving enabled:", self.ConfigurationFolderName and (self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName) or self.ConfigurationFileName)
+		else
+			-- Old format: boolean with separate FileName
+			self.ConfigurationSaving = true
+			self.ConfigurationFileName = cfg.FileName or "RvrseUI_Config.json"
+			dprintf("Configuration saving enabled:", self.ConfigurationFileName)
+		end
 	end
 
 	local name = cfg.Name or "RvrseUI"
@@ -1267,20 +1307,20 @@ function RvrseUI:CreateWindow(cfg)
 		})
 	end)
 
-	-- Version badge with hash (bottom left corner - smaller with neon color)
+	-- Version badge with hash (bottom left corner - smaller, more outside, more down)
 	local versionBadge = Instance.new("TextButton")
 	versionBadge.Name = "VersionBadge"
 	versionBadge.BackgroundColor3 = Color3.fromRGB(0, 255, 255)  -- Cyan/Neon Blue
 	versionBadge.BackgroundTransparency = 0.9
-	versionBadge.Position = UDim2.new(0, 8, 1, -26)
-	versionBadge.Size = UDim2.new(0, 50, 0, 18)
+	versionBadge.Position = UDim2.new(0, -4, 1, -20)  -- More left (-4 instead of 8), more down (-20 instead of -26)
+	versionBadge.Size = UDim2.new(0, 42, 0, 16)  -- Smaller (42x16 instead of 50x18)
 	versionBadge.Font = Enum.Font.GothamBold  -- Bold for better visibility
-	versionBadge.TextSize = 9
+	versionBadge.TextSize = 8  -- Smaller text (8 instead of 9)
 	versionBadge.TextColor3 = Color3.fromRGB(0, 255, 200)  -- Bright neon cyan/green
 	versionBadge.Text = "v" .. RvrseUI.Version.Full
 	versionBadge.AutoButtonColor = false
 	versionBadge.Parent = root
-	corner(versionBadge, 8)
+	corner(versionBadge, 6)  -- Smaller radius (6 instead of 8)
 	stroke(versionBadge, Color3.fromRGB(0, 255, 200), 1)  -- Neon stroke
 
 	local versionTooltip = createTooltip(versionBadge, string.format(
@@ -1862,6 +1902,18 @@ function RvrseUI:CreateWindow(cfg)
 				corner(btn, 8)
 				stroke(btn, pal3.Border, 1)
 
+				-- Dropdown arrow indicator
+				local arrow = Instance.new("TextLabel")
+				arrow.BackgroundTransparency = 1
+				arrow.AnchorPoint = Vector2.new(1, 0.5)
+				arrow.Position = UDim2.new(1, -6, 0.5, 0)
+				arrow.Size = UDim2.new(0, 16, 0, 16)
+				arrow.Font = Enum.Font.GothamBold
+				arrow.TextSize = 12
+				arrow.TextColor3 = pal3.TextSub
+				arrow.Text = "▼"
+				arrow.Parent = btn
+
 				local values = o.Values or {}
 				local idx = 1
 				for i, v in ipairs(values) do
@@ -1871,6 +1923,86 @@ function RvrseUI:CreateWindow(cfg)
 					end
 				end
 				btn.Text = tostring(values[idx] or "Select")
+
+				-- Dropdown list frame
+				local dropdownList = Instance.new("Frame")
+				dropdownList.Name = "DropdownList"
+				dropdownList.BackgroundColor3 = pal3.Elevated
+				dropdownList.BorderSizePixel = 0
+				dropdownList.Position = UDim2.new(1, -130, 1, 4)
+				dropdownList.Size = UDim2.new(0, 130, 0, math.min(#values * 32, 160))
+				dropdownList.Visible = false
+				dropdownList.ZIndex = 10
+				dropdownList.Parent = f
+				corner(dropdownList, 8)
+				stroke(dropdownList, pal3.Border, 1)
+
+				local dropdownScroll = Instance.new("ScrollingFrame")
+				dropdownScroll.BackgroundTransparency = 1
+				dropdownScroll.BorderSizePixel = 0
+				dropdownScroll.Size = UDim2.new(1, -4, 1, -4)
+				dropdownScroll.Position = UDim2.new(0, 2, 0, 2)
+				dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * 32)
+				dropdownScroll.ScrollBarThickness = 4
+				dropdownScroll.ScrollBarImageColor3 = pal3.Accent
+				dropdownScroll.Parent = dropdownList
+
+				local dropdownLayout = Instance.new("UIListLayout")
+				dropdownLayout.FillDirection = Enum.FillDirection.Vertical
+				dropdownLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				dropdownLayout.Padding = UDim.new(0, 2)
+				dropdownLayout.Parent = dropdownScroll
+
+				local dropdownOpen = false
+
+				-- Create option buttons
+				for i, value in ipairs(values) do
+					local optionBtn = Instance.new("TextButton")
+					optionBtn.Name = "Option_" .. i
+					optionBtn.Size = UDim2.new(1, 0, 0, 30)
+					optionBtn.BackgroundColor3 = i == idx and pal3.Hover or pal3.Card
+					optionBtn.BorderSizePixel = 0
+					optionBtn.Font = Enum.Font.Gotham
+					optionBtn.TextSize = 12
+					optionBtn.TextColor3 = pal3.Text
+					optionBtn.Text = tostring(value)
+					optionBtn.AutoButtonColor = false
+					optionBtn.LayoutOrder = i
+					optionBtn.Parent = dropdownScroll
+					corner(optionBtn, 6)
+
+					optionBtn.MouseButton1Click:Connect(function()
+						if locked() then return end
+						idx = i
+						btn.Text = tostring(value)
+						dropdownOpen = false
+						dropdownList.Visible = false
+						arrow.Text = "▼"
+
+						-- Update all option buttons
+						for _, child in ipairs(dropdownScroll:GetChildren()) do
+							if child:IsA("TextButton") then
+								child.BackgroundColor3 = pal3.Card
+							end
+						end
+						optionBtn.BackgroundColor3 = pal3.Hover
+
+						if o.OnChanged then task.spawn(o.OnChanged, value) end
+						if o.Flag then RvrseUI:_autoSave() end
+					end)
+
+					optionBtn.MouseEnter:Connect(function()
+						if i ~= idx then
+							Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
+						end
+					end)
+
+					optionBtn.MouseLeave:Connect(function()
+						if i ~= idx then
+							Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+						end
+					end)
+				end
 
 				local function locked()
 					return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
@@ -1882,12 +2014,44 @@ function RvrseUI:CreateWindow(cfg)
 				end
 				visual()
 
+				-- Toggle dropdown on button click
 				btn.MouseButton1Click:Connect(function()
 					if locked() then return end
-					idx = (idx % #values) + 1
-					btn.Text = tostring(values[idx])
-					if o.OnChanged then task.spawn(o.OnChanged, values[idx]) end
-					if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
+					dropdownOpen = not dropdownOpen
+					dropdownList.Visible = dropdownOpen
+					arrow.Text = dropdownOpen and "▲" or "▼"
+
+					if dropdownOpen then
+						-- Bring to front
+						dropdownList.ZIndex = 100
+					end
+				end)
+
+				-- Close dropdown when clicking outside
+				UIS.InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+						if dropdownOpen and not btn:IsDescendantOf(game) then
+							return
+						end
+
+						local mousePos = UIS:GetMouseLocation()
+						local dropdownPos = dropdownList.AbsolutePosition
+						local dropdownSize = dropdownList.AbsoluteSize
+						local btnPos = btn.AbsolutePosition
+						local btnSize = btn.AbsoluteSize
+
+						local inDropdown = mousePos.X >= dropdownPos.X and mousePos.X <= dropdownPos.X + dropdownSize.X and
+										  mousePos.Y >= dropdownPos.Y and mousePos.Y <= dropdownPos.Y + dropdownSize.Y
+
+						local inButton = mousePos.X >= btnPos.X and mousePos.X <= btnPos.X + btnSize.X and
+										mousePos.Y >= btnPos.Y and mousePos.Y <= btnPos.Y + btnSize.Y
+
+						if dropdownOpen and not inDropdown and not inButton then
+							dropdownOpen = false
+							dropdownList.Visible = false
+							arrow.Text = "▼"
+						end
+					end
 				end)
 
 				btn.MouseEnter:Connect(function()
@@ -1910,6 +2074,18 @@ function RvrseUI:CreateWindow(cfg)
 							end
 						end
 						btn.Text = tostring(values[idx])
+
+						-- Update dropdown options highlighting
+						for _, child in ipairs(dropdownScroll:GetChildren()) do
+							if child:IsA("TextButton") then
+								child.BackgroundColor3 = pal3.Card
+							end
+						end
+						local selectedOption = dropdownScroll:FindFirstChild("Option_" .. idx)
+						if selectedOption then
+							selectedOption.BackgroundColor3 = pal3.Hover
+						end
+
 						visual()
 						if o.OnChanged then task.spawn(o.OnChanged, values[idx]) end
 						if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on Set
@@ -1920,6 +2096,63 @@ function RvrseUI:CreateWindow(cfg)
 							values = newValues
 							idx = 1
 							btn.Text = tostring(values[idx] or "Select")
+
+							-- Rebuild dropdown options
+							for _, child in ipairs(dropdownScroll:GetChildren()) do
+								if child:IsA("TextButton") then
+									child:Destroy()
+								end
+							end
+
+							dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * 32)
+							dropdownList.Size = UDim2.new(0, 130, 0, math.min(#values * 32, 160))
+
+							for i, value in ipairs(values) do
+								local optionBtn = Instance.new("TextButton")
+								optionBtn.Name = "Option_" .. i
+								optionBtn.Size = UDim2.new(1, 0, 0, 30)
+								optionBtn.BackgroundColor3 = i == idx and pal3.Hover or pal3.Card
+								optionBtn.BorderSizePixel = 0
+								optionBtn.Font = Enum.Font.Gotham
+								optionBtn.TextSize = 12
+								optionBtn.TextColor3 = pal3.Text
+								optionBtn.Text = tostring(value)
+								optionBtn.AutoButtonColor = false
+								optionBtn.LayoutOrder = i
+								optionBtn.Parent = dropdownScroll
+								corner(optionBtn, 6)
+
+								optionBtn.MouseButton1Click:Connect(function()
+									if locked() then return end
+									idx = i
+									btn.Text = tostring(value)
+									dropdownOpen = false
+									dropdownList.Visible = false
+									arrow.Text = "▼"
+
+									for _, child in ipairs(dropdownScroll:GetChildren()) do
+										if child:IsA("TextButton") then
+											child.BackgroundColor3 = pal3.Card
+										end
+									end
+									optionBtn.BackgroundColor3 = pal3.Hover
+
+									if o.OnChanged then task.spawn(o.OnChanged, value) end
+									if o.Flag then RvrseUI:_autoSave() end
+								end)
+
+								optionBtn.MouseEnter:Connect(function()
+									if i ~= idx then
+										Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
+									end
+								end)
+
+								optionBtn.MouseLeave:Connect(function()
+									if i ~= idx then
+										Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+									end
+								end)
+							end
 						end
 						visual()
 					end,

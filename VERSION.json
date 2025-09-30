@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 3,
-    "patch": 0,
-    "full": "2.3.0",
+    "patch": 1,
+    "full": "2.3.1",
     "build": "20250930",
-    "hash": "7F5E2B9C",
+    "hash": "8A4F6D3E",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Configuration System",
-    "codename": "Persistence",
-    "notes": "Complete configuration saving/loading system with auto-save on element changes"
+    "name": "Configuration Folders & Dropdown Fix",
+    "codename": "Persistence+",
+    "notes": "Enhanced config with folder support, fixed dropdown menu, improved version badge"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,28 @@
     "auto_save": true
   },
   "changelog": {
+    "2.3.1": {
+      "date": "2025-09-30",
+      "hash": "8A4F6D3E",
+      "changes": [
+        "🔧 ENHANCEMENT RELEASE - UI Fixes & Config Folders",
+        "✨ NEW: ConfigurationSaving table format with FolderName support",
+        "ConfigurationSaving = { Enabled = true, FolderName = 'MyHub', FileName = 'Config' }",
+        "Automatic folder creation via makefolder() if it doesn't exist",
+        "Backward compatible with old boolean format",
+        "🎨 FIXED: Version badge position (smaller, more left, more down)",
+        "Badge now 42x16 (was 50x18), positioned at (-4, -20) instead of (8, -26)",
+        "Smaller text size (8px instead of 9px) for cleaner appearance",
+        "🔽 FIXED: Dropdown menu now shows all options properly",
+        "Real dropdown list with ScrollingFrame for many options",
+        "Click to open/close with arrow indicator (▼/▲)",
+        "Hover effects on dropdown options",
+        "Click outside to close dropdown",
+        "Selected option highlighted in list",
+        "Maximum height 160px with scrolling support",
+        "Dropdown:Refresh() now rebuilds option list correctly"
+      ]
+    },
     "2.3.0": {
       "date": "2025-09-30",
       "hash": "7F5E2B9C",

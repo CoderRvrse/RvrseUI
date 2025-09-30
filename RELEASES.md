@@ -1,5 +1,100 @@
 # RvrseUI Release History
 
+## Version 2.3.1 "Persistence+" - Config Folders & Dropdown Fix
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `8A4F6D3E`
+**Channel**: Stable
+
+### 🔧 Enhancement Release - UI Fixes & Config Improvements
+
+#### ✨ NEW: Configuration Folder Support
+
+Now supports table format with folder organization:
+
+```lua
+local Window = RvrseUI:CreateWindow({
+  ConfigurationSaving = {
+    Enabled = true,
+    FolderName = "BigHub",     -- Creates folder automatically
+    FileName = "PlayerConfig"  -- Saves as BigHub/PlayerConfig.json
+  }
+})
+```
+
+**Features**:
+- Automatic folder creation via `makefolder()`
+- Organize configs by hub/game
+- Backward compatible with old boolean format
+- Path: `FolderName/FileName.json`
+
+**Old Format Still Works**:
+```lua
+ConfigurationSaving = true,
+FileName = "Config.json"
+```
+
+---
+
+#### 🎨 FIXED: Version Badge Position
+
+Version badge is now smaller and positioned better:
+
+**Before**: 50x18 at (8, -26) with 9px text
+**After**: 42x16 at (-4, -20) with 8px text
+
+- More outside to the left
+- Lower down
+- Smaller and cleaner
+- Less obtrusive
+
+---
+
+#### 🔽 FIXED: Dropdown Menu
+
+Dropdown now works like a real dropdown instead of cycling:
+
+**Features**:
+- Click to show all options in a list
+- Arrow indicator (▼ closed, ▲ open)
+- Scrollable list (max 160px height)
+- Selected option highlighted
+- Hover effects on options
+- Click outside to close
+- Proper option selection
+
+**Before**: Clicked to cycle through values (confusing)
+**After**: Clicks to open list, select any option directly (intuitive)
+
+**Example**:
+```lua
+Section:CreateDropdown({
+  Text = "Game Mode",
+  Values = { "Easy", "Normal", "Hard", "Expert", "Master" },
+  Default = "Normal",
+  OnChanged = function(mode)
+    print("Selected:", mode)
+  end
+})
+```
+
+Now clicking shows a proper dropdown list with all 5 options visible/scrollable!
+
+---
+
+### 📊 Version Info
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 3,
+  Patch = 1,
+  Full = "2.3.1",
+  Hash = "8A4F6D3E"
+}
+```
+
+---
+
 ## Version 2.3.0 "Persistence" - Configuration System
 **Release Date**: September 30, 2025
 **Build**: 20250930
