@@ -70,41 +70,114 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 
 ```lua
 -- ============================================
--- RvrseUI v2.0 - Complete Feature Demo
+-- RvrseUI v2.1.5 - Complete Feature Demo
 -- Copy this entire script to test all features
+-- Tests: Theme switching, Lucide icons, Roblox asset IDs, emojis
 -- ============================================
 
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
--- Create main window with modern styling
+-- Create main window with Lucide icon
 local Window = RvrseUI:CreateWindow({
-  Name = "RvrseUI Demo",
-  Icon = "🎨",
-  LoadingTitle = "RvrseUI v2.0",
-  LoadingSubtitle = "Loading modern interface...",
+  Name = "RvrseUI v2.1.5",
+  Icon = "settings",  -- NEW: Lucide icon support!
+  LoadingTitle = "RvrseUI v2.1.5",
+  LoadingSubtitle = "Loading with Lucide icons...",
   Theme = "Dark",
   ToggleUIKeybind = "K"
 })
 
--- ==================== TAB 1: SHOWCASE ====================
-local ShowcaseTab = Window:CreateTab({ Title = "Showcase", Icon = "✨" })
+-- ==================== TAB 1: LUCIDE ICONS ====================
+local LucideTab = Window:CreateTab({ Title = "Lucide Icons", Icon = "home" })  -- Lucide icon
 
--- Welcome Section
-local WelcomeSection = ShowcaseTab:CreateSection("Welcome to RvrseUI v2.0")
+-- Lucide Icons Section
+local LucideSection = LucideTab:CreateSection("Lucide Icon Library (80+ icons)")
 
-WelcomeSection:CreateButton({
-  Text = "🎉 Click Me - Test Ripple Effect!",
+LucideSection:CreateButton({
+  Text = "ℹ️ What are Lucide Icons?",
   Callback = function()
     RvrseUI:Notify({
-      Title = "Success!",
-      Message = "You just experienced material ripple animations!",
+      Title = "Lucide Icons",
+      Message = "Professional icon library with 80+ icons. Use string names like 'home', 'settings', 'shield'",
+      Duration = 5,
+      Type = "info"
+    })
+  end
+})
+
+LucideSection:CreateButton({
+  Text = "✅ Test Theme Switching",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Theme Switching",
+      Message = "Click the 🌙/🌞 pill in the header! All icons and colors will update instantly.",
+      Duration = 4,
+      Type = "success"
+    })
+  end
+})
+
+-- ==================== TAB 2: ROBLOX ASSET IDs ====================
+local AssetTab = Window:CreateTab({ Title = "Asset IDs", Icon = 4483362458 })  -- Roblox asset ID (number)
+
+local AssetSection = AssetTab:CreateSection("Roblox Asset ID Icons")
+
+AssetSection:CreateButton({
+  Text = "ℹ️ How to use Asset IDs?",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Asset IDs",
+      Message = "Use any Roblox image asset ID as a number. Example: Icon = 4483362458",
+      Duration = 4,
+      Type = "info"
+    })
+  end
+})
+
+AssetSection:CreateButton({
+  Text = "Test Asset Icon Tab",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Asset Icons Work!",
+      Message = "This tab's icon is from Roblox asset ID 4483362458",
       Duration = 3,
       Type = "success"
     })
   end
 })
 
--- Interactive Demo Section
+-- ==================== TAB 3: EMOJI ICONS ====================
+local EmojiTab = Window:CreateTab({ Title = "Emojis", Icon = "🎨" })  -- Emoji (string)
+
+local EmojiSection = EmojiTab:CreateSection("Emoji & Text Icons")
+
+EmojiSection:CreateButton({
+  Text = "ℹ️ How to use Emojis?",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Emoji Icons",
+      Message = "Use any emoji or text string. Example: Icon = '🎨' or Icon = '⚙️'",
+      Duration = 4,
+      Type = "info"
+    })
+  end
+})
+
+EmojiSection:CreateButton({
+  Text = "Test Emoji Tab",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Emoji Icons Work!",
+      Message = "This tab uses 🎨 emoji as its icon",
+      Duration = 3,
+      Type = "success"
+    })
+  end
+})
+
+-- ==================== TAB 4: INTERACTIVE DEMO ====================
+local ShowcaseTab = Window:CreateTab({ Title = "Interactive", Icon = "zap" })  -- Another Lucide icon
+
 local DemoSection = ShowcaseTab:CreateSection("Interactive Elements")
 
 local speedValue = 50
@@ -164,8 +237,41 @@ local modeDropdown = DemoSection:CreateDropdown({
   end
 })
 
--- ==================== TAB 2: LOCK SYSTEM DEMO ====================
-local LockTab = Window:CreateTab({ Title = "Lock System", Icon = "🔒" })
+-- ==================== TAB 5: MORE LUCIDE ICONS ====================
+local MoreIconsTab = Window:CreateTab({ Title = "More Icons", Icon = "grid" })  -- Lucide grid icon
+
+local MoreIconsSection = MoreIconsTab:CreateSection("Popular Lucide Icons")
+
+-- Showcase different Lucide icons
+local lucideExamples = {
+	{icon = "shield", name = "Shield (security)"},
+	{icon = "lock", name = "Lock (secured)"},
+	{icon = "unlock", name = "Unlock (open)"},
+	{icon = "target", name = "Target (aim)"},
+	{icon = "zap", name = "Zap (power)"},
+	{icon = "star", name = "Star (favorite)"},
+	{icon = "heart", name = "Heart (like)"},
+	{icon = "bell", name = "Bell (notifications)"},
+	{icon = "search", name = "Search (find)"},
+	{icon = "code", name = "Code (programming)"},
+}
+
+for _, example in ipairs(lucideExamples) do
+	MoreIconsSection:CreateButton({
+		Text = example.icon .. " - " .. example.name,
+		Callback = function()
+			RvrseUI:Notify({
+				Title = "Icon: " .. example.icon,
+				Message = example.name .. "\nUsage: Icon = '" .. example.icon .. "'",
+				Duration = 3,
+				Type = "info"
+			})
+		end
+	})
+end
+
+-- ==================== TAB 6: LOCK SYSTEM DEMO ====================
+local LockTab = Window:CreateTab({ Title = "Lock System", Icon = "lock" })  -- Lucide lock icon
 
 local LockDemoSection = LockTab:CreateSection("Master/Child Controls")
 
@@ -225,22 +331,31 @@ LockDemoSection:CreateButton({
   end
 })
 
--- ==================== TAB 3: SETTINGS ====================
-local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "⚙" })
+-- ==================== TAB 7: SETTINGS ====================
+local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "sliders" })  -- Lucide sliders icon
 
 local ThemeSection = SettingsTab:CreateSection("Appearance")
 
-ThemeSection:CreateDropdown({
-  Text = "UI Theme",
-  Values = { "Dark", "Light" },
-  Default = "Dark",
-  OnChanged = function(theme)
-    Window:SetTheme(theme)
+ThemeSection:CreateButton({
+  Text = "ℹ️ Theme Control Info",
+  Callback = function()
     RvrseUI:Notify({
-      Title = "Theme Changed",
-      Message = "Switched to " .. theme .. " mode",
-      Duration = 2,
+      Title = "Theme Switching",
+      Message = "Click the 🌙/🌞 pill in the header to switch themes. All UI elements update instantly!",
+      Duration = 5,
       Type = "info"
+    })
+  end
+})
+
+ThemeSection:CreateButton({
+  Text = "🎨 Test Theme Change",
+  Callback = function()
+    RvrseUI:Notify({
+      Title = "Theme Instructions",
+      Message = "Look at the header! Click the 🌙 or 🌞 pill button to switch themes.",
+      Duration = 4,
+      Type = "success"
     })
   end
 })
@@ -268,8 +383,8 @@ KeybindSection:CreateKeybind({
   end
 })
 
--- ==================== TAB 4: NOTIFICATIONS ====================
-local NotifyTab = Window:CreateTab({ Title = "Notifications", Icon = "🔔" })
+-- ==================== TAB 8: NOTIFICATIONS ====================
+local NotifyTab = Window:CreateTab({ Title = "Notifications", Icon = "bell" })  -- Lucide bell icon
 
 local NotifySection = NotifyTab:CreateSection("Test Notification System")
 
@@ -323,21 +438,49 @@ NotifySection:CreateButton({
 
 -- Final welcome message
 RvrseUI:Notify({
-  Title = "🎉 RvrseUI v2.0 Loaded!",
-  Message = "Explore all tabs to see modern features in action. Press K to toggle!",
-  Duration = 5,
+  Title = "🎉 RvrseUI v2.1.5 Loaded!",
+  Message = "✅ Lucide icons\n✅ Roblox asset IDs\n✅ Emoji icons\n✅ Theme switching\nPress K to toggle UI!",
+  Duration = 6,
   Type = "success"
 })
+
+print("===========================================")
+print("RvrseUI v2.1.5 Demo Loaded")
+print("===========================================")
+print("Icon Formats Tested:")
+print("✓ Tab 1: Lucide icon (home)")
+print("✓ Tab 2: Roblox asset ID (4483362458)")
+print("✓ Tab 3: Emoji (🎨)")
+print("✓ Tab 4: Lucide icon (zap)")
+print("✓ Tab 5: Lucide icon (grid)")
+print("✓ Tab 6: Lucide icon (lock)")
+print("✓ Tab 7: Lucide icon (sliders)")
+print("✓ Tab 8: Lucide icon (bell)")
+print("===========================================")
+print("Theme Switching: Click 🌙/🌞 pill in header")
+print("UI Toggle: Press K key")
+print("===========================================")
 ```
 
 ### Minimal Example (Just the Basics)
 
 ```lua
--- Quick minimal setup
+-- Quick minimal setup with icon support
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
-local Window = RvrseUI:CreateWindow({ Name = "My Script", Theme = "Dark" })
-local Tab = Window:CreateTab({ Title = "Main" })
+-- Window with Lucide icon
+local Window = RvrseUI:CreateWindow({
+	Name = "My Script",
+	Icon = "code",  -- Lucide icon
+	Theme = "Dark"
+})
+
+-- Tab with Lucide icon
+local Tab = Window:CreateTab({
+	Title = "Main",
+	Icon = "home"  -- Another Lucide icon
+})
+
 local Section = Tab:CreateSection("Controls")
 
 Section:CreateButton({
