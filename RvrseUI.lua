@@ -20,11 +20,11 @@ RvrseUI.DEBUG = false
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 1,
-	Patch = 7,
+	Minor = 2,
+	Patch = 0,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.1.7",
-	Hash = "08B730DF",  -- Release hash for integrity verification
+	Full = "2.2.0",
+	Hash = "2A68C9C3",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -53,6 +53,7 @@ function RvrseUI:CheckVersion(onlineVersion)
 end
 
 RvrseUI.NotificationsEnabled = true  -- Global notification toggle
+RvrseUI.Flags = {}  -- Global flag storage for all elements
 
 -- Debug print helper (only prints when DEBUG = true)
 local function dprintf(...)
@@ -1493,6 +1494,8 @@ function RvrseUI:CreateWindow(cfg)
 				btn.AutoButtonColor = false
 				btn.Parent = f
 
+				local currentText = btn.Text
+
 				btn.MouseButton1Click:Connect(function()
 					if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 					local absPos = btn.AbsolutePosition
@@ -1513,7 +1516,19 @@ function RvrseUI:CreateWindow(cfg)
 					btn.TextTransparency = locked and 0.5 or 0
 				end)
 
-				return { SetText = function(_, txt) btn.Text = txt end }
+				local buttonAPI = {
+					SetText = function(_, txt)
+						btn.Text = txt
+						currentText = txt
+					end,
+					CurrentValue = currentText
+				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = buttonAPI
+				end
+
+				return buttonAPI
 			end
 
 			-- Toggle
@@ -1582,7 +1597,7 @@ function RvrseUI:CreateWindow(cfg)
 
 				table.insert(RvrseUI._lockListeners, visual)
 
-				return {
+				local toggleAPI = {
 					Set = function(_, v)
 						state = v and true or false
 						visual()
@@ -1591,8 +1606,15 @@ function RvrseUI:CreateWindow(cfg)
 						end
 					end,
 					Get = function() return state end,
-					Refresh = visual
+					Refresh = visual,
+					CurrentValue = state
 				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = toggleAPI
+				end
+
+				return toggleAPI
 			end
 
 			-- Dropdown
@@ -1662,7 +1684,7 @@ function RvrseUI:CreateWindow(cfg)
 
 				table.insert(RvrseUI._lockListeners, visual)
 
-				return {
+				local dropdownAPI = {
 					Set = function(_, v)
 						for i, val in ipairs(values) do
 							if val == v then
@@ -1672,9 +1694,25 @@ function RvrseUI:CreateWindow(cfg)
 						end
 						btn.Text = tostring(values[idx])
 						visual()
+						if o.OnChanged then task.spawn(o.OnChanged, values[idx]) end
 					end,
-					Get = function() return values[idx] end
+					Get = function() return values[idx] end,
+					Refresh = function(_, newValues)
+						if newValues then
+							values = newValues
+							idx = 1
+							btn.Text = tostring(values[idx] or "Select")
+						end
+						visual()
+					end,
+					CurrentOption = values[idx]
 				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = dropdownAPI
+				end
+
+				return dropdownAPI
 			end
 
 			-- Keybind
@@ -1708,6 +1746,7 @@ function RvrseUI:CreateWindow(cfg)
 				stroke(btn, pal3.Border, 1)
 
 				local capturing = false
+				local currentKey = o.Default
 
 				btn.MouseButton1Click:Connect(function()
 					if RvrseUI.Store:IsLocked(o.RespectLock) then return end
@@ -1720,6 +1759,7 @@ function RvrseUI:CreateWindow(cfg)
 					if gpe or not capturing then return end
 					if io.KeyCode ~= Enum.KeyCode.Unknown then
 						capturing = false
+						currentKey = io.KeyCode
 						btn.Text = io.KeyCode.Name
 						btn.TextColor3 = pal3.Text
 						if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
@@ -1747,12 +1787,21 @@ function RvrseUI:CreateWindow(cfg)
 					task.spawn(o.OnChanged, o.Default)
 				end
 
-				return {
+				local keybindAPI = {
 					Set = function(_, key)
+						currentKey = key
 						btn.Text = (key and key.Name) or "Set Key"
 						if o.OnChanged and key then o.OnChanged(key) end
-					end
+					end,
+					Get = function() return currentKey end,
+					CurrentKeybind = currentKey
 				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = keybindAPI
+				end
+
+				return keybindAPI
 			end
 
 			-- Slider
@@ -1841,7 +1890,7 @@ function RvrseUI:CreateWindow(cfg)
 					lbl.TextTransparency = locked and 0.5 or 0
 				end)
 
-				return {
+				local sliderAPI = {
 					Set = function(_, v)
 						value = math.clamp(v, minVal, maxVal)
 						local relativeX = (value - minVal) / (maxVal - minVal)
@@ -1849,8 +1898,265 @@ function RvrseUI:CreateWindow(cfg)
 						fill.Size = UDim2.new(relativeX, 0, 1, 0)
 						thumb.Position = UDim2.new(relativeX, 0, 0.5, 0)
 					end,
-					Get = function() return value end
+					Get = function() return value end,
+					CurrentValue = value
 				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = sliderAPI
+				end
+
+				return sliderAPI
+			end
+
+			-- Label
+			function SectionAPI:CreateLabel(o)
+				o = o or {}
+				local f = card(32)
+
+				local lbl = Instance.new("TextLabel")
+				lbl.BackgroundTransparency = 1
+				lbl.Size = UDim2.new(1, 0, 1, 0)
+				lbl.Font = Enum.Font.GothamMedium
+				lbl.TextSize = 14
+				lbl.TextXAlignment = Enum.TextXAlignment.Left
+				lbl.TextColor3 = pal3.Text
+				lbl.Text = o.Text or "Label"
+				lbl.Parent = f
+
+				local labelAPI = {
+					Set = function(_, txt)
+						lbl.Text = txt
+					end,
+					Get = function()
+						return lbl.Text
+					end,
+					CurrentValue = lbl.Text
+				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = labelAPI
+				end
+
+				return labelAPI
+			end
+
+			-- Paragraph
+			function SectionAPI:CreateParagraph(o)
+				o = o or {}
+				local text = o.Text or "Paragraph text"
+				local lines = math.ceil(#text / 50)  -- Rough estimate
+				local height = math.max(48, lines * 18 + 16)
+				local f = card(height)
+
+				local lbl = Instance.new("TextLabel")
+				lbl.BackgroundTransparency = 1
+				lbl.Size = UDim2.new(1, -16, 1, -16)
+				lbl.Position = UDim2.new(0, 8, 0, 8)
+				lbl.Font = Enum.Font.Gotham
+				lbl.TextSize = 13
+				lbl.TextXAlignment = Enum.TextXAlignment.Left
+				lbl.TextYAlignment = Enum.TextYAlignment.Top
+				lbl.TextColor3 = pal3.TextSub
+				lbl.Text = text
+				lbl.TextWrapped = true
+				lbl.Parent = f
+
+				local paragraphAPI = {
+					Set = function(_, txt)
+						lbl.Text = txt
+						local newLines = math.ceil(#txt / 50)
+						local newHeight = math.max(48, newLines * 18 + 16)
+						f.Size = UDim2.new(1, 0, 0, newHeight)
+					end,
+					Get = function()
+						return lbl.Text
+					end,
+					CurrentValue = text
+				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = paragraphAPI
+				end
+
+				return paragraphAPI
+			end
+
+			-- Divider
+			function SectionAPI:CreateDivider(o)
+				o = o or {}
+				local f = card(12)
+				f.BackgroundTransparency = 1
+
+				local line = Instance.new("Frame")
+				line.Size = UDim2.new(1, -16, 0, 1)
+				line.Position = UDim2.new(0, 8, 0.5, 0)
+				line.BackgroundColor3 = pal3.Divider
+				line.BorderSizePixel = 0
+				line.Parent = f
+
+				return {
+					SetColor = function(_, color)
+						line.BackgroundColor3 = color
+					end
+				}
+			end
+
+			-- TextBox (Adaptive Input)
+			function SectionAPI:CreateTextBox(o)
+				o = o or {}
+				local f = card(44)
+
+				local lbl = Instance.new("TextLabel")
+				lbl.BackgroundTransparency = 1
+				lbl.Size = UDim2.new(1, -240, 1, 0)
+				lbl.Font = Enum.Font.GothamMedium
+				lbl.TextSize = 14
+				lbl.TextXAlignment = Enum.TextXAlignment.Left
+				lbl.TextColor3 = pal3.Text
+				lbl.Text = o.Text or "Input"
+				lbl.Parent = f
+
+				local inputBox = Instance.new("TextBox")
+				inputBox.AnchorPoint = Vector2.new(1, 0.5)
+				inputBox.Position = UDim2.new(1, -8, 0.5, 0)
+				inputBox.Size = UDim2.new(0, 220, 0, 32)
+				inputBox.BackgroundColor3 = pal3.Card
+				inputBox.BorderSizePixel = 0
+				inputBox.Font = Enum.Font.Gotham
+				inputBox.TextSize = 13
+				inputBox.TextColor3 = pal3.Text
+				inputBox.PlaceholderText = o.Placeholder or "Enter text..."
+				inputBox.PlaceholderColor3 = pal3.TextMuted
+				inputBox.Text = o.Default or ""
+				inputBox.ClearTextOnFocus = false
+				inputBox.Parent = f
+				corner(inputBox, 8)
+				stroke(inputBox, pal3.Border, 1)
+
+				local currentValue = inputBox.Text
+
+				inputBox.FocusLost:Connect(function(enterPressed)
+					currentValue = inputBox.Text
+					if o.OnChanged then
+						task.spawn(o.OnChanged, currentValue, enterPressed)
+					end
+				end)
+
+				inputBox.Focused:Connect(function()
+					Animator:Tween(inputBox, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
+				end)
+
+				inputBox.FocusLost:Connect(function()
+					Animator:Tween(inputBox, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+				end)
+
+				table.insert(RvrseUI._lockListeners, function()
+					local locked = RvrseUI.Store:IsLocked(o.RespectLock)
+					lbl.TextTransparency = locked and 0.5 or 0
+					inputBox.TextEditable = not locked
+				end)
+
+				local textboxAPI = {
+					Set = function(_, txt)
+						inputBox.Text = txt
+						currentValue = txt
+					end,
+					Get = function()
+						return currentValue
+					end,
+					CurrentValue = currentValue
+				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = textboxAPI
+				end
+
+				return textboxAPI
+			end
+
+			-- ColorPicker
+			function SectionAPI:CreateColorPicker(o)
+				o = o or {}
+				local f = card(44)
+
+				local defaultColor = o.Default or Color3.fromRGB(255, 255, 255)
+				local currentColor = defaultColor
+
+				local lbl = Instance.new("TextLabel")
+				lbl.BackgroundTransparency = 1
+				lbl.Size = UDim2.new(1, -80, 1, 0)
+				lbl.Font = Enum.Font.GothamMedium
+				lbl.TextSize = 14
+				lbl.TextXAlignment = Enum.TextXAlignment.Left
+				lbl.TextColor3 = pal3.Text
+				lbl.Text = o.Text or "Color"
+				lbl.Parent = f
+
+				local preview = Instance.new("TextButton")
+				preview.AnchorPoint = Vector2.new(1, 0.5)
+				preview.Position = UDim2.new(1, 0, 0.5, 0)
+				preview.Size = UDim2.new(0, 64, 0, 32)
+				preview.BackgroundColor3 = currentColor
+				preview.BorderSizePixel = 0
+				preview.Text = ""
+				preview.AutoButtonColor = false
+				preview.Parent = f
+				corner(preview, 8)
+				stroke(preview, pal3.Border, 2)
+
+				-- Simple color cycling demo (you can implement full color picker UI)
+				local colors = {
+					Color3.fromRGB(255, 0, 0),    -- Red
+					Color3.fromRGB(255, 127, 0),  -- Orange
+					Color3.fromRGB(255, 255, 0),  -- Yellow
+					Color3.fromRGB(0, 255, 0),    -- Green
+					Color3.fromRGB(0, 127, 255),  -- Blue
+					Color3.fromRGB(139, 0, 255),  -- Purple
+					Color3.fromRGB(255, 255, 255),-- White
+					Color3.fromRGB(0, 0, 0),      -- Black
+				}
+				local colorIdx = 1
+
+				preview.MouseButton1Click:Connect(function()
+					if RvrseUI.Store:IsLocked(o.RespectLock) then return end
+					colorIdx = (colorIdx % #colors) + 1
+					currentColor = colors[colorIdx]
+					preview.BackgroundColor3 = currentColor
+					if o.OnChanged then
+						task.spawn(o.OnChanged, currentColor)
+					end
+				end)
+
+				preview.MouseEnter:Connect(function()
+					Animator:Tween(preview, {BackgroundTransparency = 0.2}, Animator.Spring.Fast)
+				end)
+
+				preview.MouseLeave:Connect(function()
+					Animator:Tween(preview, {BackgroundTransparency = 0}, Animator.Spring.Fast)
+				end)
+
+				table.insert(RvrseUI._lockListeners, function()
+					local locked = RvrseUI.Store:IsLocked(o.RespectLock)
+					lbl.TextTransparency = locked and 0.5 or 0
+				end)
+
+				local colorpickerAPI = {
+					Set = function(_, color)
+						currentColor = color
+						preview.BackgroundColor3 = color
+					end,
+					Get = function()
+						return currentColor
+					end,
+					CurrentValue = currentColor
+				}
+
+				if o.Flag then
+					RvrseUI.Flags[o.Flag] = colorpickerAPI
+				end
+
+				return colorpickerAPI
 			end
 
 			return SectionAPI
