@@ -1,6 +1,6 @@
-# RvrseUI v2.1
+# RvrseUI v2.1.5
 
-A **modern, professional, lightweight** UI framework for Roblox scripts with glassmorphism, spring animations, notification controls, and mobile-first responsive design.
+A **modern, professional, lightweight** UI framework for Roblox scripts with glassmorphism, spring animations, notification controls, Lucide icon support, and mobile-first responsive design.
 
 **Flow**: Boot library → Create Window → Tabs → Sections → Elements (buttons, toggles, dropdowns, keybinds, sliders, notifications).
 
@@ -8,7 +8,14 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 
 ## ✨ Features
 
-### 🔔 NEW in v2.1: Revolutionary Controls
+### 🔔 NEW in v2.1.5: Critical Fixes + Lucide Icons
+- **Theme Switching Fixed**: Dark/Light theme toggle now updates ALL UI elements instantly
+- **Lucide Icon Support**: 80+ icons from Lucide library (string names like `"home"`, `"settings"`)
+- **Multiple Icon Formats**: Supports Lucide names, Roblox asset IDs, and emojis
+- **Theme-Aware Icons**: Icons automatically change color with theme
+- **Keybind System Verified**: UI visibility toggle working correctly (default: K)
+
+### 🔔 Features from v2.1: Revolutionary Controls
 - **Close Button**: ✕ Professional close button in top right - completely destroys UI with no trace
 - **Notification Bell Toggle**: 🔔/🔕 Professional 50x20px pill in header for instant mute/unmute
 - **Mini Theme Toggle**: 🌙/🌞 Switch between Dark/Light themes with one click
@@ -49,6 +56,7 @@ Includes a **LockGroup system** to coordinate "master" controls with dependent e
 - **Keybind**: Interactive key capture with visual feedback
 - **Slider**: Draggable thumb with gradient fill, real-time value updates
 - **Notifications**: 4 types (info, success, warn, error) with icon indicators
+- **Icons**: Lucide library (80+ icons), Roblox asset IDs, emojis - all supported
 
 ### 🎛 Developer Experience
 - **Familiar API**: Rayfield-style creation pattern
@@ -396,7 +404,7 @@ print(RvrseUI:GetVersionString())  -- "v2.1.0 (20250129)"
 -- Click version badge in UI for detailed popup
 ```
 
-**Latest Release**: v2.1.0 "Aurora" | Hash: `A7F3E8C2` | Build: `20250129`
+**Latest Release**: v2.1.5 "Aurora" | Hash: `F9D4E7B3` | Build: `20250930`
 
 See [RELEASES.md](RELEASES.md) for full changelog and version history.
 
@@ -405,7 +413,7 @@ See [RELEASES.md](RELEASES.md) for full changelog and version history.
 ```lua
 local Window = RvrseUI:CreateWindow({
   Name                 = "Window Title",
-  Icon                 = 0,            -- number (Roblox asset) or string (emoji), 0 = none
+  Icon                 = "settings",   -- Lucide icon, Roblox asset ID (number), emoji (string), or 0 for none
   LoadingTitle         = "Loading...",
   LoadingSubtitle      = "Please wait",
   ShowText             = "RvrseUI",    -- Mobile chip text
@@ -421,9 +429,10 @@ local Window = RvrseUI:CreateWindow({
 - `Window:SetTitle(title)` - Update window title
 - `Window:Show()` - Show window
 - `Window:Hide()` - Hide window
-- `Window:SetTheme("Dark"/"Light")` - Switch theme at runtime
 - `Window:Destroy()` - **Completely destroy THIS window** (cleans up ScreenGui, connections, listeners)
-- `Window:CreateTab({ Title: string, Icon: string? })` → Tab
+- `Window:CreateTab({ Title: string, Icon: string|number? })` → Tab
+
+**Note:** `Window:SetTheme()` has been removed in v2.1.5. Theme switching is now controlled exclusively by the topbar pill (🌙/🌞).
 
 ### Global RvrseUI Methods
 
@@ -449,9 +458,28 @@ RvrseUI:SetVisibility(false)  -- Hide all
 ## 🗂 Tabs & Sections
 
 ```lua
-local Tab      = Window:CreateTab({ Title = "Controls", Icon = "⚙" })
-local Section  = Tab:CreateSection("Main Settings")
+-- Tab with Lucide icon
+local Tab1 = Window:CreateTab({ Title = "Home", Icon = "home" })
+
+-- Tab with Roblox asset ID
+local Tab2 = Window:CreateTab({ Title = "Settings", Icon = 4483362458 })
+
+-- Tab with emoji
+local Tab3 = Window:CreateTab({ Title = "Profile", Icon = "⚙" })
+
+local Section = Tab1:CreateSection("Main Settings")
 ```
+
+### Icon Support (NEW in v2.1.5)
+
+**Three ways to specify icons:**
+1. **Lucide icon name** (string): `Icon = "home"`, `"settings"`, `"shield"`, etc.
+   - 80+ icons available from Lucide library
+   - See [FIXES_DOCUMENTATION.md](FIXES_DOCUMENTATION.md) for full list
+2. **Roblox asset ID** (number): `Icon = 4483362458`
+3. **Emoji/text** (string): `Icon = "🎮"`, `"⚙️"`
+
+Icons automatically change color with theme switching.
 
 ### Tab Methods
 

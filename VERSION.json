@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 4,
-    "full": "2.1.4",
-    "build": "20250929",
-    "hash": "E8B3C9A2",
+    "patch": 5,
+    "full": "2.1.5",
+    "build": "20250930",
+    "hash": "F9D4E7B3",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-09-29",
-    "name": "UI Layout Refinements",
+    "date": "2025-09-30",
+    "name": "Critical Fixes (Theme, Keybind, Lucide Icons)",
     "codename": "Aurora",
-    "notes": "Fixed header control positioning, smaller version badge, no overlapping controls"
+    "notes": "Fixed theme switching, verified keybind system, added Lucide icon support (80+ icons)"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -31,9 +31,25 @@
     "animations": true,
     "tooltips": true,
     "mobile_responsive": true,
-    "drag_to_move": true
+    "drag_to_move": true,
+    "lucide_icons": true
   },
   "changelog": {
+    "2.1.5": {
+      "date": "2025-09-30",
+      "hash": "F9D4E7B3",
+      "changes": [
+        "Fixed theme switching - all UI elements now update correctly",
+        "Verified keybind system working correctly (default: K)",
+        "Removed WindowAPI:SetTheme() - theme now controlled by topbar pill only",
+        "Added Lucide icon support (80+ icons)",
+        "Icons support: Lucide names, Roblox asset IDs, emojis",
+        "Tab icons now properly theme-aware",
+        "Window icons support all formats",
+        "Added comprehensive test script (TEST_FIXES.lua)",
+        "Added detailed fix documentation (FIXES_DOCUMENTATION.md)"
+      ]
+    },
     "2.1.4": {
       "date": "2025-09-29",
       "hash": "E8B3C9A2",

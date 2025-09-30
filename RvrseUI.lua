@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 1,
-	Patch = 4,
-	Build = "20250929",  -- YYYYMMDD format
-	Full = "2.1.4",
-	Hash = "E8B3C9A2",  -- Release hash for integrity verification
+	Patch = 5,
+	Build = "20250930",  -- YYYYMMDD format
+	Full = "2.1.5",
+	Hash = "F9D4E7B3",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -118,6 +118,135 @@ function RvrseUI:SetVisibility(visible)
 		return true
 	end
 	return false
+end
+
+-- =========================
+-- Lucide Icon System
+-- =========================
+-- Lucide icon ID mapping (credit: Lucide + Latte Softworks)
+-- Icon format: "lucide://iconname" or just "iconname" (auto-detected)
+local LucideIcons = {
+	-- Common icons
+	["home"] = "rbxassetid://10723434711",
+	["settings"] = "rbxassetid://10734950309",
+	["user"] = "rbxassetid://10734952967",
+	["users"] = "rbxassetid://10747372992",
+	["search"] = "rbxassetid://10734898355",
+	["menu"] = "rbxassetid://10734919477",
+	["x"] = "rbxassetid://10747384394",
+	["check"] = "rbxassetid://10734896356",
+	["chevron-right"] = "rbxassetid://10734896967",
+	["chevron-left"] = "rbxassetid://10734896431",
+	["chevron-down"] = "rbxassetid://10734896206",
+	["chevron-up"] = "rbxassetid://10734896841",
+	["plus"] = "rbxassetid://10734943046",
+	["minus"] = "rbxassetid://10734920879",
+	["info"] = "rbxassetid://10734919945",
+	["alert-circle"] = "rbxassetid://10734919691",
+	["alert-triangle"] = "rbxassetid://10747383505",
+	["bell"] = "rbxassetid://10734920149",
+	["star"] = "rbxassetid://10734952234",
+	["heart"] = "rbxassetid://10734919811",
+	["trash"] = "rbxassetid://10734952628",
+	["edit"] = "rbxassetid://10734924532",
+	["eye"] = "rbxassetid://10734924668",
+	["eye-off"] = "rbxassetid://10747377219",
+	["lock"] = "rbxassetid://10734921033",
+	["unlock"] = "rbxassetid://10734952884",
+	["shield"] = "rbxassetid://10734947814",
+	["zap"] = "rbxassetid://10747387375",
+	["activity"] = "rbxassetid://10734918795",
+	["box"] = "rbxassetid://10734920495",
+	["package"] = "rbxassetid://10734939644",
+	["download"] = "rbxassetid://10734924269",
+	["upload"] = "rbxassetid://10734952773",
+	["folder"] = "rbxassetid://10734926167",
+	["file"] = "rbxassetid://10734924532",
+	["code"] = "rbxassetid://10734921356",
+	["terminal"] = "rbxassetid://10734950309",
+	["compass"] = "rbxassetid://10734921751",
+	["map"] = "rbxassetid://10734920342",
+	["target"] = "rbxassetid://10734952377",
+	["crosshair"] = "rbxassetid://10734922111",
+	["aperture"] = "rbxassetid://10734919946",
+	["command"] = "rbxassetid://10734921451",
+	["maximize"] = "rbxassetid://10734920482",
+	["minimize"] = "rbxassetid://10734920686",
+	["play"] = "rbxassetid://10734942024",
+	["pause"] = "rbxassetid://10734940489",
+	["skip-forward"] = "rbxassetid://10734950195",
+	["skip-back"] = "rbxassetid://10734950037",
+	["rewind"] = "rbxassetid://10734946670",
+	["fast-forward"] = "rbxassetid://10734924845",
+	["volume"] = "rbxassetid://10734953053",
+	["volume-2"] = "rbxassetid://10734952926",
+	["volume-x"] = "rbxassetid://10734953201",
+	["camera"] = "rbxassetid://10734921072",
+	["image"] = "rbxassetid://10734919904",
+	["award"] = "rbxassetid://10734920011",
+	["gift"] = "rbxassetid://10734927174",
+	["trophy"] = "rbxassetid://10734952644",
+	["crown"] = "rbxassetid://10734922111",
+	["cpu"] = "rbxassetid://10734921920",
+	["server"] = "rbxassetid://10734947654",
+	["database"] = "rbxassetid://10734922478",
+	["hard-drive"] = "rbxassetid://10734929094",
+	["wifi"] = "rbxassetid://10747383737",
+	["bluetooth"] = "rbxassetid://10734920383",
+	["battery"] = "rbxassetid://10734920254",
+	["power"] = "rbxassetid://10734943335",
+	["plug"] = "rbxassetid://10734942766",
+	["sun"] = "rbxassetid://10734952427",
+	["moon"] = "rbxassetid://10734934624",
+	["cloud"] = "rbxassetid://10734921481",
+	["umbrella"] = "rbxassetid://10734952749",
+	["droplet"] = "rbxassetid://10734924221",
+	["wind"] = "rbxassetid://10747384033",
+	["feather"] = "rbxassetid://10734924945",
+	["bookmark"] = "rbxassetid://10734920495",
+	["calendar"] = "rbxassetid://10734921020",
+	["clock"] = "rbxassetid://10734921388",
+	["watch"] = "rbxassetid://10747383737",
+	["timer"] = "rbxassetid://10734952456",
+	["flag"] = "rbxassetid://10734925119",
+	["tag"] = "rbxassetid://10734952377",
+	["link"] = "rbxassetid://10734920153",
+	["paperclip"] = "rbxassetid://10734940228",
+	["layout"] = "rbxassetid://10734920153",
+	["grid"] = "rbxassetid://10734928894",
+	["list"] = "rbxassetid://10734920482",
+	["sliders"] = "rbxassetid://10734950134",
+	["filter"] = "rbxassetid://10734925317",
+	["percent"] = "rbxassetid://10734940830",
+	["hash"] = "rbxassetid://10734929094",
+	["at-sign"] = "rbxassetid://10734919989",
+	["dollar-sign"] = "rbxassetid://10734923977",
+}
+
+local function resolveLucideIcon(icon)
+	-- If it's a number, it's a Roblox asset ID
+	if typeof(icon) == "number" then
+		return "rbxassetid://" .. icon, "image"
+	end
+
+	-- If it's a string
+	if typeof(icon) == "string" then
+		-- Check if it's a Lucide icon name
+		local iconName = icon:lower():gsub("lucide://", "")
+		if LucideIcons[iconName] then
+			return LucideIcons[iconName], "image"
+		end
+
+		-- Check if it's already a rbxassetid
+		if icon:match("^rbxassetid://") then
+			return icon, "image"
+		end
+
+		-- Otherwise, treat as emoji/text
+		return icon, "text"
+	end
+
+	return nil, nil
 end
 
 -- =========================
@@ -620,29 +749,34 @@ function RvrseUI:CreateWindow(cfg)
 		end
 	end)
 
-	-- Icon
+	-- Icon (supports Lucide, Roblox asset ID, or emoji)
 	local iconHolder = Instance.new("Frame")
 	iconHolder.BackgroundTransparency = 1
 	iconHolder.Position = UDim2.new(0, 16, 0.5, -16)
 	iconHolder.Size = UDim2.new(0, 32, 0, 32)
 	iconHolder.Parent = header
 
-	if typeof(cfg.Icon) == "number" and cfg.Icon ~= 0 then
-		local img = Instance.new("ImageLabel")
-		img.BackgroundTransparency = 1
-		img.Image = "rbxassetid://" .. cfg.Icon
-		img.Size = UDim2.new(1, 0, 1, 0)
-		img.Parent = iconHolder
-		corner(img, 8)
-	elseif typeof(cfg.Icon) == "string" and cfg.Icon ~= "" then
-		local iconTxt = Instance.new("TextLabel")
-		iconTxt.BackgroundTransparency = 1
-		iconTxt.Font = Enum.Font.GothamBold
-		iconTxt.TextSize = 20
-		iconTxt.TextColor3 = pal.Accent
-		iconTxt.Text = cfg.Icon
-		iconTxt.Size = UDim2.new(1, 0, 1, 0)
-		iconTxt.Parent = iconHolder
+	if cfg.Icon and cfg.Icon ~= 0 then
+		local iconAsset, iconType = resolveLucideIcon(cfg.Icon)
+
+		if iconType == "image" then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.Image = iconAsset
+			img.Size = UDim2.new(1, 0, 1, 0)
+			img.ImageColor3 = pal.Accent
+			img.Parent = iconHolder
+			corner(img, 8)
+		elseif iconType == "text" then
+			local iconTxt = Instance.new("TextLabel")
+			iconTxt.BackgroundTransparency = 1
+			iconTxt.Font = Enum.Font.GothamBold
+			iconTxt.TextSize = 20
+			iconTxt.TextColor3 = pal.Accent
+			iconTxt.Text = iconAsset
+			iconTxt.Size = UDim2.new(1, 0, 1, 0)
+			iconTxt.Parent = iconHolder
+		end
 	end
 
 	-- Title
@@ -798,16 +932,57 @@ function RvrseUI:CreateWindow(cfg)
 	themeToggle.MouseButton1Click:Connect(function()
 		local newTheme = Theme.Current == "Dark" and "Light" or "Dark"
 		Theme:Switch(newTheme)
-		pal = Theme:Get()
 
+		-- Force update all UI elements
+		local newPal = Theme:Get()
+
+		-- Update theme toggle button
 		themeToggle.Text = newTheme == "Dark" and "🌙" or "🌞"
-		themeToggle.TextColor3 = pal.Accent
+		themeToggle.TextColor3 = newPal.Accent
+		themeToggle.BackgroundColor3 = newPal.Elevated
 		themeTooltip.Text = "  Theme: " .. newTheme .. "  "
+		stroke(themeToggle, newPal.Border, 1)
 
 		-- Update glass overlay
 		glassOverlay.BackgroundColor3 = newTheme == "Dark"
 			and Color3.fromRGB(255, 255, 255)
 			or Color3.fromRGB(245, 245, 250)
+
+		-- Update root window colors
+		root.BackgroundColor3 = newPal.Bg
+		stroke(root, newPal.Border, 1)
+
+		-- Update header
+		header.BackgroundColor3 = newPal.Glass
+		stroke(header, newPal.Border, 1)
+		title.TextColor3 = newPal.Text
+
+		-- Update notification bell toggle
+		notifyToggle.BackgroundColor3 = newPal.Elevated
+		notifyToggle.TextColor3 = newPal.Accent
+		stroke(notifyToggle, newPal.Border, 1)
+
+		-- Update close button
+		closeButton.BackgroundColor3 = newPal.Elevated
+		closeButton.TextColor3 = newPal.Error
+		stroke(closeButton, newPal.Border, 1)
+
+		-- Update body
+		body.BackgroundColor3 = newPal.Card
+		stroke(body, newPal.Border, 1)
+
+		-- Update all tabs (including tab icons)
+		for _, tabData in ipairs(tabs) do
+			tabData.btn.BackgroundColor3 = newPal.Card
+			tabData.btn.TextColor3 = newPal.TextSub
+			tabData.indicator.BackgroundColor3 = newPal.Accent
+			tabData.page.ScrollBarImageColor3 = newPal.Border
+
+			-- Update tab icon color if it exists
+			if tabData.icon then
+				tabData.icon.ImageColor3 = newPal.TextSub
+			end
+		end
 
 		Animator:Ripple(themeToggle, 25, 12)
 
@@ -975,10 +1150,7 @@ function RvrseUI:CreateWindow(cfg)
 	function WindowAPI:SetTitle(t) title.Text = t or name end
 	function WindowAPI:Show() setHidden(false) end
 	function WindowAPI:Hide() setHidden(true) end
-	function WindowAPI:SetTheme(mode)
-		Theme:Switch(mode)
-		pal = Theme:Get()
-	end
+	-- SetTheme removed - theme switching is now exclusively controlled by the topbar pill toggle
 
 	-- Destroy method - completely removes UI and cleans up all traces
 	function WindowAPI:Destroy()
@@ -1014,7 +1186,7 @@ function RvrseUI:CreateWindow(cfg)
 		t = t or {}
 		local pal2 = Theme:Get()
 
-		-- Tab button
+		-- Tab button with icon support (Lucide, Roblox asset ID, or emoji)
 		local tabBtn = Instance.new("TextButton")
 		tabBtn.AutoButtonColor = false
 		tabBtn.BackgroundColor3 = pal2.Card
@@ -1023,9 +1195,37 @@ function RvrseUI:CreateWindow(cfg)
 		tabBtn.Font = Enum.Font.GothamMedium
 		tabBtn.TextSize = 13
 		tabBtn.TextColor3 = pal2.TextSub
-		tabBtn.Text = ((t.Icon and t.Icon .. " ") or "") .. (t.Title or "Tab")
 		tabBtn.Parent = tabBar
 		corner(tabBtn, 8)
+
+		-- Handle icon display
+		local tabIcon = nil
+		local tabText = t.Title or "Tab"
+
+		if t.Icon then
+			local iconAsset, iconType = resolveLucideIcon(t.Icon)
+
+			if iconType == "image" then
+				-- Create image icon
+				tabIcon = Instance.new("ImageLabel")
+				tabIcon.BackgroundTransparency = 1
+				tabIcon.Image = iconAsset
+				tabIcon.Size = UDim2.new(0, 16, 0, 16)
+				tabIcon.Position = UDim2.new(0, 8, 0.5, -8)
+				tabIcon.ImageColor3 = pal2.TextSub
+				tabIcon.Parent = tabBtn
+
+				-- Adjust text position for image icon
+				tabBtn.Text = "     " .. tabText
+				tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+			elseif iconType == "text" then
+				-- Use emoji/text icon inline
+				tabBtn.Text = iconAsset .. " " .. tabText
+			end
+		else
+			-- No icon, just text
+			tabBtn.Text = tabText
+		end
 
 		local tabIndicator = Instance.new("Frame")
 		tabIndicator.BackgroundColor3 = pal2.Accent
@@ -1082,7 +1282,7 @@ function RvrseUI:CreateWindow(cfg)
 			end
 		end)
 
-		table.insert(tabs, {btn = tabBtn, page = page, indicator = tabIndicator})
+		table.insert(tabs, {btn = tabBtn, page = page, indicator = tabIndicator, icon = tabIcon})
 
 		if not activePage then
 			activateTab()

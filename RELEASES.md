@@ -1,5 +1,61 @@
 # RvrseUI Release History
 
+## Version 2.1.5 "Aurora" - Critical Fixes Release
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `F9D4E7B3`
+**Channel**: Stable
+
+### 🔧 Critical Fixes
+- **Theme Switching System** - Complete fix for Dark/Light theme toggle
+  - All UI elements now update correctly when switching themes
+  - Updates: root window, header, body, tabs, icons, control buttons, glass overlay
+  - Instant visual feedback across entire UI
+- **Keybind System** - Verified working correctly (default: K)
+  - Global keybind for UI visibility toggle
+  - Supports runtime rebinding via `RvrseUI.UI:BindToggleKey(key)`
+- **Theme Control Restriction** - Removed `WindowAPI:SetTheme()` method
+  - Theme now controlled exclusively by topbar pill (🌙/🌞)
+  - Prevents script conflicts with user preferences
+
+### ✨ Major New Feature: Lucide Icon Support
+- **80+ Lucide Icons** now available
+- **Multiple icon formats supported:**
+  - Lucide icon names (string): `Icon = "home"`
+  - Roblox asset IDs (number): `Icon = 4483362458`
+  - Emoji/text (string): `Icon = "🎮"`
+- **Auto-detection** of icon type
+- **Theme-aware** icons (colors change with theme)
+- **Works in:** Window icons and Tab icons
+
+### 📚 Documentation & Testing
+- Added `TEST_FIXES.lua` - Comprehensive test script
+- Added `FIXES_DOCUMENTATION.md` - Detailed fix documentation
+- Added `CHANGELOG_v2.1.5.md` - Release notes
+
+### 📊 Technical Details
+```lua
+RvrseUI.Version = {
+  Major = 2,
+  Minor = 1,
+  Patch = 5,
+  Build = "20250930",
+  Full = "2.1.5",
+  Hash = "F9D4E7B3",
+  Channel = "Stable"
+}
+```
+
+### 📥 Download
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+### ⚠️ Breaking Changes
+- **WindowAPI:SetTheme() removed** - Theme switching now exclusively via topbar pill
+
+---
+
 ## Version 2.1.4 "Aurora" - UI Layout Refinements
 **Release Date**: September 29, 2025
 **Build**: 20250929
@@ -268,6 +324,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 | Version | Date | Hash | Codename | Key Feature |
 |---------|------|------|----------|-------------|
+| 2.1.5 | 2025-09-30 | F9D4E7B3 | Aurora | Critical Fixes + Lucide |
 | 2.1.4 | 2025-09-29 | E8B3C9A2 | Aurora | UI Layout Polish |
 | 2.1.3 | 2025-09-29 | D7A2E5F4 | Aurora | Global UI Control |
 | 2.1.2 | 2025-09-29 | C3F8A6E9 | Aurora | Complete Destruction |
@@ -291,6 +348,7 @@ print("Channel:", info.Channel)
 ```
 
 ### Expected Hashes
+- **v2.1.5**: `F9D4E7B3`
 - **v2.1.4**: `E8B3C9A2`
 - **v2.1.3**: `D7A2E5F4`
 - **v2.1.2**: `C3F8A6E9`
