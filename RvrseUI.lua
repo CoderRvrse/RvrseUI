@@ -508,8 +508,10 @@ local function addGlow(inst, color, intensity)
 end
 
 -- =========================
--- Root Host
+-- Root Host (Default Container)
 -- =========================
+-- Note: Default container is PlayerGui for standard UI
+-- Can be customized per-window via CreateWindow({ Container = ... })
 local host = Instance.new("ScreenGui")
 host.Name = "RvrseUI_v2"
 host.ResetOnSpawn = false
@@ -675,6 +677,48 @@ function RvrseUI:CreateWindow(cfg)
 	local toggleKey = coerceKeycode(cfg.ToggleUIKeybind or "K")
 	self.UI:BindToggleKey(toggleKey)
 
+	-- Container selection (legitimate use cases)
+	local windowHost = host -- Default: use global PlayerGui host
+
+	if cfg.Container then
+		-- User specified a custom container
+		local customHost = Instance.new("ScreenGui")
+		customHost.Name = "RvrseUI_" .. name:gsub("%s", "")
+		customHost.ResetOnSpawn = false
+		customHost.IgnoreGuiInset = true
+		customHost.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		customHost.DisplayOrder = cfg.DisplayOrder or 999
+
+		-- Resolve container target
+		local containerTarget = nil
+
+		if typeof(cfg.Container) == "string" then
+			-- String reference (e.g., "PlayerGui", "CoreGui", "ReplicatedFirst")
+			local containerMap = {
+				["PlayerGui"] = PlayerGui,
+				["CoreGui"] = game:GetService("CoreGui"),
+				["StarterGui"] = game:GetService("StarterGui"),
+				["ReplicatedFirst"] = game:GetService("ReplicatedFirst"),
+			}
+			containerTarget = containerMap[cfg.Container]
+		elseif typeof(cfg.Container) == "Instance" then
+			-- Direct instance reference
+			containerTarget = cfg.Container
+		end
+
+		if containerTarget then
+			customHost.Parent = containerTarget
+			windowHost = customHost
+
+			-- Register this custom host for global methods
+			table.insert(self._windows, {host = customHost})
+
+			dprintf("Container set to:", cfg.Container)
+		else
+			warn("[RvrseUI] Invalid container specified, using default PlayerGui")
+		end
+	end
+
 	-- Detect mobile/tablet
 	local isMobile = UIS.TouchEnabled and not UIS.MouseEnabled
 	local baseWidth = isMobile and 380 or 580
@@ -690,7 +734,7 @@ function RvrseUI:CreateWindow(cfg)
 	root.BorderSizePixel = 0
 	root.Visible = true
 	root.ClipsDescendants = false
-	root.Parent = host
+	root.Parent = windowHost
 	corner(root, 16)
 	stroke(root, pal.Border, 1.5)
 	self.UI:RegisterToggleTarget(root)
