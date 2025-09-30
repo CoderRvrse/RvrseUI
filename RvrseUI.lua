@@ -657,115 +657,11 @@ function RvrseUI:CreateWindow(cfg)
 	title.Text = name
 	title.Parent = header
 
-	-- Notification Bell Toggle (Revolutionary!)
-	local bellToggle = Instance.new("TextButton")
-	bellToggle.Name = "BellToggle"
-	bellToggle.AnchorPoint = Vector2.new(1, 0.5)
-	bellToggle.Position = UDim2.new(1, -16, 0.5, 0)
-	bellToggle.Size = UDim2.new(0, 50, 0, 24)
-	bellToggle.BackgroundColor3 = pal.Elevated
-	bellToggle.BorderSizePixel = 0
-	bellToggle.Font = Enum.Font.GothamBold
-	bellToggle.TextSize = 14
-	bellToggle.Text = "🔔"
-	bellToggle.TextColor3 = pal.Success
-	bellToggle.AutoButtonColor = false
-	bellToggle.Parent = header
-	corner(bellToggle, 12)
-	stroke(bellToggle, pal.Border, 1)
-	addGlow(bellToggle, pal.Success, 1.5)
-
-	local bellTooltip = createTooltip(bellToggle, "Notifications: ON")
-
-	bellToggle.MouseEnter:Connect(function()
-		bellTooltip.Visible = true
-		Animator:Tween(bellToggle, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
-	end)
-	bellToggle.MouseLeave:Connect(function()
-		bellTooltip.Visible = false
-		Animator:Tween(bellToggle, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
-	end)
-
-	bellToggle.MouseButton1Click:Connect(function()
-		RvrseUI.NotificationsEnabled = not RvrseUI.NotificationsEnabled
-		if RvrseUI.NotificationsEnabled then
-			bellToggle.Text = "🔔"
-			bellToggle.TextColor3 = pal.Success
-			bellTooltip.Text = "  Notifications: ON  "
-			-- Re-add glow
-			if bellToggle:FindFirstChild("Glow") then
-				bellToggle.Glow:Destroy()
-			end
-			addGlow(bellToggle, pal.Success, 1.5)
-		else
-			bellToggle.Text = "🔕"
-			bellToggle.TextColor3 = pal.Error
-			bellTooltip.Text = "  Notifications: OFF  "
-			-- Remove glow
-			if bellToggle:FindFirstChild("Glow") then
-				bellToggle.Glow:Destroy()
-			end
-		end
-		Animator:Ripple(bellToggle, 25, 12)
-	end)
-
-	-- Theme Toggle Pill (Mini Professional)
-	local themeToggle = Instance.new("TextButton")
-	themeToggle.Name = "ThemeToggle"
-	themeToggle.AnchorPoint = Vector2.new(1, 0.5)
-	themeToggle.Position = UDim2.new(1, -74, 0.5, 0)
-	themeToggle.Size = UDim2.new(0, 50, 0, 24)
-	themeToggle.BackgroundColor3 = pal.Elevated
-	themeToggle.BorderSizePixel = 0
-	themeToggle.Font = Enum.Font.GothamBold
-	themeToggle.TextSize = 14
-	themeToggle.Text = Theme.Current == "Dark" and "🌙" or "🌞"
-	themeToggle.TextColor3 = pal.Accent
-	themeToggle.AutoButtonColor = false
-	themeToggle.Parent = header
-	corner(themeToggle, 12)
-	stroke(themeToggle, pal.Border, 1)
-
-	local themeTooltip = createTooltip(themeToggle, "Theme: " .. Theme.Current)
-
-	themeToggle.MouseEnter:Connect(function()
-		themeTooltip.Visible = true
-		Animator:Tween(themeToggle, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
-	end)
-	themeToggle.MouseLeave:Connect(function()
-		themeTooltip.Visible = false
-		Animator:Tween(themeToggle, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
-	end)
-
-	themeToggle.MouseButton1Click:Connect(function()
-		local newTheme = Theme.Current == "Dark" and "Light" or "Dark"
-		Theme:Switch(newTheme)
-		pal = Theme:Get()
-
-		themeToggle.Text = newTheme == "Dark" and "🌙" or "🌞"
-		themeToggle.TextColor3 = pal.Accent
-		themeTooltip.Text = "  Theme: " .. newTheme .. "  "
-
-		-- Update glass overlay
-		glassOverlay.BackgroundColor3 = newTheme == "Dark"
-			and Color3.fromRGB(255, 255, 255)
-			or Color3.fromRGB(245, 245, 250)
-
-		Animator:Ripple(themeToggle, 25, 12)
-
-		RvrseUI:Notify({
-			Title = "Theme Changed",
-			Message = "Switched to " .. newTheme .. " mode",
-			Duration = 2,
-			Type = "info"
-		})
-	end)
-
-	-- Close button (top right)
+	-- Close button (top right - furthest right)
 	local closeBtn = Instance.new("TextButton")
 	closeBtn.Name = "CloseButton"
 	closeBtn.AnchorPoint = Vector2.new(1, 0.5)
-	closeBtn.Position = UDim2.new(1, -16, 0.5, 0)
+	closeBtn.Position = UDim2.new(1, -12, 0.5, 0)
 	closeBtn.Size = UDim2.new(0, 32, 0, 32)
 	closeBtn.BackgroundColor3 = pal.Error
 	closeBtn.BackgroundTransparency = 0.9
@@ -819,15 +715,119 @@ function RvrseUI:CreateWindow(cfg)
 		print("[RvrseUI] Interface destroyed - No trace remaining")
 	end)
 
-	-- Version badge with hash (bottom left corner)
+	-- Notification Bell Toggle (second from right)
+	local bellToggle = Instance.new("TextButton")
+	bellToggle.Name = "BellToggle"
+	bellToggle.AnchorPoint = Vector2.new(1, 0.5)
+	bellToggle.Position = UDim2.new(1, -52, 0.5, 0)
+	bellToggle.Size = UDim2.new(0, 32, 0, 24)
+	bellToggle.BackgroundColor3 = pal.Elevated
+	bellToggle.BorderSizePixel = 0
+	bellToggle.Font = Enum.Font.GothamBold
+	bellToggle.TextSize = 14
+	bellToggle.Text = "🔔"
+	bellToggle.TextColor3 = pal.Success
+	bellToggle.AutoButtonColor = false
+	bellToggle.Parent = header
+	corner(bellToggle, 12)
+	stroke(bellToggle, pal.Border, 1)
+	addGlow(bellToggle, pal.Success, 1.5)
+
+	local bellTooltip = createTooltip(bellToggle, "Notifications: ON")
+
+	bellToggle.MouseEnter:Connect(function()
+		bellTooltip.Visible = true
+		Animator:Tween(bellToggle, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
+	end)
+	bellToggle.MouseLeave:Connect(function()
+		bellTooltip.Visible = false
+		Animator:Tween(bellToggle, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
+	end)
+
+	bellToggle.MouseButton1Click:Connect(function()
+		RvrseUI.NotificationsEnabled = not RvrseUI.NotificationsEnabled
+		if RvrseUI.NotificationsEnabled then
+			bellToggle.Text = "🔔"
+			bellToggle.TextColor3 = pal.Success
+			bellTooltip.Text = "  Notifications: ON  "
+			-- Re-add glow
+			if bellToggle:FindFirstChild("Glow") then
+				bellToggle.Glow:Destroy()
+			end
+			addGlow(bellToggle, pal.Success, 1.5)
+		else
+			bellToggle.Text = "🔕"
+			bellToggle.TextColor3 = pal.Error
+			bellTooltip.Text = "  Notifications: OFF  "
+			-- Remove glow
+			if bellToggle:FindFirstChild("Glow") then
+				bellToggle.Glow:Destroy()
+			end
+		end
+		Animator:Ripple(bellToggle, 25, 12)
+	end)
+
+	-- Theme Toggle Pill (third from right)
+	local themeToggle = Instance.new("TextButton")
+	themeToggle.Name = "ThemeToggle"
+	themeToggle.AnchorPoint = Vector2.new(1, 0.5)
+	themeToggle.Position = UDim2.new(1, -92, 0.5, 0)
+	themeToggle.Size = UDim2.new(0, 32, 0, 24)
+	themeToggle.BackgroundColor3 = pal.Elevated
+	themeToggle.BorderSizePixel = 0
+	themeToggle.Font = Enum.Font.GothamBold
+	themeToggle.TextSize = 14
+	themeToggle.Text = Theme.Current == "Dark" and "🌙" or "🌞"
+	themeToggle.TextColor3 = pal.Accent
+	themeToggle.AutoButtonColor = false
+	themeToggle.Parent = header
+	corner(themeToggle, 12)
+	stroke(themeToggle, pal.Border, 1)
+
+	local themeTooltip = createTooltip(themeToggle, "Theme: " .. Theme.Current)
+
+	themeToggle.MouseEnter:Connect(function()
+		themeTooltip.Visible = true
+		Animator:Tween(themeToggle, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
+	end)
+	themeToggle.MouseLeave:Connect(function()
+		themeTooltip.Visible = false
+		Animator:Tween(themeToggle, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
+	end)
+
+	themeToggle.MouseButton1Click:Connect(function()
+		local newTheme = Theme.Current == "Dark" and "Light" or "Dark"
+		Theme:Switch(newTheme)
+		pal = Theme:Get()
+
+		themeToggle.Text = newTheme == "Dark" and "🌙" or "🌞"
+		themeToggle.TextColor3 = pal.Accent
+		themeTooltip.Text = "  Theme: " .. newTheme .. "  "
+
+		-- Update glass overlay
+		glassOverlay.BackgroundColor3 = newTheme == "Dark"
+			and Color3.fromRGB(255, 255, 255)
+			or Color3.fromRGB(245, 245, 250)
+
+		Animator:Ripple(themeToggle, 25, 12)
+
+		RvrseUI:Notify({
+			Title = "Theme Changed",
+			Message = "Switched to " .. newTheme .. " mode",
+			Duration = 2,
+			Type = "info"
+		})
+	end)
+
+	-- Version badge with hash (bottom left corner - smaller)
 	local versionBadge = Instance.new("TextButton")
 	versionBadge.Name = "VersionBadge"
 	versionBadge.BackgroundColor3 = pal.Accent
 	versionBadge.BackgroundTransparency = 0.9
-	versionBadge.Position = UDim2.new(0, 12, 1, -32)
-	versionBadge.Size = UDim2.new(0, 70, 0, 24)
+	versionBadge.Position = UDim2.new(0, 8, 1, -26)
+	versionBadge.Size = UDim2.new(0, 50, 0, 18)
 	versionBadge.Font = Enum.Font.GothamMedium
-	versionBadge.TextSize = 10
+	versionBadge.TextSize = 9
 	versionBadge.TextColor3 = pal.Accent
 	versionBadge.Text = "v" .. RvrseUI.Version.Full
 	versionBadge.AutoButtonColor = false
