@@ -20,11 +20,11 @@ RvrseUI.DEBUG = false
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 2,
-	Patch = 2,
+	Minor = 3,
+	Patch = 0,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.2.2",
-	Hash = "4DD9E8A6",  -- Release hash for integrity verification
+	Full = "2.3.0",
+	Hash = "7F5E2B9C",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -54,6 +54,132 @@ end
 
 RvrseUI.NotificationsEnabled = true  -- Global notification toggle
 RvrseUI.Flags = {}  -- Global flag storage for all elements
+
+-- =========================
+-- Configuration System
+-- =========================
+RvrseUI.ConfigurationSaving = false  -- Enabled via CreateWindow
+RvrseUI.ConfigurationFileName = nil  -- Set via CreateWindow
+RvrseUI._configCache = {}  -- In-memory config cache
+
+-- Save configuration to datastore
+function RvrseUI:SaveConfiguration()
+	if not self.ConfigurationSaving or not self.ConfigurationFileName then
+		return false, "Configuration saving not enabled"
+	end
+
+	local config = {}
+
+	-- Save all flagged elements
+	for flagName, element in pairs(self.Flags) do
+		if element.Get then
+			local success, value = pcall(element.Get, element)
+			if success then
+				config[flagName] = value
+			end
+		end
+	end
+
+	-- Cache configuration
+	self._configCache = config
+
+	-- Save to datastore using writefile
+	local success, err = pcall(function()
+		local jsonData = game:GetService("HttpService"):JSONEncode(config)
+		writefile(self.ConfigurationFileName, jsonData)
+	end)
+
+	if success then
+		dprintf("Configuration saved:", self.ConfigurationFileName)
+		return true, "Configuration saved successfully"
+	else
+		warn("[RvrseUI] Failed to save configuration:", err)
+		return false, err
+	end
+end
+
+-- Load configuration from datastore
+function RvrseUI:LoadConfiguration()
+	if not self.ConfigurationSaving or not self.ConfigurationFileName then
+		return false, "Configuration saving not enabled"
+	end
+
+	local success, result = pcall(function()
+		if not isfile(self.ConfigurationFileName) then
+			return nil, "No saved configuration found"
+		end
+
+		local jsonData = readfile(self.ConfigurationFileName)
+		return game:GetService("HttpService"):JSONDecode(jsonData)
+	end)
+
+	if not success or not result then
+		dprintf("No configuration to load or error:", result)
+		return false, result
+	end
+
+	-- Apply configuration to all flagged elements
+	local loadedCount = 0
+	for flagName, value in pairs(result) do
+		if self.Flags[flagName] and self.Flags[flagName].Set then
+			local setSuccess = pcall(self.Flags[flagName].Set, self.Flags[flagName], value)
+			if setSuccess then
+				loadedCount = loadedCount + 1
+			end
+		end
+	end
+
+	self._configCache = result
+	dprintf(string.format("Configuration loaded: %d elements restored", loadedCount))
+
+	return true, string.format("Loaded %d elements", loadedCount)
+end
+
+-- Auto-save helper (called when element values change)
+function RvrseUI:_autoSave()
+	if self.ConfigurationSaving then
+		-- Debounce saves (max once per second)
+		if not self._lastSaveTime or (tick() - self._lastSaveTime) > 1 then
+			self._lastSaveTime = tick()
+			task.spawn(function()
+				self:SaveConfiguration()
+			end)
+		end
+	end
+end
+
+-- Delete saved configuration
+function RvrseUI:DeleteConfiguration()
+	if not self.ConfigurationFileName then
+		return false, "No configuration file specified"
+	end
+
+	local success, err = pcall(function()
+		if isfile(self.ConfigurationFileName) then
+			delfile(self.ConfigurationFileName)
+		end
+	end)
+
+	if success then
+		self._configCache = {}
+		return true, "Configuration deleted"
+	else
+		return false, err
+	end
+end
+
+-- Check if configuration exists
+function RvrseUI:ConfigurationExists()
+	if not self.ConfigurationFileName then
+		return false
+	end
+
+	local success, result = pcall(function()
+		return isfile(self.ConfigurationFileName)
+	end)
+
+	return success and result
+end
 
 -- Debug print helper (only prints when DEBUG = true)
 local function dprintf(...)
@@ -764,6 +890,13 @@ function RvrseUI:CreateWindow(cfg)
 	if cfg.Theme and Theme.Palettes[cfg.Theme] then
 		Theme.Current = cfg.Theme
 		pal = Theme:Get()
+	end
+
+	-- Configuration system setup
+	if cfg.ConfigurationSaving then
+		self.ConfigurationSaving = true
+		self.ConfigurationFileName = cfg.FileName or "RvrseUI_Config.json"
+		dprintf("Configuration saving enabled:", self.ConfigurationFileName)
 	end
 
 	local name = cfg.Name or "RvrseUI"
@@ -1671,6 +1804,7 @@ function RvrseUI:CreateWindow(cfg)
 							RvrseUI.Store:SetLocked(controlsGroup, state)
 						end
 						if o.OnChanged then task.spawn(o.OnChanged, state) end
+						if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
 					end
 				end)
 
@@ -1753,6 +1887,7 @@ function RvrseUI:CreateWindow(cfg)
 					idx = (idx % #values) + 1
 					btn.Text = tostring(values[idx])
 					if o.OnChanged then task.spawn(o.OnChanged, values[idx]) end
+					if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
 				end)
 
 				btn.MouseEnter:Connect(function()
@@ -1777,6 +1912,7 @@ function RvrseUI:CreateWindow(cfg)
 						btn.Text = tostring(values[idx])
 						visual()
 						if o.OnChanged then task.spawn(o.OnChanged, values[idx]) end
+						if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on Set
 					end,
 					Get = function() return values[idx] end,
 					Refresh = function(_, newValues)
@@ -1848,6 +1984,7 @@ function RvrseUI:CreateWindow(cfg)
 						btn.Text = io.KeyCode.Name
 						btn.TextColor3 = pal3.Text
 						if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
+						if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
 					end
 				end)
 
@@ -1951,6 +2088,7 @@ function RvrseUI:CreateWindow(cfg)
 					Animator:Tween(thumb, {Position = UDim2.new(relativeX, 0, 0.5, 0)}, Animator.Spring.Fast)
 
 					if o.OnChanged then task.spawn(o.OnChanged, value) end
+					if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
 				end
 
 				track.InputBegan:Connect(function(io)
@@ -2141,6 +2279,7 @@ function RvrseUI:CreateWindow(cfg)
 					if o.OnChanged then
 						task.spawn(o.OnChanged, currentValue, enterPressed)
 					end
+					if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on focus lost
 				end)
 
 				inputBox.Focused:Connect(function()
@@ -2229,6 +2368,7 @@ function RvrseUI:CreateWindow(cfg)
 					if o.OnChanged then
 						task.spawn(o.OnChanged, currentColor)
 					end
+					if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
 				end)
 
 				preview.MouseEnter:Connect(function()

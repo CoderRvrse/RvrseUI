@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 2,
-    "patch": 2,
-    "full": "2.2.2",
+    "minor": 3,
+    "patch": 0,
+    "full": "2.3.0",
     "build": "20250930",
-    "hash": "4DD9E8A6",
+    "hash": "7F5E2B9C",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Dynamic UI Control",
-    "codename": "Nexus Pro",
-    "notes": "Enhanced element control with SetVisible(), notification priority, and dynamic UI updates"
+    "name": "Configuration System",
+    "codename": "Persistence",
+    "notes": "Complete configuration saving/loading system with auto-save on element changes"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -34,9 +34,30 @@
     "drag_to_move": true,
     "unicode_icons": true,
     "flags_system": true,
-    "complete_elements": true
+    "complete_elements": true,
+    "configuration_saving": true,
+    "auto_save": true
   },
   "changelog": {
+    "2.3.0": {
+      "date": "2025-09-30",
+      "hash": "7F5E2B9C",
+      "changes": [
+        "💾 MAJOR RELEASE - Configuration System",
+        "Added RvrseUI:SaveConfiguration() - Save all flagged elements",
+        "Added RvrseUI:LoadConfiguration() - Auto-restore settings",
+        "Added RvrseUI:DeleteConfiguration() - Remove saved config",
+        "Added RvrseUI:ConfigurationExists() - Check for saved config",
+        "Added ConfigurationSaving parameter to CreateWindow",
+        "Added FileName parameter for custom config file names",
+        "Auto-save system: Saves after 1 second of inactivity",
+        "All elements with Flag parameter auto-save on change",
+        "JSON-based configuration storage (human-readable)",
+        "Debounced saves to prevent excessive writes",
+        "Complete persistence across script reloads",
+        "CONFIG_DEMO.lua with comprehensive examples"
+      ]
+    },
     "2.2.2": {
       "date": "2025-09-30",
       "hash": "4DD9E8A6",

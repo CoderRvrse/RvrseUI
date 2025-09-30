@@ -1,5 +1,51 @@
 # RvrseUI Release History
 
+## Version 2.3.0 "Persistence" - Configuration System
+**Release Date**: September 30, 2025
+**Build**: 20250930
+**Hash**: `7F5E2B9C`
+**Channel**: Stable
+
+### 💾 Major Release - Complete Configuration System
+
+Automatically save and restore your UI settings across script reloads!
+
+#### Quick Start
+```lua
+-- Enable configuration saving
+local Window = RvrseUI:CreateWindow({
+  ConfigurationSaving = true,
+  FileName = "MyScript_Config.json"
+})
+
+-- Add Flag to elements you want to save
+Section:CreateSlider({ Flag = "WalkSpeed", ... })
+Section:CreateToggle({ Flag = "AutoFarm", ... })
+
+-- Load at bottom of script
+RvrseUI:LoadConfiguration()
+```
+
+#### New Methods
+- `RvrseUI:SaveConfiguration()` - Save all flagged elements
+- `RvrseUI:LoadConfiguration()` - Restore saved settings
+- `RvrseUI:DeleteConfiguration()` - Remove saved config
+- `RvrseUI:ConfigurationExists()` - Check if config exists
+
+#### Features
+- ✅ Auto-save after 1 second of inactivity
+- ✅ All flagged elements supported
+- ✅ JSON storage (human-readable)
+- ✅ Debounced saves (prevent spam)
+- ✅ Complete persistence
+
+#### Demo
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/CONFIG_DEMO.lua"))()
+```
+
+---
+
 ## Version 2.2.2 "Nexus Pro" - Dynamic UI Control
 **Release Date**: September 30, 2025
 **Build**: 20250930
