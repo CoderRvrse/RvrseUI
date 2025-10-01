@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 4,
-	Patch = 0,
-	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.4.0",
-	Hash = "D7F3A9C2",  -- Release hash for integrity verification
+	Patch = 1,
+	Build = "20251001",  -- YYYYMMDD format
+	Full = "2.4.1",
+	Hash = "E9A2F5D8",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1041,15 +1041,21 @@ function RvrseUI:CreateWindow(cfg)
 	-- Header bar
 	local header = Instance.new("Frame")
 	header.Size = UDim2.new(1, 0, 0, 52)
-	header.BackgroundColor3 = pal.Elevated
-	header.BackgroundTransparency = 0.3
+	header.BackgroundColor3 = pal.Card
+	header.BackgroundTransparency = 0.5
 	header.BorderSizePixel = 0
 	header.Parent = root
 	corner(header, 16)
-	stroke(header, pal.Divider, 1)
+	stroke(header, pal.Border, 1)
 
-	-- Header gradient
-	gradient(header, 90, {pal.Elevated, pal.Card})
+	-- Header bottom divider (subtle separation)
+	local headerDivider = Instance.new("Frame")
+	headerDivider.BackgroundColor3 = pal.Divider
+	headerDivider.BackgroundTransparency = 0.5
+	headerDivider.BorderSizePixel = 0
+	headerDivider.Position = UDim2.new(0, 12, 1, -1)
+	headerDivider.Size = UDim2.new(1, -24, 0, 1)
+	headerDivider.Parent = header
 
 	-- Drag to move (header)
 	local dragging, dragStart, startPos
@@ -2796,8 +2802,9 @@ function RvrseUI:CreateWindow(cfg)
 		stroke(root, newPal.Border, 1)
 
 		-- Update header
-		header.BackgroundColor3 = newPal.Glass
+		header.BackgroundColor3 = newPal.Card
 		stroke(header, newPal.Border, 1)
+		headerDivider.BackgroundColor3 = newPal.Divider
 		title.TextColor3 = newPal.Text
 
 		-- Update notification bell toggle

@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 3,
-    "patch": 7,
-    "full": "2.3.7",
-    "build": "20250930",
-    "hash": "F2C6B8D4",
+    "minor": 4,
+    "patch": 1,
+    "full": "2.4.1",
+    "build": "20251001",
+    "hash": "E9A2F5D8",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-09-30",
-    "name": "Variable Name Fix + Simple Test",
+    "date": "2025-10-01",
+    "name": "Header Visual Cohesion",
     "codename": "Stable",
-    "notes": "Fixed bellToggle/closeBtn variable names in theme switcher, added production-ready SIMPLE_TEST.lua"
+    "notes": "Redesigned header to match body glassmorphic aesthetic, added subtle divider, improved visual harmony"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,63 @@
     "auto_save": true
   },
   "changelog": {
+    "2.4.1": {
+      "date": "2025-10-01",
+      "hash": "E9A2F5D8",
+      "changes": [
+        "🎨 UX ENHANCEMENT - Header Visual Cohesion",
+        "✅ FIXED: Header now matches body glassmorphic aesthetic",
+        "✅ FIXED: Removed heavy gradient that looked disconnected",
+        "🎨 IMPROVED: Header uses same Card color and transparency as body (0.5)",
+        "🎨 IMPROVED: Matching border thickness (1px) for visual harmony",
+        "✨ NEW: Subtle bottom divider on header for gentle separation",
+        "✨ IMPROVED: Theme toggle now updates header divider color",
+        "🎯 Header and body now flow together seamlessly",
+        "🎯 Professional, cohesive appearance across all themes"
+      ]
+    },
+    "2.4.0": {
+      "date": "2025-09-30",
+      "hash": "D7F3A9C2",
+      "changes": [
+        "🚨 CRITICAL FIX - Theme Toggle Scope Issue",
+        "✅ FIXED: Theme toggle crashing with 'attempt to index nil with BackgroundColor3'",
+        "✅ FIXED: Moved theme toggle handler to END of CreateWindow function",
+        "Root cause: Handler tried to access body/tabBar before they were created",
+        "Classic closure scope issue - variables referenced before definition",
+        "Theme switching now works perfectly in both Dark and Light modes",
+        "🔧 ARCHITECTURAL: Major fix ensuring all UI elements exist before handler runs"
+      ]
+    },
+    "2.3.9": {
+      "date": "2025-09-30",
+      "hash": "C4F8B7E3",
+      "changes": [
+        "🎨 MAJOR OVERHAUL - Light Theme Redesign",
+        "✨ NEW: Modern Tailwind-inspired color palette",
+        "🎨 IMPROVED: Backgrounds - Clean blue-gray (#F5F7FA) with pure white glass",
+        "🎨 IMPROVED: Text - High contrast nearly-black (#111827) for readability",
+        "🎨 IMPROVED: Borders - Clear gray borders (#D1D5DB) that are actually visible",
+        "🎨 IMPROVED: Interactive states - Clear visual feedback on hover/active",
+        "🎨 IMPROVED: Success/Warning/Error colors - Vibrant and modern",
+        "🎨 IMPROVED: Proper WCAG contrast ratios for accessibility",
+        "✅ Light theme now looks professional and flawless",
+        "✅ Matches Dark theme quality and polish"
+      ]
+    },
+    "2.3.8": {
+      "date": "2025-09-30",
+      "hash": "B6D9A4F2",
+      "changes": [
+        "🔒 PROTECTION - Config System Lock",
+        "✅ Added DO NOT TOUCH protection comments around configuration system",
+        "Configuration system is FULLY TESTED and PRODUCTION-READY",
+        "All functions work correctly - DO NOT modify this code",
+        "🎨 IMPROVED: Close button now uses ❌ emoji (clear X icon)",
+        "📝 IMPROVED: README.md Complete Script example now uses SIMPLE_TEST.lua code",
+        "Production-ready example with all features working correctly"
+      ]
+    },
     "2.3.7": {
       "date": "2025-09-30",
       "hash": "F2C6B8D4",
