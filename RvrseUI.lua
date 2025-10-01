@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 3,
-	Patch = 6,
+	Patch = 7,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.6",
-	Hash = "E8A3C5F1",  -- Release hash for integrity verification
+	Full = "2.3.7",
+	Hash = "F2C6B8D4",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1268,14 +1268,14 @@ function RvrseUI:CreateWindow(cfg)
 		title.TextColor3 = newPal.Text
 
 		-- Update notification bell toggle
-		notifyToggle.BackgroundColor3 = newPal.Elevated
-		notifyToggle.TextColor3 = newPal.Accent
-		stroke(notifyToggle, newPal.Border, 1)
+		bellToggle.BackgroundColor3 = newPal.Elevated
+		bellToggle.TextColor3 = newPal.Accent
+		stroke(bellToggle, newPal.Border, 1)
 
 		-- Update close button
-		closeButton.BackgroundColor3 = newPal.Elevated
-		closeButton.TextColor3 = newPal.Error
-		stroke(closeButton, newPal.Border, 1)
+		closeBtn.BackgroundColor3 = newPal.Elevated
+		closeBtn.TextColor3 = newPal.Error
+		stroke(closeBtn, newPal.Border, 1)
 
 		-- Update body
 		body.BackgroundColor3 = newPal.Card

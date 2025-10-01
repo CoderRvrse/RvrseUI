@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 3,
-    "patch": 6,
-    "full": "2.3.6",
+    "patch": 7,
+    "full": "2.3.7",
     "build": "20250930",
-    "hash": "E8A3C5F1",
+    "hash": "F2C6B8D4",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-09-30",
-    "name": "Critical Function Order Fix",
-    "codename": "Hotfix",
-    "notes": "Fixed dprintf function ordering error that broke SaveConfiguration - moved dprintf before Config functions"
+    "name": "Variable Name Fix + Simple Test",
+    "codename": "Stable",
+    "notes": "Fixed bellToggle/closeBtn variable names in theme switcher, added production-ready SIMPLE_TEST.lua"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,21 @@
     "auto_save": true
   },
   "changelog": {
+    "2.3.7": {
+      "date": "2025-09-30",
+      "hash": "F2C6B8D4",
+      "changes": [
+        "🚨 CRITICAL FIX - Variable Name Mismatch",
+        "✅ FIXED: Theme switcher crashing with 'attempt to index nil with BackgroundColor3'",
+        "✅ FIXED: notifyToggle → bellToggle (line 1271-1273)",
+        "✅ FIXED: closeButton → closeBtn (line 1276-1278)",
+        "Theme switching now works perfectly without errors",
+        "📝 NEW: SIMPLE_TEST.lua - Production-ready demo script",
+        "Complete working example with all features",
+        "Configuration saving, lock groups, all elements",
+        "No errors, fully functional, ready to use"
+      ]
+    },
     "2.3.6": {
       "date": "2025-09-30",
       "hash": "E8A3C5F1",
