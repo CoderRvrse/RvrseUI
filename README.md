@@ -1,10 +1,10 @@
-# RvrseUI v2.7.1
+# RvrseUI v2.8.0
 
 <div align="center">
 
-**A modern, professional UI framework for Roblox with glassmorphism, theme persistence, minimize to controller, and complete configuration system.**
+**A modern, professional UI framework for Roblox with named config profiles, auto-load system, theme persistence, and minimize to controller.**
 
-[![Version](https://img.shields.io/badge/version-2.7.1-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
@@ -14,7 +14,7 @@
 
 > **⚠️ IMPORTANT**: Always use the cache buster (`.. tick()`) when loading to get the latest version and avoid cached errors!
 
-> **🎉 NEW in v2.7.1**: Theme persistence fully working! Saved theme always loads correctly with GPT-5 verification logging.
+> **🚀 NEW in v2.8.0**: Named config profiles + auto-load! Just set `ConfigurationSaving = true` and your last config loads automatically!
 
 ---
 
@@ -46,11 +46,14 @@
 - **Display**: Label, Paragraph, Divider
 - **Structure**: Section, Tab, Window
 
-### 💾 Configuration System (v2.3.0+)
-- **Auto-Save**: Automatically saves settings after 1 second
-- **Folder Organization**: Group configs by hub/game
-- **Persistent**: Settings survive script reloads
-- **3-Step Setup**: Enable → Add Flags → Load
+### 💾 Configuration System (v2.8.0+) **REVOLUTIONARY!**
+- **Auto-Load**: Just `ConfigurationSaving = true` - last config loads automatically!
+- **Named Profiles**: `ConfigurationSaving = "MyHub"` for multiple configs
+- **Theme Guaranteed**: Last theme ALWAYS loads correctly
+- **No Setup Needed**: Blank config = auto-load last used
+- **SaveConfigAs(name)**: Create multiple profiles on-the-fly
+- **LoadConfigByName(name)**: Switch between profiles
+- **Last Config Tracker**: `RvrseUI/_last_config.json` remembers everything
 
 ### 🎨 Modern UI Design
 - **Glassmorphism**: 93-97% transparent elements
@@ -121,10 +124,22 @@ PlayerSection:CreateToggle({
 })
 ```
 
-### With Configuration Saving
+### With Configuration Saving (v2.8.0 - Auto-Load!)
 
 ```lua
--- Enable config saving
+-- 🚀 NEW: Auto-load last config (recommended!)
+local Window = RvrseUI:CreateWindow({
+  Name = "My Script",
+  ConfigurationSaving = true  -- That's it! Auto-loads last used config + theme
+})
+
+-- OR: Named profile
+local Window = RvrseUI:CreateWindow({
+  Name = "My Script",
+  ConfigurationSaving = "MyHub"  -- Saves to RvrseUI/Configs/MyHub.json
+})
+
+-- OR: Classic format (still works)
 local Window = RvrseUI:CreateWindow({
   Name = "My Script",
   ConfigurationSaving = {
@@ -143,8 +158,7 @@ PlayerSection:CreateSlider({
   end
 })
 
--- Load saved config at the end
-RvrseUI:LoadConfiguration()
+-- Auto-load happens automatically! No need to call LoadConfiguration()
 ```
 
 ---
@@ -625,7 +639,19 @@ RvrseUI:Notify({
 
 ## 📊 What's New
 
-### v2.7.1 - GPT-5 Verification Logging (Current Release)
+### v2.8.0 - Named Config Profiles + Auto-Load (Current Release)
+- 🚀 **Auto-Load System**: `ConfigurationSaving = true` auto-loads last config!
+- 🚀 **Named Profiles**: `ConfigurationSaving = "ProfileName"` for multiple configs
+- 🚀 **Theme Guaranteed**: Last theme ALWAYS loads from `_last_config.json`
+- 📂 **New Methods**: `SaveConfigAs(name)`, `LoadConfigByName(name)`, `GetLastConfig()`
+- 📂 **Last Config Tracker**: `RvrseUI/_last_config.json` stores last used config + theme
+- 🎯 **No Setup Required**: Blank config automatically loads last used settings
+
+### v2.7.2 - Pill Sync Fix
+- 🎯 **Pill Icon Sync**: 🌙/🌞 icon now matches loaded theme on startup
+- 🔧 **syncPillFromTheme()**: Called via task.defer after UI build
+
+### v2.7.1 - GPT-5 Verification Logging
 - 🔍 **Diagnostic Logging**: Comprehensive path/instance/value verification
 - 📊 **Save Verification**: Logs save path, key, instance, readback after write
 - 📊 **Load Verification**: Logs load path, instance, value from disk
