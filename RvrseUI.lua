@@ -21,10 +21,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 7,
-	Patch = 1,
+	Patch = 2,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.7.1",
-	Hash = "N6H9K7G5",  -- Release hash for integrity verification
+	Full = "2.7.2",
+	Hash = "P7J8K9M6",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -3280,6 +3280,19 @@ function RvrseUI:CreateWindow(cfg)
 	end
 
 	-- ============================================
+	-- Pill Sync Function (ensures pill always matches Theme.Current)
+	-- ============================================
+	local function syncPillFromTheme()
+		local t = Theme.Current
+		local currentPal = Theme:Get()
+		themeToggle.Text = t == "Dark" and "🌙" or "🌞"
+		themeToggle.TextColor3 = currentPal.Accent
+		themeToggle.BackgroundColor3 = currentPal.Elevated
+		themeTooltip.Text = "  Theme: " .. t .. "  "
+		stroke(themeToggle, currentPal.Border, 1)
+	end
+
+	-- ============================================
 	-- Theme Toggle Handler (moved here so body/tabBar are in scope)
 	-- ============================================
 	themeToggle.MouseButton1Click:Connect(function()
@@ -3289,12 +3302,8 @@ function RvrseUI:CreateWindow(cfg)
 		-- Force update all UI elements
 		local newPal = Theme:Get()
 
-		-- Update theme toggle button
-		themeToggle.Text = newTheme == "Dark" and "🌙" or "🌞"
-		themeToggle.TextColor3 = newPal.Accent
-		themeToggle.BackgroundColor3 = newPal.Elevated
-		themeTooltip.Text = "  Theme: " .. newTheme .. "  "
-		stroke(themeToggle, newPal.Border, 1)
+		-- Update theme toggle button (use sync function)
+		syncPillFromTheme()
 
 		-- Update glass overlay
 		glassOverlay.BackgroundColor3 = newTheme == "Dark"
@@ -3368,6 +3377,9 @@ function RvrseUI:CreateWindow(cfg)
 			Type = "info"
 		})
 	end)
+
+	-- Call pill sync after UI build to ensure it matches loaded theme (fixes first-paint)
+	task.defer(syncPillFromTheme)
 
 	-- Register window for global management
 	table.insert(RvrseUI._windows, WindowAPI)

@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 7,
-    "patch": 1,
-    "full": "2.7.1",
+    "patch": 2,
+    "full": "2.7.2",
     "build": "20251001",
-    "hash": "N6H9K7G5",
+    "hash": "P7J8K9M6",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "GPT-5 Verification Logging",
+    "name": "Pill Sync Fix",
     "codename": "Stable",
-    "notes": "Added comprehensive verification logging to diagnose theme persistence path/instance/value mismatches"
+    "notes": "Fixed pill toggle icon not syncing with loaded theme on startup - uses task.defer to sync after first paint"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,28 @@
     "auto_save": true
   },
   "changelog": {
+    "2.7.2": {
+      "date": "2025-10-01",
+      "hash": "P7J8K9M6",
+      "changes": [
+        "🎯 SURGICAL FIX - Pill Toggle Finally Syncs",
+        "✅ FIXED: Pill icon (🌙/🌞) now syncs with loaded theme on startup",
+        "✅ FIXED: No more first-paint mismatch (Dark pill showing when Light loaded)",
+        "Root cause: UI painted before final theme applied, pill never re-synced",
+        "Solution: Created syncPillFromTheme() function called via task.defer",
+        "🔧 syncPillFromTheme() (lines 3285-3293):",
+        "  - Reads Theme.Current after final theme applied",
+        "  - Updates pill text (🌙 Dark / 🌞 Light)",
+        "  - Updates pill colors from Theme:Get()",
+        "  - Called after UI build via task.defer (line 3382)",
+        "  - Also called in theme toggle handler (line 3306)",
+        "🎯 Expected behavior:",
+        "  Boot with saved=Light → pill shows 🌞 immediately",
+        "  Boot with saved=Dark → pill shows 🌙 immediately",
+        "  Toggle pill → syncPillFromTheme() ensures consistency",
+        "Based on GPT-5 analysis: apply before paint, sync after paint"
+      ]
+    },
     "2.7.1": {
       "date": "2025-10-01",
       "hash": "N6H9K7G5",
