@@ -21,10 +21,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 6,
-	Patch = 2,
+	Patch = 3,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.6.2",
-	Hash = "L3G8I6F4",  -- Release hash for integrity verification
+	Full = "2.6.3",
+	Hash = "M4H9J7G5",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -92,18 +92,25 @@ function RvrseUI:SaveConfiguration()
 		end
 	end
 
-	-- Save current theme
+	-- Save current theme (only if dirty - user changed it)
 	dprintf("=== THEME SAVE DEBUG ===")
 	dprintf("RvrseUI.Theme exists?", RvrseUI.Theme ~= nil)
 	if RvrseUI.Theme then
 		dprintf("RvrseUI.Theme.Current:", RvrseUI.Theme.Current)
+		dprintf("RvrseUI.Theme._dirty:", RvrseUI.Theme._dirty)
 	end
 
-	if RvrseUI.Theme and RvrseUI.Theme.Current then
+	if RvrseUI.Theme and RvrseUI.Theme.Current and RvrseUI.Theme._dirty then
 		config._RvrseUI_Theme = RvrseUI.Theme.Current
-		dprintf("Saved theme to config:", config._RvrseUI_Theme)
+		dprintf("✅ Saved theme to config (dirty):", config._RvrseUI_Theme)
+		RvrseUI.Theme._dirty = false  -- Clear dirty flag after save
 	else
-		dprintf("WARNING: Theme not saved (Theme object not available)")
+		dprintf("Theme not saved (not dirty or unavailable)")
+		-- Preserve existing saved theme if it exists
+		if self._configCache and self._configCache._RvrseUI_Theme then
+			config._RvrseUI_Theme = self._configCache._RvrseUI_Theme
+			dprintf("Preserving existing saved theme:", config._RvrseUI_Theme)
+		end
 	end
 
 	-- Cache configuration
@@ -598,10 +605,22 @@ Theme.Palettes = {
 	}
 }
 Theme.Current = "Dark"
+Theme._dirty = false  -- Dirty flag: true if user changed theme in-session
+
 function Theme:Get() return self.Palettes[self.Current] end
+
+function Theme:Apply(mode)
+	if self.Palettes[mode] then
+		self.Current = mode
+		dprintf("Theme applied:", mode)
+	end
+end
+
 function Theme:Switch(mode)
 	if self.Palettes[mode] then
 		self.Current = mode
+		self._dirty = true  -- Mark dirty when user changes theme
+		dprintf("Theme switched (dirty=true):", mode)
 		-- Trigger theme refresh
 		if RvrseUI._themeListeners then
 			for _, fn in ipairs(RvrseUI._themeListeners) do
@@ -984,18 +1003,20 @@ function RvrseUI:CreateWindow(cfg)
 	dprintf("cfg.Theme:", cfg.Theme)
 	dprintf("Theme.Current before:", Theme.Current)
 
-	-- Apply saved theme from LoadConfiguration if available (takes priority)
-	if self._savedTheme and Theme.Palettes[self._savedTheme] then
-		Theme.Current = self._savedTheme
-		dprintf("✅ Applying saved theme from config:", self._savedTheme)
-	elseif cfg.Theme and Theme.Palettes[cfg.Theme] then
-		Theme.Current = cfg.Theme
-		dprintf("Applying theme from cfg.Theme:", cfg.Theme)
-	else
-		dprintf("Using default theme:", Theme.Current)
-	end
+	-- Deterministic precedence: saved theme wins, else cfg.Theme, else default
+	local finalTheme = self._savedTheme or cfg.Theme or "Dark"
+	local source = self._savedTheme and "saved" or (cfg.Theme and "cfg") or "default"
 
+	-- Apply theme (does NOT mark dirty - this is initialization)
+	Theme:Apply(finalTheme)
+
+	dprintf("✅ Applied theme (source=" .. source .. "):", finalTheme)
 	dprintf("Theme.Current after:", Theme.Current)
+	dprintf("Theme._dirty:", Theme._dirty)
+
+	-- Assert valid theme
+	assert(Theme.Current == "Dark" or Theme.Current == "Light", "Invalid Theme.Current at end of init: " .. tostring(Theme.Current))
+
 	local pal = Theme:Get()
 
 	-- Configuration system setup
