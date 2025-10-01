@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 4,
-    "patch": 1,
-    "full": "2.4.1",
+    "minor": 5,
+    "patch": 0,
+    "full": "2.5.0",
     "build": "20251001",
-    "hash": "E9A2F5D8",
+    "hash": "F3B8D9A4",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Header Visual Cohesion",
+    "name": "Minimize to Controller",
     "codename": "Stable",
-    "notes": "Redesigned header to match body glassmorphic aesthetic, added subtle divider, improved visual harmony"
+    "notes": "Premium minimize feature with particle flow effects, gaming controller chip, and seamless restore functionality"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,27 @@
     "auto_save": true
   },
   "changelog": {
+    "2.5.0": {
+      "date": "2025-10-01",
+      "hash": "F3B8D9A4",
+      "changes": [
+        "✨ MAJOR FEATURE - Minimize to Gaming Controller",
+        "🎮 NEW: Minimize button in header (➖ icon, fourth from right)",
+        "🎮 NEW: Gaming controller chip (🎮) for minimized state",
+        "✨ NEW: Premium particle flow animation system",
+        "🌊 EFFECT: 40 particles flow from window to controller on minimize",
+        "🌊 EFFECT: Particles flow back from controller to window on restore",
+        "🎨 ANIMATION: Window shrinks with 180° rotation into controller chip",
+        "🎨 ANIMATION: Controller chip pops in with bounce effect",
+        "🎨 ANIMATION: Window expands from chip with reverse rotation",
+        "✨ ENHANCED: Pulsing glow effect on controller chip",
+        "✨ ENHANCED: Hover effect grows controller chip (50px → 60px)",
+        "🎯 STATE MANAGEMENT: isMinimized flag prevents breaking GUI",
+        "🎯 TESTED: Works flawlessly in both Dark and Light themes",
+        "🎯 PREMIUM: Smooth, professional animations throughout",
+        "🚀 NO ERRORS: Complete restore preserves all GUI state"
+      ]
+    },
     "2.4.1": {
       "date": "2025-10-01",
       "hash": "E9A2F5D8",

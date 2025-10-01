@@ -20,11 +20,11 @@ RvrseUI.DEBUG = false
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 4,
-	Patch = 1,
+	Minor = 5,
+	Patch = 0,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.4.1",
-	Hash = "E9A2F5D8",  -- Release hash for integrity verification
+	Full = "2.5.0",
+	Hash = "F3B8D9A4",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1230,6 +1230,37 @@ function RvrseUI:CreateWindow(cfg)
 		Animator:Ripple(bellToggle, 25, 12)
 	end)
 
+	-- Minimize button (fourth from right)
+	local minimizeBtn = Instance.new("TextButton")
+	minimizeBtn.Name = "MinimizeButton"
+	minimizeBtn.AnchorPoint = Vector2.new(1, 0.5)
+	minimizeBtn.Position = UDim2.new(1, -132, 0.5, 0)
+	minimizeBtn.Size = UDim2.new(0, 32, 0, 24)
+	minimizeBtn.BackgroundColor3 = pal.Elevated
+	minimizeBtn.BorderSizePixel = 0
+	minimizeBtn.Font = Enum.Font.GothamBold
+	minimizeBtn.TextSize = 18
+	minimizeBtn.Text = "➖"
+	minimizeBtn.TextColor3 = pal.Accent
+	minimizeBtn.AutoButtonColor = false
+	minimizeBtn.Parent = header
+	corner(minimizeBtn, 12)
+	stroke(minimizeBtn, pal.Border, 1)
+
+	local minimizeTooltip = createTooltip(minimizeBtn, "Minimize to Controller")
+
+	minimizeBtn.MouseEnter:Connect(function()
+		minimizeTooltip.Visible = true
+		Animator:Tween(minimizeBtn, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
+	end)
+	minimizeBtn.MouseLeave:Connect(function()
+		minimizeTooltip.Visible = false
+		Animator:Tween(minimizeBtn, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
+	end)
+
+	-- Minimize click handler (defined after controllerChip and particle system are created)
+	-- This will be connected later in the code
+
 	-- Theme Toggle Pill (third from right)
 	local themeToggle = Instance.new("TextButton")
 	themeToggle.Name = "ThemeToggle"
@@ -1416,6 +1447,233 @@ function RvrseUI:CreateWindow(cfg)
 	end
 
 	chip.MouseButton1Click:Connect(function() setHidden(false) end)
+
+	-- Gaming Controller Minimize Chip
+	local controllerChip = Instance.new("TextButton")
+	controllerChip.Name = "ControllerChip"
+	controllerChip.Text = "🎮"
+	controllerChip.Font = Enum.Font.GothamBold
+	controllerChip.TextSize = 20
+	controllerChip.TextColor3 = pal.Accent
+	controllerChip.BackgroundColor3 = pal.Card
+	controllerChip.BackgroundTransparency = 0.1
+	controllerChip.Size = UDim2.new(0, 50, 0, 50)
+	controllerChip.AnchorPoint = Vector2.new(0.5, 0.5)
+	controllerChip.Position = UDim2.new(0.5, 0, 0.5, 0)
+	controllerChip.Visible = false
+	controllerChip.ZIndex = 1000
+	controllerChip.Parent = host
+	corner(controllerChip, 25)
+	stroke(controllerChip, pal.Accent, 2)
+	addGlow(controllerChip, pal.Accent, 3)
+
+	-- Add pulsing glow effect to controller chip
+	local controllerGlow = controllerChip:FindFirstChild("Glow")
+	if controllerGlow then
+		local glowPulse
+		glowPulse = RS.Heartbeat:Connect(function()
+			if controllerChip.Visible and controllerGlow then
+				local pulse = 3 + math.sin(tick() * 2) * 1
+				controllerGlow.Size = UDim2.new(1, pulse * 2, 1, pulse * 2)
+				controllerGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+			end
+		end)
+	end
+
+	-- Particle system for minimize effect
+	local function createParticleFlow(startPos, endPos, count, duration)
+		local particles = {}
+
+		for i = 1, count do
+			local particle = Instance.new("Frame")
+			particle.Size = UDim2.new(0, math.random(3, 6), 0, math.random(3, 6))
+			particle.BackgroundColor3 = pal.Accent
+			particle.BackgroundTransparency = 0.3
+			particle.BorderSizePixel = 0
+			particle.Position = UDim2.new(0, startPos.X, 0, startPos.Y)
+			particle.ZIndex = 999
+			particle.Parent = host
+			corner(particle, math.random(2, 3))
+
+			-- Random offset for natural flow
+			local offsetX = math.random(-30, 30)
+			local offsetY = math.random(-30, 30)
+
+			-- Stagger the start time
+			local delay = (i / count) * (duration * 0.3)
+
+			task.delay(delay, function()
+				if particle and particle.Parent then
+					-- Curve path to endpoint
+					local midX = (startPos.X + endPos.X) / 2 + offsetX
+					local midY = (startPos.Y + endPos.Y) / 2 + offsetY
+
+					-- First half: move to midpoint
+					Animator:Tween(particle, {
+						Position = UDim2.new(0, midX, 0, midY),
+						BackgroundTransparency = 0.1
+					}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+
+					-- Second half: move to endpoint and fade
+					task.wait(duration * 0.5)
+					if particle and particle.Parent then
+						Animator:Tween(particle, {
+							Position = UDim2.new(0, endPos.X, 0, endPos.Y),
+							BackgroundTransparency = 1,
+							Size = UDim2.new(0, 2, 0, 2)
+						}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In))
+
+						task.wait(duration * 0.5)
+						if particle and particle.Parent then
+							particle:Destroy()
+						end
+					end
+				end
+			end)
+
+			table.insert(particles, particle)
+		end
+
+		return particles
+	end
+
+	-- Minimize/Restore functionality
+	local isMinimized = false
+
+	local function minimizeWindow()
+		if isMinimized then return end
+		isMinimized = true
+
+		-- Ripple effect on button
+		Animator:Ripple(minimizeBtn, 16, 12)
+
+		-- Get screen center position for controller chip
+		local screenSize = workspace.CurrentCamera.ViewportSize
+		local centerX = screenSize.X / 2
+		local centerY = screenSize.Y / 2
+
+		-- Get root window center position
+		local rootPos = root.AbsolutePosition
+		local rootSize = root.AbsoluteSize
+		local windowCenterX = rootPos.X + (rootSize.X / 2)
+		local windowCenterY = rootPos.Y + (rootSize.Y / 2)
+
+		-- Create particle flow from window to center
+		createParticleFlow(
+			{X = windowCenterX, Y = windowCenterY},
+			{X = centerX, Y = centerY},
+			40,  -- particle count
+			0.6  -- duration
+		)
+
+		-- Shrink window with rotation
+		Animator:Tween(root, {
+			Size = UDim2.new(0, 0, 0, 0),
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			BackgroundTransparency = 1,
+			Rotation = 180
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In))
+
+		Animator:Tween(glassOverlay, {
+			BackgroundTransparency = 1
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In))
+
+		-- Show controller chip after window shrinks
+		task.wait(0.6)
+		if isMinimized then
+			root.Visible = false
+			controllerChip.Visible = true
+			controllerChip.Size = UDim2.new(0, 0, 0, 0)
+
+			-- Pop in effect
+			Animator:Tween(controllerChip, {
+				Size = UDim2.new(0, 50, 0, 50)
+			}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+		end
+	end
+
+	local function restoreWindow()
+		if not isMinimized then return end
+		isMinimized = false
+
+		-- Ripple effect on controller chip
+		Animator:Ripple(controllerChip, 25, 25)
+
+		-- Get screen center position
+		local screenSize = workspace.CurrentCamera.ViewportSize
+		local centerX = screenSize.X / 2
+		local centerY = screenSize.Y / 2
+
+		-- Original window size and position
+		local targetSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
+		local targetPos = UDim2.new(0.5, 0, 0.5, 0)
+
+		-- Calculate where window center will be
+		local targetWidth = isMobile and 380 or baseWidth
+		local targetHeight = isMobile and 520 or baseHeight
+		local windowCenterX = (screenSize.X / 2)
+		local windowCenterY = (screenSize.Y / 2)
+
+		-- Create particle flow from center to window
+		createParticleFlow(
+			{X = centerX, Y = centerY},
+			{X = windowCenterX, Y = windowCenterY},
+			40,  -- particle count
+			0.6  -- duration
+		)
+
+		-- Shrink controller chip
+		Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 0, 0, 0)
+		}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In))
+
+		-- Wait for chip to shrink, then show window
+		task.wait(0.3)
+		controllerChip.Visible = false
+
+		-- Reset window properties and show it
+		root.Visible = true
+		root.Size = UDim2.new(0, 0, 0, 0)
+		root.Position = UDim2.new(0.5, 0, 0.5, 0)
+		root.Rotation = -180
+		root.BackgroundTransparency = 1
+		glassOverlay.BackgroundTransparency = 1
+
+		-- Expand window with rotation
+		Animator:Tween(root, {
+			Size = targetSize,
+			Position = targetPos,
+			BackgroundTransparency = 0.05,
+			Rotation = 0
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+
+		Animator:Tween(glassOverlay, {
+			BackgroundTransparency = Theme.Current == "Dark" and 0.97 or 0.95
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+	end
+
+	-- Connect minimize button click
+	minimizeBtn.MouseButton1Click:Connect(function()
+		minimizeWindow()
+	end)
+
+	-- Connect controller chip click (restore)
+	controllerChip.MouseButton1Click:Connect(function()
+		restoreWindow()
+	end)
+
+	-- Add hover effect to controller chip
+	controllerChip.MouseEnter:Connect(function()
+		Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 60, 0, 60)
+		}, Animator.Spring.Fast)
+	end)
+
+	controllerChip.MouseLeave:Connect(function()
+		Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 50, 0, 50)
+		}, Animator.Spring.Fast)
+	end)
 
 	-- Tab management
 	local activePage
@@ -2807,6 +3065,11 @@ function RvrseUI:CreateWindow(cfg)
 		headerDivider.BackgroundColor3 = newPal.Divider
 		title.TextColor3 = newPal.Text
 
+		-- Update minimize button
+		minimizeBtn.BackgroundColor3 = newPal.Elevated
+		minimizeBtn.TextColor3 = newPal.Accent
+		stroke(minimizeBtn, newPal.Border, 1)
+
 		-- Update notification bell toggle
 		bellToggle.BackgroundColor3 = newPal.Elevated
 		bellToggle.TextColor3 = newPal.Accent
@@ -2816,6 +3079,14 @@ function RvrseUI:CreateWindow(cfg)
 		closeBtn.BackgroundColor3 = newPal.Elevated
 		closeBtn.TextColor3 = newPal.Error
 		stroke(closeBtn, newPal.Border, 1)
+
+		-- Update controller chip
+		controllerChip.BackgroundColor3 = newPal.Card
+		controllerChip.TextColor3 = newPal.Accent
+		stroke(controllerChip, newPal.Accent, 2)
+		if controllerChip:FindFirstChild("Glow") then
+			controllerChip.Glow.ImageColor3 = newPal.Accent
+		end
 
 		-- Update body
 		body.BackgroundColor3 = newPal.Card
