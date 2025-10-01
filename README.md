@@ -1,10 +1,10 @@
-# RvrseUI v2.3.7
+# RvrseUI v2.4.1
 
 <div align="center">
 
 **A modern, professional UI framework for Roblox with glassmorphism, spring animations, and complete configuration persistence.**
 
-[![Version](https://img.shields.io/badge/version-2.3.7-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-2.4.1-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
@@ -686,8 +686,8 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 **Developer**: CoderRvrse
 **Framework**: RvrseUI
-**Version**: 2.3.1 "Persistence+"
-**Build**: 20250930
+**Version**: 2.4.1 "Header Visual Cohesion"
+**Build**: 20251001
 
 Built with ❤️ for the Roblox scripting community.
 
@@ -695,7 +695,7 @@ Built with ❤️ for the Roblox scripting community.
 
 <div align="center">
 
-**[⬆ Back to Top](#rvrseui-v231)**
+**[⬆ Back to Top](#rvrseui-v241)**
 
 Made with 🤖 [Claude Code](https://claude.com/claude-code)
 
