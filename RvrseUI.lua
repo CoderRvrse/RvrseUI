@@ -20,11 +20,11 @@ RvrseUI.DEBUG = false
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 3,
-	Patch = 9,
+	Minor = 4,
+	Patch = 0,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.9",
-	Hash = "C4B8F2E6",  -- Release hash for integrity verification
+	Full = "2.4.0",
+	Hash = "D7F3A9C2",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1252,73 +1252,7 @@ function RvrseUI:CreateWindow(cfg)
 		Animator:Tween(themeToggle, {BackgroundColor3 = pal.Elevated}, Animator.Spring.Fast)
 	end)
 
-	themeToggle.MouseButton1Click:Connect(function()
-		local newTheme = Theme.Current == "Dark" and "Light" or "Dark"
-		Theme:Switch(newTheme)
-
-		-- Force update all UI elements
-		local newPal = Theme:Get()
-
-		-- Update theme toggle button
-		themeToggle.Text = newTheme == "Dark" and "🌙" or "🌞"
-		themeToggle.TextColor3 = newPal.Accent
-		themeToggle.BackgroundColor3 = newPal.Elevated
-		themeTooltip.Text = "  Theme: " .. newTheme .. "  "
-		stroke(themeToggle, newPal.Border, 1)
-
-		-- Update glass overlay
-		glassOverlay.BackgroundColor3 = newTheme == "Dark"
-			and Color3.fromRGB(255, 255, 255)
-			or Color3.fromRGB(245, 245, 250)
-
-		-- Update root window colors
-		root.BackgroundColor3 = newPal.Bg
-		stroke(root, newPal.Border, 1)
-
-		-- Update header
-		header.BackgroundColor3 = newPal.Glass
-		stroke(header, newPal.Border, 1)
-		title.TextColor3 = newPal.Text
-
-		-- Update notification bell toggle
-		bellToggle.BackgroundColor3 = newPal.Elevated
-		bellToggle.TextColor3 = newPal.Accent
-		stroke(bellToggle, newPal.Border, 1)
-
-		-- Update close button
-		closeBtn.BackgroundColor3 = newPal.Elevated
-		closeBtn.TextColor3 = newPal.Error
-		stroke(closeBtn, newPal.Border, 1)
-
-		-- Update body
-		body.BackgroundColor3 = newPal.Card
-		stroke(body, newPal.Border, 1)
-
-		-- Update tab bar scrollbar
-		tabBar.ScrollBarImageColor3 = newPal.Border
-
-		-- Update all tabs (including tab icons)
-		for _, tabData in ipairs(tabs) do
-			tabData.btn.BackgroundColor3 = newPal.Card
-			tabData.btn.TextColor3 = newPal.TextSub
-			tabData.indicator.BackgroundColor3 = newPal.Accent
-			tabData.page.ScrollBarImageColor3 = newPal.Border
-
-			-- Update tab icon color if it exists
-			if tabData.icon then
-				tabData.icon.ImageColor3 = newPal.TextSub
-			end
-		end
-
-		Animator:Ripple(themeToggle, 25, 12)
-
-		RvrseUI:Notify({
-			Title = "Theme Changed",
-			Message = "Switched to " .. newTheme .. " mode",
-			Duration = 2,
-			Type = "info"
-		})
-	end)
+	-- Theme toggle click handler defined AFTER all UI elements created (see bottom of CreateWindow)
 
 	-- Version badge with hash (bottom left corner - fully contained with proper insets)
 	local versionBadge = Instance.new("TextButton")
@@ -2834,6 +2768,77 @@ function RvrseUI:CreateWindow(cfg)
 	if not cfg.DisableRvrseUIPrompts then
 		RvrseUI:Notify({Title = "Tip", Message = "Press " .. toggleKey.Name .. " to toggle UI", Duration = 3, Type = "info"})
 	end
+
+	-- ============================================
+	-- Theme Toggle Handler (moved here so body/tabBar are in scope)
+	-- ============================================
+	themeToggle.MouseButton1Click:Connect(function()
+		local newTheme = Theme.Current == "Dark" and "Light" or "Dark"
+		Theme:Switch(newTheme)
+
+		-- Force update all UI elements
+		local newPal = Theme:Get()
+
+		-- Update theme toggle button
+		themeToggle.Text = newTheme == "Dark" and "🌙" or "🌞"
+		themeToggle.TextColor3 = newPal.Accent
+		themeToggle.BackgroundColor3 = newPal.Elevated
+		themeTooltip.Text = "  Theme: " .. newTheme .. "  "
+		stroke(themeToggle, newPal.Border, 1)
+
+		-- Update glass overlay
+		glassOverlay.BackgroundColor3 = newTheme == "Dark"
+			and Color3.fromRGB(255, 255, 255)
+			or Color3.fromRGB(245, 245, 250)
+
+		-- Update root window colors
+		root.BackgroundColor3 = newPal.Bg
+		stroke(root, newPal.Border, 1)
+
+		-- Update header
+		header.BackgroundColor3 = newPal.Glass
+		stroke(header, newPal.Border, 1)
+		title.TextColor3 = newPal.Text
+
+		-- Update notification bell toggle
+		bellToggle.BackgroundColor3 = newPal.Elevated
+		bellToggle.TextColor3 = newPal.Accent
+		stroke(bellToggle, newPal.Border, 1)
+
+		-- Update close button
+		closeBtn.BackgroundColor3 = newPal.Elevated
+		closeBtn.TextColor3 = newPal.Error
+		stroke(closeBtn, newPal.Border, 1)
+
+		-- Update body
+		body.BackgroundColor3 = newPal.Card
+		stroke(body, newPal.Border, 1)
+
+		-- Update tab bar scrollbar
+		tabBar.ScrollBarImageColor3 = newPal.Border
+
+		-- Update all tabs (including tab icons)
+		for _, tabData in ipairs(tabs) do
+			tabData.btn.BackgroundColor3 = newPal.Card
+			tabData.btn.TextColor3 = newPal.TextSub
+			tabData.indicator.BackgroundColor3 = newPal.Accent
+			tabData.page.ScrollBarImageColor3 = newPal.Border
+
+			-- Update tab icon color if it exists
+			if tabData.icon then
+				tabData.icon.ImageColor3 = newPal.TextSub
+			end
+		end
+
+		Animator:Ripple(themeToggle, 25, 12)
+
+		RvrseUI:Notify({
+			Title = "Theme Changed",
+			Message = "Switched to " .. newTheme .. " mode",
+			Duration = 2,
+			Type = "info"
+		})
+	end)
 
 	-- Register window for global management
 	table.insert(RvrseUI._windows, WindowAPI)
