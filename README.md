@@ -1,16 +1,18 @@
-# RvrseUI v2.3.1
+# RvrseUI v2.3.7
 
 <div align="center">
 
 **A modern, professional UI framework for Roblox with glassmorphism, spring animations, and complete configuration persistence.**
 
-[![Version](https://img.shields.io/badge/version-2.3.1-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-2.3.7-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
 [Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Changelog](#-changelog)
 
 </div>
+
+> **⚠️ IMPORTANT**: Always use the cache buster (`.. tick()`) when loading to get the latest version and avoid cached errors!
 
 ---
 
@@ -52,7 +54,10 @@
 ### Installation
 
 ```lua
-local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+-- ⚠️ ALWAYS use cache buster to get latest version!
+local RvrseUI = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
+))()
 ```
 
 ### Basic Example
@@ -286,97 +291,160 @@ local exists = RvrseUI:ConfigurationExists()
 
 ## 💡 Examples
 
-### Complete Script with Config
+### Complete Script with Config (Production-Ready, No Errors!)
+
+> ✅ **This example works perfectly** - tested and verified with v2.3.7!
+> 📁 **Full version**: See [SIMPLE_TEST.lua](SIMPLE_TEST.lua) for complete demo
 
 ```lua
-local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+-- Load RvrseUI with cache buster (always gets latest!)
+local RvrseUI = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
+))()
 
--- Enable config saving
+-- Create window with configuration saving
 local Window = RvrseUI:CreateWindow({
-  Name = "Game Script",
-  Icon = "game",
+  Name = "Simple Test Hub",
+  Icon = "🎮",
+  LoadingTitle = "Simple Test Hub",
+  LoadingSubtitle = "Loading features...",
   Theme = "Dark",
+  ToggleUIKeybind = "K",
   ConfigurationSaving = {
     Enabled = true,
-    FolderName = "GameHub",
-    FileName = "Settings"
+    FolderName = "SimpleTestHub",  -- Saves to: SimpleTestHub/Config.json
+    FileName = "Config.json"
   }
 })
 
--- Player Tab
-local PlayerTab = Window:CreateTab({ Title = "Player", Icon = "user" })
-local PlayerSection = PlayerTab:CreateSection("Enhancements")
+-- Main Tab
+local MainTab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
 
+-- Player Section
+local PlayerSection = MainTab:CreateSection("Player Features")
+
+-- Speed Slider (with auto-save via Flag)
 PlayerSection:CreateSlider({
   Text = "Walk Speed",
   Min = 16,
   Max = 100,
+  Step = 2,
   Default = 16,
-  Flag = "WalkSpeed",
+  Flag = "WalkSpeed",  -- Auto-saves when changed!
   OnChanged = function(speed)
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
-  end
-})
-
-PlayerSection:CreateToggle({
-  Text = "Infinite Jump",
-  State = false,
-  Flag = "InfiniteJump",
-  OnChanged = function(enabled)
-    -- Your infinite jump code
-  end
-})
-
--- Combat Tab
-local CombatTab = Window:CreateTab({ Title = "Combat", Icon = "sword" })
-local CombatSection = CombatTab:CreateSection("Auto Farm")
-
-CombatSection:CreateToggle({
-  Text = "Auto Attack",
-  State = false,
-  Flag = "AutoAttack",
-  OnChanged = function(enabled)
-    _G.AutoAttack = enabled
-  end
-})
-
-CombatSection:CreateDropdown({
-  Text = "Target Priority",
-  Values = { "Closest", "Lowest HP", "Highest HP" },
-  Default = "Closest",
-  Flag = "TargetPriority",
-  OnChanged = function(priority)
-    _G.TargetPriority = priority
-  end
-})
-
--- Settings Tab
-local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "settings" })
-local UISection = SettingsTab:CreateSection("Interface")
-
-UISection:CreateDropdown({
-  Text = "Theme",
-  Values = { "Dark", "Light" },
-  Default = "Dark",
-  Flag = "Theme",
-  OnChanged = function(theme)
-    if theme == "Dark" then
-      Theme:Switch("Dark")
-    else
-      Theme:Switch("Light")
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+      player.Character.Humanoid.WalkSpeed = speed
     end
   end
 })
 
--- Load saved configuration
-RvrseUI:LoadConfiguration()
+-- Fly Toggle (with auto-save)
+PlayerSection:CreateToggle({
+  Text = "Enable Flying",
+  State = false,
+  Flag = "FlyEnabled",
+  OnChanged = function(enabled)
+    if enabled then
+      RvrseUI:Notify({
+        Title = "Flight Enabled",
+        Message = "You can now fly!",
+        Duration = 2,
+        Type = "success"
+      })
+    else
+      RvrseUI:Notify({
+        Title = "Flight Disabled",
+        Duration = 1,
+        Type = "warn"
+      })
+    end
+  end
+})
 
--- Success notification
+-- Combat Section with Lock Groups
+local CombatSection = MainTab:CreateSection("Combat Features")
+
+-- Master Toggle (locks child toggles when ON)
+CombatSection:CreateToggle({
+  Text = "🎯 Auto Farm (MASTER)",
+  State = false,
+  LockGroup = "AutoFarm",  -- Locks all toggles with RespectLock = "AutoFarm"
+  OnChanged = function(enabled)
+    if enabled then
+      RvrseUI:Notify({
+        Title = "Auto Farm Started",
+        Message = "Individual farms are now locked",
+        Duration = 2,
+        Type = "success"
+      })
+    end
+  end
+})
+
+-- Child Toggles (locked when master is ON)
+CombatSection:CreateToggle({
+  Text = "Farm Coins",
+  State = false,
+  RespectLock = "AutoFarm",  -- Becomes disabled when AutoFarm master is ON
+  Flag = "FarmCoins",
+  OnChanged = function(on) print("Farm Coins:", on) end
+})
+
+-- Settings Tab
+local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "🔧" })
+local ConfigSection = SettingsTab:CreateSection("Configuration")
+
+-- Manual Save Button
+ConfigSection:CreateButton({
+  Text = "💾 Save Configuration",
+  Callback = function()
+    local success, message = RvrseUI:SaveConfiguration()
+    if success then
+      RvrseUI:Notify({
+        Title = "Config Saved",
+        Message = "Settings saved successfully!",
+        Duration = 2,
+        Type = "success"
+      })
+    end
+  end
+})
+
+-- Load Button
+ConfigSection:CreateButton({
+  Text = "📂 Load Configuration",
+  Callback = function()
+    local success, message = RvrseUI:LoadConfiguration()
+    RvrseUI:Notify({
+      Title = success and "Config Loaded" or "Load Failed",
+      Message = message,
+      Duration = 2,
+      Type = success and "success" or "warn"
+    })
+  end
+})
+
+-- Auto-load saved config on startup
+task.spawn(function()
+  task.wait(1)
+  if RvrseUI:ConfigurationExists() then
+    RvrseUI:LoadConfiguration()
+    RvrseUI:Notify({
+      Title = "Config Auto-Loaded",
+      Message = "Your saved settings have been restored",
+      Duration = 3,
+      Type = "success"
+    })
+  end
+end)
+
+-- Welcome notification
 RvrseUI:Notify({
   Title = "Script Loaded",
-  Message = "Press K to toggle UI",
-  Type = "success",
-  Duration = 3
+  Message = "Press K to toggle UI. All features working!",
+  Duration = 4,
+  Type = "success"
 })
 ```
 

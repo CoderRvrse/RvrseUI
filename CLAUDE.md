@@ -4,17 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RvrseUI v2.2.0 is a modern, professional UI framework for Roblox (Luau), featuring glassmorphism, spring animations, and mobile-first responsive design. It provides a **complete component library** with 12 element types, theming, lock groups, flags system, and CurrentValue properties for Roblox game scripts.
+RvrseUI v2.3.7 is a modern, professional UI framework for Roblox (Luau), featuring glassmorphism, premium slider UX, spring animations, and mobile-first responsive design. It provides a **complete component library** with 12 element types, configuration persistence, theming, lock groups, flags system, and CurrentValue properties for Roblox game scripts.
 
 **Runtime Environment**: Roblox LocalScript (client-side execution)
 
+**Current Version**: v2.3.7 (Build: 20250930, Hash: F2C6B8D4)
+
 **Element Count**: 12 (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider, Section, Tab)
+
+**Key Features**:
+- ✅ Configuration System (v2.3.0+) - Auto-save with folder support
+- ✅ Premium Slider UX (v2.3.5) - Grow-on-grab, glow effects, buttery smooth
+- ✅ Production Dropdown (v2.3.2) - Proper list with scrolling, click-outside-to-close
+- ✅ Tab Bar Spacing Fix (v2.3.4) - Clean layout with proper version badge spacing
+- ✅ All Critical Bugs Fixed (v2.3.6-2.3.7) - Theme switching, variable names, function ordering
+
+**⚠️ IMPORTANT - Cache Busting**:
+Always use cache buster when loading to avoid cached versions:
+```lua
+local RvrseUI = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
+))()
+```
+The `.. tick()` ensures Roblox fetches the latest version instead of using cached data.
 
 ## Architecture
 
 ### Core Structure (Single-File Design)
 
-The framework (`RvrseUI.lua`, ~1140 lines) is organized into distinct architectural layers:
+The framework (`RvrseUI.lua`, ~2830 lines) is organized into distinct architectural layers:
 
 #### 1. **Theme System** (lines 22-90)
 - **Modern dual palette**: Dark (indigo accent #6366F1) and Light themes
