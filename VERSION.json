@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 5,
-    "patch": 2,
-    "full": "2.5.2",
+    "minor": 6,
+    "patch": 0,
+    "full": "2.6.0",
     "build": "20251001",
-    "hash": "H8D5F3C1",
+    "hash": "J9E6G4D2",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Rotating Shine Effect Fix",
+    "name": "Theme Persistence + Boundary Clamping",
     "codename": "Stable",
-    "notes": "Fixed ImageColor3 error, added premium rotating shine gradient effect to controller chip"
+    "notes": "Controller chip now stays on screen, config system saves/loads theme automatically"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,35 @@
     "auto_save": true
   },
   "changelog": {
+    "2.6.0": {
+      "date": "2025-10-01",
+      "hash": "J9E6G4D2",
+      "changes": [
+        "✨ MAJOR FEATURE - Theme Persistence in Config",
+        "💾 Theme now saves automatically when changed",
+        "💾 Theme loads from config when window opens",
+        "💾 Saved as _RvrseUI_Theme in config JSON",
+        "💾 Takes priority over CreateWindow Theme parameter",
+        "🎯 Auto-save triggered on theme toggle",
+        "🎯 Debounced saves (max once per second)",
+        "✨ MAJOR FEATURE - Controller Chip Boundary Clamping",
+        "🎮 Controller chip can no longer go off-screen",
+        "🎮 Position clamped to viewport boundaries",
+        "🎮 math.clamp ensures chip stays fully visible",
+        "🎮 Boundaries: X [0, screenWidth-50], Y [0, screenHeight-50]",
+        "🎮 Works on any screen size/resolution",
+        "📝 TECHNICAL DETAILS",
+        "SaveConfiguration: Saves Theme.Current as _RvrseUI_Theme (line 96)",
+        "LoadConfiguration: Reads _RvrseUI_Theme, stores in _savedTheme (lines 158-164)",
+        "CreateWindow: Applies _savedTheme before window creation (lines 945-947)",
+        "Theme toggle: Triggers _autoSave after theme change (lines 3230-3233)",
+        "Drag handler: Clamps newX/newY to screen bounds (lines 1758-1759)",
+        "🎯 USER REQUESTS FULFILLED",
+        "✅ 'ensure the Game icon when being move can never go off' - FIXED",
+        "✅ 'config saves theme' - IMPLEMENTED",
+        "✅ 'theme is saved inside the config' - IMPLEMENTED"
+      ]
+    },
     "2.5.2": {
       "date": "2025-10-01",
       "hash": "H8D5F3C1",

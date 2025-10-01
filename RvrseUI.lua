@@ -20,11 +20,11 @@ RvrseUI.DEBUG = false
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 5,
-	Patch = 2,
+	Minor = 6,
+	Patch = 0,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.5.2",
-	Hash = "H8D5F3C1",  -- Release hash for integrity verification
+	Full = "2.6.0",
+	Hash = "J9E6G4D2",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -92,6 +92,9 @@ function RvrseUI:SaveConfiguration()
 		end
 	end
 
+	-- Save current theme
+	config._RvrseUI_Theme = Theme.Current
+
 	-- Cache configuration
 	self._configCache = config
 
@@ -151,7 +154,15 @@ function RvrseUI:LoadConfiguration()
 	-- Apply configuration to all flagged elements
 	local loadedCount = 0
 	for flagName, value in pairs(result) do
-		if self.Flags[flagName] and self.Flags[flagName].Set then
+		-- Skip internal RvrseUI settings (start with _RvrseUI_)
+		if flagName:sub(1, 9) == "_RvrseUI_" then
+			-- Handle theme loading
+			if flagName == "_RvrseUI_Theme" and (value == "Dark" or value == "Light") then
+				-- Store theme to apply when window is created
+				self._savedTheme = value
+				dprintf("Saved theme found:", value)
+			end
+		elseif self.Flags[flagName] and self.Flags[flagName].Set then
 			local setSuccess = pcall(self.Flags[flagName].Set, self.Flags[flagName], value)
 			if setSuccess then
 				loadedCount = loadedCount + 1
@@ -929,12 +940,16 @@ RvrseUI._themeListeners = {}
 -- =========================
 function RvrseUI:CreateWindow(cfg)
 	cfg = cfg or {}
-	local pal = Theme:Get()
 
-	if cfg.Theme and Theme.Palettes[cfg.Theme] then
+	-- Apply saved theme from LoadConfiguration if available (takes priority)
+	if self._savedTheme and Theme.Palettes[self._savedTheme] then
+		Theme.Current = self._savedTheme
+		dprintf("Applying saved theme from config:", self._savedTheme)
+	elseif cfg.Theme and Theme.Palettes[cfg.Theme] then
 		Theme.Current = cfg.Theme
-		pal = Theme:Get()
 	end
+
+	local pal = Theme:Get()
 
 	-- Configuration system setup
 	if cfg.ConfigurationSaving then
@@ -1745,12 +1760,20 @@ function RvrseUI:CreateWindow(cfg)
 			local dragDistance = math.sqrt(delta.X * delta.X + delta.Y * delta.Y)
 			if dragDistance > 5 then
 				chipWasDragged = true
-				controllerChip.Position = UDim2.new(
-					chipStartPos.X.Scale,
-					chipStartPos.X.Offset + delta.X,
-					chipStartPos.Y.Scale,
-					chipStartPos.Y.Offset + delta.Y
-				)
+
+				-- Calculate new position
+				local newX = chipStartPos.X.Offset + delta.X
+				local newY = chipStartPos.Y.Offset + delta.Y
+
+				-- Get screen size and chip size for boundary clamping
+				local screenSize = workspace.CurrentCamera.ViewportSize
+				local chipSize = 50  -- Controller chip is 50x50
+
+				-- Clamp position to screen boundaries (keep chip fully visible)
+				newX = math.clamp(newX, 0, screenSize.X - chipSize)
+				newY = math.clamp(newY, 0, screenSize.Y - chipSize)
+
+				controllerChip.Position = UDim2.new(0, newX, 0, newY)
 			end
 		end
 	end)
@@ -3203,6 +3226,11 @@ function RvrseUI:CreateWindow(cfg)
 		end
 
 		Animator:Ripple(themeToggle, 25, 12)
+
+		-- Auto-save theme if config is enabled
+		if RvrseUI.ConfigurationSaving then
+			RvrseUI:_autoSave()
+		end
 
 		RvrseUI:Notify({
 			Title = "Theme Changed",
