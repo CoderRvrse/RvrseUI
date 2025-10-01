@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 5,
-    "patch": 1,
-    "full": "2.5.1",
+    "patch": 2,
+    "full": "2.5.2",
     "build": "20251001",
-    "hash": "G7C4E2B9",
+    "hash": "H8D5F3C1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Draggable Controller + Position Memory",
+    "name": "Rotating Shine Effect Fix",
     "codename": "Stable",
-    "notes": "Fixed UIStroke error, added draggable controller chip and position memory for both controller and window"
+    "notes": "Fixed ImageColor3 error, added premium rotating shine gradient effect to controller chip"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,28 @@
     "auto_save": true
   },
   "changelog": {
+    "2.5.2": {
+      "date": "2025-10-01",
+      "hash": "H8D5F3C1",
+      "changes": [
+        "🐛 CRITICAL FIX - ImageColor3 Error on UIStroke",
+        "✅ FIXED: 'ImageColor3 is not a valid member of UIStroke' at line 3147",
+        "Root cause: UIStroke uses Color property, not ImageColor3",
+        "Solution: Changed controllerChip.Glow.ImageColor3 to .Color",
+        "✨ NEW: Premium Rotating Shine Effect",
+        "🌟 Added rotating gradient shine overlay on controller chip",
+        "🌟 Continuous 360° rotation at 2° per frame",
+        "🌟 White → Accent → White gradient shimmer",
+        "🌟 Transparency gradient for subtle effect (0.6-1.0)",
+        "🌟 Animates via RunService.Heartbeat for smooth rotation",
+        "🎨 ENHANCED: Better Visual Appeal",
+        "Controller chip now has 3 visual effects:",
+        "1. Pulsing UIStroke glow (thickness animation)",
+        "2. Rotating shine gradient (continuous spin)",
+        "3. Accent-colored border stroke",
+        "🎯 Result: Premium gaming controller appearance"
+      ]
+    },
     "2.5.1": {
       "date": "2025-10-01",
       "hash": "G7C4E2B9",

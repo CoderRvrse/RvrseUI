@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 5,
-	Patch = 1,
+	Patch = 2,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.5.1",
-	Hash = "G7C4E2B9",  -- Release hash for integrity verification
+	Full = "2.5.2",
+	Hash = "H8D5F3C1",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1474,7 +1474,42 @@ function RvrseUI:CreateWindow(cfg)
 	controllerChip.Parent = host
 	corner(controllerChip, 25)
 	stroke(controllerChip, pal.Accent, 2)
-	addGlow(controllerChip, pal.Accent, 4)  -- Glow already has built-in pulsing animation
+	addGlow(controllerChip, pal.Accent, 4)
+
+	-- Add rotating shine effect to controller chip
+	local chipShine = Instance.new("Frame")
+	chipShine.Name = "Shine"
+	chipShine.BackgroundTransparency = 1
+	chipShine.Size = UDim2.new(1, 0, 1, 0)
+	chipShine.Position = UDim2.new(0, 0, 0, 0)
+	chipShine.ZIndex = 999
+	chipShine.Parent = controllerChip
+	corner(chipShine, 25)
+
+	local shineGradient = Instance.new("UIGradient")
+	shineGradient.Name = "ShineGradient"
+	shineGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.3, 0.8),
+		NumberSequenceKeypoint.new(0.5, 0.6),
+		NumberSequenceKeypoint.new(0.7, 0.8),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	shineGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+		ColorSequenceKeypoint.new(0.5, pal.Accent),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+	})
+	shineGradient.Rotation = 0
+	shineGradient.Parent = chipShine
+
+	-- Animate the shine rotation continuously
+	local shineRotation
+	shineRotation = RS.Heartbeat:Connect(function()
+		if controllerChip.Visible and shineGradient then
+			shineGradient.Rotation = (shineGradient.Rotation + 2) % 360
+		end
+	end)
 
 	-- Particle system for minimize effect
 	local function createParticleFlow(startPos, endPos, count, duration)
@@ -3144,7 +3179,7 @@ function RvrseUI:CreateWindow(cfg)
 		controllerChip.TextColor3 = newPal.Accent
 		stroke(controllerChip, newPal.Accent, 2)
 		if controllerChip:FindFirstChild("Glow") then
-			controllerChip.Glow.ImageColor3 = newPal.Accent
+			controllerChip.Glow.Color = newPal.Accent
 		end
 
 		-- Update body
