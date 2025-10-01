@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 3,
-	Patch = 8,
+	Patch = 9,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.8",
-	Hash = "A9E5C3B7",  -- Release hash for integrity verification
+	Full = "2.3.9",
+	Hash = "C4B8F2E6",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -537,28 +537,33 @@ Theme.Palettes = {
 		Disabled = Color3.fromRGB(70, 70, 82),
 	},
 	Light = {
-		Bg = Color3.fromRGB(250, 250, 252),
-		Glass = Color3.fromRGB(255, 255, 255),
-		Card = Color3.fromRGB(255, 255, 255),
-		Elevated = Color3.fromRGB(248, 248, 250),
+		-- Backgrounds - Clean, modern white with subtle depth
+		Bg = Color3.fromRGB(245, 247, 250),        -- Soft blue-gray background
+		Glass = Color3.fromRGB(255, 255, 255),     -- Pure white glass
+		Card = Color3.fromRGB(252, 253, 255),      -- Slightly off-white cards
+		Elevated = Color3.fromRGB(248, 250, 252),  -- Elevated elements
 
-		Text = Color3.fromRGB(15, 15, 20),
-		TextSub = Color3.fromRGB(75, 80, 95),
-		TextMuted = Color3.fromRGB(130, 135, 150),
+		-- Text - Strong contrast for readability
+		Text = Color3.fromRGB(17, 24, 39),         -- Almost black, high contrast
+		TextSub = Color3.fromRGB(75, 85, 99),      -- Medium gray for secondary
+		TextMuted = Color3.fromRGB(156, 163, 175), -- Light gray for muted
 
-		Accent = Color3.fromRGB(79, 70, 229),
-		AccentHover = Color3.fromRGB(99, 102, 241),
-		Success = Color3.fromRGB(22, 163, 74),
-		Warning = Color3.fromRGB(245, 158, 11),
-		Error = Color3.fromRGB(220, 38, 38),
-		Info = Color3.fromRGB(37, 99, 235),
+		-- Accent - Vibrant indigo (matches Dark theme)
+		Accent = Color3.fromRGB(99, 102, 241),     -- Bright indigo
+		AccentHover = Color3.fromRGB(79, 70, 229), -- Deeper indigo on hover
+		Success = Color3.fromRGB(16, 185, 129),    -- Bright green
+		Warning = Color3.fromRGB(245, 158, 11),    -- Warm orange
+		Error = Color3.fromRGB(239, 68, 68),       -- Bright red
+		Info = Color3.fromRGB(59, 130, 246),       -- Sky blue
 
-		Border = Color3.fromRGB(220, 220, 230),
-		Divider = Color3.fromRGB(235, 235, 242),
+		-- Borders - Subtle but visible
+		Border = Color3.fromRGB(209, 213, 219),    -- Clear gray borders
+		Divider = Color3.fromRGB(229, 231, 235),   -- Lighter dividers
 
-		Hover = Color3.fromRGB(245, 245, 250),
-		Active = Color3.fromRGB(235, 235, 245),
-		Disabled = Color3.fromRGB(200, 200, 210),
+		-- Interactive states - Clear visual feedback
+		Hover = Color3.fromRGB(243, 244, 246),     -- Light hover
+		Active = Color3.fromRGB(229, 231, 235),    -- Pressed state
+		Disabled = Color3.fromRGB(209, 213, 219),  -- Disabled gray
 	}
 }
 Theme.Current = "Dark"
