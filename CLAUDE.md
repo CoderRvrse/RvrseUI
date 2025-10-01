@@ -4,20 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RvrseUI v2.3.7 is a modern, professional UI framework for Roblox (Luau), featuring glassmorphism, premium slider UX, spring animations, and mobile-first responsive design. It provides a **complete component library** with 12 element types, configuration persistence, theming, lock groups, flags system, and CurrentValue properties for Roblox game scripts.
+RvrseUI v2.7.1 is a modern, professional UI framework for Roblox (Luau), featuring glassmorphism, theme persistence with GPT-5 verification, minimize to controller, spring animations, and mobile-first responsive design. It provides a **complete component library** with 12 element types, configuration persistence, theming, lock groups, flags system, and CurrentValue properties for Roblox game scripts.
 
 **Runtime Environment**: Roblox LocalScript (client-side execution)
 
-**Current Version**: v2.3.7 (Build: 20250930, Hash: F2C6B8D4)
+**Current Version**: v2.7.1 (Build: 20251001, Hash: N6H9K7G5)
 
 **Element Count**: 12 (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider, Section, Tab)
 
 **Key Features**:
-- ✅ Configuration System (v2.3.0+) - Auto-save with folder support
+- ✅ Theme Persistence (v2.7.0+) - Saved theme always loads correctly, pill icon sync
+- ✅ GPT-5 Verification (v2.7.1) - Comprehensive path/instance/value logging
+- ✅ Minimize to Controller (v2.5.0+) - Premium animations, particle flow, boundary clamping
+- ✅ Configuration System (v2.3.0+) - Auto-save with folder support, dirty-save protocol
 - ✅ Premium Slider UX (v2.3.5) - Grow-on-grab, glow effects, buttery smooth
 - ✅ Production Dropdown (v2.3.2) - Proper list with scrolling, click-outside-to-close
-- ✅ Tab Bar Spacing Fix (v2.3.4) - Clean layout with proper version badge spacing
-- ✅ All Critical Bugs Fixed (v2.3.6-2.3.7) - Theme switching, variable names, function ordering
+- ✅ All Critical Bugs Fixed - Theme persistence, hotkey state, controller boundaries
 
 **⚠️ IMPORTANT - Cache Busting**:
 Always use cache buster when loading to avoid cached versions:
@@ -32,7 +34,13 @@ The `.. tick()` ensures Roblox fetches the latest version instead of using cache
 
 ### Core Structure (Single-File Design)
 
-The framework (`RvrseUI.lua`, ~2830 lines) is organized into distinct architectural layers:
+The framework (`RvrseUI.lua`, ~3240 lines) is organized into distinct architectural layers:
+
+**IMPORTANT RECENT CHANGES (v2.7.0-2.7.1)**:
+- Theme pre-loading in CreateWindow (lines 1029-1054) - Loads saved theme BEFORE applying precedence
+- GPT-5 verification logging in SaveConfiguration/LoadConfiguration - Tracks path/instance/value
+- Theme dirty-save protocol (Theme._dirty flag) - Prevents accidental boot saves
+- Minimize state tracking for hotkey system - Fixes toggle key breaking minimized menu
 
 #### 1. **Theme System** (lines 22-90)
 - **Modern dual palette**: Dark (indigo accent #6366F1) and Light themes
@@ -115,6 +123,18 @@ The main factory function `RvrseUI:CreateWindow(cfg)` creates the window hierarc
 **Theme System**:
 - Elements use `Theme:Get()` at creation for current palette
 - For live updates, register in `_themeListeners` (not widely implemented yet)
+
+**Theme Persistence (v2.7.0+)**:
+1. **Pre-Load in CreateWindow** (lines 1029-1054):
+   - Reads config file directly before applying precedence
+   - Populates `RvrseUI._savedTheme` from `_RvrseUI_Theme` key
+   - Ensures saved theme available for precedence logic
+2. **Precedence**: `savedTheme > cfg.Theme > "Dark"` (line 1061)
+3. **Theme:Apply()** (line 618): Sets theme WITHOUT marking dirty (for init)
+4. **Theme:Switch()** (line 627): Sets theme AND marks dirty (for user actions)
+5. **Auto-Save**: Theme switch triggers `_autoSave()` which calls SaveConfiguration
+6. **Dirty Flag**: Only saves theme to config if `Theme._dirty == true`
+7. **GPT-5 Verification**: Logs path/instance/value at save/load/pre-load points
 
 ## API Usage
 

@@ -1,30 +1,42 @@
-# RvrseUI v2.5.1
+# RvrseUI v2.7.1
 
 <div align="center">
 
-**A modern, professional UI framework for Roblox with glassmorphism, spring animations, and complete configuration persistence.**
+**A modern, professional UI framework for Roblox with glassmorphism, theme persistence, minimize to controller, and complete configuration system.**
 
-[![Version](https://img.shields.io/badge/version-2.5.1-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-2.7.1-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [Changelog](#-changelog)
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [What's New](#-whats-new)
 
 </div>
 
 > **⚠️ IMPORTANT**: Always use the cache buster (`.. tick()`) when loading to get the latest version and avoid cached errors!
 
+> **🎉 NEW in v2.7.1**: Theme persistence fully working! Saved theme always loads correctly with GPT-5 verification logging.
+
 ---
 
 ## 🎯 Features
 
-### 🎮 Minimize to Controller (v2.5.0+) **NEW!**
+### 🎨 Theme Persistence (v2.7.0+) **FIXED!**
+- **Saved Theme Wins**: Theme persists correctly across sessions
+- **Smart Precedence**: saved > cfg.Theme > default "Dark"
+- **Pill Icon Sync**: 🌙/🌞 icon always matches current theme
+- **Auto-Save**: Theme saves when you toggle the pill button
+- **GPT-5 Verified**: Comprehensive logging to ensure persistence works
+- **First-Run Default**: Set Theme parameter for initial run only
+- **Hotkey State Fix**: Minimize/restore works perfectly with toggle key
+
+### 🎮 Minimize to Controller (v2.5.0+)
 - **Premium Animations**: 40-particle flow effect on minimize/restore
 - **Gaming Controller Chip**: Click 🎮 to restore window
 - **Draggable Controller**: Drag chip anywhere, position remembered
+- **Boundary Clamping**: Controller never goes off-screen
 - **Position Memory**: Window and controller remember last positions
 - **Smooth Transitions**: Window rotates and shrinks into chip
-- **Pulsing Glow**: Controller chip has animated glow effect
+- **Rotating Shine**: Premium gradient shine effect on chip
 - **State Preserved**: All GUI state maintained on restore
 - **Theme Support**: Works flawlessly in Dark/Light modes
 
@@ -303,8 +315,9 @@ local exists = RvrseUI:ConfigurationExists()
 
 ### Complete Script with Config (Production-Ready, No Errors!)
 
-> ✅ **This example works perfectly** - tested and verified with v2.3.7!
+> ✅ **This example works perfectly** - tested and verified with v2.7.1!
 > 📁 **Full version**: See [SIMPLE_TEST.lua](SIMPLE_TEST.lua) for complete demo
+> 🎨 **Theme Note**: Theme parameter is first-run default only - saved theme takes precedence!
 
 ```lua
 -- Load RvrseUI with cache buster (always gets latest!)
@@ -318,7 +331,7 @@ local Window = RvrseUI:CreateWindow({
   Icon = "🎮",
   LoadingTitle = "Simple Test Hub",
   LoadingSubtitle = "Loading features...",
-  Theme = "Dark",
+  Theme = "Dark",  -- Used ONLY on first run (saved theme wins after that)
   ToggleUIKeybind = "K",
   ConfigurationSaving = {
     Enabled = true,
@@ -612,25 +625,39 @@ RvrseUI:Notify({
 
 ## 📊 What's New
 
-### v2.3.1 - Config Folders & Dropdown Fix
-- ✨ **Configuration folders**: Organize configs by hub/game
-- 🔽 **Fixed dropdown**: Real dropdown list with scrolling
-- 🎨 **Version badge**: Smaller, repositioned
+### v2.7.1 - GPT-5 Verification Logging (Current Release)
+- 🔍 **Diagnostic Logging**: Comprehensive path/instance/value verification
+- 📊 **Save Verification**: Logs save path, key, instance, readback after write
+- 📊 **Load Verification**: Logs load path, instance, value from disk
+- 📊 **Pre-Load Verification**: Confirms CreateWindow pre-load path and value
+- 🎯 **Instance Tracking**: Verifies config instance identity across save/load
+- 💡 **Based on GPT-5 Analysis**: Finds persistence path/instance/key mismatches
 
-### v2.3.0 - Configuration System
-- 💾 **Auto-save**: Settings persist across reloads
-- 🔑 **Flags system**: Global element access
-- 📁 **JSON storage**: Human-readable configs
+### v2.7.0 - Theme Persistence Fix
+- 🚨 **MAJOR FIX**: Saved theme now loads BEFORE cfg.Theme evaluation
+- ✅ **Pill Icon Fixed**: 🌙/🌞 icon matches theme state on startup
+- 🎯 **Smart Precedence**: saved > cfg.Theme > default "Dark"
+- 💡 **First-Run Default**: Theme parameter only used when no saved theme exists
 
-### v2.2.2 - Dynamic UI Control
-- 🎯 **SetVisible()**: Hide/show any element
-- 📊 **Notification priority**: Stack important notifications
-- 🔄 **Dynamic updates**: Change icons, titles at runtime
+### v2.6.3 - Dirty-Save Protocol
+- ✅ **Theme._dirty Flag**: Prevents accidental theme saves during boot
+- 🎯 **Theme:Apply()**: Initialization (doesn't mark dirty)
+- 🎯 **Theme:Switch()**: User action (marks dirty, triggers save)
 
-### v2.2.0 - Complete Element System
-- 🎉 **All 12 elements**: Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider
-- 🏷️ **CurrentValue**: Direct value access on all elements
-- 🔄 **Dropdown:Refresh()**: Update options dynamically
+### v2.6.0 - Theme Persistence + Boundary Clamping
+- 💾 **Theme Auto-Save**: Theme saves when changed via pill toggle
+- 💾 **Theme Loading**: Saved theme loads from config on startup
+- 🎮 **Controller Boundaries**: Chip can't go off-screen (math.clamp)
+
+### v2.5.2 - Rotating Shine Fix
+- ✨ **Rotating Shine**: Premium gradient effect on controller chip
+- 🐛 **ImageColor3 Fix**: UIStroke uses Color property, not ImageColor3
+
+### v2.5.0 - Minimize to Controller
+- 🎮 **Minimize Button**: ➖ button in header
+- 🎮 **Controller Chip**: 🎮 gaming controller for minimized state
+- 🌊 **Particle Flow**: 40 particles flow between window and chip
+- 🎨 **Premium Animations**: Rotation, scaling, bounce effects
 
 ---
 
@@ -696,7 +723,7 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 **Developer**: CoderRvrse
 **Framework**: RvrseUI
-**Version**: 2.5.1 "Draggable Controller + Position Memory"
+**Version**: 2.7.1 "GPT-5 Verification Logging + Theme Persistence"
 **Build**: 20251001
 
 Built with ❤️ for the Roblox scripting community.
@@ -705,7 +732,7 @@ Built with ❤️ for the Roblox scripting community.
 
 <div align="center">
 
-**[⬆ Back to Top](#rvrseui-v251)**
+**[⬆ Back to Top](#rvrseui-v271)**
 
 Made with 🤖 [Claude Code](https://claude.com/claude-code)
 
