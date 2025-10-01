@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 6,
-    "patch": 1,
-    "full": "2.6.1",
+    "minor": 7,
+    "patch": 0,
+    "full": "2.7.0",
     "build": "20251001",
-    "hash": "K2F7H5E3",
+    "hash": "L5G8J6F4",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Theme.Current Nil Fix",
+    "name": "Theme Persistence Fix",
     "codename": "Stable",
-    "notes": "Fixed Theme.Current nil error in SaveConfiguration by making Theme globally accessible"
+    "notes": "Fixed theme not persisting correctly - saved theme now always loads before cfg.Theme, pill icon matches theme state"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,27 @@
     "auto_save": true
   },
   "changelog": {
+    "2.7.0": {
+      "date": "2025-10-01",
+      "hash": "L5G8J6F4",
+      "changes": [
+        "🚨 MAJOR FIX - Theme Persistence Finally Working",
+        "✅ FIXED: Saved theme now loads BEFORE cfg.Theme is evaluated",
+        "✅ FIXED: Pill toggle icon (🌙/🌞) now matches theme state on startup",
+        "Root cause: LoadConfiguration ran AFTER CreateWindow applied cfg.Theme",
+        "Solution: Pre-load saved theme from config file at start of CreateWindow",
+        "Pre-loads _RvrseUI_Theme directly from JSON before precedence logic (lines 1005-1015)",
+        "Precedence order preserved: saved > cfg > default",
+        "Pill icon correctly shows 🌙 for Dark, 🌞 for Light on startup",
+        "Theme.Current set to final theme BEFORE UI elements created",
+        "🎯 USER FEEDBACK IMPLEMENTED",
+        "✅ 'Your GUI theme should load from the last saved theme' - NOW WORKS",
+        "✅ 'config value is overriding the saved state' - FIXED",
+        "✅ 'pill toggle doesn't match theme state on startup' - FIXED",
+        "💡 BEST PRACTICE: Users can still set Theme parameter for first-run default",
+        "Once user changes theme via pill toggle, saved theme takes precedence forever"
+      ]
+    },
     "2.6.1": {
       "date": "2025-10-01",
       "hash": "K2F7H5E3",

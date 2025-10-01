@@ -20,11 +20,11 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 6,
-	Patch = 3,
+	Minor = 7,
+	Patch = 0,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.6.3",
-	Hash = "M4H9J7G5",  -- Release hash for integrity verification
+	Full = "2.7.0",
+	Hash = "L5G8J6F4",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -999,6 +999,21 @@ function RvrseUI:CreateWindow(cfg)
 	cfg = cfg or {}
 
 	dprintf("=== CREATEWINDOW THEME DEBUG ===")
+
+	-- IMPORTANT: Load saved theme FIRST before applying precedence
+	-- If configuration exists, load it now to populate _savedTheme
+	if self.ConfigurationSaving and self.ConfigurationFileName then
+		dprintf("Checking for existing config file before applying theme...")
+		local success, existingConfig = pcall(readfile, self.ConfigurationFileName)
+		if success then
+			local decoded = HttpService:JSONDecode(existingConfig)
+			if decoded._RvrseUI_Theme then
+				self._savedTheme = decoded._RvrseUI_Theme
+				dprintf("✅ Pre-loaded saved theme from config:", self._savedTheme)
+			end
+		end
+	end
+
 	dprintf("RvrseUI._savedTheme:", self._savedTheme)
 	dprintf("cfg.Theme:", cfg.Theme)
 	dprintf("Theme.Current before:", Theme.Current)
