@@ -13,7 +13,7 @@ local PlayerGui = LP:WaitForChild("PlayerGui")
 local Mouse = LP:GetMouse()
 
 local RvrseUI = {}
-RvrseUI.DEBUG = false
+RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 
 -- =========================
 -- Version & Release System
@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 6,
-	Patch = 1,
+	Patch = 2,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.6.1",
-	Hash = "K2F7H5E3",  -- Release hash for integrity verification
+	Full = "2.6.2",
+	Hash = "L3G8I6F4",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -93,12 +93,24 @@ function RvrseUI:SaveConfiguration()
 	end
 
 	-- Save current theme
+	dprintf("=== THEME SAVE DEBUG ===")
+	dprintf("RvrseUI.Theme exists?", RvrseUI.Theme ~= nil)
+	if RvrseUI.Theme then
+		dprintf("RvrseUI.Theme.Current:", RvrseUI.Theme.Current)
+	end
+
 	if RvrseUI.Theme and RvrseUI.Theme.Current then
 		config._RvrseUI_Theme = RvrseUI.Theme.Current
+		dprintf("Saved theme to config:", config._RvrseUI_Theme)
+	else
+		dprintf("WARNING: Theme not saved (Theme object not available)")
 	end
 
 	-- Cache configuration
 	self._configCache = config
+	local configKeys = {}
+	for k in pairs(config) do table.insert(configKeys, k) end
+	dprintf("Config keys being saved:", table.concat(configKeys, ", "))
 
 	-- Build full file path with optional folder
 	local fullPath = self.ConfigurationFileName
@@ -154,15 +166,20 @@ function RvrseUI:LoadConfiguration()
 	end
 
 	-- Apply configuration to all flagged elements
+	dprintf("=== THEME LOAD DEBUG ===")
+	dprintf("Config loaded, checking for _RvrseUI_Theme...")
+
 	local loadedCount = 0
 	for flagName, value in pairs(result) do
 		-- Skip internal RvrseUI settings (start with _RvrseUI_)
 		if flagName:sub(1, 9) == "_RvrseUI_" then
+			dprintf("Found internal setting:", flagName, "=", value)
 			-- Handle theme loading
 			if flagName == "_RvrseUI_Theme" and (value == "Dark" or value == "Light") then
 				-- Store theme to apply when window is created
 				self._savedTheme = value
-				dprintf("Saved theme found:", value)
+				dprintf("✅ Saved theme found and stored:", value)
+				dprintf("RvrseUI._savedTheme is now:", self._savedTheme)
 			end
 		elseif self.Flags[flagName] and self.Flags[flagName].Set then
 			local setSuccess = pcall(self.Flags[flagName].Set, self.Flags[flagName], value)
@@ -915,9 +932,12 @@ end
 -- =========================
 -- UI Toggle System
 -- =========================
-RvrseUI.UI = { _toggleTargets = {}, _key = Enum.KeyCode.K }
-function RvrseUI.UI:RegisterToggleTarget(frame)
+RvrseUI.UI = { _toggleTargets = {}, _windowData = {}, _key = Enum.KeyCode.K }
+function RvrseUI.UI:RegisterToggleTarget(frame, windowData)
 	self._toggleTargets[frame] = true
+	if windowData then
+		self._windowData[frame] = windowData
+	end
 end
 function RvrseUI.UI:BindToggleKey(key)
 	self._key = coerceKeycode(key or "K")
@@ -928,7 +948,22 @@ UIS.InputBegan:Connect(function(io, gpe)
 	if io.KeyCode == RvrseUI.UI._key then
 		for f in pairs(RvrseUI.UI._toggleTargets) do
 			if f and f.Parent then
-				f.Visible = not f.Visible
+				-- Check if window has minimize state tracking
+				local windowData = RvrseUI.UI._windowData and RvrseUI.UI._windowData[f]
+				if windowData and windowData.isMinimized then
+					-- Check if minimized (call function if it's a function)
+					local minimized = type(windowData.isMinimized) == "function" and windowData.isMinimized() or windowData.isMinimized
+					if minimized and windowData.restoreFunction then
+						-- Window is minimized, restore it instead of toggling
+						windowData.restoreFunction()
+					else
+						-- Normal toggle
+						f.Visible = not f.Visible
+					end
+				else
+					-- No minimize tracking, normal toggle
+					f.Visible = not f.Visible
+				end
 			end
 		end
 	end
@@ -944,14 +979,23 @@ RvrseUI._themeListeners = {}
 function RvrseUI:CreateWindow(cfg)
 	cfg = cfg or {}
 
+	dprintf("=== CREATEWINDOW THEME DEBUG ===")
+	dprintf("RvrseUI._savedTheme:", self._savedTheme)
+	dprintf("cfg.Theme:", cfg.Theme)
+	dprintf("Theme.Current before:", Theme.Current)
+
 	-- Apply saved theme from LoadConfiguration if available (takes priority)
 	if self._savedTheme and Theme.Palettes[self._savedTheme] then
 		Theme.Current = self._savedTheme
-		dprintf("Applying saved theme from config:", self._savedTheme)
+		dprintf("✅ Applying saved theme from config:", self._savedTheme)
 	elseif cfg.Theme and Theme.Palettes[cfg.Theme] then
 		Theme.Current = cfg.Theme
+		dprintf("Applying theme from cfg.Theme:", cfg.Theme)
+	else
+		dprintf("Using default theme:", Theme.Current)
 	end
 
+	dprintf("Theme.Current after:", Theme.Current)
 	local pal = Theme:Get()
 
 	-- Configuration system setup
@@ -1034,7 +1078,6 @@ function RvrseUI:CreateWindow(cfg)
 	root.Parent = windowHost
 	corner(root, 16)
 	stroke(root, pal.Border, 1.5)
-	self.UI:RegisterToggleTarget(root)
 
 	-- Enhanced Glassmorphic overlay (93-97% transparency)
 	local glassOverlay = Instance.new("Frame")
@@ -1794,6 +1837,13 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Save and restore window position
 	local lastWindowPosition = root.Position
+
+	-- Register window with UI toggle system, including minimize state tracking
+	local windowData = {
+		isMinimized = function() return isMinimized end,
+		restoreFunction = restoreWindow
+	}
+	self.UI:RegisterToggleTarget(root, windowData)
 
 	-- Tab management
 	local activePage
