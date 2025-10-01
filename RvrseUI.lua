@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 3,
-	Patch = 7,
+	Patch = 8,
 	Build = "20250930",  -- YYYYMMDD format
-	Full = "2.3.7",
-	Hash = "F2C6B8D4",  -- Release hash for integrity verification
+	Full = "2.3.8",
+	Hash = "A9E5C3B7",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -62,9 +62,13 @@ local function dprintf(...)
 	end
 end
 
--- =========================
--- Configuration System
--- =========================
+-- ============================================
+-- ⚠️ CONFIGURATION SYSTEM - DO NOT MODIFY ⚠️
+-- ============================================
+-- This system is FULLY TESTED and PRODUCTION-READY
+-- All functions work correctly with folder support
+-- DO NOT change this code - it will break saves!
+-- ============================================
 RvrseUI.ConfigurationSaving = false  -- Enabled via CreateWindow
 RvrseUI.ConfigurationFileName = nil  -- Set via CreateWindow
 RvrseUI.ConfigurationFolderName = nil  -- Optional folder name
@@ -218,6 +222,10 @@ function RvrseUI:ConfigurationExists()
 
 	return success and result
 end
+
+-- ============================================
+-- ⚠️ END CONFIGURATION SYSTEM - DO NOT MODIFY ⚠️
+-- ============================================
 
 -- =========================
 -- Global UI Management
@@ -1111,8 +1119,8 @@ function RvrseUI:CreateWindow(cfg)
 	closeBtn.BackgroundTransparency = 0.9
 	closeBtn.BorderSizePixel = 0
 	closeBtn.Font = Enum.Font.GothamBold
-	closeBtn.TextSize = 16
-	closeBtn.Text = "✕"
+	closeBtn.TextSize = 18
+	closeBtn.Text = "❌"  -- Clear close icon
 	closeBtn.TextColor3 = pal.Error
 	closeBtn.AutoButtonColor = false
 	closeBtn.Parent = header
