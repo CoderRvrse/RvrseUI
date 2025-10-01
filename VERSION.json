@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 7,
-    "patch": 2,
-    "full": "2.7.2",
+    "minor": 8,
+    "patch": 0,
+    "full": "2.8.0",
     "build": "20251001",
-    "hash": "P7J8K9M6",
+    "hash": "Q9K8M7N6",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Pill Sync Fix",
+    "name": "Named Config Profiles + Auto-Load",
     "codename": "Stable",
-    "notes": "Fixed pill toggle icon not syncing with loaded theme on startup - uses task.defer to sync after first paint"
+    "notes": "Revolutionary config system with named profiles, auto-load last used config, and guaranteed theme persistence"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,41 @@
     "auto_save": true
   },
   "changelog": {
+    "2.8.0": {
+      "date": "2025-10-01",
+      "hash": "Q9K8M7N6",
+      "changes": [
+        "🚀 MAJOR RELEASE - Named Config Profiles + Auto-Load System",
+        "✨ NEW: ConfigurationSaving = true → Auto-loads last used config!",
+        "✨ NEW: ConfigurationSaving = 'ProfileName' → Named profile support",
+        "✨ NEW: RvrseUI:SaveConfigAs(name) → Save config with specific name",
+        "✨ NEW: RvrseUI:LoadConfigByName(name) → Load specific config",
+        "✨ NEW: RvrseUI:GetLastConfig() → Returns (configPath, theme)",
+        "✨ NEW: RvrseUI:SaveLastConfig(path, theme) → Tracks last used",
+        "📂 SMART CONFIG SYSTEM:",
+        "  - ConfigurationSaving = true → Auto-loads RvrseUI/_last_config.json",
+        "  - Finds last used config + theme, loads automatically",
+        "  - No need to specify FileName if using auto-load",
+        "  - Theme from last config ALWAYS loads (guaranteed persistence)",
+        "📂 NAMED PROFILES:",
+        "  - ConfigurationSaving = 'MyHub' → Saves to RvrseUI/Configs/MyHub.json",
+        "  - SaveConfigAs('Profile2') → Create multiple profiles",
+        "  - LoadConfigByName('Profile2') → Switch between profiles",
+        "📂 LAST CONFIG TRACKER:",
+        "  - RvrseUI/_last_config.json stores: lastConfig, lastTheme, timestamp",
+        "  - SaveConfiguration() auto-updates last config tracker",
+        "  - Theme loads from tracker BEFORE CreateWindow paints UI",
+        "🎯 THEME PERSISTENCE GUARANTEED:",
+        "  - Last theme loads from _last_config.json",
+        "  - Overrides cfg.Theme parameter",
+        "  - Pill icon syncs via task.defer (from v2.7.2)",
+        "  - NO MORE THEME PERSISTENCE ISSUES!",
+        "📖 NEW API USAGE:",
+        "  ConfigurationSaving = true  // Auto-load",
+        "  ConfigurationSaving = 'MyProfile'  // Named profile",
+        "  ConfigurationSaving = { Enabled = true, FileName = 'Config' }  // Classic"
+      ]
+    },
     "2.7.2": {
       "date": "2025-10-01",
       "hash": "P7J8K9M6",

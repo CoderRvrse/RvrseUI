@@ -20,11 +20,11 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 7,
-	Patch = 2,
+	Minor = 8,
+	Patch = 0,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.7.2",
-	Hash = "P7J8K9M6",  -- Release hash for integrity verification
+	Full = "2.8.0",
+	Hash = "Q9K8M7N6",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -155,6 +155,9 @@ function RvrseUI:SaveConfiguration()
 			end
 		end
 
+		-- Save this as the last used config
+		self:SaveLastConfig(fullPath, config._RvrseUI_Theme or "Dark")
+
 		dprintf("Configuration saved:", self.ConfigurationFileName)
 		return true, "Configuration saved successfully"
 	else
@@ -284,6 +287,105 @@ function RvrseUI:ConfigurationExists()
 	end)
 
 	return success and result
+end
+
+-- Get last used configuration name
+function RvrseUI:GetLastConfig()
+	local lastConfigPath = "RvrseUI/_last_config.json"
+
+	local success, data = pcall(function()
+		if not isfile(lastConfigPath) then
+			return nil
+		end
+		local jsonData = readfile(lastConfigPath)
+		return HttpService:JSONDecode(jsonData)
+	end)
+
+	if success and data then
+		dprintf("📂 Last config found:", data.lastConfig, "Theme:", data.lastTheme)
+		return data.lastConfig, data.lastTheme
+	end
+
+	dprintf("📂 No last config found")
+	return nil, nil
+end
+
+-- Save reference to last used config
+function RvrseUI:SaveLastConfig(configName, theme)
+	local lastConfigPath = "RvrseUI/_last_config.json"
+
+	-- Ensure RvrseUI folder exists
+	pcall(function()
+		if not isfolder("RvrseUI") then
+			makefolder("RvrseUI")
+		end
+	end)
+
+	local success, err = pcall(function()
+		local data = {
+			lastConfig = configName,
+			lastTheme = theme,
+			timestamp = os.time()
+		}
+		writefile(lastConfigPath, HttpService:JSONEncode(data))
+	end)
+
+	if success then
+		dprintf("📂 Saved last config reference:", configName, "Theme:", theme)
+	else
+		warn("[RvrseUI] Failed to save last config:", err)
+	end
+
+	return success
+end
+
+-- Load configuration by name
+function RvrseUI:LoadConfigByName(configName)
+	if not configName or configName == "" then
+		return false, "Config name required"
+	end
+
+	-- Temporarily set the config file name
+	local originalFileName = self.ConfigurationFileName
+	local originalFolderName = self.ConfigurationFolderName
+
+	self.ConfigurationFileName = configName .. ".json"
+	self.ConfigurationFolderName = "RvrseUI/Configs"
+
+	local success, message = self:LoadConfiguration()
+
+	-- Restore original config names
+	self.ConfigurationFileName = originalFileName
+	self.ConfigurationFolderName = originalFolderName
+
+	return success, message
+end
+
+-- Save configuration with a specific name
+function RvrseUI:SaveConfigAs(configName)
+	if not configName or configName == "" then
+		return false, "Config name required"
+	end
+
+	-- Temporarily set the config file name
+	local originalFileName = self.ConfigurationFileName
+	local originalFolderName = self.ConfigurationFolderName
+
+	self.ConfigurationFileName = configName .. ".json"
+	self.ConfigurationFolderName = "RvrseUI/Configs"
+
+	local success, message = self:SaveConfiguration()
+
+	if success then
+		-- Save this as the last used config
+		self:SaveLastConfig(self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName, RvrseUI.Theme and RvrseUI.Theme.Current or "Dark")
+	end
+
+	-- Restore original config names
+	self.ConfigurationFileName = originalFileName
+	self.ConfigurationFolderName = originalFolderName
+
+	return success, message
 end
 
 -- ============================================
@@ -1076,17 +1178,45 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Configuration system setup
 	if cfg.ConfigurationSaving then
-		-- Support both old format (boolean) and new format (table)
-		if typeof(cfg.ConfigurationSaving) == "table" then
+		-- Support multiple formats: boolean, table, or string (profile name)
+		if typeof(cfg.ConfigurationSaving) == "string" then
+			-- String = named profile (e.g., ConfigurationSaving = "MyProfile")
+			self.ConfigurationSaving = true
+			self.ConfigurationFileName = cfg.ConfigurationSaving .. ".json"
+			self.ConfigurationFolderName = "RvrseUI/Configs"
+			dprintf("📂 Named profile mode:", cfg.ConfigurationSaving)
+		elseif typeof(cfg.ConfigurationSaving) == "table" then
+			-- Table format with Enabled/FileName/FolderName
 			self.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
 			self.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
 			self.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
 			dprintf("Configuration saving enabled:", self.ConfigurationFolderName and (self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName) or self.ConfigurationFileName)
-		else
-			-- Old format: boolean with separate FileName
-			self.ConfigurationSaving = true
-			self.ConfigurationFileName = cfg.FileName or "RvrseUI_Config.json"
-			dprintf("Configuration saving enabled:", self.ConfigurationFileName)
+		elseif cfg.ConfigurationSaving == true then
+			-- Boolean true = auto-load last used config
+			local lastConfig, lastTheme = self:GetLastConfig()
+			if lastConfig then
+				-- Load last used config
+				dprintf("📂 Auto-loading last config:", lastConfig)
+				local configParts = lastConfig:match("(.+)/(.+)")
+				if configParts then
+					self.ConfigurationFolderName = configParts:match("(.+)/")
+					self.ConfigurationFileName = configParts:match("/([^/]+)$")
+				else
+					self.ConfigurationFileName = lastConfig
+				end
+				self.ConfigurationSaving = true
+
+				-- Override theme with last saved theme
+				if lastTheme then
+					self._savedTheme = lastTheme
+					dprintf("📂 Overriding theme with last saved:", lastTheme)
+				end
+			else
+				-- No last config, use default
+				self.ConfigurationSaving = true
+				self.ConfigurationFileName = "RvrseUI_Config.json"
+				dprintf("📂 No last config, using default")
+			end
 		end
 	end
 
