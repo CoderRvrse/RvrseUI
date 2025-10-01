@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 7,
-    "patch": 0,
-    "full": "2.7.0",
+    "patch": 1,
+    "full": "2.7.1",
     "build": "20251001",
-    "hash": "L5G8J6F4",
+    "hash": "N6H9K7G5",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Theme Persistence Fix",
+    "name": "GPT-5 Verification Logging",
     "codename": "Stable",
-    "notes": "Fixed theme not persisting correctly - saved theme now always loads before cfg.Theme, pill icon matches theme state"
+    "notes": "Added comprehensive verification logging to diagnose theme persistence path/instance/value mismatches"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,26 @@
     "auto_save": true
   },
   "changelog": {
+    "2.7.1": {
+      "date": "2025-10-01",
+      "hash": "N6H9K7G5",
+      "changes": [
+        "🔍 DIAGNOSTIC RELEASE - GPT-5 Verification Logging",
+        "✅ Added comprehensive path/instance/value logging to find persistence bugs",
+        "📊 SAVE VERIFICATION: Logs save path, key, instance, and readback after write",
+        "📊 LOAD VERIFICATION: Logs load path, instance, and value from disk",
+        "📊 PRE-LOAD VERIFICATION: Logs CreateWindow pre-load path and value",
+        "🎯 Verifies config instance identity across save/load cycles",
+        "🎯 Readback after save confirms value actually landed on disk",
+        "🎯 All three operations (save/load/pre-load) now print full diagnostic info",
+        "💡 Based on GPT-5 analysis of user logs showing _savedTheme nil then found",
+        "💡 Will reveal if path/instance/key/value mismatch is causing persistence issues",
+        "Expected log sequence on next boot:",
+        "  🔍 PRE-LOAD VERIFICATION → PRE-LOAD VALUE: _RvrseUI_Theme = Light",
+        "  🎯 FINAL THEME APPLICATION → ✅ Applied theme (source=saved): Light",
+        "If pre-load shows nil but load later finds Light = scope/timing issue found"
+      ]
+    },
     "2.7.0": {
       "date": "2025-10-01",
       "hash": "L5G8J6F4",

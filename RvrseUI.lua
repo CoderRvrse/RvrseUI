@@ -21,10 +21,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 7,
-	Patch = 0,
+	Patch = 1,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.7.0",
-	Hash = "L5G8J6F4",  -- Release hash for integrity verification
+	Full = "2.7.1",
+	Hash = "N6H9K7G5",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -131,6 +131,12 @@ function RvrseUI:SaveConfiguration()
 		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
 	end
 
+	-- GPT-5 VERIFICATION: Print save path, key, and instance
+	dprintf("🔍 SAVE VERIFICATION")
+	dprintf("SAVE PATH:", fullPath)
+	dprintf("SAVE KEY: _RvrseUI_Theme =", config._RvrseUI_Theme or "nil")
+	dprintf("CONFIG INSTANCE:", tostring(self))
+
 	-- Save to datastore using writefile
 	local success, err = pcall(function()
 		local jsonData = game:GetService("HttpService"):JSONEncode(config)
@@ -138,6 +144,17 @@ function RvrseUI:SaveConfiguration()
 	end)
 
 	if success then
+		-- GPT-5 VERIFICATION: Readback after save to confirm it landed
+		local readbackSuccess, readbackData = pcall(function()
+			return game:GetService("HttpService"):JSONDecode(readfile(fullPath))
+		end)
+		if readbackSuccess and readbackData then
+			dprintf("READBACK AFTER SAVE: _RvrseUI_Theme =", readbackData._RvrseUI_Theme or "nil")
+			if readbackData._RvrseUI_Theme ~= config._RvrseUI_Theme then
+				warn("⚠️ READBACK MISMATCH! Expected:", config._RvrseUI_Theme, "Got:", readbackData._RvrseUI_Theme)
+			end
+		end
+
 		dprintf("Configuration saved:", self.ConfigurationFileName)
 		return true, "Configuration saved successfully"
 	else
@@ -158,6 +175,11 @@ function RvrseUI:LoadConfiguration()
 		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
 	end
 
+	-- GPT-5 VERIFICATION: Print load path and instance FIRST
+	dprintf("🔍 LOAD VERIFICATION")
+	dprintf("LOAD PATH:", fullPath)
+	dprintf("CONFIG INSTANCE:", tostring(self))
+
 	local success, result = pcall(function()
 		if not isfile(fullPath) then
 			return nil, "No saved configuration found"
@@ -169,8 +191,12 @@ function RvrseUI:LoadConfiguration()
 
 	if not success or not result then
 		dprintf("No configuration to load or error:", result)
+		dprintf("VALUE AT LOAD: nil (no file)")
 		return false, result
 	end
+
+	-- GPT-5 VERIFICATION: Print the actual value loaded from disk
+	dprintf("VALUE AT LOAD: _RvrseUI_Theme =", result._RvrseUI_Theme or "nil")
 
 	-- Apply configuration to all flagged elements
 	dprintf("=== THEME LOAD DEBUG ===")
@@ -1003,14 +1029,27 @@ function RvrseUI:CreateWindow(cfg)
 	-- IMPORTANT: Load saved theme FIRST before applying precedence
 	-- If configuration exists, load it now to populate _savedTheme
 	if self.ConfigurationSaving and self.ConfigurationFileName then
-		dprintf("Checking for existing config file before applying theme...")
-		local success, existingConfig = pcall(readfile, self.ConfigurationFileName)
+		-- Build full path matching the save/load functions
+		local fullPath = self.ConfigurationFileName
+		if self.ConfigurationFolderName then
+			fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
+		end
+
+		-- GPT-5 VERIFICATION: Print pre-load attempt
+		dprintf("🔍 PRE-LOAD VERIFICATION (CreateWindow)")
+		dprintf("PRE-LOAD PATH:", fullPath)
+		dprintf("CONFIG INSTANCE:", tostring(self))
+
+		local success, existingConfig = pcall(readfile, fullPath)
 		if success then
 			local decoded = HttpService:JSONDecode(existingConfig)
+			dprintf("PRE-LOAD VALUE: _RvrseUI_Theme =", decoded._RvrseUI_Theme or "nil")
 			if decoded._RvrseUI_Theme then
 				self._savedTheme = decoded._RvrseUI_Theme
 				dprintf("✅ Pre-loaded saved theme from config:", self._savedTheme)
 			end
+		else
+			dprintf("PRE-LOAD: No config file found (first run or deleted)")
 		end
 	end
 
@@ -1025,6 +1064,7 @@ function RvrseUI:CreateWindow(cfg)
 	-- Apply theme (does NOT mark dirty - this is initialization)
 	Theme:Apply(finalTheme)
 
+	dprintf("🎯 FINAL THEME APPLICATION")
 	dprintf("✅ Applied theme (source=" .. source .. "):", finalTheme)
 	dprintf("Theme.Current after:", Theme.Current)
 	dprintf("Theme._dirty:", Theme._dirty)
