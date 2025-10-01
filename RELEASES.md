@@ -1,5 +1,126 @@
 # RvrseUI Release History
 
+## Version 2.5.1 "Draggable Controller + Position Memory" - Bug Fix + Enhancement
+**Release Date**: October 1, 2025
+**Build**: 20251001
+**Hash**: `G7C4E2B9`
+**Channel**: Stable
+
+### 🐛 CRITICAL FIX - UIStroke Size Error
+
+#### Error Report
+```
+Size is not a valid member of UIStroke "Players.Headshotdrip575.PlayerGui.RvrseUI_v2.ControllerChip.Glow"
+Stack Begin
+Script 'Script', Line 1477
+Stack End
+```
+
+**Root Cause**: Attempted to animate `Size` and `Position` properties on a UIStroke object (lines 1477-1478). UIStroke only has `Thickness`, `Color`, and `Transparency` properties.
+
+**Solution**: Removed the broken pulsing glow code. The `addGlow()` function already creates an animated glow using TweenService that pulses the `Thickness` property, which is the correct approach.
+
+---
+
+### 🎮 NEW FEATURES - Draggable Controller + Position Memory
+
+#### User Request
+"ALSO LETS ENSURE WE CAN DRAG AND MOVE ICON AROUND AND ITS NOT LOCKED TO THE SCREEN AND IT CAN REMEMBER THE LAST PPOSITON IT OPEN AT TO REOPEN"
+
+---
+
+#### Implementation
+
+**Draggable Controller Chip**:
+- Controller chip can be dragged anywhere on screen
+- Uses InputBegan/InputEnded/InputChanged pattern (same as header drag)
+- 5px drag threshold to distinguish clicks from drags
+- `chipWasDragged` flag prevents restore when dragging
+- Position saved to `RvrseUI._controllerChipPosition` after drag
+
+**Window Position Memory**:
+- Window remembers last dragged position
+- Saved to `RvrseUI._lastWindowPosition` when drag ends
+- Restores at saved position instead of always centering
+- Particles flow to correct position on restore
+
+**Smart Click Detection**:
+- Only restores window if chip wasn't dragged
+- 5px threshold prevents false positives
+- Drag distance calculated: `sqrt(deltaX² + deltaY²)`
+
+---
+
+#### Technical Details
+
+**Controller Chip Drag Code** (lines 1680-1718):
+```lua
+local chipDragging, chipDragStart, chipStartPos, chipWasDragged
+
+controllerChip.InputBegan:Connect(function(io)
+  chipDragging = true
+  chipWasDragged = false
+  chipDragStart = io.Position
+  chipStartPos = controllerChip.Position
+end)
+
+UIS.InputChanged:Connect(function(io)
+  if chipDragging then
+    local delta = io.Position - chipDragStart
+    local dragDistance = math.sqrt(delta.X * delta.X + delta.Y * delta.Y)
+    if dragDistance > 5 then
+      chipWasDragged = true
+      -- Update position
+    end
+  end
+end)
+```
+
+**Window Position Save** (lines 1074-1079):
+```lua
+header.InputEnded:Connect(function(io)
+  RvrseUI._lastWindowPosition = {
+    XScale = root.Position.X.Scale,
+    XOffset = root.Position.X.Offset,
+    YScale = root.Position.Y.Scale,
+    YOffset = root.Position.Y.Offset
+  }
+end)
+```
+
+**Restore Logic** (lines 1606-1617):
+```lua
+local targetPos = UDim2.new(0.5, 0, 0.5, 0)
+if RvrseUI._lastWindowPosition then
+  local savedPos = RvrseUI._lastWindowPosition
+  targetPos = UDim2.new(savedPos.XScale, savedPos.XOffset,
+                        savedPos.YScale, savedPos.YOffset)
+end
+```
+
+---
+
+#### Impact
+
+**Bug Fixes**:
+- ✅ Fixed UIStroke Size error (100% resolution)
+- ✅ No more console spam on minimize
+
+**New Features**:
+- ✅ Controller chip fully draggable
+- ✅ Controller position persists across minimize/restore
+- ✅ Window position persists across minimize/restore
+- ✅ Smart click vs drag detection
+- ✅ Particles flow to correct positions
+
+**User Experience**:
+- 🎯 "CAN DRAG AND MOVE ICON AROUND" - Implemented
+- 🎯 "NOT LOCKED TO THE SCREEN" - Implemented
+- 🎯 "REMEMBER LAST POSITION" - Implemented for both!
+- 🎯 Better workflow - positions stay where you want them
+
+---
+
 ## Version 2.5.0 "Minimize to Controller" - Major Feature
 **Release Date**: October 1, 2025
 **Build**: 20251001

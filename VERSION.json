@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 5,
-    "patch": 0,
-    "full": "2.5.0",
+    "patch": 1,
+    "full": "2.5.1",
     "build": "20251001",
-    "hash": "F3B8D9A4",
+    "hash": "G7C4E2B9",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Minimize to Controller",
+    "name": "Draggable Controller + Position Memory",
     "codename": "Stable",
-    "notes": "Premium minimize feature with particle flow effects, gaming controller chip, and seamless restore functionality"
+    "notes": "Fixed UIStroke error, added draggable controller chip and position memory for both controller and window"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,31 @@
     "auto_save": true
   },
   "changelog": {
+    "2.5.1": {
+      "date": "2025-10-01",
+      "hash": "G7C4E2B9",
+      "changes": [
+        "🐛 CRITICAL FIX - UIStroke Size Error",
+        "✅ FIXED: 'Size is not a valid member of UIStroke' error",
+        "Root cause: Tried to animate Size property on UIStroke (doesn't exist)",
+        "Solution: Removed broken pulsing code, use built-in addGlow animation",
+        "🎮 NEW: Draggable Controller Chip",
+        "✨ Drag controller chip anywhere on screen",
+        "✨ Position saved automatically after drag",
+        "✨ Controller restores at last dragged position",
+        "✨ Drag detection prevents accidental restore (5px threshold)",
+        "🪟 NEW: Window Position Memory",
+        "✨ Window remembers last dragged position",
+        "✨ Restores at saved position instead of center",
+        "✨ Position saved in RvrseUI._lastWindowPosition",
+        "✨ Controller position saved in RvrseUI._controllerChipPosition",
+        "🎯 IMPROVED: Click vs Drag Detection",
+        "Only restores window if chip wasn't dragged",
+        "5px drag threshold prevents false positives",
+        "chipWasDragged flag tracks drag state",
+        "🎯 Better UX - controller and window remember positions"
+      ]
+    },
     "2.5.0": {
       "date": "2025-10-01",
       "hash": "F3B8D9A4",

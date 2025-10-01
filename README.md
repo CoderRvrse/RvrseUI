@@ -1,10 +1,10 @@
-# RvrseUI v2.5.0
+# RvrseUI v2.5.1
 
 <div align="center">
 
 **A modern, professional UI framework for Roblox with glassmorphism, spring animations, and complete configuration persistence.**
 
-[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-2.5.1-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
@@ -21,6 +21,8 @@
 ### 🎮 Minimize to Controller (v2.5.0+) **NEW!**
 - **Premium Animations**: 40-particle flow effect on minimize/restore
 - **Gaming Controller Chip**: Click 🎮 to restore window
+- **Draggable Controller**: Drag chip anywhere, position remembered
+- **Position Memory**: Window and controller remember last positions
 - **Smooth Transitions**: Window rotates and shrinks into chip
 - **Pulsing Glow**: Controller chip has animated glow effect
 - **State Preserved**: All GUI state maintained on restore
@@ -694,7 +696,7 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 **Developer**: CoderRvrse
 **Framework**: RvrseUI
-**Version**: 2.5.0 "Minimize to Controller"
+**Version**: 2.5.1 "Draggable Controller + Position Memory"
 **Build**: 20251001
 
 Built with ❤️ for the Roblox scripting community.
@@ -703,7 +705,7 @@ Built with ❤️ for the Roblox scripting community.
 
 <div align="center">
 
-**[⬆ Back to Top](#rvrseui-v250)**
+**[⬆ Back to Top](#rvrseui-v251)**
 
 Made with 🤖 [Claude Code](https://claude.com/claude-code)
 

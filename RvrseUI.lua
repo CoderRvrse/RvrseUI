@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 5,
-	Patch = 0,
+	Patch = 1,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.5.0",
-	Hash = "F3B8D9A4",  -- Release hash for integrity verification
+	Full = "2.5.1",
+	Hash = "G7C4E2B9",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1068,7 +1068,16 @@ function RvrseUI:CreateWindow(cfg)
 	end)
 	header.InputEnded:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
+			if dragging then
+				dragging = false
+				-- Save window position
+				RvrseUI._lastWindowPosition = {
+					XScale = root.Position.X.Scale,
+					XOffset = root.Position.X.Offset,
+					YScale = root.Position.Y.Scale,
+					YOffset = root.Position.Y.Offset
+				}
+			end
 		end
 	end)
 	UIS.InputChanged:Connect(function(io)
@@ -1465,20 +1474,7 @@ function RvrseUI:CreateWindow(cfg)
 	controllerChip.Parent = host
 	corner(controllerChip, 25)
 	stroke(controllerChip, pal.Accent, 2)
-	addGlow(controllerChip, pal.Accent, 3)
-
-	-- Add pulsing glow effect to controller chip
-	local controllerGlow = controllerChip:FindFirstChild("Glow")
-	if controllerGlow then
-		local glowPulse
-		glowPulse = RS.Heartbeat:Connect(function()
-			if controllerChip.Visible and controllerGlow then
-				local pulse = 3 + math.sin(tick() * 2) * 1
-				controllerGlow.Size = UDim2.new(1, pulse * 2, 1, pulse * 2)
-				controllerGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
-			end
-		end)
-	end
+	addGlow(controllerChip, pal.Accent, 4)  -- Glow already has built-in pulsing animation
 
 	-- Particle system for minimize effect
 	local function createParticleFlow(startPos, endPos, count, duration)
@@ -1606,13 +1602,19 @@ function RvrseUI:CreateWindow(cfg)
 
 		-- Original window size and position
 		local targetSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
+
+		-- Restore to last saved position, or center if no position saved
 		local targetPos = UDim2.new(0.5, 0, 0.5, 0)
+		if RvrseUI._lastWindowPosition then
+			local savedPos = RvrseUI._lastWindowPosition
+			targetPos = UDim2.new(savedPos.XScale, savedPos.XOffset, savedPos.YScale, savedPos.YOffset)
+		end
 
 		-- Calculate where window center will be
 		local targetWidth = isMobile and 380 or baseWidth
 		local targetHeight = isMobile and 520 or baseHeight
-		local windowCenterX = (screenSize.X / 2)
-		local windowCenterY = (screenSize.Y / 2)
+		local windowCenterX = targetPos.X.Scale * screenSize.X + targetPos.X.Offset + (targetWidth / 2)
+		local windowCenterY = targetPos.Y.Scale * screenSize.Y + targetPos.Y.Offset + (targetHeight / 2)
 
 		-- Create particle flow from center to window
 		createParticleFlow(
@@ -1657,9 +1659,12 @@ function RvrseUI:CreateWindow(cfg)
 		minimizeWindow()
 	end)
 
-	-- Connect controller chip click (restore)
+	-- Connect controller chip click (restore) - only if not dragged
 	controllerChip.MouseButton1Click:Connect(function()
-		restoreWindow()
+		if not chipWasDragged then
+			restoreWindow()
+		end
+		chipWasDragged = false
 	end)
 
 	-- Add hover effect to controller chip
@@ -1674,6 +1679,60 @@ function RvrseUI:CreateWindow(cfg)
 			Size = UDim2.new(0, 50, 0, 50)
 		}, Animator.Spring.Fast)
 	end)
+
+	-- Make controller chip draggable
+	local chipDragging, chipDragStart, chipStartPos, chipWasDragged
+	controllerChip.InputBegan:Connect(function(io)
+		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+			chipDragging = true
+			chipWasDragged = false
+			chipDragStart = io.Position
+			chipStartPos = controllerChip.Position
+		end
+	end)
+	controllerChip.InputEnded:Connect(function(io)
+		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+			if chipDragging then
+				chipDragging = false
+				-- Save controller chip position
+				RvrseUI._controllerChipPosition = {
+					XScale = controllerChip.Position.X.Scale,
+					XOffset = controllerChip.Position.X.Offset,
+					YScale = controllerChip.Position.Y.Scale,
+					YOffset = controllerChip.Position.Y.Offset
+				}
+			end
+		end
+	end)
+	UIS.InputChanged:Connect(function(io)
+		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
+			local delta = io.Position - chipDragStart
+			local dragDistance = math.sqrt(delta.X * delta.X + delta.Y * delta.Y)
+			if dragDistance > 5 then
+				chipWasDragged = true
+				controllerChip.Position = UDim2.new(
+					chipStartPos.X.Scale,
+					chipStartPos.X.Offset + delta.X,
+					chipStartPos.Y.Scale,
+					chipStartPos.Y.Offset + delta.Y
+				)
+			end
+		end
+	end)
+
+	-- Load saved controller chip position if available
+	if RvrseUI._controllerChipPosition then
+		local savedPos = RvrseUI._controllerChipPosition
+		controllerChip.Position = UDim2.new(
+			savedPos.XScale,
+			savedPos.XOffset,
+			savedPos.YScale,
+			savedPos.YOffset
+		)
+	end
+
+	-- Save and restore window position
+	local lastWindowPosition = root.Position
 
 	-- Tab management
 	local activePage
