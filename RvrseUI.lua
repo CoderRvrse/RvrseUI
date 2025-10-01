@@ -21,10 +21,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 8,
-	Patch = 0,
+	Patch = 1,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.8.0",
-	Hash = "Q9K8M7N6",  -- Release hash for integrity verification
+	Full = "2.8.1",
+	Hash = "R8L9N7P5",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -298,7 +298,7 @@ function RvrseUI:GetLastConfig()
 			return nil
 		end
 		local jsonData = readfile(lastConfigPath)
-		return HttpService:JSONDecode(jsonData)
+		return game:GetService("HttpService"):JSONDecode(jsonData)
 	end)
 
 	if success and data then
@@ -327,7 +327,7 @@ function RvrseUI:SaveLastConfig(configName, theme)
 			lastTheme = theme,
 			timestamp = os.time()
 		}
-		writefile(lastConfigPath, HttpService:JSONEncode(data))
+		writefile(lastConfigPath, game:GetService("HttpService"):JSONEncode(data))
 	end)
 
 	if success then
