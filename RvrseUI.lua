@@ -21,10 +21,10 @@ RvrseUI.DEBUG = false
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 6,
-	Patch = 0,
+	Patch = 1,
 	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.6.0",
-	Hash = "J9E6G4D2",  -- Release hash for integrity verification
+	Full = "2.6.1",
+	Hash = "K2F7H5E3",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -93,7 +93,9 @@ function RvrseUI:SaveConfiguration()
 	end
 
 	-- Save current theme
-	config._RvrseUI_Theme = Theme.Current
+	if RvrseUI.Theme and RvrseUI.Theme.Current then
+		config._RvrseUI_Theme = RvrseUI.Theme.Current
+	end
 
 	-- Cache configuration
 	self._configCache = config
@@ -517,6 +519,7 @@ end
 -- Modern Theme System
 -- =========================
 local Theme = {}
+RvrseUI.Theme = Theme  -- Make Theme globally accessible
 Theme.Palettes = {
 	Dark = {
 		-- Glassmorphic backgrounds

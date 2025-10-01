@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 6,
-    "patch": 0,
-    "full": "2.6.0",
+    "patch": 1,
+    "full": "2.6.1",
     "build": "20251001",
-    "hash": "J9E6G4D2",
+    "hash": "K2F7H5E3",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-01",
-    "name": "Theme Persistence + Boundary Clamping",
+    "name": "Theme.Current Nil Fix",
     "codename": "Stable",
-    "notes": "Controller chip now stays on screen, config system saves/loads theme automatically"
+    "notes": "Fixed Theme.Current nil error in SaveConfiguration by making Theme globally accessible"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,19 @@
     "auto_save": true
   },
   "changelog": {
+    "2.6.1": {
+      "date": "2025-10-01",
+      "hash": "K2F7H5E3",
+      "changes": [
+        "🐛 CRITICAL FIX - Theme.Current Nil Error",
+        "✅ FIXED: 'attempt to index nil with Current' at line 96",
+        "Root cause: Theme was local to CreateWindow, not accessible in SaveConfiguration",
+        "Solution: Made Theme globally accessible via RvrseUI.Theme (line 520)",
+        "Added nil check: if RvrseUI.Theme and RvrseUI.Theme.Current (lines 96-98)",
+        "SaveConfiguration now accesses RvrseUI.Theme.Current safely",
+        "✅ Config saving now works flawlessly with theme persistence"
+      ]
+    },
     "2.6.0": {
       "date": "2025-10-01",
       "hash": "J9E6G4D2",
