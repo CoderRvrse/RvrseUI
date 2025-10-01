@@ -1,5 +1,63 @@
 # RvrseUI Release History
 
+## Version 2.4.1 "Header Visual Cohesion" - UX Enhancement
+**Release Date**: October 1, 2025
+**Build**: 20251001
+**Hash**: `E9A2F5D8`
+**Channel**: Stable
+
+### 🎨 UX Enhancement - Header Visual Cohesion
+
+#### Problem
+User reported: "last issue on top bar for our ux i feel it dont sit will on body of the ux / gui it has a ugly look to it like it dont go together corectly"
+
+**Root Cause**: Header had different styling than body, creating visual disconnect:
+- Header: `BackgroundColor3 = pal.Elevated`, `BackgroundTransparency = 0.3`, thick gradient
+- Body: `BackgroundColor3 = pal.Card`, `BackgroundTransparency = 0.5`
+
+The header looked heavy and disconnected from the glassmorphic body.
+
+---
+
+#### Solution
+
+**Unified Glassmorphic Aesthetic**:
+- Changed header to use `pal.Card` (same as body)
+- Matched transparency to `0.5` (same as body)
+- Removed heavy gradient that looked disconnected
+- Matched border thickness to `1px` (same as body)
+- Added subtle bottom divider (1px) for gentle separation
+
+**Theme Toggle Update**:
+- Updated theme toggle handler to update header divider color
+- Ensures consistent appearance across Dark/Light themes
+
+---
+
+#### Impact
+
+**Visual Improvements**:
+- ✅ Header and body now flow together seamlessly
+- ✅ Professional, cohesive glassmorphic appearance
+- ✅ Consistent styling across all themes
+- ✅ Modern, unified aesthetic throughout entire UI
+
+**Technical Changes**:
+```lua
+-- Before
+header.BackgroundColor3 = pal.Elevated
+header.BackgroundTransparency = 0.3
+gradient(header, 90, {pal.Elevated, pal.Card})
+
+-- After
+header.BackgroundColor3 = pal.Card
+header.BackgroundTransparency = 0.5
+-- Gradient removed
+-- Added subtle divider instead
+```
+
+---
+
 ## Version 2.3.6 "Hotfix" - Critical Function Order Fix
 **Release Date**: September 30, 2025
 **Build**: 20250930
