@@ -1781,52 +1781,114 @@ function RvrseUI:CreateWindow(cfg)
 		end
 	end)
 
-	-- Particle system for minimize effect
-	local function createParticleFlow(startPos, endPos, count, duration)
+	-- Enhanced particle system with smooth flow around GUI
+	local function createParticleFlow(startPos, endPos, count, duration, flowType)
 		local particles = {}
 
 		for i = 1, count do
 			local particle = Instance.new("Frame")
-			particle.Size = UDim2.new(0, math.random(3, 6), 0, math.random(3, 6))
+			particle.Size = UDim2.new(0, math.random(4, 8), 0, math.random(4, 8))
 			particle.BackgroundColor3 = pal.Accent
-			particle.BackgroundTransparency = 0.3
+			particle.BackgroundTransparency = 0.5
 			particle.BorderSizePixel = 0
 			particle.Position = UDim2.new(0, startPos.X, 0, startPos.Y)
 			particle.ZIndex = 999
 			particle.Parent = host
-			corner(particle, math.random(2, 3))
+			corner(particle, math.random(3, 5))
 
-			-- Random offset for natural flow
-			local offsetX = math.random(-30, 30)
-			local offsetY = math.random(-30, 30)
-
-			-- Stagger the start time
-			local delay = (i / count) * (duration * 0.3)
+			-- Smooth stagger timing for fluid flow
+			local delay = (i / count) * (duration * 0.5)
 
 			task.delay(delay, function()
 				if particle and particle.Parent then
-					-- Curve path to endpoint
-					local midX = (startPos.X + endPos.X) / 2 + offsetX
-					local midY = (startPos.Y + endPos.Y) / 2 + offsetY
+					if flowType == "spread" then
+						-- OPENING: Spread particles around the GUI perimeter
+						local angle = (i / count) * math.pi * 2
+						local spreadRadius = math.random(200, 280)
+						local spreadX = endPos.X + math.cos(angle) * spreadRadius
+						local spreadY = endPos.Y + math.sin(angle) * spreadRadius
 
-					-- First half: move to midpoint
-					Animator:Tween(particle, {
-						Position = UDim2.new(0, midX, 0, midY),
-						BackgroundTransparency = 0.1
-					}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+						-- Smooth curve outward
+						local midX = (startPos.X + spreadX) / 2 + math.random(-50, 50)
+						local midY = (startPos.Y + spreadY) / 2 + math.random(-50, 50)
 
-					-- Second half: move to endpoint and fade
-					task.wait(duration * 0.5)
-					if particle and particle.Parent then
+						-- Phase 1: Flow from chip to midpoint (smooth acceleration)
 						Animator:Tween(particle, {
-							Position = UDim2.new(0, endPos.X, 0, endPos.Y),
-							BackgroundTransparency = 1,
-							Size = UDim2.new(0, 2, 0, 2)
-						}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In))
+							Position = UDim2.new(0, midX, 0, midY),
+							BackgroundTransparency = 0.2,
+							Size = UDim2.new(0, 6, 0, 6)
+						}, TweenInfo.new(duration * 0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
 
-						task.wait(duration * 0.5)
+						task.wait(duration * 0.4)
 						if particle and particle.Parent then
-							particle:Destroy()
+							-- Phase 2: Flow to GUI perimeter (smooth deceleration)
+							Animator:Tween(particle, {
+								Position = UDim2.new(0, spreadX, 0, spreadY),
+								BackgroundTransparency = 0.3,
+								Size = UDim2.new(0, 5, 0, 5)
+							}, TweenInfo.new(duration * 0.35, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut))
+
+							task.wait(duration * 0.35)
+							if particle and particle.Parent then
+								-- Phase 3: Gentle fade and orbit around GUI
+								Animator:Tween(particle, {
+									BackgroundTransparency = 1,
+									Size = UDim2.new(0, 2, 0, 2)
+								}, TweenInfo.new(duration * 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+
+								task.wait(duration * 0.25)
+								if particle and particle.Parent then
+									particle:Destroy()
+								end
+							end
+						end
+
+					else
+						-- CLOSING: Gather particles from GUI perimeter to chip
+						local angle = (i / count) * math.pi * 2
+						local gatherRadius = math.random(200, 280)
+						local gatherStartX = startPos.X + math.cos(angle) * gatherRadius
+						local gatherStartY = startPos.Y + math.sin(angle) * gatherRadius
+
+						-- Start particles around GUI perimeter
+						particle.Position = UDim2.new(0, gatherStartX, 0, gatherStartY)
+						particle.BackgroundTransparency = 0.6
+						particle.Size = UDim2.new(0, 5, 0, 5)
+
+						-- Smooth curve inward
+						local midX = (gatherStartX + endPos.X) / 2 + math.random(-40, 40)
+						local midY = (gatherStartY + endPos.Y) / 2 + math.random(-40, 40)
+
+						-- Phase 1: Gather from perimeter to midpoint (smooth acceleration)
+						Animator:Tween(particle, {
+							Position = UDim2.new(0, midX, 0, midY),
+							BackgroundTransparency = 0.2,
+							Size = UDim2.new(0, 6, 0, 6)
+						}, TweenInfo.new(duration * 0.35, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
+
+						task.wait(duration * 0.35)
+						if particle and particle.Parent then
+							-- Phase 2: Flow to chip position (smooth deceleration)
+							Animator:Tween(particle, {
+								Position = UDim2.new(0, endPos.X, 0, endPos.Y),
+								BackgroundTransparency = 0.1,
+								Size = UDim2.new(0, 4, 0, 4)
+							}, TweenInfo.new(duration * 0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut))
+
+							task.wait(duration * 0.4)
+							if particle and particle.Parent then
+								-- Phase 3: Final convergence and fade
+								Animator:Tween(particle, {
+									Position = UDim2.new(0, endPos.X, 0, endPos.Y),
+									BackgroundTransparency = 1,
+									Size = UDim2.new(0, 1, 0, 1)
+								}, TweenInfo.new(duration * 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In))
+
+								task.wait(duration * 0.25)
+								if particle and particle.Parent then
+									particle:Destroy()
+								end
+							end
 						end
 					end
 				end
@@ -1859,28 +1921,29 @@ function RvrseUI:CreateWindow(cfg)
 		local windowCenterX = rootPos.X + (rootSize.X / 2)
 		local windowCenterY = rootPos.Y + (rootSize.Y / 2)
 
-		-- Create particle flow from window to center
+		-- Create smooth particle flow gathering to center chip
 		createParticleFlow(
 			{X = windowCenterX, Y = windowCenterY},
 			{X = centerX, Y = centerY},
-			40,  -- particle count
-			0.6  -- duration
+			60,  -- particle count (increased for smoother effect)
+			1.2,  -- duration (slower for smooth flow)
+			"gather"  -- flow type: particles gather from GUI to chip
 		)
 
-		-- Shrink window with rotation
+		-- Shrink window with smooth rotation (slower for particle sync)
 		Animator:Tween(root, {
 			Size = UDim2.new(0, 0, 0, 0),
 			Position = UDim2.new(0.5, 0, 0.5, 0),
 			BackgroundTransparency = 1,
 			Rotation = 180
-		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In))
+		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
 
 		Animator:Tween(glassOverlay, {
 			BackgroundTransparency = 1
-		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In))
+		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
 
 		-- Show controller chip after window shrinks
-		task.wait(0.6)
+		task.wait(1.0)
 		if isMinimized then
 			root.Visible = false
 			controllerChip.Visible = true
@@ -1921,21 +1984,22 @@ function RvrseUI:CreateWindow(cfg)
 		local windowCenterX = targetPos.X.Scale * screenSize.X + targetPos.X.Offset + (targetWidth / 2)
 		local windowCenterY = targetPos.Y.Scale * screenSize.Y + targetPos.Y.Offset + (targetHeight / 2)
 
-		-- Create particle flow from center to window
+		-- Create smooth particle flow spreading around GUI
 		createParticleFlow(
 			{X = centerX, Y = centerY},
 			{X = windowCenterX, Y = windowCenterY},
-			40,  -- particle count
-			0.6  -- duration
+			60,  -- particle count (increased for smoother effect)
+			1.2,  -- duration (slower for smooth flow)
+			"spread"  -- flow type: particles spread from chip around GUI
 		)
 
-		-- Shrink controller chip
+		-- Shrink controller chip smoothly
 		Animator:Tween(controllerChip, {
 			Size = UDim2.new(0, 0, 0, 0)
-		}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In))
+		}, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
 
 		-- Wait for chip to shrink, then show window
-		task.wait(0.3)
+		task.wait(0.5)
 		controllerChip.Visible = false
 
 		-- Reset window properties and show it
@@ -1946,17 +2010,17 @@ function RvrseUI:CreateWindow(cfg)
 		root.BackgroundTransparency = 1
 		glassOverlay.BackgroundTransparency = 1
 
-		-- Expand window with rotation
+		-- Expand window with smooth rotation (slower for particle sync)
 		Animator:Tween(root, {
 			Size = targetSize,
 			Position = targetPos,
 			BackgroundTransparency = 0.05,
 			Rotation = 0
-		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
 
 		Animator:Tween(glassOverlay, {
 			BackgroundTransparency = Theme.Current == "Dark" and 0.97 or 0.95
-		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
 	end
 
 	-- Connect minimize button click
