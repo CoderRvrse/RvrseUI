@@ -952,9 +952,9 @@ end
 local host = Instance.new("ScreenGui")
 host.Name = "RvrseUI_v2"
 host.ResetOnSpawn = false
-host.IgnoreGuiInset = true
+host.IgnoreGuiInset = false  -- CRITICAL: false to respect topbar, prevents offset
 host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-host.DisplayOrder = 999
+host.DisplayOrder = 100000  -- Very high to stay above ALL Roblox UI (chat, leaderboard, etc.)
 host.Parent = PlayerGui
 
 -- Store global reference for RvrseUI:Destroy() and visibility methods
@@ -1271,9 +1271,9 @@ function RvrseUI:CreateWindow(cfg)
 		local customHost = Instance.new("ScreenGui")
 		customHost.Name = "RvrseUI_" .. name:gsub("%s", "")
 		customHost.ResetOnSpawn = false
-		customHost.IgnoreGuiInset = true
+		customHost.IgnoreGuiInset = false  -- CRITICAL: false to respect topbar, prevents offset
 		customHost.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		customHost.DisplayOrder = cfg.DisplayOrder or 999
+		customHost.DisplayOrder = cfg.DisplayOrder or 100000  -- Very high by default
 
 		-- Resolve container target
 		local containerTarget = nil
@@ -1776,7 +1776,7 @@ function RvrseUI:CreateWindow(cfg)
 	controllerChip.AnchorPoint = Vector2.new(0.5, 0.5)
 	controllerChip.Position = UDim2.new(0.5, 0, 0.5, 0)
 	controllerChip.Visible = false
-	controllerChip.ZIndex = 1000
+	controllerChip.ZIndex = 10000  -- Very high ZIndex to stay on top of everything
 	controllerChip.Parent = host
 	corner(controllerChip, 25)
 	stroke(controllerChip, pal.Accent, 2)
