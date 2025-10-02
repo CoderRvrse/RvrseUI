@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 8,
-    "patch": 0,
-    "full": "2.8.0",
-    "build": "20251001",
-    "hash": "Q9K8M7N6",
+    "patch": 2,
+    "full": "2.8.2",
+    "build": "20251002",
+    "hash": "S9M8P7Q6",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-01",
-    "name": "Named Config Profiles + Auto-Load",
+    "date": "2025-10-02",
+    "name": "Hotkey & Particle Animation Fixes",
     "codename": "Stable",
-    "notes": "Revolutionary config system with named profiles, auto-load last used config, and guaranteed theme persistence"
+    "notes": "Fixed hotkey minimize behavior, controller chip dragging, and enhanced particle flow animations"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,44 @@
     "auto_save": true
   },
   "changelog": {
+    "2.8.2": {
+      "date": "2025-10-02",
+      "hash": "S9M8P7Q6",
+      "changes": [
+        "🐛 CRITICAL FIX - Hotkey Minimize/Restore System",
+        "✅ FIXED: Hotkey now properly minimizes fully open window to chip",
+        "✅ FIXED: Added minimizeFunction to windowData registration",
+        "✅ FIXED: Enhanced hotkey logic with all state handling",
+        "🎯 HOTKEY STATES (All Working):",
+        "  - Open window + hotkey = Minimizes to chip with particles",
+        "  - Minimized chip + hotkey = Restores to full window",
+        "  - Hidden window + hotkey = Shows window",
+        "🐛 CRITICAL FIX - Controller Chip Drag Issue",
+        "✅ FIXED: Chip no longer flies to top-left corner when grabbed",
+        "✅ Root cause: Scale/Offset confusion in UDim2 position calculations",
+        "✅ Solution: Use AbsolutePosition for accurate drag tracking",
+        "✅ Always set position with scale=0 (offset-only) for consistency",
+        "🎨 ENHANCED - Smooth Particle Flow Animations",
+        "✨ NEW: 3-phase particle animation system (spread/gather modes)",
+        "✨ Opening: Particles spread in circular pattern around GUI perimeter",
+        "✨ Closing: Particles gather from GUI edges to chip position",
+        "✨ 60 particles with Sine easing for buttery-smooth flow",
+        "⚡ SPEED: Optimized animation timing (0.8s, faster than v2.8.1)",
+        "🎯 PARTICLE TRACKING:",
+        "  - Particles follow chip's actual position (even when dragged)",
+        "  - Window shrinks/expands from chip location, not screen center",
+        "  - Synchronized particle + window animations",
+        "📊 DEBUG: Added comprehensive hotkey logging for diagnostics",
+        "🔧 Technical improvements in RvrseUI.lua:",
+        "  - Lines 21-28: Version bumped to 2.8.2",
+        "  - Lines 1093-1139: Enhanced hotkey with debug logging",
+        "  - Lines 1784-1901: Rewritten particle flow system",
+        "  - Lines 1906-1966: Minimize function with chip position tracking",
+        "  - Lines 1968-2034: Restore function from chip's actual position",
+        "  - Lines 2070-2118: Fixed chip drag using AbsolutePosition",
+        "  - Line 2128: Added minimizeFunction to windowData"
+      ]
+    },
     "2.8.0": {
       "date": "2025-10-01",
       "hash": "Q9K8M7N6",

@@ -21,10 +21,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 8,
-	Patch = 1,
-	Build = "20251001",  -- YYYYMMDD format
-	Full = "2.8.1",
-	Hash = "R8L9N7P5",  -- Release hash for integrity verification
+	Patch = 2,
+	Build = "20251002",  -- YYYYMMDD format
+	Full = "2.8.2",
+	Hash = "S9M8P7Q6",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1093,16 +1093,21 @@ end
 UIS.InputBegan:Connect(function(io, gpe)
 	if gpe then return end
 	if io.KeyCode == RvrseUI.UI._key then
+		print("[HOTKEY DEBUG] Toggle key pressed")
 		for f in pairs(RvrseUI.UI._toggleTargets) do
 			if f and f.Parent then
 				-- Check if window has minimize state tracking
 				local windowData = RvrseUI.UI._windowData and RvrseUI.UI._windowData[f]
+				print("[HOTKEY DEBUG] Window found, has data:", windowData ~= nil)
+
 				if windowData and windowData.isMinimized then
 					-- Check if minimized (call function if it's a function)
 					local minimized = type(windowData.isMinimized) == "function" and windowData.isMinimized() or windowData.isMinimized
+					print("[HOTKEY DEBUG] isMinimized:", minimized, "| Visible:", f.Visible)
 
 					if minimized then
 						-- Window is minimized to controller chip, restore it
+						print("[HOTKEY DEBUG] Action: RESTORE (minimized -> full window)")
 						if windowData.restoreFunction then
 							windowData.restoreFunction()
 						end
@@ -1110,16 +1115,22 @@ UIS.InputBegan:Connect(function(io, gpe)
 						-- Window is fully open
 						if f.Visible then
 							-- Window is visible and open, minimize it to chip
+							print("[HOTKEY DEBUG] Action: MINIMIZE (full window -> chip)")
 							if windowData.minimizeFunction then
+								print("[HOTKEY DEBUG] Calling minimizeFunction()")
 								windowData.minimizeFunction()
+							else
+								print("[HOTKEY DEBUG] ERROR: minimizeFunction not found!")
 							end
 						else
 							-- Window is hidden, show it
+							print("[HOTKEY DEBUG] Action: SHOW (hidden -> visible)")
 							f.Visible = true
 						end
 					end
 				else
 					-- No minimize tracking, normal toggle
+					print("[HOTKEY DEBUG] No minimize tracking, normal toggle")
 					f.Visible = not f.Visible
 				end
 			end
