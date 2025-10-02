@@ -2010,9 +2010,10 @@ function RvrseUI:CreateWindow(cfg)
 										Size = UDim2.new(0, 2, 0, 2)
 									}, TweenInfo.new(duration * 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 
-								task.wait(duration * 0.25)
-								if particle and particle.Parent then
-									particle:Destroy()
+									task.wait(duration * 0.25)
+									if particle and particle.Parent then
+										particle:Destroy()
+									end
 								end
 							end
 						end
@@ -2066,6 +2067,7 @@ function RvrseUI:CreateWindow(cfg)
 						end
 					end
 				end
+			end
 			end)
 
 			table.insert(particles, particle)

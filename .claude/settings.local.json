@@ -14,7 +14,8 @@
       "Bash(git restore:*)",
       "Bash(openssl rand:*)",
       "Bash(git log:*)",
-      "Bash(curl -s \"https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua\")"
+      "Bash(curl -s \"https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua\")",
+      "Bash(luac:*)"
     ],
     "deny": [],
     "ask": []
