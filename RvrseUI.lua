@@ -1415,7 +1415,12 @@ function RvrseUI:CreateWindow(cfg)
 	local root = Instance.new("Frame")
 	root.Name = RvrseUI._obfuscatedNames.window  -- 🔐 Dynamic obfuscation: Changes every launch
 	root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
-	root.Position = UDim2.new(0.5, -baseWidth/2, 0.5, -baseHeight/2)
+
+	-- Center window using offset positioning (for consistent dragging)
+	local screenSize = workspace.CurrentCamera.ViewportSize
+	local centerX = (screenSize.X - baseWidth) / 2
+	local centerY = (screenSize.Y - baseHeight) / 2
+	root.Position = UDim2.fromOffset(centerX, centerY)
 	root.BackgroundColor3 = pal.Bg
 	root.BackgroundTransparency = 0.05
 	root.BorderSizePixel = 0
@@ -1466,24 +1471,24 @@ function RvrseUI:CreateWindow(cfg)
 	headerDivider.Parent = header
 
 	-- Drag to move (header)
-	local dragging, dragStart, startPos
+	local dragging, dragStart, startAbsPos
 	header.InputBegan:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = io.Position
-			startPos = root.Position
+			startAbsPos = root.AbsolutePosition  -- Use AbsolutePosition (pixel coordinates)
 		end
 	end)
 	header.InputEnded:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
 				dragging = false
-				-- Save window position
+				-- Save window position (as offset for consistency)
 				RvrseUI._lastWindowPosition = {
-					XScale = root.Position.X.Scale,
-					XOffset = root.Position.X.Offset,
-					YScale = root.Position.Y.Scale,
-					YOffset = root.Position.Y.Offset
+					XScale = 0,
+					XOffset = root.AbsolutePosition.X,
+					YScale = 0,
+					YOffset = root.AbsolutePosition.Y
 				}
 			end
 		end
@@ -1491,30 +1496,31 @@ function RvrseUI:CreateWindow(cfg)
 	UIS.InputChanged:Connect(function(io)
 		if dragging and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
 			local delta = io.Position - dragStart
-			local newX = startPos.X.Offset + delta.X
-			local newY = startPos.Y.Offset + delta.Y
+			local newX = startAbsPos.X + delta.X
+			local newY = startAbsPos.Y + delta.Y
 
 			-- Get screen size and GUI insets (Roblox topbar, etc.)
 			local screenSize = workspace.CurrentCamera.ViewportSize
 			local guiInset = GuiService:GetGuiInset()
 			local windowWidth = root.AbsoluteSize.X
 			local windowHeight = root.AbsoluteSize.Y
-			local headerHeight = 52  -- Header is 52px tall (line 1451)
+			local headerHeight = 52  -- Header is 52px tall
 
-			-- CRITICAL: Clamp position to ensure header stays within playable area (not under Roblox topbar)
-			-- Left edge: Allow dragging until only 100px of window is visible (so user can drag back)
-			-- Right edge: Allow dragging until only 100px of window is visible
-			-- Top edge: MUST stay below Roblox topbar (minimum = guiInset.Y)
-			-- Bottom edge: Allow dragging until only header is visible (so close button always accessible)
-			local minX = -(windowWidth - 100)  -- Allow most of window to go off left, keep 100px visible
-			local maxX = screenSize.X - 100  -- Allow most of window to go off right, keep 100px visible
-			local minY = guiInset.Y  -- Stay below Roblox topbar (36px typically)
-			local maxY = screenSize.Y - headerHeight  -- ALWAYS keep header visible at bottom
+			-- BOUNDARY LOGIC: Keep window accessible but allow partial off-screen
+			-- Left: Allow drag until only 100px visible (can drag back)
+			-- Right: Allow drag until only 100px visible
+			-- Top: MUST stay below Roblox topbar (never hide header under topbar)
+			-- Bottom: Allow drag until only header visible (close button always accessible)
+			local minX = -(windowWidth - 100)  -- Can go mostly off-left, keep 100px visible
+			local maxX = screenSize.X - 100    -- Can go mostly off-right, keep 100px visible
+			local minY = guiInset.Y             -- NEVER go under Roblox topbar
+			local maxY = screenSize.Y - headerHeight  -- Keep header visible at bottom
 
 			newX = math.clamp(newX, minX, maxX)
 			newY = math.clamp(newY, minY, maxY)
 
-			root.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
+			-- Use pure offset positioning (no scale mixing)
+			root.Position = UDim2.fromOffset(newX, newY)
 		end
 	end)
 
