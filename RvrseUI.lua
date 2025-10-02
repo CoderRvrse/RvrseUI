@@ -1107,8 +1107,16 @@ UIS.InputBegan:Connect(function(io, gpe)
 							windowData.restoreFunction()
 						end
 					else
-						-- Window is NOT minimized, so just toggle visibility
-						f.Visible = not f.Visible
+						-- Window is fully open
+						if f.Visible then
+							-- Window is visible and open, minimize it to chip
+							if windowData.minimizeFunction then
+								windowData.minimizeFunction()
+							end
+						else
+							-- Window is hidden, show it
+							f.Visible = true
+						end
 					end
 				else
 					-- No minimize tracking, normal toggle
@@ -2060,13 +2068,14 @@ function RvrseUI:CreateWindow(cfg)
 	end)
 
 	-- Make controller chip draggable
-	local chipDragging, chipDragStart, chipStartPos, chipWasDragged
+	local chipDragging, chipDragStart, chipStartAbsPos, chipWasDragged
 	controllerChip.InputBegan:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			chipDragging = true
 			chipWasDragged = false
 			chipDragStart = io.Position
-			chipStartPos = controllerChip.Position
+			-- Store absolute position to avoid scale/offset calculation issues
+			chipStartAbsPos = controllerChip.AbsolutePosition
 		end
 	end)
 	controllerChip.InputEnded:Connect(function(io)
@@ -2090,9 +2099,9 @@ function RvrseUI:CreateWindow(cfg)
 			if dragDistance > 5 then
 				chipWasDragged = true
 
-				-- Calculate new position
-				local newX = chipStartPos.X.Offset + delta.X
-				local newY = chipStartPos.Y.Offset + delta.Y
+				-- Calculate new position from absolute position (avoids scale/offset confusion)
+				local newX = chipStartAbsPos.X + delta.X
+				local newY = chipStartAbsPos.Y + delta.Y
 
 				-- Get screen size and chip size for boundary clamping
 				local screenSize = workspace.CurrentCamera.ViewportSize
@@ -2102,6 +2111,7 @@ function RvrseUI:CreateWindow(cfg)
 				newX = math.clamp(newX, 0, screenSize.X - chipSize)
 				newY = math.clamp(newY, 0, screenSize.Y - chipSize)
 
+				-- Set position using only offset (scale = 0) to avoid jumps
 				controllerChip.Position = UDim2.new(0, newX, 0, newY)
 			end
 		end
@@ -2124,7 +2134,8 @@ function RvrseUI:CreateWindow(cfg)
 	-- Register window with UI toggle system, including minimize state tracking
 	local windowData = {
 		isMinimized = function() return isMinimized end,
-		restoreFunction = restoreWindow
+		restoreFunction = restoreWindow,
+		minimizeFunction = minimizeWindow
 	}
 	self.UI:RegisterToggleTarget(root, windowData)
 
