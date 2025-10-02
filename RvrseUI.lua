@@ -2262,20 +2262,19 @@ function RvrseUI:CreateWindow(cfg)
 			end
 
 			if chipDragThreshold then
-				-- Use actual current size (50 when normal, 60 when hovering)
+				-- CRITICAL: controllerChip.AnchorPoint = (0.5, 0.5) means Position is the CENTER
+				-- So mousePos directly = chip center position (no offset calculation needed!)
 				local chipSize = controllerChip.AbsoluteSize.X
 				local halfSize = chipSize / 2
 
-				-- Calculate new position - center chip under cursor
-				local newX = mousePos.X - halfSize
-				local newY = mousePos.Y - halfSize
-
 				-- Get screen size for boundary clamping
 				local screenSize = workspace.CurrentCamera.ViewportSize
-				newX = math.clamp(newX, 0, screenSize.X - chipSize)
-				newY = math.clamp(newY, 0, screenSize.Y - chipSize)
 
-				-- Set position
+				-- Clamp to keep chip fully on screen (account for AnchorPoint being center)
+				local newX = math.clamp(mousePos.X, halfSize, screenSize.X - halfSize)
+				local newY = math.clamp(mousePos.Y, halfSize, screenSize.Y - halfSize)
+
+				-- Set position (this is the CENTER of the chip because AnchorPoint = 0.5, 0.5)
 				controllerChip.Position = UDim2.fromOffset(newX, newY)
 
 				-- Debug every 10 frames to avoid spam
