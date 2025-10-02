@@ -2067,7 +2067,6 @@ function RvrseUI:CreateWindow(cfg)
 						end
 					end
 				end
-			end
 			end)
 
 			table.insert(particles, particle)
