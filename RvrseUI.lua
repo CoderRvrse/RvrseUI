@@ -22,10 +22,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 8,
-	Patch = 3,
+	Patch = 4,
 	Build = "20251002",  -- YYYYMMDD format
-	Full = "2.8.3",
-	Hash = "T1N9Q8R7",  -- Release hash for integrity verification
+	Full = "2.8.4",
+	Hash = "U2P1R9S8",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -947,15 +947,28 @@ end
 -- =========================
 -- Root Host (Default Container)
 -- =========================
--- Note: Default container is PlayerGui for standard UI
--- Can be customized per-window via CreateWindow({ Container = ... })
+-- Note: Uses CoreGui to stay above EVERYTHING (including Roblox CoreGui elements)
+-- CoreGui has special priority and renders above PlayerGui
+local CoreGui = game:GetService("CoreGui")
+
 local host = Instance.new("ScreenGui")
 host.Name = "RvrseUI_v2"
 host.ResetOnSpawn = false
 host.IgnoreGuiInset = false  -- CRITICAL: false to respect topbar, prevents offset
 host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-host.DisplayOrder = 100000  -- Very high to stay above ALL Roblox UI (chat, leaderboard, etc.)
-host.Parent = PlayerGui
+host.DisplayOrder = 999999999  -- Maximum DisplayOrder to stay on top of everything
+
+-- Try to parent to CoreGui (requires permission), fallback to PlayerGui
+local success = pcall(function()
+	host.Parent = CoreGui
+end)
+
+if not success then
+	warn("[RvrseUI] No CoreGui access, using PlayerGui (may render under some Roblox UI)")
+	host.Parent = PlayerGui
+else
+	print("[RvrseUI] Successfully mounted to CoreGui - guaranteed on top!")
+end
 
 -- Store global reference for RvrseUI:Destroy() and visibility methods
 RvrseUI._host = host

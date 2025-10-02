@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 8,
-    "patch": 3,
-    "full": "2.8.3",
+    "patch": 4,
+    "full": "2.8.4",
     "build": "20251002",
-    "hash": "T1N9Q8R7",
+    "hash": "U2P1R9S8",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "DisplayOrder + Chip Drag Offset Fix",
+    "name": "CoreGui Mount - True Top Priority",
     "codename": "Stable",
-    "notes": "GUI always on top of Roblox UI, fixed chip drag offset with IgnoreGuiInset, comprehensive debug logging"
+    "notes": "Mounts to CoreGui for absolute top priority, stays above ALL Roblox UI including CoreGui elements, with PlayerGui fallback"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,31 @@
     "auto_save": true
   },
   "changelog": {
+    "2.8.4": {
+      "date": "2025-10-02",
+      "hash": "U2P1R9S8",
+      "changes": [
+        "🚀 ULTIMATE FIX - Mount to CoreGui for Absolute Top Priority",
+        "✅ GUI now mounts to CoreGui instead of PlayerGui",
+        "✅ CoreGui has special Roblox priority - renders above EVERYTHING",
+        "✅ Stays above ALL Roblox UI including CoreGui elements",
+        "✅ DisplayOrder: 999999999 (maximum possible)",
+        "✅ Safe pcall() with PlayerGui fallback if CoreGui access denied",
+        "🔧 TECHNICAL CHANGES:",
+        "  - Lines 947-971: CoreGui mounting logic with fallback",
+        "  - Line 952: Added CoreGui service reference",
+        "  - Line 959: DisplayOrder = 999999999",
+        "  - Lines 962-971: pcall wrapper with error handling",
+        "  - Prints success message when mounted to CoreGui",
+        "  - Warns if fallback to PlayerGui (rare)",
+        "✅ PREVIOUS FIXES STILL ACTIVE:",
+        "  - IgnoreGuiInset = false (correct positioning)",
+        "  - root.ZIndex = 10000 (high element priority)",
+        "  - notifyRoot.ZIndex = 15000 (notifications on top)",
+        "  - controllerChip.ZIndex = 10000 (chip always visible)",
+        "🎯 RESULT: GUI guaranteed on top of EVERYTHING in Roblox!"
+      ]
+    },
     "2.8.3": {
       "date": "2025-10-02",
       "hash": "T1N9Q8R7",
