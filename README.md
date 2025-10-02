@@ -1,10 +1,10 @@
-# RvrseUI v2.10.2
+# RvrseUI v2.11.0
 
 <div align="center">
 
-**A modern, professional UI framework for Roblox with named config profiles, auto-load system, theme persistence, and minimize to controller.**
+**A modern, professional UI framework for Roblox with named config profiles, auto-load system, theme persistence, minimize to controller, and rebindable hotkeys.**
 
-[![Version](https://img.shields.io/badge/version-2.10.2-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-2.11.0-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
@@ -329,9 +329,10 @@ local exists = RvrseUI:ConfigurationExists()
 
 ### Complete Script with Config (Production-Ready, No Errors!)
 
-> ✅ **This example works perfectly** - tested and verified with v2.7.1!
+> ✅ **This example works perfectly** - tested and verified with v2.11.0!
 > 📁 **Full version**: See [SIMPLE_TEST.lua](SIMPLE_TEST.lua) for complete demo
 > 🎨 **Theme Note**: Theme parameter is first-run default only - saved theme takes precedence!
+> 🔑 **Hotkey Note**: Use `IsUIToggle = true` in keybind to make it rebindable from settings!
 
 ```lua
 -- Load RvrseUI with cache buster (always gets latest!)
