@@ -21,11 +21,11 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 8,
-	Patch = 5,
+	Minor = 9,
+	Patch = 0,
 	Build = "20251002",  -- YYYYMMDD format
-	Full = "2.8.5",
-	Hash = "V3Q2S1T9",  -- Release hash for integrity verification
+	Full = "2.9.0",
+	Hash = "D7R4X9M2",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -62,6 +62,93 @@ local function dprintf(...)
 		print("[RvrseUI]", ...)
 	end
 end
+
+-- =========================
+-- 🔐 Dynamic Name Obfuscation System
+-- =========================
+-- Generates random GUI element names on every launch to prevent:
+-- 1. Static detection by name
+-- 2. Copy-paste theft from Explorer
+-- 3. Anti-cheat pattern matching
+-- 4. Reverse engineering attempts
+
+local NameObfuscator = {}
+NameObfuscator._seed = tick() * math.random(1, 999999)  -- Unique seed per session
+NameObfuscator._cache = {}  -- Cache generated names to avoid duplicates
+
+-- Patterns for realistic-looking internal names
+local namePatterns = {
+	-- Looks like internal Roblox systems
+	{"_", "Core", "System", "Module", "Service", "Handler", "Manager", "Controller"},
+	{"UI", "GUI", "Frame", "Panel", "Widget", "Component", "Element"},
+	{"Test", "Debug", "Dev", "Internal", "Util", "Helper", "Proxy"},
+	{"Data", "Config", "State", "Cache", "Buffer", "Queue", "Stack"},
+	-- Technical suffixes
+	{"Ref", "Impl", "Inst", "Obj", "Node", "Item", "Entry"},
+	-- Random chars/numbers for uniqueness
+	{"A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"},
+	{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+}
+
+-- Generate a random, realistic-looking internal name
+function NameObfuscator:Generate(hint)
+	-- Update seed for randomness
+	self._seed = (self._seed * 9301 + 49297) % 233280
+	local rand = self._seed / 233280
+
+	-- Pick random pattern
+	local patterns = {
+		function() return "_" .. self:GetRandom(1) .. self:GetRandom(7) .. self:GetRandom(5) end,  -- _CoreTest3Ref
+		function() return self:GetRandom(2) .. "_" .. self:GetRandom(2) .. self:GetRandom(5) .. self:GetNum() end,  -- UI_GUIObj5
+		function() return "_" .. self:GetRandom(3) .. self:GetRandom(2) .. self:GetNum() .. self:GetChar() end,  -- _DevUI3A
+		function() return self:GetRandom(4) .. self:GetRandom(2) .. "_" .. self:GetNum() .. self:GetChar() end,  -- DataUI_7K
+		function() return "_" .. self:GetChar() .. self:GetNum() .. self:GetRandom(2) .. self:GetRandom(3) end,  -- _M4UIInternal
+	}
+
+	local name
+	local attempts = 0
+	repeat
+		local pattern = patterns[math.floor(rand * #patterns) + 1]
+		name = pattern()
+		attempts = attempts + 1
+		-- Update rand for next attempt
+		self._seed = (self._seed * 9301 + 49297) % 233280
+		rand = self._seed / 233280
+	until (not self._cache[name]) or attempts > 10
+
+	self._cache[name] = true
+	return name
+end
+
+-- Helper: Get random word from pattern category
+function NameObfuscator:GetRandom(category)
+	local words = namePatterns[category]
+	self._seed = (self._seed * 9301 + 49297) % 233280
+	local index = math.floor((self._seed / 233280) * #words) + 1
+	return words[index]
+end
+
+-- Helper: Get random char
+function NameObfuscator:GetChar()
+	return self:GetRandom(6)
+end
+
+-- Helper: Get random number
+function NameObfuscator:GetNum()
+	return self:GetRandom(7)
+end
+
+-- Pre-generate all names needed for this session (changes every launch!)
+RvrseUI._obfuscatedNames = {
+	host = NameObfuscator:Generate("host"),
+	notifyRoot = NameObfuscator:Generate("notify"),
+	window = NameObfuscator:Generate("window"),
+	chip = NameObfuscator:Generate("chip"),
+	badge = NameObfuscator:Generate("badge"),
+	customHost = NameObfuscator:Generate("custom")
+}
+
+dprintf("🔐 Obfuscated names generated:", RvrseUI._obfuscatedNames.host, RvrseUI._obfuscatedNames.window)
 
 -- ============================================
 -- ⚠️ CONFIGURATION SYSTEM - DO NOT MODIFY ⚠️
@@ -952,7 +1039,7 @@ end
 local CoreGui = game:GetService("CoreGui")
 
 local host = Instance.new("ScreenGui")
-host.Name = "_DeviceTestGui"  -- 🔐 Stealth: Looks like internal test UI, harder to steal
+host.Name = RvrseUI._obfuscatedNames.host  -- 🔐 Dynamic obfuscation: Changes every launch
 host.ResetOnSpawn = false
 host.IgnoreGuiInset = false  -- CRITICAL: false to respect topbar, prevents offset
 host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -977,7 +1064,7 @@ RvrseUI._host = host
 -- Notification System
 -- =========================
 local notifyRoot = Instance.new("Frame")
-notifyRoot.Name = "TelemetryLog"  -- 🔐 Stealth: Looks like debug telemetry
+notifyRoot.Name = RvrseUI._obfuscatedNames.notifyRoot  -- 🔐 Dynamic obfuscation: Changes every launch
 notifyRoot.BackgroundTransparency = 1
 notifyRoot.AnchorPoint = Vector2.new(1, 1)
 notifyRoot.Position = UDim2.new(1, -8, 1, -8)
@@ -1326,7 +1413,7 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Root window (glassmorphic)
 	local root = Instance.new("Frame")
-	root.Name = "CoreInterface"  -- 🔐 Stealth: Generic name, doesn't reveal framework
+	root.Name = RvrseUI._obfuscatedNames.window  -- 🔐 Dynamic obfuscation: Changes every launch
 	root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
 	root.Position = UDim2.new(0.5, -baseWidth/2, 0.5, -baseHeight/2)
 	root.BackgroundColor3 = pal.Bg
@@ -1623,7 +1710,7 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Version badge with hash (bottom left corner - fully contained with proper insets)
 	local versionBadge = Instance.new("TextButton")
-	versionBadge.Name = "MetadataInfo"  -- 🔐 Stealth: Looks like internal metadata display
+	versionBadge.Name = RvrseUI._obfuscatedNames.badge  -- 🔐 Dynamic obfuscation: Changes every launch
 	versionBadge.BackgroundColor3 = Color3.fromRGB(0, 255, 255)  -- Cyan/Neon Blue
 	versionBadge.BackgroundTransparency = 0.9
 	versionBadge.Position = UDim2.new(0, 8, 1, -24)  -- 8px inset from left, 24px from bottom (8px inset + 16px height)
@@ -1780,7 +1867,7 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Gaming Controller Minimize Chip
 	local controllerChip = Instance.new("TextButton")
-	controllerChip.Name = "Dispatcher"  -- 🔐 Stealth: Sounds like internal system component
+	controllerChip.Name = RvrseUI._obfuscatedNames.chip  -- 🔐 Dynamic obfuscation: Changes every launch
 	controllerChip.Text = "🎮"
 	controllerChip.Font = Enum.Font.GothamBold
 	controllerChip.TextSize = 20

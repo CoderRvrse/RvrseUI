@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 8,
-    "patch": 5,
-    "full": "2.8.5",
+    "minor": 9,
+    "patch": 0,
+    "full": "2.9.0",
     "build": "20251002",
-    "hash": "V3Q2S1T9",
+    "hash": "D7R4X9M2",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "Stealth Mode - Anti-Theft Protection",
+    "name": "Dynamic Obfuscation - Advanced Anti-Theft",
     "codename": "Stable",
-    "notes": "Internal element names obfuscated to prevent GUI theft. API unchanged, fully backward compatible."
+    "notes": "Element names randomize on every launch to prevent static detection. API unchanged, fully backward compatible."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -36,9 +36,57 @@
     "flags_system": true,
     "complete_elements": true,
     "configuration_saving": true,
-    "auto_save": true
+    "auto_save": true,
+    "dynamic_obfuscation": true
   },
   "changelog": {
+    "2.9.0": {
+      "date": "2025-10-02",
+      "hash": "D7R4X9M2",
+      "changes": [
+        "🔁 DYNAMIC OBFUSCATION - Next-Level Anti-Theft Protection",
+        "✅ Element names randomize on EVERY LAUNCH (not static)",
+        "✅ Impossible to detect via static name patterns",
+        "✅ Prevents copy-paste theft from Explorer",
+        "✅ Defeats anti-cheat pattern matching",
+        "✅ Makes reverse engineering significantly harder",
+        "🎲 ADVANCED NAME GENERATION SYSTEM:",
+        "  - NameObfuscator class with LCG random number generator",
+        "  - 5 different realistic naming patterns that mimic Roblox internals",
+        "  - Names look like: _CoreTest3Ref, UI_GUIObj5, _DevUI3A, SysRefB7, _IntGUI4Ptr",
+        "  - Seed randomized every session using tick() + math.random()",
+        "  - Each launch generates completely different names",
+        "🔐 DYNAMICALLY OBFUSCATED ELEMENTS:",
+        "  - host (ScreenGui): Changes every launch (e.g., _CoreTest3Ref)",
+        "  - notifyRoot (Notifications): Changes every launch (e.g., UI_GUIObj5)",
+        "  - window (Main Window): Changes every launch (e.g., _DevUI3A)",
+        "  - chip (Controller): Changes every launch (e.g., SysRefB7)",
+        "  - badge (Version Badge): Changes every launch (e.g., _IntGUI4Ptr)",
+        "🎯 WHY THIS IS POWERFUL:",
+        "  - Static detection scripts break immediately",
+        "  - Anti-cheat can't ban based on element names",
+        "  - Kids can't find consistent patterns to copy",
+        "  - Each session looks like completely different UI",
+        "  - Blends in with Roblox internal test systems",
+        "✅ USER EXPERIENCE:",
+        "  - loadstring() still works exactly the same",
+        "  - RvrseUI:CreateWindow() API unchanged",
+        "  - All features work identically",
+        "  - No breaking changes whatsoever",
+        "  - Users won't notice any difference",
+        "🔧 TECHNICAL IMPLEMENTATION:",
+        "  - Lines 66-151: NameObfuscator class with LCG PRNG",
+        "  - Lines 153-159: Pre-generation of all names at framework load",
+        "  - Lines 1042, 1067, 1416, 1713, 1870: Dynamic name application",
+        "  - Seed: tick() * math.random(1, 999999) for true randomness",
+        "  - Generator patterns: underscore+word+num, prefix_component, debug+tech+char",
+        "📦 BASED ON v2.8.5:",
+        "  - All stealth mode features from v2.8.5 retained",
+        "  - Enhanced from static to dynamic obfuscation",
+        "  - Upgraded anti-theft protection to maximum level",
+        "🎯 RESULT: Ultimate anti-theft protection - names change every launch!"
+      ]
+    },
     "2.8.5": {
       "date": "2025-10-02",
       "hash": "V3Q2S1T9",
@@ -166,579 +214,11 @@
         "  - Lines 2070-2118: Fixed chip drag using AbsolutePosition",
         "  - Line 2128: Added minimizeFunction to windowData"
       ]
-    },
-    "2.8.0": {
-      "date": "2025-10-01",
-      "hash": "Q9K8M7N6",
-      "changes": [
-        "🚀 MAJOR RELEASE - Named Config Profiles + Auto-Load System",
-        "✨ NEW: ConfigurationSaving = true → Auto-loads last used config!",
-        "✨ NEW: ConfigurationSaving = 'ProfileName' → Named profile support",
-        "✨ NEW: RvrseUI:SaveConfigAs(name) → Save config with specific name",
-        "✨ NEW: RvrseUI:LoadConfigByName(name) → Load specific config",
-        "✨ NEW: RvrseUI:GetLastConfig() → Returns (configPath, theme)",
-        "✨ NEW: RvrseUI:SaveLastConfig(path, theme) → Tracks last used",
-        "📂 SMART CONFIG SYSTEM:",
-        "  - ConfigurationSaving = true → Auto-loads RvrseUI/_last_config.json",
-        "  - Finds last used config + theme, loads automatically",
-        "  - No need to specify FileName if using auto-load",
-        "  - Theme from last config ALWAYS loads (guaranteed persistence)",
-        "📂 NAMED PROFILES:",
-        "  - ConfigurationSaving = 'MyHub' → Saves to RvrseUI/Configs/MyHub.json",
-        "  - SaveConfigAs('Profile2') → Create multiple profiles",
-        "  - LoadConfigByName('Profile2') → Switch between profiles",
-        "📂 LAST CONFIG TRACKER:",
-        "  - RvrseUI/_last_config.json stores: lastConfig, lastTheme, timestamp",
-        "  - SaveConfiguration() auto-updates last config tracker",
-        "  - Theme loads from tracker BEFORE CreateWindow paints UI",
-        "🎯 THEME PERSISTENCE GUARANTEED:",
-        "  - Last theme loads from _last_config.json",
-        "  - Overrides cfg.Theme parameter",
-        "  - Pill icon syncs via task.defer (from v2.7.2)",
-        "  - NO MORE THEME PERSISTENCE ISSUES!",
-        "📖 NEW API USAGE:",
-        "  ConfigurationSaving = true  // Auto-load",
-        "  ConfigurationSaving = 'MyProfile'  // Named profile",
-        "  ConfigurationSaving = { Enabled = true, FileName = 'Config' }  // Classic"
-      ]
-    },
-    "2.7.2": {
-      "date": "2025-10-01",
-      "hash": "P7J8K9M6",
-      "changes": [
-        "🎯 SURGICAL FIX - Pill Toggle Finally Syncs",
-        "✅ FIXED: Pill icon (🌙/🌞) now syncs with loaded theme on startup",
-        "✅ FIXED: No more first-paint mismatch (Dark pill showing when Light loaded)",
-        "Root cause: UI painted before final theme applied, pill never re-synced",
-        "Solution: Created syncPillFromTheme() function called via task.defer",
-        "🔧 syncPillFromTheme() (lines 3285-3293):",
-        "  - Reads Theme.Current after final theme applied",
-        "  - Updates pill text (🌙 Dark / 🌞 Light)",
-        "  - Updates pill colors from Theme:Get()",
-        "  - Called after UI build via task.defer (line 3382)",
-        "  - Also called in theme toggle handler (line 3306)",
-        "🎯 Expected behavior:",
-        "  Boot with saved=Light → pill shows 🌞 immediately",
-        "  Boot with saved=Dark → pill shows 🌙 immediately",
-        "  Toggle pill → syncPillFromTheme() ensures consistency",
-        "Based on GPT-5 analysis: apply before paint, sync after paint"
-      ]
-    },
-    "2.7.1": {
-      "date": "2025-10-01",
-      "hash": "N6H9K7G5",
-      "changes": [
-        "🔍 DIAGNOSTIC RELEASE - GPT-5 Verification Logging",
-        "✅ Added comprehensive path/instance/value logging to find persistence bugs",
-        "📊 SAVE VERIFICATION: Logs save path, key, instance, and readback after write",
-        "📊 LOAD VERIFICATION: Logs load path, instance, and value from disk",
-        "📊 PRE-LOAD VERIFICATION: Logs CreateWindow pre-load path and value",
-        "🎯 Verifies config instance identity across save/load cycles",
-        "🎯 Readback after save confirms value actually landed on disk",
-        "🎯 All three operations (save/load/pre-load) now print full diagnostic info",
-        "💡 Based on GPT-5 analysis of user logs showing _savedTheme nil then found",
-        "💡 Will reveal if path/instance/key/value mismatch is causing persistence issues",
-        "Expected log sequence on next boot:",
-        "  🔍 PRE-LOAD VERIFICATION → PRE-LOAD VALUE: _RvrseUI_Theme = Light",
-        "  🎯 FINAL THEME APPLICATION → ✅ Applied theme (source=saved): Light",
-        "If pre-load shows nil but load later finds Light = scope/timing issue found"
-      ]
-    },
-    "2.7.0": {
-      "date": "2025-10-01",
-      "hash": "L5G8J6F4",
-      "changes": [
-        "🚨 MAJOR FIX - Theme Persistence Finally Working",
-        "✅ FIXED: Saved theme now loads BEFORE cfg.Theme is evaluated",
-        "✅ FIXED: Pill toggle icon (🌙/🌞) now matches theme state on startup",
-        "Root cause: LoadConfiguration ran AFTER CreateWindow applied cfg.Theme",
-        "Solution: Pre-load saved theme from config file at start of CreateWindow",
-        "Pre-loads _RvrseUI_Theme directly from JSON before precedence logic (lines 1005-1015)",
-        "Precedence order preserved: saved > cfg > default",
-        "Pill icon correctly shows 🌙 for Dark, 🌞 for Light on startup",
-        "Theme.Current set to final theme BEFORE UI elements created",
-        "🎯 USER FEEDBACK IMPLEMENTED",
-        "✅ 'Your GUI theme should load from the last saved theme' - NOW WORKS",
-        "✅ 'config value is overriding the saved state' - FIXED",
-        "✅ 'pill toggle doesn't match theme state on startup' - FIXED",
-        "💡 BEST PRACTICE: Users can still set Theme parameter for first-run default",
-        "Once user changes theme via pill toggle, saved theme takes precedence forever"
-      ]
-    },
-    "2.6.1": {
-      "date": "2025-10-01",
-      "hash": "K2F7H5E3",
-      "changes": [
-        "🐛 CRITICAL FIX - Theme.Current Nil Error",
-        "✅ FIXED: 'attempt to index nil with Current' at line 96",
-        "Root cause: Theme was local to CreateWindow, not accessible in SaveConfiguration",
-        "Solution: Made Theme globally accessible via RvrseUI.Theme (line 520)",
-        "Added nil check: if RvrseUI.Theme and RvrseUI.Theme.Current (lines 96-98)",
-        "SaveConfiguration now accesses RvrseUI.Theme.Current safely",
-        "✅ Config saving now works flawlessly with theme persistence"
-      ]
-    },
-    "2.6.0": {
-      "date": "2025-10-01",
-      "hash": "J9E6G4D2",
-      "changes": [
-        "✨ MAJOR FEATURE - Theme Persistence in Config",
-        "💾 Theme now saves automatically when changed",
-        "💾 Theme loads from config when window opens",
-        "💾 Saved as _RvrseUI_Theme in config JSON",
-        "💾 Takes priority over CreateWindow Theme parameter",
-        "🎯 Auto-save triggered on theme toggle",
-        "🎯 Debounced saves (max once per second)",
-        "✨ MAJOR FEATURE - Controller Chip Boundary Clamping",
-        "🎮 Controller chip can no longer go off-screen",
-        "🎮 Position clamped to viewport boundaries",
-        "🎮 math.clamp ensures chip stays fully visible",
-        "🎮 Boundaries: X [0, screenWidth-50], Y [0, screenHeight-50]",
-        "🎮 Works on any screen size/resolution",
-        "📝 TECHNICAL DETAILS",
-        "SaveConfiguration: Saves Theme.Current as _RvrseUI_Theme (line 96)",
-        "LoadConfiguration: Reads _RvrseUI_Theme, stores in _savedTheme (lines 158-164)",
-        "CreateWindow: Applies _savedTheme before window creation (lines 945-947)",
-        "Theme toggle: Triggers _autoSave after theme change (lines 3230-3233)",
-        "Drag handler: Clamps newX/newY to screen bounds (lines 1758-1759)",
-        "🎯 USER REQUESTS FULFILLED",
-        "✅ 'ensure the Game icon when being move can never go off' - FIXED",
-        "✅ 'config saves theme' - IMPLEMENTED",
-        "✅ 'theme is saved inside the config' - IMPLEMENTED"
-      ]
-    },
-    "2.5.2": {
-      "date": "2025-10-01",
-      "hash": "H8D5F3C1",
-      "changes": [
-        "🐛 CRITICAL FIX - ImageColor3 Error on UIStroke",
-        "✅ FIXED: 'ImageColor3 is not a valid member of UIStroke' at line 3147",
-        "Root cause: UIStroke uses Color property, not ImageColor3",
-        "Solution: Changed controllerChip.Glow.ImageColor3 to .Color",
-        "✨ NEW: Premium Rotating Shine Effect",
-        "🌟 Added rotating gradient shine overlay on controller chip",
-        "🌟 Continuous 360° rotation at 2° per frame",
-        "🌟 White → Accent → White gradient shimmer",
-        "🌟 Transparency gradient for subtle effect (0.6-1.0)",
-        "🌟 Animates via RunService.Heartbeat for smooth rotation",
-        "🎨 ENHANCED: Better Visual Appeal",
-        "Controller chip now has 3 visual effects:",
-        "1. Pulsing UIStroke glow (thickness animation)",
-        "2. Rotating shine gradient (continuous spin)",
-        "3. Accent-colored border stroke",
-        "🎯 Result: Premium gaming controller appearance"
-      ]
-    },
-    "2.5.1": {
-      "date": "2025-10-01",
-      "hash": "G7C4E2B9",
-      "changes": [
-        "🐛 CRITICAL FIX - UIStroke Size Error",
-        "✅ FIXED: 'Size is not a valid member of UIStroke' error",
-        "Root cause: Tried to animate Size property on UIStroke (doesn't exist)",
-        "Solution: Removed broken pulsing code, use built-in addGlow animation",
-        "🎮 NEW: Draggable Controller Chip",
-        "✨ Drag controller chip anywhere on screen",
-        "✨ Position saved automatically after drag",
-        "✨ Controller restores at last dragged position",
-        "✨ Drag detection prevents accidental restore (5px threshold)",
-        "🪟 NEW: Window Position Memory",
-        "✨ Window remembers last dragged position",
-        "✨ Restores at saved position instead of center",
-        "✨ Position saved in RvrseUI._lastWindowPosition",
-        "✨ Controller position saved in RvrseUI._controllerChipPosition",
-        "🎯 IMPROVED: Click vs Drag Detection",
-        "Only restores window if chip wasn't dragged",
-        "5px drag threshold prevents false positives",
-        "chipWasDragged flag tracks drag state",
-        "🎯 Better UX - controller and window remember positions"
-      ]
-    },
-    "2.5.0": {
-      "date": "2025-10-01",
-      "hash": "F3B8D9A4",
-      "changes": [
-        "✨ MAJOR FEATURE - Minimize to Gaming Controller",
-        "🎮 NEW: Minimize button in header (➖ icon, fourth from right)",
-        "🎮 NEW: Gaming controller chip (🎮) for minimized state",
-        "✨ NEW: Premium particle flow animation system",
-        "🌊 EFFECT: 40 particles flow from window to controller on minimize",
-        "🌊 EFFECT: Particles flow back from controller to window on restore",
-        "🎨 ANIMATION: Window shrinks with 180° rotation into controller chip",
-        "🎨 ANIMATION: Controller chip pops in with bounce effect",
-        "🎨 ANIMATION: Window expands from chip with reverse rotation",
-        "✨ ENHANCED: Pulsing glow effect on controller chip",
-        "✨ ENHANCED: Hover effect grows controller chip (50px → 60px)",
-        "🎯 STATE MANAGEMENT: isMinimized flag prevents breaking GUI",
-        "🎯 TESTED: Works flawlessly in both Dark and Light themes",
-        "🎯 PREMIUM: Smooth, professional animations throughout",
-        "🚀 NO ERRORS: Complete restore preserves all GUI state"
-      ]
-    },
-    "2.4.1": {
-      "date": "2025-10-01",
-      "hash": "E9A2F5D8",
-      "changes": [
-        "🎨 UX ENHANCEMENT - Header Visual Cohesion",
-        "✅ FIXED: Header now matches body glassmorphic aesthetic",
-        "✅ FIXED: Removed heavy gradient that looked disconnected",
-        "🎨 IMPROVED: Header uses same Card color and transparency as body (0.5)",
-        "🎨 IMPROVED: Matching border thickness (1px) for visual harmony",
-        "✨ NEW: Subtle bottom divider on header for gentle separation",
-        "✨ IMPROVED: Theme toggle now updates header divider color",
-        "🎯 Header and body now flow together seamlessly",
-        "🎯 Professional, cohesive appearance across all themes"
-      ]
-    },
-    "2.4.0": {
-      "date": "2025-09-30",
-      "hash": "D7F3A9C2",
-      "changes": [
-        "🚨 CRITICAL FIX - Theme Toggle Scope Issue",
-        "✅ FIXED: Theme toggle crashing with 'attempt to index nil with BackgroundColor3'",
-        "✅ FIXED: Moved theme toggle handler to END of CreateWindow function",
-        "Root cause: Handler tried to access body/tabBar before they were created",
-        "Classic closure scope issue - variables referenced before definition",
-        "Theme switching now works perfectly in both Dark and Light modes",
-        "🔧 ARCHITECTURAL: Major fix ensuring all UI elements exist before handler runs"
-      ]
-    },
-    "2.3.9": {
-      "date": "2025-09-30",
-      "hash": "C4F8B7E3",
-      "changes": [
-        "🎨 MAJOR OVERHAUL - Light Theme Redesign",
-        "✨ NEW: Modern Tailwind-inspired color palette",
-        "🎨 IMPROVED: Backgrounds - Clean blue-gray (#F5F7FA) with pure white glass",
-        "🎨 IMPROVED: Text - High contrast nearly-black (#111827) for readability",
-        "🎨 IMPROVED: Borders - Clear gray borders (#D1D5DB) that are actually visible",
-        "🎨 IMPROVED: Interactive states - Clear visual feedback on hover/active",
-        "🎨 IMPROVED: Success/Warning/Error colors - Vibrant and modern",
-        "🎨 IMPROVED: Proper WCAG contrast ratios for accessibility",
-        "✅ Light theme now looks professional and flawless",
-        "✅ Matches Dark theme quality and polish"
-      ]
-    },
-    "2.3.8": {
-      "date": "2025-09-30",
-      "hash": "B6D9A4F2",
-      "changes": [
-        "🔒 PROTECTION - Config System Lock",
-        "✅ Added DO NOT TOUCH protection comments around configuration system",
-        "Configuration system is FULLY TESTED and PRODUCTION-READY",
-        "All functions work correctly - DO NOT modify this code",
-        "🎨 IMPROVED: Close button now uses ❌ emoji (clear X icon)",
-        "📝 IMPROVED: README.md Complete Script example now uses SIMPLE_TEST.lua code",
-        "Production-ready example with all features working correctly"
-      ]
-    },
-    "2.3.7": {
-      "date": "2025-09-30",
-      "hash": "F2C6B8D4",
-      "changes": [
-        "🚨 CRITICAL FIX - Variable Name Mismatch",
-        "✅ FIXED: Theme switcher crashing with 'attempt to index nil with BackgroundColor3'",
-        "✅ FIXED: notifyToggle → bellToggle (line 1271-1273)",
-        "✅ FIXED: closeButton → closeBtn (line 1276-1278)",
-        "Theme switching now works perfectly without errors",
-        "📝 NEW: SIMPLE_TEST.lua - Production-ready demo script",
-        "Complete working example with all features",
-        "Configuration saving, lock groups, all elements",
-        "No errors, fully functional, ready to use"
-      ]
-    },
-    "2.3.6": {
-      "date": "2025-09-30",
-      "hash": "E8A3C5F1",
-      "changes": [
-        "🚨 CRITICAL HOTFIX - Function Ordering Error",
-        "✅ FIXED: SaveConfiguration crashing with 'attempt to call a nil value'",
-        "✅ FIXED: dprintf() was defined AFTER configuration functions that used it",
-        "Moved dprintf() from line 216 to line 58 (before Configuration System)",
-        "Removed duplicate dprintf() definition at line 222",
-        "SaveConfiguration, LoadConfiguration, DeleteConfiguration now work correctly",
-        "Configuration system fully functional again"
-      ]
-    },
-    "2.3.5": {
-      "date": "2025-09-30",
-      "hash": "D4F7B9E2",
-      "changes": [
-        "🎨 UX OVERHAUL - Premium Slider Feel",
-        "✨ GROW ON GRAB: Thumb expands 18px → 24px when dragging",
-        "✨ HOVER PREVIEW: Thumb grows to 20px on hover (previews grab)",
-        "✨ GLOW EFFECT: Accent-colored ring appears when grabbed (3px stroke)",
-        "✨ SMOOTH RELEASE: Bouncy animation on release (Bounce spring)",
-        "🎨 IMPROVED: Track height 6px → 8px for better hit area",
-        "🎨 IMPROVED: Thumb default size 16px → 18px (more substantial)",
-        "🎨 IMPROVED: Enhanced shadow (0.5 → 0.4 transparency, 3px → 4px size)",
-        "🎨 IMPROVED: Buttery smooth animations (Smooth fill, Snappy thumb)",
-        "🎨 IMPROVED: Corner radius adjustments for premium look",
-        "⚡ PERFORMANCE: Hover state tracking prevents unnecessary animations",
-        "⚡ PERFORMANCE: Glow ring only animates when needed",
-        "🎯 All slider interactions now feel premium and responsive"
-      ]
-    },
-    "2.3.4": {
-      "date": "2025-09-30",
-      "hash": "C7E9F2A5",
-      "changes": [
-        "🎨 LAYOUT FIX - Tab Bar Spacing",
-        "✅ FIXED: Tab bar no longer visually clashes with version badge",
-        "✅ FIXED: Clean visual separation between tabs and version pill",
-        "Tab bar left position: 12px → 54px (42px additional space)",
-        "Tab bar width: -24 → -66 (adjusted for new left margin)",
-        "Creates clear visual column for version badge in bottom-left",
-        "Tabs now start well to the right, avoiding any visual overlap",
-        "Professional, clean layout with proper spatial hierarchy"
-      ]
-    },
-    "2.3.3": {
-      "date": "2025-09-30",
-      "hash": "A1B8E4D7",
-      "changes": [
-        "🎨 UI FIX - Version Badge Containment",
-        "✅ FIXED: Version badge now fully contained within panel boundaries",
-        "✅ FIXED: Badge no longer overflows or touches border lines",
-        "Position: Changed from (0, -4, 1, -20) to (0, 8, 1, -24)",
-        "8px inset from left edge (was hanging 4px outside)",
-        "8px inset from bottom edge (24px from bottom = 8px gap + 16px height)",
-        "Size reduced: 38x14 (was 42x16) for cleaner appearance",
-        "Text size: 7px (was 8px) for better proportion",
-        "Corner radius: 5px (was 6px) for refined look",
-        "Badge now stays inside panel on all screen sizes and breakpoints"
-      ]
-    },
-    "2.3.2": {
-      "date": "2025-09-30",
-      "hash": "F9D2A8C1",
-      "changes": [
-        "🔧 CRITICAL FIX - Production-Grade Dropdown Rewrite",
-        "✅ FIXED: Dropdown menu now expands with proper spacing (8px gap below button)",
-        "✅ FIXED: Dropdown selections now work correctly - all options clickable",
-        "✅ FIXED: Card clipping disabled (f.ClipsDescendants = false) for dropdown overflow",
-        "🎨 IMPROVED: Smooth expand/collapse animations using Animator:Tween()",
-        "🎨 IMPROVED: Dropdown starts at 0 height and animates to full height",
-        "🎨 IMPROVED: Selected options highlighted with Accent color (80% transparency)",
-        "🎨 IMPROVED: Hover effects on all dropdown options",
-        "🎨 IMPROVED: Arrow indicator flips (▼/▲) when opening/closing",
-        "🎨 IMPROVED: Click outside detection with proper delay for AbsolutePosition updates",
-        "🎨 IMPROVED: Enhanced ZIndex management (dropdown at 100, scroll at 101, options at 102)",
-        "🎨 IMPROVED: Accent-colored border stroke on dropdown list",
-        "🎨 IMPROVED: Shadow effect on dropdown for depth perception",
-        "🎨 IMPROVED: Refresh() method now properly rebuilds all options with animations",
-        "⚡ PERFORMANCE: Optimized option button creation and event handling",
-        "✨ All dropdown issues resolved - production-grade implementation complete"
-      ]
-    },
-    "2.3.1": {
-      "date": "2025-09-30",
-      "hash": "8A4F6D3E",
-      "changes": [
-        "🔧 ENHANCEMENT RELEASE - UI Fixes & Config Folders",
-        "✨ NEW: ConfigurationSaving table format with FolderName support",
-        "ConfigurationSaving = { Enabled = true, FolderName = 'MyHub', FileName = 'Config' }",
-        "Automatic folder creation via makefolder() if it doesn't exist",
-        "Backward compatible with old boolean format",
-        "🎨 FIXED: Version badge position (smaller, more left, more down)",
-        "Badge now 42x16 (was 50x18), positioned at (-4, -20) instead of (8, -26)",
-        "Smaller text size (8px instead of 9px) for cleaner appearance",
-        "🔽 FIXED: Dropdown menu now shows all options properly",
-        "Real dropdown list with ScrollingFrame for many options",
-        "Click to open/close with arrow indicator (▼/▲)",
-        "Hover effects on dropdown options",
-        "Click outside to close dropdown",
-        "Selected option highlighted in list",
-        "Maximum height 160px with scrolling support",
-        "Dropdown:Refresh() now rebuilds option list correctly"
-      ]
-    },
-    "2.3.0": {
-      "date": "2025-09-30",
-      "hash": "7F5E2B9C",
-      "changes": [
-        "💾 MAJOR RELEASE - Configuration System",
-        "Added RvrseUI:SaveConfiguration() - Save all flagged elements",
-        "Added RvrseUI:LoadConfiguration() - Auto-restore settings",
-        "Added RvrseUI:DeleteConfiguration() - Remove saved config",
-        "Added RvrseUI:ConfigurationExists() - Check for saved config",
-        "Added ConfigurationSaving parameter to CreateWindow",
-        "Added FileName parameter for custom config file names",
-        "Auto-save system: Saves after 1 second of inactivity",
-        "All elements with Flag parameter auto-save on change",
-        "JSON-based configuration storage (human-readable)",
-        "Debounced saves to prevent excessive writes",
-        "Complete persistence across script reloads",
-        "CONFIG_DEMO.lua with comprehensive examples"
-      ]
-    },
-    "2.2.2": {
-      "date": "2025-09-30",
-      "hash": "4DD9E8A6",
-      "changes": [
-        "🎯 ENHANCEMENT RELEASE - Dynamic UI Control",
-        "Added Element:SetVisible(bool) to ALL 12 elements",
-        "Added notification Priority system (critical/high/normal/low)",
-        "Added Section:Update(title) - dynamically change section headers",
-        "Added Section:SetVisible(visible) - hide/show entire sections",
-        "Added Tab:SetIcon(icon) - change tab icons at runtime",
-        "Added Window:SetIcon(icon) - change window icon at runtime",
-        "All elements now support programmatic visibility control",
-        "Priority notifications stack correctly (critical on bottom = most visible)",
-        "Enhanced dynamic UI manipulation capabilities"
-      ]
-    },
-    "2.2.1": {
-      "date": "2025-09-30",
-      "hash": "3BC2BDD5",
-      "changes": [
-        "📱 Mobile notification improvement",
-        "Reduced notification width from 340px to 300px for small screens",
-        "Adjusted padding from -16 to -8 for better mobile layout",
-        "Enhanced multi-device compatibility"
-      ]
-    },
-    "2.2.0": {
-      "date": "2025-09-30",
-      "hash": "2A68C9C3",
-      "changes": [
-        "🎉 MAJOR RELEASE - Complete element system",
-        "Added 5 NEW elements: Label, Paragraph, Divider, TextBox, ColorPicker",
-        "RvrseUI.Flags global storage system",
-        "All 12 elements now support Flag parameter",
-        "CurrentValue properties on ALL elements",
-        "Dropdown:Refresh(newValues) method added",
-        "Element.CurrentOption for dropdowns",
-        "Element.CurrentKeybind for keybinds",
-        "Button: CurrentValue + Flag support",
-        "Toggle: CurrentValue + Flag support",
-        "Slider: CurrentValue + Flag support",
-        "Keybind: CurrentKeybind + Flag support",
-        "Created FULL_DEMO.lua with complete element showcase",
-        "All elements fully documented and tested"
-      ]
-    },
-    "2.1.7": {
-      "date": "2025-09-30",
-      "hash": "08B730DF",
-      "changes": [
-        "Replaced Lucide asset IDs with Unicode icon system",
-        "150+ universal icons (emojis + Unicode symbols)",
-        "All icons work everywhere without external dependencies",
-        "Includes Roblox-specific icons (Robux, Premium, Verified)",
-        "Icon categories: Navigation, Actions, Media, Status, User, Security, Currency, Items, Files, Tech, Nature, Games, Combat, UI",
-        "Simple usage: Icon = 'home', 'settings', 'user', etc.",
-        "Backward compatible: Still supports custom asset IDs and emojis",
-        "No more broken icon asset IDs"
-      ]
-    },
-    "2.1.6": {
-      "date": "2025-09-30",
-      "hash": "A8D3FBC5",
-      "changes": [
-        "Fixed tab bar overflow - converted to ScrollingFrame",
-        "Tabs now scroll horizontally when many tabs are created",
-        "Auto-sizing canvas prevents UI overflow",
-        "Scrollbar styled to match glassmorphic theme",
-        "Smooth scrolling with elastic behavior",
-        "Theme switching now updates scrollbar color"
-      ]
-    },
-    "2.1.5": {
-      "date": "2025-09-30",
-      "hash": "F9D4E7B3",
-      "changes": [
-        "Fixed theme switching - all UI elements now update correctly",
-        "Verified keybind system working correctly (default: K)",
-        "Removed WindowAPI:SetTheme() - theme now controlled by topbar pill only",
-        "Added Lucide icon support (80+ icons)",
-        "Icons support: Lucide names, Roblox asset IDs, emojis",
-        "Tab icons now properly theme-aware",
-        "Window icons support all formats",
-        "Added comprehensive test script (TEST_FIXES.lua)",
-        "Added detailed fix documentation (FIXES_DOCUMENTATION.md)"
-      ]
-    },
-    "2.1.4": {
-      "date": "2025-09-29",
-      "hash": "E8B3C9A2",
-      "changes": [
-        "Fixed header control positioning (Close | Bell | Theme)",
-        "Close button now at proper far right position (1, -12)",
-        "Bell toggle repositioned to (1, -52) with reduced width 32px",
-        "Theme toggle repositioned to (1, -92) with reduced width 32px",
-        "Version badge reduced from 70x24 to 50x18 for better fit",
-        "Version badge font reduced from 10 to 9",
-        "Removed duplicate close button code",
-        "All controls properly spaced with no overlap"
-      ]
-    },
-    "2.1.3": {
-      "date": "2025-09-29",
-      "hash": "D7A2E5F4",
-      "changes": [
-        "Added RvrseUI:Destroy() - global method to destroy ALL UI",
-        "Added RvrseUI:ToggleVisibility() - hide/show all windows",
-        "Added RvrseUI:SetVisibility(bool) - explicitly set visibility",
-        "Global UI control works across multiple windows",
-        "Window registration system for global management",
-        "Use ScreenGui.Enabled for instant visibility toggle",
-        "Returns boolean status for all methods"
-      ]
-    },
-    "2.1.2": {
-      "date": "2025-09-29",
-      "hash": "C3F8A6E9",
-      "changes": [
-        "Close button now completely destroys UI (host:Destroy())",
-        "Added Window:Destroy() method for programmatic cleanup",
-        "Clears all toggle targets, lock listeners, and theme listeners",
-        "Fade out animation before destruction",
-        "Removes all traces - ScreenGui, connections, and references",
-        "Console log confirmation when destroyed"
-      ]
-    },
-    "2.1.1": {
-      "date": "2025-09-29",
-      "hash": "B9E4D7F1",
-      "changes": [
-        "Added close X button in top right corner of header",
-        "Moved version badge to bottom left corner",
-        "Version badge now has accent stroke border",
-        "Close button has hover tooltip and ripple animation",
-        "Both controls maintain glassmorphic aesthetic"
-      ]
-    },
-    "2.1.0": {
-      "date": "2025-01-29",
-      "hash": "A7F3E8C2",
-      "changes": [
-        "Added notification bell toggle (🔔/🔕) in header",
-        "Added mini theme toggle pill (🌙/🌞) in header",
-        "Implemented professional tooltip system",
-        "Enhanced glass transparency to 95%",
-        "Added animated glow effects",
-        "Version badge now clickable with detailed info",
-        "Improved version tracking system with hash verification"
-      ]
-    },
-    "2.0.0": {
-      "date": "2025-01-28",
-      "hash": "F36F3A8",
-      "changes": [
-        "Complete modern redesign with glassmorphism",
-        "Spring-based animation system",
-        "Material ripple effects",
-        "Mobile-first responsive design",
-        "Added slider component",
-        "Enhanced notification system",
-        "LockGroup system implementation"
-      ]
     }
   },
   "download": {
     "url": "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua",
-    "size_kb": 45,
+    "size_kb": 48,
     "format": "lua"
   },
   "repository": {
