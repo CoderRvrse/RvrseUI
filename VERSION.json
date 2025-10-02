@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 9,
-    "patch": 0,
-    "full": "2.9.0",
+    "minor": 10,
+    "patch": 1,
+    "full": "2.10.1",
     "build": "20251002",
-    "hash": "D7R4X9M2",
+    "hash": "X8K3P9T5",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "Dynamic Obfuscation - Advanced Anti-Theft",
+    "name": "Enhanced Particles + Hotfix",
     "codename": "Stable",
-    "notes": "Element names randomize on every launch to prevent static detection. API unchanged, fully backward compatible."
+    "notes": "120 particles with bigger radius and slower movement. Critical syntax fix for particle system."
   },
   "compatibility": {
     "roblox": "Latest",

@@ -21,11 +21,11 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 9,
-	Patch = 0,
+	Minor = 10,
+	Patch = 1,
 	Build = "20251002",  -- YYYYMMDD format
-	Full = "2.9.0",
-	Hash = "D7R4X9M2",  -- Release hash for integrity verification
+	Full = "2.10.1",
+	Hash = "X8K3P9T5",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 

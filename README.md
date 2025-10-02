@@ -1,10 +1,10 @@
-# RvrseUI v2.8.0
+# RvrseUI v2.10.1
 
 <div align="center">
 
 **A modern, professional UI framework for Roblox with named config profiles, auto-load system, theme persistence, and minimize to controller.**
 
-[![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-2.10.1-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
