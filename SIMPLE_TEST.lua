@@ -224,6 +224,20 @@ ControlsSection:CreateKeybind({
 	end
 })
 
+ControlsSection:CreateKeybind({
+	Text = "Close UI Key (ESC)",
+	Default = Enum.KeyCode.Escape,
+	IsUIEscape = true,  -- 🔑 Makes this the escape/close key!
+	OnChanged = function(key)
+		RvrseUI:Notify({
+			Title = "Escape Key Updated",
+			Message = "Press " .. key.Name .. " to close UI",
+			Duration = 2,
+			Type = "success"
+		})
+	end
+})
+
 -- Config Section
 local ConfigSection = SettingsTab:CreateSection("Configuration")
 

@@ -1192,11 +1192,16 @@ function RvrseUI.UI:BindToggleKey(key)
 	self._key = coerceKeycode(key or "K")
 end
 
+function RvrseUI.UI:BindEscapeKey(key)
+	self._escapeKey = coerceKeycode(key or "Escape")
+end
+
 UIS.InputBegan:Connect(function(io, gpe)
 	if gpe then return end
-	if io.KeyCode == RvrseUI.UI._key then
+	-- Check both toggle key AND escape key
+	if io.KeyCode == RvrseUI.UI._key or io.KeyCode == RvrseUI.UI._escapeKey then
 		print("\n========== [HOTKEY DEBUG] ==========")
-		print("[HOTKEY] Toggle key pressed:", RvrseUI.UI._key.Name)
+		print("[HOTKEY] Toggle key pressed:", io.KeyCode.Name)
 
 		for f in pairs(RvrseUI.UI._toggleTargets) do
 			if f and f.Parent then
@@ -1363,6 +1368,10 @@ function RvrseUI:CreateWindow(cfg)
 	local name = cfg.Name or "RvrseUI"
 	local toggleKey = coerceKeycode(cfg.ToggleUIKeybind or "K")
 	self.UI:BindToggleKey(toggleKey)
+
+	-- Auto-bind ESC key to close/minimize UI (built-in feature)
+	local escapeKey = coerceKeycode(cfg.EscapeKey or "Escape")
+	self.UI:BindEscapeKey(escapeKey)
 
 	-- Container selection (legitimate use cases)
 	local windowHost = host -- Default: use global PlayerGui host
@@ -3226,6 +3235,12 @@ function RvrseUI:CreateWindow(cfg)
 						if o.Flag == "_UIToggleKey" or o.IsUIToggle then
 							RvrseUI.UI:BindToggleKey(io.KeyCode)
 							print("[KEYBIND] UI Toggle key updated to:", io.KeyCode.Name)
+						end
+
+						-- SPECIAL: If this keybind is for escape/close, update the escape key
+						if o.Flag == "_UIEscapeKey" or o.IsUIEscape then
+							RvrseUI.UI:BindEscapeKey(io.KeyCode)
+							print("[KEYBIND] UI Escape key updated to:", io.KeyCode.Name)
 						end
 
 						if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
