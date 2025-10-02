@@ -1491,7 +1491,29 @@ function RvrseUI:CreateWindow(cfg)
 	UIS.InputChanged:Connect(function(io)
 		if dragging and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
 			local delta = io.Position - dragStart
-			root.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			local newX = startPos.X.Offset + delta.X
+			local newY = startPos.Y.Offset + delta.Y
+
+			-- Get screen size and window dimensions
+			local screenSize = workspace.CurrentCamera.ViewportSize
+			local windowWidth = root.AbsoluteSize.X
+			local windowHeight = root.AbsoluteSize.Y
+			local headerHeight = 52  -- Header is 52px tall (line 1451)
+
+			-- CRITICAL: Clamp position to ensure header stays on screen
+			-- Left edge: Allow dragging until only 100px of window is visible (so user can drag back)
+			-- Right edge: Allow dragging until only 100px of window is visible
+			-- Top edge: MUST keep header visible (minimum 0, so header never goes off-top)
+			-- Bottom edge: Allow dragging until only header is visible (so close button always accessible)
+			local minX = -(windowWidth - 100)  -- Allow most of window to go off left, keep 100px visible
+			local maxX = screenSize.X - 100  -- Allow most of window to go off right, keep 100px visible
+			local minY = 0  -- NEVER let header go above screen top
+			local maxY = screenSize.Y - headerHeight  -- ALWAYS keep header visible at bottom
+
+			newX = math.clamp(newX, minX, maxX)
+			newY = math.clamp(newY, minY, maxY)
+
+			root.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
 		end
 	end)
 
