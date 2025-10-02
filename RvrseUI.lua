@@ -969,6 +969,7 @@ notifyRoot.BackgroundTransparency = 1
 notifyRoot.AnchorPoint = Vector2.new(1, 1)
 notifyRoot.Position = UDim2.new(1, -8, 1, -8)
 notifyRoot.Size = UDim2.new(0, 300, 1, -16)  -- Reduced from 340 to 300 for small screens
+notifyRoot.ZIndex = 15000  -- Higher than everything else for notifications
 notifyRoot.Parent = host
 
 local notifyLayout = Instance.new("UIListLayout")
@@ -1320,6 +1321,7 @@ function RvrseUI:CreateWindow(cfg)
 	root.BorderSizePixel = 0
 	root.Visible = true
 	root.ClipsDescendants = false
+	root.ZIndex = 10000  -- CRITICAL: High ZIndex to stay on top of everything
 	root.Parent = windowHost
 	corner(root, 16)
 	stroke(root, pal.Border, 1.5)
