@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 8,
-    "patch": 4,
-    "full": "2.8.4",
+    "patch": 5,
+    "full": "2.8.5",
     "build": "20251002",
-    "hash": "U2P1R9S8",
+    "hash": "V3Q2S1T9",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "CoreGui Mount - True Top Priority",
+    "name": "Stealth Mode - Anti-Theft Protection",
     "codename": "Stable",
-    "notes": "Mounts to CoreGui for absolute top priority, stays above ALL Roblox UI including CoreGui elements, with PlayerGui fallback"
+    "notes": "Internal element names obfuscated to prevent GUI theft. API unchanged, fully backward compatible."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,36 @@
     "auto_save": true
   },
   "changelog": {
+    "2.8.5": {
+      "date": "2025-10-02",
+      "hash": "V3Q2S1T9",
+      "changes": [
+        "🔐 STEALTH MODE - Anti-Theft Protection",
+        "✅ Internal element names obfuscated to prevent GUI theft",
+        "✅ API remains 100% unchanged - fully backward compatible",
+        "✅ All user scripts continue working without modification",
+        "🔐 RENAMED INTERNAL ELEMENTS (invisible to users):",
+        "  - ScreenGui: RvrseUI_v2 → _DeviceTestGui",
+        "  - Window: Window_{name} → CoreInterface",
+        "  - NotifyStack → TelemetryLog",
+        "  - ControllerChip → Dispatcher",
+        "  - VersionBadge → MetadataInfo",
+        "  - CustomHost: RvrseUI_{name} → _TestModule_{name}",
+        "🎯 WHY THIS HELPS:",
+        "  - Kids can't easily identify it as RvrseUI in Explorer",
+        "  - Looks like internal Roblox test/debug UI",
+        "  - Generic names don't reveal framework identity",
+        "  - Harder to copy and paste into their games",
+        "✅ USER EXPERIENCE:",
+        "  - loadstring() still works exactly the same",
+        "  - RvrseUI:CreateWindow() API unchanged",
+        "  - All features work identically",
+        "  - No breaking changes whatsoever",
+        "📦 BACKUP CREATED:",
+        "  - RvrseUI_BACKUP_v2.8.4.lua (pre-stealth version)",
+        "🎯 RESULT: Stealth protection without breaking existing users!"
+      ]
+    },
     "2.8.4": {
       "date": "2025-10-02",
       "hash": "U2P1R9S8",

@@ -22,10 +22,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 8,
-	Patch = 4,
+	Patch = 5,
 	Build = "20251002",  -- YYYYMMDD format
-	Full = "2.8.4",
-	Hash = "U2P1R9S8",  -- Release hash for integrity verification
+	Full = "2.8.5",
+	Hash = "V3Q2S1T9",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -952,7 +952,7 @@ end
 local CoreGui = game:GetService("CoreGui")
 
 local host = Instance.new("ScreenGui")
-host.Name = "RvrseUI_v2"
+host.Name = "_DeviceTestGui"  -- 🔐 Stealth: Looks like internal test UI, harder to steal
 host.ResetOnSpawn = false
 host.IgnoreGuiInset = false  -- CRITICAL: false to respect topbar, prevents offset
 host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -977,7 +977,7 @@ RvrseUI._host = host
 -- Notification System
 -- =========================
 local notifyRoot = Instance.new("Frame")
-notifyRoot.Name = "NotifyStack"
+notifyRoot.Name = "TelemetryLog"  -- 🔐 Stealth: Looks like debug telemetry
 notifyRoot.BackgroundTransparency = 1
 notifyRoot.AnchorPoint = Vector2.new(1, 1)
 notifyRoot.Position = UDim2.new(1, -8, 1, -8)
@@ -1283,7 +1283,7 @@ function RvrseUI:CreateWindow(cfg)
 	if cfg.Container then
 		-- User specified a custom container
 		local customHost = Instance.new("ScreenGui")
-		customHost.Name = "RvrseUI_" .. name:gsub("%s", "")
+		customHost.Name = "_TestModule_" .. name:gsub("%s", "")  -- 🔐 Stealth: Looks like test module
 		customHost.ResetOnSpawn = false
 		customHost.IgnoreGuiInset = false  -- CRITICAL: false to respect topbar, prevents offset
 		customHost.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -1326,7 +1326,7 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Root window (glassmorphic)
 	local root = Instance.new("Frame")
-	root.Name = "Window_" .. name:gsub("%s", "")
+	root.Name = "CoreInterface"  -- 🔐 Stealth: Generic name, doesn't reveal framework
 	root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
 	root.Position = UDim2.new(0.5, -baseWidth/2, 0.5, -baseHeight/2)
 	root.BackgroundColor3 = pal.Bg
@@ -1623,7 +1623,7 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Version badge with hash (bottom left corner - fully contained with proper insets)
 	local versionBadge = Instance.new("TextButton")
-	versionBadge.Name = "VersionBadge"
+	versionBadge.Name = "MetadataInfo"  -- 🔐 Stealth: Looks like internal metadata display
 	versionBadge.BackgroundColor3 = Color3.fromRGB(0, 255, 255)  -- Cyan/Neon Blue
 	versionBadge.BackgroundTransparency = 0.9
 	versionBadge.Position = UDim2.new(0, 8, 1, -24)  -- 8px inset from left, 24px from bottom (8px inset + 16px height)
@@ -1780,7 +1780,7 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Gaming Controller Minimize Chip
 	local controllerChip = Instance.new("TextButton")
-	controllerChip.Name = "ControllerChip"
+	controllerChip.Name = "Dispatcher"  -- 🔐 Stealth: Sounds like internal system component
 	controllerChip.Text = "🎮"
 	controllerChip.Font = Enum.Font.GothamBold
 	controllerChip.TextSize = 20
