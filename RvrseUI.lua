@@ -2097,17 +2097,29 @@ function RvrseUI:CreateWindow(cfg)
 
 	-- Make controller chip draggable - sticks directly to mouse
 	local chipDragging, chipWasDragged, chipDragThreshold
+	local debugCounter = 0  -- Limit debug spam
+
 	controllerChip.InputBegan:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			chipDragging = true
 			chipWasDragged = false
-			chipDragThreshold = false -- Track if we've moved enough to be considered a drag
+			chipDragThreshold = false
+			debugCounter = 0
+
+			print("\n========== [CHIP DRAG DEBUG] GRAB START ==========")
+			print("[CHIP] Input type:", io.UserInputType.Name)
+			print("[CHIP] Starting Position:", controllerChip.Position)
+			print("[CHIP] Starting AbsolutePosition:", controllerChip.AbsolutePosition)
 		end
 	end)
+
 	controllerChip.InputEnded:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			if chipDragging then
 				chipDragging = false
+				print("[CHIP] DRAG END - Final position:", controllerChip.Position)
+				print("========================================\n")
+
 				-- Save controller chip position
 				RvrseUI._controllerChipPosition = {
 					XScale = controllerChip.Position.X.Scale,
@@ -2118,46 +2130,74 @@ function RvrseUI:CreateWindow(cfg)
 			end
 		end
 	end)
+
 	UIS.InputChanged:Connect(function(io)
 		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-			-- CRITICAL FIX: Get accurate mouse position accounting for GUI insets
-			local mouseLocation = UIS:GetMouseLocation()  -- Raw screen position
-			local guiInset = GuiService:GetGuiInset()     -- Topbar offset
-
-			-- Subtract inset to get actual GUI-space coordinates
+			-- Get accurate mouse position accounting for GUI insets
+			local mouseLocation = UIS:GetMouseLocation()
+			local guiInset = GuiService:GetGuiInset()
 			local mousePos = Vector2.new(
 				mouseLocation.X - guiInset.X,
 				mouseLocation.Y - guiInset.Y
 			)
 
-			-- Check if we've moved enough to be a drag (prevents accidental drags on click)
+			-- Check if we've moved enough to be a drag
 			if not chipDragThreshold then
-				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(25, 25) -- 50/2 = 25
+				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(25, 25)
 				local distance = (mousePos - chipCenter).Magnitude
+
+				print("\n[CHIP] Initial movement check:")
+				print("  Mouse GUI-space:", mousePos)
+				print("  Chip center:", chipCenter)
+				print("  Distance from center:", math.floor(distance), "pixels")
+
 				if distance > 5 then
 					chipDragThreshold = true
 					chipWasDragged = true
+					print("  ✅ Drag threshold exceeded - starting drag")
 				end
 			end
 
 			if chipDragThreshold then
-				-- Position chip centered perfectly under mouse cursor
-				local chipSize = 50  -- Controller chip is 50x50
+				local chipSize = 50
 				local halfSize = chipSize / 2
 
-				-- Calculate position to center chip exactly under cursor
+				-- Calculate new position
 				local newX = mousePos.X - halfSize
 				local newY = mousePos.Y - halfSize
 
 				-- Get screen size for boundary clamping
 				local screenSize = workspace.CurrentCamera.ViewportSize
-
-				-- Clamp position to screen boundaries (keep chip fully visible)
 				newX = math.clamp(newX, 0, screenSize.X - chipSize)
 				newY = math.clamp(newY, 0, screenSize.Y - chipSize)
 
-				-- Set position directly to mouse location using UDim2.fromOffset
+				-- Set position
 				controllerChip.Position = UDim2.fromOffset(newX, newY)
+
+				-- Debug every 10 frames to avoid spam
+				debugCounter = debugCounter + 1
+				if debugCounter % 10 == 0 then
+					-- Calculate where chip center is after positioning
+					local actualChipCenter = controllerChip.AbsolutePosition + Vector2.new(25, 25)
+					local offset = mousePos - actualChipCenter
+					local offsetDistance = offset.Magnitude
+
+					print("\n[CHIP] Drag update #" .. debugCounter)
+					print("  Raw mouseLocation:", mouseLocation)
+					print("  GUI inset:", guiInset)
+					print("  Final mousePos (GUI-space):", mousePos)
+					print("  Chip target position (newX, newY):", Vector2.new(newX, newY))
+					print("  Chip actual AbsolutePosition:", controllerChip.AbsolutePosition)
+					print("  Chip actual center:", actualChipCenter)
+					print("  ❗ OFFSET from cursor:", offset)
+					print("  ❗ OFFSET DISTANCE:", math.floor(offsetDistance), "pixels")
+
+					if offsetDistance > 5 then
+						print("  ⚠️ WARNING: Chip is", math.floor(offsetDistance), "pixels away from cursor!")
+					else
+						print("  ✅ Chip is centered under cursor")
+					end
+				end
 			end
 		end
 	end)
