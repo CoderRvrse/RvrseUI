@@ -2119,8 +2119,8 @@ function RvrseUI:CreateWindow(cfg)
 	end)
 	UIS.InputChanged:Connect(function(io)
 		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-			-- Get current mouse position
-			local mousePos = io.Position
+			-- CRITICAL FIX: Convert Vector3 to Vector2 for screen-space calculations
+			local mousePos = Vector2.new(io.Position.X, io.Position.Y)  -- Extract X,Y from Vector3
 
 			-- Check if we've moved enough to be a drag (prevents accidental drags on click)
 			if not chipDragThreshold then
@@ -2148,8 +2148,8 @@ function RvrseUI:CreateWindow(cfg)
 				newX = math.clamp(newX, 0, screenSize.X - chipSize)
 				newY = math.clamp(newY, 0, screenSize.Y - chipSize)
 
-				-- Set position directly to mouse location (scale = 0, offset only)
-				controllerChip.Position = UDim2.new(0, newX, 0, newY)
+				-- Set position directly to mouse location using UDim2.fromOffset
+				controllerChip.Position = UDim2.fromOffset(newX, newY)
 			end
 		end
 	end)
