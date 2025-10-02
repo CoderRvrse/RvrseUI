@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 12,
-    "patch": 0,
-    "full": "2.12.0",
+    "patch": 1,
+    "full": "2.12.1",
     "build": "20251002",
-    "hash": "A1C9T5R3",
+    "hash": "B6D3M8P1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "Dual Hotkey System - Destroy vs Minimize",
+    "name": "Hotfix - Hotkey Config Persistence",
     "codename": "Stable",
-    "notes": "Backspace key destroys GUI completely. Toggle key minimizes/restores. Mobile users can rebind both keys. IsUIEscape parameter for destroy key rebinding."
+    "notes": "Added Flag parameters to hotkey keybinds so they save/load from configuration. Toggle and destroy key preferences now persist."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,21 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "2.12.1": {
+      "date": "2025-10-02",
+      "hash": "B6D3M8P1",
+      "changes": [
+        "💾 HOTKEY CONFIG PERSISTENCE - Hotfix",
+        "✅ Added Flag = 'UIToggleKey' to toggle hotkey keybind",
+        "✅ Added Flag = 'UIDestroyKey' to destroy hotkey keybind",
+        "✅ Both keybinds now save to and load from configuration",
+        "🎯 RESULT: Your hotkey preferences persist across sessions!",
+        "📋 TECHNICAL:",
+        "  - Updated SIMPLE_TEST.lua line 216, 231",
+        "  - Updated README.md line 441, 456",
+        "  - Keybinds use Flag system for auto-save/load"
+      ]
+    },
     "2.12.0": {
       "date": "2025-10-02",
       "hash": "A1C9T5R3",

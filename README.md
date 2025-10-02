@@ -438,6 +438,7 @@ local ControlsSection = SettingsTab:CreateSection("Controls")
 ControlsSection:CreateKeybind({
   Text = "Toggle UI Hotkey",
   Default = Enum.KeyCode.K,
+  Flag = "UIToggleKey",  -- 💾 Saves to config
   IsUIToggle = true,  -- 🔑 Makes this keybind control the UI toggle!
   OnChanged = function(key)
     RvrseUI:Notify({
@@ -452,6 +453,7 @@ ControlsSection:CreateKeybind({
 ControlsSection:CreateKeybind({
   Text = "Destroy UI Key (Backspace)",
   Default = Enum.KeyCode.Backspace,
+  Flag = "UIDestroyKey",  -- 💾 Saves to config
   IsUIEscape = true,  -- 🔑 Makes this the destroy/close key!
   OnChanged = function(key)
     RvrseUI:Notify({
