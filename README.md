@@ -450,13 +450,13 @@ ControlsSection:CreateKeybind({
 })
 
 ControlsSection:CreateKeybind({
-  Text = "Close UI Key (ESC)",
-  Default = Enum.KeyCode.Escape,
-  IsUIEscape = true,  -- 🔑 Makes this the escape/close key!
+  Text = "Destroy UI Key (Backspace)",
+  Default = Enum.KeyCode.Backspace,
+  IsUIEscape = true,  -- 🔑 Makes this the destroy/close key!
   OnChanged = function(key)
     RvrseUI:Notify({
-      Title = "Escape Key Updated",
-      Message = "Press " .. key.Name .. " to close UI",
+      Title = "Destroy Key Updated",
+      Message = "Press " .. key.Name .. " to destroy UI",
       Duration = 2,
       Type = "success"
     })

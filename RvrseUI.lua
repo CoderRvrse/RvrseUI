@@ -21,11 +21,11 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 11,
+	Minor = 12,
 	Patch = 0,
 	Build = "20251002",  -- YYYYMMDD format
-	Full = "2.11.0",
-	Hash = "Z5N8W3K1",  -- Release hash for integrity verification
+	Full = "2.12.0",
+	Hash = "A1C9T5R3",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1198,8 +1198,30 @@ end
 
 UIS.InputBegan:Connect(function(io, gpe)
 	if gpe then return end
-	-- Check both toggle key AND escape key
-	if io.KeyCode == RvrseUI.UI._key or io.KeyCode == RvrseUI.UI._escapeKey then
+
+	-- ESC KEY: DESTROY the UI completely
+	if io.KeyCode == RvrseUI.UI._escapeKey then
+		print("\n========== [DESTROY KEY] ==========")
+		print("[DESTROY] Escape key pressed - destroying UI")
+
+		for f in pairs(RvrseUI.UI._toggleTargets) do
+			if f and f.Parent then
+				local windowData = RvrseUI.UI._windowData and RvrseUI.UI._windowData[f]
+				if windowData and windowData.destroyFunction then
+					print("[DESTROY] Calling destroy function")
+					windowData.destroyFunction()
+				else
+					print("[DESTROY] No destroy function - hiding UI")
+					f.Visible = false
+				end
+			end
+		end
+		print("========================================\n")
+		return
+	end
+
+	-- TOGGLE KEY: Toggle/Minimize the UI
+	if io.KeyCode == RvrseUI.UI._key then
 		print("\n========== [HOTKEY DEBUG] ==========")
 		print("[HOTKEY] Toggle key pressed:", io.KeyCode.Name)
 
@@ -1369,8 +1391,12 @@ function RvrseUI:CreateWindow(cfg)
 	local toggleKey = coerceKeycode(cfg.ToggleUIKeybind or "K")
 	self.UI:BindToggleKey(toggleKey)
 
-	-- Auto-bind ESC key to close/minimize UI (built-in feature)
-	local escapeKey = coerceKeycode(cfg.EscapeKey or "Escape")
+	-- Auto-bind ESC key to destroy UI (built-in feature)
+	-- Default to Backspace since "Escape" isn't a valid KeyCode (use Backspace as ESC alternative)
+	local escapeKey = cfg.EscapeKey or Enum.KeyCode.Backspace
+	if type(escapeKey) == "string" then
+		escapeKey = coerceKeycode(escapeKey)
+	end
 	self.UI:BindEscapeKey(escapeKey)
 
 	-- Container selection (legitimate use cases)
@@ -2373,10 +2399,12 @@ function RvrseUI:CreateWindow(cfg)
 	local lastWindowPosition = root.Position
 
 	-- Register window with UI toggle system, including minimize state tracking
+	-- Window data will be updated after WindowAPI is defined
 	local windowData = {
 		isMinimized = function() return isMinimized end,
 		restoreFunction = restoreWindow,
-		minimizeFunction = minimizeWindow
+		minimizeFunction = minimizeWindow,
+		destroyFunction = nil  -- Will be set after WindowAPI:Destroy() is defined
 	}
 	self.UI:RegisterToggleTarget(root, windowData)
 
@@ -2451,6 +2479,11 @@ function RvrseUI:CreateWindow(cfg)
 		end
 
 		print("[RvrseUI] Interface destroyed - All traces removed")
+	end
+
+	-- Connect destroy function to windowData for ESC key
+	windowData.destroyFunction = function()
+		WindowAPI:Destroy()
 	end
 
 	function WindowAPI:CreateTab(t)

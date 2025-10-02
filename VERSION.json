@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 10,
-    "patch": 1,
-    "full": "2.10.1",
+    "minor": 12,
+    "patch": 0,
+    "full": "2.12.0",
     "build": "20251002",
-    "hash": "X8K3P9T5",
+    "hash": "A1C9T5R3",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "Enhanced Particles + Hotfix",
+    "name": "Dual Hotkey System - Destroy vs Minimize",
     "codename": "Stable",
-    "notes": "120 particles with bigger radius and slower movement. Critical syntax fix for particle system."
+    "notes": "Backspace key destroys GUI completely. Toggle key minimizes/restores. Mobile users can rebind both keys. IsUIEscape parameter for destroy key rebinding."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,34 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "2.12.0": {
+      "date": "2025-10-02",
+      "hash": "A1C9T5R3",
+      "changes": [
+        "⌨️ DUAL HOTKEY SYSTEM - Separate Destroy vs Minimize Keys",
+        "✅ BACKSPACE KEY: Completely destroys/removes the GUI (not toggle)",
+        "✅ TOGGLE KEY: Minimizes/restores the GUI (does not destroy)",
+        "✅ Mobile support: Users can rebind both keys from settings",
+        "🔧 NEW PARAMETER: IsUIEscape = true for destroy key rebinding",
+        "🔧 EXISTING: IsUIToggle = true for toggle key rebinding",
+        "🎯 KEY BEHAVIORS:",
+        "  - Backspace: Calls WindowAPI:Destroy() - removes entire GUI",
+        "  - Toggle (K): Calls minimize/restore functions - keeps GUI alive",
+        "  - Both keys auto-bound at CreateWindow()",
+        "  - Both keys rebindable via CreateKeybind with special flags",
+        "📋 TECHNICAL IMPLEMENTATION:",
+        "  - Lines 1191-1197: Added BindEscapeKey() function",
+        "  - Lines 1199-1284: Separated Backspace handler from toggle handler",
+        "  - Lines 1394-1400: Auto-bind Backspace key in CreateWindow (defaults to Backspace)",
+        "  - Lines 2480-2483: Connect windowData.destroyFunction to WindowAPI:Destroy()",
+        "  - Lines 3240-3244: IsUIEscape parameter in CreateKeybind",
+        "✅ EXAMPLES UPDATED:",
+        "  - SIMPLE_TEST.lua: Added destroy key keybind (lines 228-239)",
+        "  - README.md: Added dual hotkey examples",
+        "🎯 RESULT: Clear separation - Backspace destroys, K toggles!",
+        "⚠️ NOTE: Using Backspace as default since Enum.KeyCode.Escape doesn't exist in Roblox"
+      ]
+    },
     "2.9.0": {
       "date": "2025-10-02",
       "hash": "D7R4X9M2",
