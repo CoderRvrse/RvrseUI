@@ -1109,10 +1109,19 @@ UIS.InputBegan:Connect(function(io, gpe)
 				end
 
 				if windowData and windowData.isMinimized then
-					local minimized = type(windowData.isMinimized) == "function" and windowData.isMinimized() or windowData.isMinimized
+					-- CRITICAL FIX: Properly evaluate isMinimized as boolean
+					local minimized
+					if type(windowData.isMinimized) == "function" then
+						minimized = windowData.isMinimized()  -- Call function to get boolean
+					else
+						minimized = (windowData.isMinimized == true)  -- Ensure boolean comparison
+					end
+
 					print("[HOTKEY] Current state - isMinimized:", minimized, "| f.Visible:", f.Visible)
 
-					if minimized then
+					-- Now minimized is guaranteed to be a boolean (true/false)
+					if minimized == true then
+						-- Window is minimized to chip, RESTORE it
 						print("[HOTKEY] ✅ ACTION: RESTORE (chip → full window)")
 						if windowData.restoreFunction then
 							windowData.restoreFunction()
@@ -1120,8 +1129,9 @@ UIS.InputBegan:Connect(function(io, gpe)
 							print("[HOTKEY] ❌ ERROR: restoreFunction missing!")
 						end
 					else
-						-- Window is NOT minimized
+						-- Window is NOT minimized (minimized == false)
 						if f.Visible then
+							-- Window is visible and open, MINIMIZE it
 							print("[HOTKEY] ✅ ACTION: MINIMIZE (full window → chip)")
 							if windowData.minimizeFunction then
 								windowData.minimizeFunction()
@@ -1129,6 +1139,7 @@ UIS.InputBegan:Connect(function(io, gpe)
 								print("[HOTKEY] ❌ ERROR: minimizeFunction missing!")
 							end
 						else
+							-- Window is hidden, SHOW it
 							print("[HOTKEY] ✅ ACTION: SHOW (hidden → visible)")
 							f.Visible = true
 						end
