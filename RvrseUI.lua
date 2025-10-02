@@ -7,6 +7,7 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RS = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
 
 local LP = Players.LocalPlayer
 local PlayerGui = LP:WaitForChild("PlayerGui")
@@ -2119,8 +2120,15 @@ function RvrseUI:CreateWindow(cfg)
 	end)
 	UIS.InputChanged:Connect(function(io)
 		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-			-- CRITICAL FIX: Convert Vector3 to Vector2 for screen-space calculations
-			local mousePos = Vector2.new(io.Position.X, io.Position.Y)  -- Extract X,Y from Vector3
+			-- CRITICAL FIX: Get accurate mouse position accounting for GUI insets
+			local mouseLocation = UIS:GetMouseLocation()  -- Raw screen position
+			local guiInset = GuiService:GetGuiInset()     -- Topbar offset
+
+			-- Subtract inset to get actual GUI-space coordinates
+			local mousePos = Vector2.new(
+				mouseLocation.X - guiInset.X,
+				mouseLocation.Y - guiInset.Y
+			)
 
 			-- Check if we've moved enough to be a drag (prevents accidental drags on click)
 			if not chipDragThreshold then
@@ -2133,11 +2141,11 @@ function RvrseUI:CreateWindow(cfg)
 			end
 
 			if chipDragThreshold then
-				-- Position chip centered under mouse cursor
+				-- Position chip centered perfectly under mouse cursor
 				local chipSize = 50  -- Controller chip is 50x50
 				local halfSize = chipSize / 2
 
-				-- Calculate position to center chip under cursor
+				-- Calculate position to center chip exactly under cursor
 				local newX = mousePos.X - halfSize
 				local newY = mousePos.Y - halfSize
 
