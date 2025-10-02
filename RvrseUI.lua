@@ -1093,48 +1093,53 @@ end
 UIS.InputBegan:Connect(function(io, gpe)
 	if gpe then return end
 	if io.KeyCode == RvrseUI.UI._key then
-		print("[HOTKEY DEBUG] Toggle key pressed")
+		print("\n========== [HOTKEY DEBUG] ==========")
+		print("[HOTKEY] Toggle key pressed:", RvrseUI.UI._key.Name)
+
 		for f in pairs(RvrseUI.UI._toggleTargets) do
 			if f and f.Parent then
-				-- Check if window has minimize state tracking
 				local windowData = RvrseUI.UI._windowData and RvrseUI.UI._windowData[f]
-				print("[HOTKEY DEBUG] Window found, has data:", windowData ~= nil)
+				print("[HOTKEY] Window found:", f.Name)
+				print("[HOTKEY] Has windowData:", windowData ~= nil)
+
+				if windowData then
+					print("[HOTKEY] Has isMinimized function:", windowData.isMinimized ~= nil)
+					print("[HOTKEY] Has minimizeFunction:", windowData.minimizeFunction ~= nil)
+					print("[HOTKEY] Has restoreFunction:", windowData.restoreFunction ~= nil)
+				end
 
 				if windowData and windowData.isMinimized then
-					-- Check if minimized (call function if it's a function)
 					local minimized = type(windowData.isMinimized) == "function" and windowData.isMinimized() or windowData.isMinimized
-					print("[HOTKEY DEBUG] isMinimized:", minimized, "| Visible:", f.Visible)
+					print("[HOTKEY] Current state - isMinimized:", minimized, "| f.Visible:", f.Visible)
 
 					if minimized then
-						-- Window is minimized to controller chip, restore it
-						print("[HOTKEY DEBUG] Action: RESTORE (minimized -> full window)")
+						print("[HOTKEY] ✅ ACTION: RESTORE (chip → full window)")
 						if windowData.restoreFunction then
 							windowData.restoreFunction()
+						else
+							print("[HOTKEY] ❌ ERROR: restoreFunction missing!")
 						end
 					else
-						-- Window is fully open
+						-- Window is NOT minimized
 						if f.Visible then
-							-- Window is visible and open, minimize it to chip
-							print("[HOTKEY DEBUG] Action: MINIMIZE (full window -> chip)")
+							print("[HOTKEY] ✅ ACTION: MINIMIZE (full window → chip)")
 							if windowData.minimizeFunction then
-								print("[HOTKEY DEBUG] Calling minimizeFunction()")
 								windowData.minimizeFunction()
 							else
-								print("[HOTKEY DEBUG] ERROR: minimizeFunction not found!")
+								print("[HOTKEY] ❌ ERROR: minimizeFunction missing!")
 							end
 						else
-							-- Window is hidden, show it
-							print("[HOTKEY DEBUG] Action: SHOW (hidden -> visible)")
+							print("[HOTKEY] ✅ ACTION: SHOW (hidden → visible)")
 							f.Visible = true
 						end
 					end
 				else
-					-- No minimize tracking, normal toggle
-					print("[HOTKEY DEBUG] No minimize tracking, normal toggle")
+					print("[HOTKEY] ⚠️ No minimize tracking - using simple toggle")
 					f.Visible = not f.Visible
 				end
 			end
 		end
+		print("========================================\n")
 	end
 end)
 
@@ -2078,15 +2083,13 @@ function RvrseUI:CreateWindow(cfg)
 		}, Animator.Spring.Fast)
 	end)
 
-	-- Make controller chip draggable
-	local chipDragging, chipDragStart, chipStartAbsPos, chipWasDragged
+	-- Make controller chip draggable - sticks directly to mouse
+	local chipDragging, chipWasDragged, chipDragThreshold
 	controllerChip.InputBegan:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			chipDragging = true
 			chipWasDragged = false
-			chipDragStart = io.Position
-			-- Store absolute position to avoid scale/offset calculation issues
-			chipStartAbsPos = controllerChip.AbsolutePosition
+			chipDragThreshold = false -- Track if we've moved enough to be considered a drag
 		end
 	end)
 	controllerChip.InputEnded:Connect(function(io)
@@ -2105,24 +2108,36 @@ function RvrseUI:CreateWindow(cfg)
 	end)
 	UIS.InputChanged:Connect(function(io)
 		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-			local delta = io.Position - chipDragStart
-			local dragDistance = math.sqrt(delta.X * delta.X + delta.Y * delta.Y)
-			if dragDistance > 5 then
-				chipWasDragged = true
+			-- Get current mouse position
+			local mousePos = io.Position
 
-				-- Calculate new position from absolute position (avoids scale/offset confusion)
-				local newX = chipStartAbsPos.X + delta.X
-				local newY = chipStartAbsPos.Y + delta.Y
+			-- Check if we've moved enough to be a drag (prevents accidental drags on click)
+			if not chipDragThreshold then
+				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(25, 25) -- 50/2 = 25
+				local distance = (mousePos - chipCenter).Magnitude
+				if distance > 5 then
+					chipDragThreshold = true
+					chipWasDragged = true
+				end
+			end
 
-				-- Get screen size and chip size for boundary clamping
-				local screenSize = workspace.CurrentCamera.ViewportSize
+			if chipDragThreshold then
+				-- Position chip centered under mouse cursor
 				local chipSize = 50  -- Controller chip is 50x50
+				local halfSize = chipSize / 2
+
+				-- Calculate position to center chip under cursor
+				local newX = mousePos.X - halfSize
+				local newY = mousePos.Y - halfSize
+
+				-- Get screen size for boundary clamping
+				local screenSize = workspace.CurrentCamera.ViewportSize
 
 				-- Clamp position to screen boundaries (keep chip fully visible)
 				newX = math.clamp(newX, 0, screenSize.X - chipSize)
 				newY = math.clamp(newY, 0, screenSize.Y - chipSize)
 
-				-- Set position using only offset (scale = 0) to avoid jumps
+				-- Set position directly to mouse location (scale = 0, offset only)
 				controllerChip.Position = UDim2.new(0, newX, 0, newY)
 			end
 		end
