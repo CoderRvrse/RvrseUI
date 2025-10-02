@@ -2245,7 +2245,8 @@ function RvrseUI:CreateWindow(cfg)
 
 			-- Check if we've moved enough to be a drag
 			if not chipDragThreshold then
-				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(25, 25)
+				local halfSize = controllerChip.AbsoluteSize.X / 2
+				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(halfSize, halfSize)
 				local distance = (mousePos - chipCenter).Magnitude
 
 				print("\n[CHIP] Initial movement check:")
@@ -2261,10 +2262,11 @@ function RvrseUI:CreateWindow(cfg)
 			end
 
 			if chipDragThreshold then
-				local chipSize = 50
+				-- Use actual current size (50 when normal, 60 when hovering)
+				local chipSize = controllerChip.AbsoluteSize.X
 				local halfSize = chipSize / 2
 
-				-- Calculate new position
+				-- Calculate new position - center chip under cursor
 				local newX = mousePos.X - halfSize
 				local newY = mousePos.Y - halfSize
 
@@ -2280,7 +2282,8 @@ function RvrseUI:CreateWindow(cfg)
 				debugCounter = debugCounter + 1
 				if debugCounter % 10 == 0 then
 					-- Calculate where chip center is after positioning
-					local actualChipCenter = controllerChip.AbsolutePosition + Vector2.new(25, 25)
+					local actualHalfSize = controllerChip.AbsoluteSize.X / 2
+					local actualChipCenter = controllerChip.AbsolutePosition + Vector2.new(actualHalfSize, actualHalfSize)
 					local offset = mousePos - actualChipCenter
 					local offsetDistance = offset.Magnitude
 
