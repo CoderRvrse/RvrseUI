@@ -1910,10 +1910,19 @@ function RvrseUI:CreateWindow(cfg)
 		-- Ripple effect on button
 		Animator:Ripple(minimizeBtn, 16, 12)
 
-		-- Get screen center position for controller chip
+		-- Get controller chip's target position (where it will appear)
 		local screenSize = workspace.CurrentCamera.ViewportSize
-		local centerX = screenSize.X / 2
-		local centerY = screenSize.Y / 2
+		local chipTargetPos = UDim2.new(0.5, 0, 0.5, 0)
+
+		-- If chip was previously dragged, use that saved position
+		if RvrseUI._controllerChipPosition then
+			local saved = RvrseUI._controllerChipPosition
+			chipTargetPos = UDim2.new(saved.XScale, saved.XOffset, saved.YScale, saved.YOffset)
+		end
+
+		-- Calculate absolute pixel position of chip target
+		local chipTargetX = chipTargetPos.X.Scale * screenSize.X + chipTargetPos.X.Offset
+		local chipTargetY = chipTargetPos.Y.Scale * screenSize.Y + chipTargetPos.Y.Offset
 
 		-- Get root window center position
 		local rootPos = root.AbsolutePosition
@@ -1921,29 +1930,29 @@ function RvrseUI:CreateWindow(cfg)
 		local windowCenterX = rootPos.X + (rootSize.X / 2)
 		local windowCenterY = rootPos.Y + (rootSize.Y / 2)
 
-		-- Create smooth particle flow gathering to center chip
+		-- Create smooth particle flow gathering to chip's actual position
 		createParticleFlow(
 			{X = windowCenterX, Y = windowCenterY},
-			{X = centerX, Y = centerY},
+			{X = chipTargetX, Y = chipTargetY},
 			60,  -- particle count (increased for smoother effect)
-			1.2,  -- duration (slower for smooth flow)
+			0.8,  -- duration (faster, smoother flow)
 			"gather"  -- flow type: particles gather from GUI to chip
 		)
 
-		-- Shrink window with smooth rotation (slower for particle sync)
+		-- Shrink window with faster rotation
 		Animator:Tween(root, {
 			Size = UDim2.new(0, 0, 0, 0),
-			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Position = UDim2.new(chipTargetPos.X.Scale, chipTargetPos.X.Offset, chipTargetPos.Y.Scale, chipTargetPos.Y.Offset),
 			BackgroundTransparency = 1,
 			Rotation = 180
-		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In))
 
 		Animator:Tween(glassOverlay, {
 			BackgroundTransparency = 1
-		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
 
 		-- Show controller chip after window shrinks
-		task.wait(1.0)
+		task.wait(0.6)
 		if isMinimized then
 			root.Visible = false
 			controllerChip.Visible = true
@@ -1963,10 +1972,11 @@ function RvrseUI:CreateWindow(cfg)
 		-- Ripple effect on controller chip
 		Animator:Ripple(controllerChip, 25, 25)
 
-		-- Get screen center position
+		-- Get controller chip's current position
 		local screenSize = workspace.CurrentCamera.ViewportSize
-		local centerX = screenSize.X / 2
-		local centerY = screenSize.Y / 2
+		local chipPos = controllerChip.AbsolutePosition
+		local chipCenterX = chipPos.X + 25  -- chip is 50x50, so center is +25
+		local chipCenterY = chipPos.Y + 25
 
 		-- Original window size and position
 		local targetSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
@@ -1984,43 +1994,43 @@ function RvrseUI:CreateWindow(cfg)
 		local windowCenterX = targetPos.X.Scale * screenSize.X + targetPos.X.Offset + (targetWidth / 2)
 		local windowCenterY = targetPos.Y.Scale * screenSize.Y + targetPos.Y.Offset + (targetHeight / 2)
 
-		-- Create smooth particle flow spreading around GUI
+		-- Create smooth particle flow spreading around GUI from chip's actual position
 		createParticleFlow(
-			{X = centerX, Y = centerY},
+			{X = chipCenterX, Y = chipCenterY},
 			{X = windowCenterX, Y = windowCenterY},
 			60,  -- particle count (increased for smoother effect)
-			1.2,  -- duration (slower for smooth flow)
+			0.8,  -- duration (faster, smoother flow)
 			"spread"  -- flow type: particles spread from chip around GUI
 		)
 
 		-- Shrink controller chip smoothly
 		Animator:Tween(controllerChip, {
 			Size = UDim2.new(0, 0, 0, 0)
-		}, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
+		}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In))
 
 		-- Wait for chip to shrink, then show window
-		task.wait(0.5)
+		task.wait(0.3)
 		controllerChip.Visible = false
 
 		-- Reset window properties and show it
 		root.Visible = true
 		root.Size = UDim2.new(0, 0, 0, 0)
-		root.Position = UDim2.new(0.5, 0, 0.5, 0)
+		root.Position = controllerChip.Position  -- Start from chip position
 		root.Rotation = -180
 		root.BackgroundTransparency = 1
 		glassOverlay.BackgroundTransparency = 1
 
-		-- Expand window with smooth rotation (slower for particle sync)
+		-- Expand window with faster rotation
 		Animator:Tween(root, {
 			Size = targetSize,
 			Position = targetPos,
 			BackgroundTransparency = 0.05,
 			Rotation = 0
-		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 
 		Animator:Tween(glassOverlay, {
 			BackgroundTransparency = Theme.Current == "Dark" and 0.97 or 0.95
-		}, TweenInfo.new(1.0, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
 	end
 
 	-- Connect minimize button click
