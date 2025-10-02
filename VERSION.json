@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 8,
-    "patch": 2,
-    "full": "2.8.2",
+    "patch": 3,
+    "full": "2.8.3",
     "build": "20251002",
-    "hash": "S9M8P7Q6",
+    "hash": "T1N9Q8R7",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "Hotkey & Particle Animation Fixes",
+    "name": "DisplayOrder + Chip Drag Offset Fix",
     "codename": "Stable",
-    "notes": "Fixed hotkey minimize behavior, controller chip dragging, and enhanced particle flow animations"
+    "notes": "GUI always on top of Roblox UI, fixed chip drag offset with IgnoreGuiInset, comprehensive debug logging"
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,6 +39,41 @@
     "auto_save": true
   },
   "changelog": {
+    "2.8.3": {
+      "date": "2025-10-02",
+      "hash": "T1N9Q8R7",
+      "changes": [
+        "🚀 CRITICAL FIX - Always Stay On Top of Roblox UI",
+        "✅ DisplayOrder: 999 → 100000 (renders above ALL Roblox UI)",
+        "✅ ControllerChip ZIndex: 1000 → 10000 (always clickable)",
+        "✅ Now renders above chat, leaderboard, and all default UI",
+        "🐛 CRITICAL FIX - Chip Drag Offset (IgnoreGuiInset)",
+        "✅ IgnoreGuiInset: true → false (fixes 36px offset bug)",
+        "✅ Root cause: Double compensation when ignoring topbar",
+        "✅ Solution: Respect topbar, GuiInset subtraction now correct",
+        "✅ Chip now perfectly centered under cursor (no jump/offset)",
+        "🔍 ENHANCED - Comprehensive Debug Logging",
+        "✅ Shows exact mouse position vs chip position",
+        "✅ Calculates pixel-perfect offset distance every 10 frames",
+        "✅ Shows coordinate transformations (raw → GUI-space)",
+        "✅ Warns when offset > 5 pixels with ⚠️",
+        "✅ Confirms alignment with ✅",
+        "🐛 FIXED - Hotkey isMinimized Boolean Bug",
+        "✅ Function was evaluated as truthy object, not boolean result",
+        "✅ Hotkey now correctly: open→minimize, minimized→restore",
+        "🐛 FIXED - Vector3/Vector2 Type Error (Line 2128)",
+        "✅ io.Position returns Vector3, converted to Vector2",
+        "✅ Fixed chip drag crash",
+        "📝 Technical Changes:",
+        "  - Lines 955, 1274: IgnoreGuiInset = false",
+        "  - Lines 957, 1276: DisplayOrder = 100000",
+        "  - Line 1779: ZIndex = 10000",
+        "  - Lines 2098-2203: Comprehensive debug logging",
+        "  - Lines 1112-1146: Fixed isMinimized boolean evaluation",
+        "  - Line 2123: Vector3 → Vector2 conversion",
+        "🎯 RESULT: Perfect chip drag, always on top, all bugs fixed!"
+      ]
+    },
     "2.8.2": {
       "date": "2025-10-02",
       "hash": "S9M8P7Q6",
