@@ -1100,11 +1100,14 @@ UIS.InputBegan:Connect(function(io, gpe)
 				if windowData and windowData.isMinimized then
 					-- Check if minimized (call function if it's a function)
 					local minimized = type(windowData.isMinimized) == "function" and windowData.isMinimized() or windowData.isMinimized
-					if minimized and windowData.restoreFunction then
-						-- Window is minimized, restore it instead of toggling
-						windowData.restoreFunction()
+
+					if minimized then
+						-- Window is minimized to controller chip, restore it
+						if windowData.restoreFunction then
+							windowData.restoreFunction()
+						end
 					else
-						-- Normal toggle
+						-- Window is NOT minimized, so just toggle visibility
 						f.Visible = not f.Visible
 					end
 				else
