@@ -3221,6 +3221,13 @@ function RvrseUI:CreateWindow(cfg)
 						currentKey = io.KeyCode
 						btn.Text = io.KeyCode.Name
 						btn.TextColor3 = pal3.Text
+
+						-- SPECIAL: If this keybind is for UI toggle, update the global toggle key
+						if o.Flag == "_UIToggleKey" or o.IsUIToggle then
+							RvrseUI.UI:BindToggleKey(io.KeyCode)
+							print("[KEYBIND] UI Toggle key updated to:", io.KeyCode.Name)
+						end
+
 						if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
 						if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
 					end

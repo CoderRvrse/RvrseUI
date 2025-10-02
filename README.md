@@ -430,6 +430,24 @@ CombatSection:CreateToggle({
 
 -- Settings Tab
 local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "🔧" })
+
+-- Controls Section with rebindable UI toggle
+local ControlsSection = SettingsTab:CreateSection("Controls")
+
+ControlsSection:CreateKeybind({
+  Text = "Toggle UI Hotkey",
+  Default = Enum.KeyCode.K,
+  IsUIToggle = true,  -- 🔑 Makes this keybind control the UI toggle!
+  OnChanged = function(key)
+    RvrseUI:Notify({
+      Title = "Hotkey Updated",
+      Message = "Press " .. key.Name .. " to toggle UI",
+      Duration = 2,
+      Type = "success"
+    })
+  end
+})
+
 local ConfigSection = SettingsTab:CreateSection("Configuration")
 
 -- Manual Save Button

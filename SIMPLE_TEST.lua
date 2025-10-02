@@ -211,14 +211,15 @@ ThemeSection:CreateDropdown({
 local ControlsSection = SettingsTab:CreateSection("Controls")
 
 ControlsSection:CreateKeybind({
-	Text = "Toggle UI",
+	Text = "Toggle UI Hotkey",
 	Default = Enum.KeyCode.K,
+	IsUIToggle = true,  -- 🔑 IMPORTANT: This makes it rebind the UI toggle key!
 	OnChanged = function(key)
 		RvrseUI:Notify({
-			Title = "Keybind Updated",
-			Message = "Press " .. key.Name .. " to toggle UI",
+			Title = "UI Toggle Updated",
+			Message = "Press " .. key.Name .. " to open/close UI",
 			Duration = 2,
-			Type = "info"
+			Type = "success"
 		})
 	end
 })
