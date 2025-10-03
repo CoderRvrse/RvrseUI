@@ -497,19 +497,9 @@ ConfigSection:CreateButton({
   end
 })
 
--- Auto-load saved config on startup
-task.spawn(function()
-  task.wait(1)
-  if RvrseUI:ConfigurationExists() then
-    RvrseUI:LoadConfiguration()
-    RvrseUI:Notify({
-      Title = "Config Auto-Loaded",
-      Message = "Your saved settings have been restored",
-      Duration = 3,
-      Type = "success"
-    })
-  end
-end)
+-- 🔧 IMPORTANT: Call Window:Show() to load config and display UI
+-- This MUST be called AFTER all tabs, sections, and elements are created!
+Window:Show()
 
 -- Welcome notification
 RvrseUI:Notify({

@@ -21,11 +21,11 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 -- =========================
 RvrseUI.Version = {
 	Major = 2,
-	Minor = 12,
-	Patch = 2,
+	Minor = 13,
+	Patch = 0,
 	Build = "20251002",  -- YYYYMMDD format
-	Full = "2.12.2",
-	Hash = "C7X4N9L2",  -- Release hash for integrity verification
+	Full = "2.13.0",
+	Hash = "D8Y2K5M3",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1899,20 +1899,9 @@ function RvrseUI:CreateWindow(cfg)
 	gradient(loadingFill, 90, {pal.Accent, pal.AccentHover})
 
 	Animator:Tween(loadingFill, {Size = UDim2.new(1, 0, 1, 0)}, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
-	task.delay(0.9, function()
-		-- 🔧 PRE-LOAD CONFIG: Load configuration BEFORE showing UI
-		if self.ConfigurationSaving and self.ConfigurationFileName then
-			print("[RvrseUI] 📂 Pre-loading configuration...")
-			local success, message = self:LoadConfiguration()
-			if success then
-				print("[RvrseUI] ✅ Configuration loaded successfully")
-			else
-				print("[RvrseUI] ⚠️ Config load warning:", message)
-			end
-			-- Small delay to ensure all elements have applied their values
-			task.wait(0.1)
-		end
 
+	-- Store splash hiding logic for later (called by WindowAPI:Show())
+	local hideSplashAndShowRoot = function()
 		-- Hide splash screen
 		if splash and splash.Parent then
 			Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
@@ -1920,10 +1909,10 @@ function RvrseUI:CreateWindow(cfg)
 			splash.Visible = false
 		end
 
-		-- 🔧 SHOW ROOT: Now that config is loaded, show the UI
+		-- Show root
 		root.Visible = true
 		print("[RvrseUI] ✨ UI visible - all settings applied")
-	end)
+	end
 
 	-- Mobile chip
 	local chip = Instance.new("TextButton")
@@ -2502,6 +2491,28 @@ function RvrseUI:CreateWindow(cfg)
 	-- Connect destroy function to windowData for ESC key
 	windowData.destroyFunction = function()
 		WindowAPI:Destroy()
+	end
+
+	-- 🔧 NEW: Show() method - Load config and display UI
+	function WindowAPI:Show()
+		-- Wait for loading bar to finish
+		task.delay(0.9, function()
+			-- Load configuration AFTER all elements have been created
+			if RvrseUI.ConfigurationSaving and RvrseUI.ConfigurationFileName then
+				print("[RvrseUI] 📂 Loading configuration (after elements created)...")
+				local success, message = RvrseUI:LoadConfiguration()
+				if success then
+					print("[RvrseUI] ✅ Configuration loaded successfully")
+				else
+					print("[RvrseUI] ⚠️ Config load warning:", message)
+				end
+				-- Small delay to ensure all elements have applied their values
+				task.wait(0.1)
+			end
+
+			-- Hide splash and show root
+			hideSplashAndShowRoot()
+		end)
 	end
 
 	function WindowAPI:CreateTab(t)

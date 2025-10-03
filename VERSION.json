@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 2,
-    "minor": 12,
-    "patch": 2,
-    "full": "2.12.2",
+    "minor": 13,
+    "patch": 0,
+    "full": "2.13.0",
     "build": "20251002",
-    "hash": "C7X4N9L2",
+    "hash": "D8Y2K5M3",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "Pre-Load System - Invisible Config Loading",
+    "name": "Window:Show() Method - Fixed Config Loading",
     "codename": "Stable",
-    "notes": "GUI now stays hidden during splash screen while config loads invisibly. Users never see default values - saved settings apply before UI appears."
+    "notes": "NEW Window:Show() method - Call AFTER creating all elements to load config properly. Fixes hotkey and all element config loading."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,40 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "2.13.0": {
+      "date": "2025-10-02",
+      "hash": "D8Y2K5M3",
+      "changes": [
+        "🔧 WINDOW:SHOW() METHOD - Proper Config Loading!",
+        "✅ CRITICAL FIX: Config now loads AFTER elements are created",
+        "✅ NEW METHOD: Window:Show() - Call after creating all elements",
+        "✅ FIXES: Hotkey config saving/loading now works correctly",
+        "✅ FIXES: All element values load from config properly",
+        "🎯 THE PROBLEM (v2.12.2):",
+        "  - Config loaded during CreateWindow (line 1906)",
+        "  - But elements are created AFTER CreateWindow returns",
+        "  - Config tried to apply to Flags that didn't exist yet!",
+        "  - Result: Hotkeys, toggles, sliders never loaded from config",
+        "🎯 THE SOLUTION (v2.13.0):",
+        "  - Removed auto-load from CreateWindow",
+        "  - Added Window:Show() method that:",
+        "    1. Waits for splash animation (0.9s)",
+        "    2. Loads config (elements now exist!)",
+        "    3. Waits 0.1s for values to apply",
+        "    4. Hides splash and shows root",
+        "  - USER MUST CALL: Window:Show() at end of script",
+        "📋 USAGE:",
+        "  local Window = RvrseUI:CreateWindow({...})",
+        "  -- Create all tabs, sections, elements",
+        "  Window:Show()  -- REQUIRED!",
+        "📋 TECHNICAL:",
+        "  - Lines 1903-1915: Store hideSplashAndShowRoot function",
+        "  - Lines 2496-2516: Window:Show() method definition",
+        "  - SIMPLE_TEST.lua line 353: Added Window:Show()",
+        "  - README.md line 502: Updated example",
+        "🎯 RESULT: Config loading finally works perfectly!"
+      ]
+    },
     "2.12.2": {
       "date": "2025-10-02",
       "hash": "C7X4N9L2",

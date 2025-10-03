@@ -347,3 +347,7 @@ print("Build:", RvrseUI.Version.Build)
 print("Hash:", RvrseUI.Version.Hash)
 print("Channel:", RvrseUI.Version.Channel)
 print("===========================================")
+
+-- 🔧 IMPORTANT: Call Window:Show() to load config and display UI
+-- This MUST be called AFTER all elements are created!
+Window:Show()
