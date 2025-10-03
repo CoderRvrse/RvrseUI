@@ -2,17 +2,17 @@
   "version": {
     "major": 2,
     "minor": 12,
-    "patch": 1,
-    "full": "2.12.1",
+    "patch": 2,
+    "full": "2.12.2",
     "build": "20251002",
-    "hash": "B6D3M8P1",
+    "hash": "C7X4N9L2",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-02",
-    "name": "Hotfix - Hotkey Config Persistence",
+    "name": "Pre-Load System - Invisible Config Loading",
     "codename": "Stable",
-    "notes": "Added Flag parameters to hotkey keybinds so they save/load from configuration. Toggle and destroy key preferences now persist."
+    "notes": "GUI now stays hidden during splash screen while config loads invisibly. Users never see default values - saved settings apply before UI appears."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,28 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "2.12.2": {
+      "date": "2025-10-02",
+      "hash": "C7X4N9L2",
+      "changes": [
+        "👻 INVISIBLE PRE-LOAD SYSTEM - No More Flash of Default Values!",
+        "✅ GUI starts hidden (root.Visible = false)",
+        "✅ Config loads during splash screen animation",
+        "✅ All saved settings applied BEFORE UI becomes visible",
+        "✅ Users never see default values flash before saved values load",
+        "🎯 PERFECT USER EXPERIENCE:",
+        "  - Splash screen shows → Config loads invisibly",
+        "  - Small 0.1s delay to ensure all elements update",
+        "  - Splash fades out → Root becomes visible",
+        "  - User sees fully configured UI from frame 1!",
+        "📋 TECHNICAL IMPLEMENTATION:",
+        "  - Line 1462: root.Visible = false (start hidden)",
+        "  - Lines 1903-1926: Pre-load config during splash animation",
+        "  - Line 1924: root.Visible = true (show after config loaded)",
+        "  - Solves: Flash of default theme/hotkeys/values on first load",
+        "🎯 RESULT: Seamless loading experience - no visual glitches!"
+      ]
+    },
     "2.12.1": {
       "date": "2025-10-02",
       "hash": "B6D3M8P1",

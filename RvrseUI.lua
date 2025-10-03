@@ -22,10 +22,10 @@ RvrseUI.DEBUG = true  -- Enable debug logging to diagnose theme save/load
 RvrseUI.Version = {
 	Major = 2,
 	Minor = 12,
-	Patch = 1,
+	Patch = 2,
 	Build = "20251002",  -- YYYYMMDD format
-	Full = "2.12.1",
-	Hash = "B6D3M8P1",  -- Release hash for integrity verification
+	Full = "2.12.2",
+	Hash = "C7X4N9L2",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1459,7 +1459,7 @@ function RvrseUI:CreateWindow(cfg)
 	root.BackgroundColor3 = pal.Bg
 	root.BackgroundTransparency = 0.05
 	root.BorderSizePixel = 0
-	root.Visible = true
+	root.Visible = false  -- 🔧 START HIDDEN - Will show after config loads
 	root.ClipsDescendants = false
 	root.ZIndex = 10000  -- CRITICAL: High ZIndex to stay on top of everything
 	root.Parent = windowHost
@@ -1900,11 +1900,29 @@ function RvrseUI:CreateWindow(cfg)
 
 	Animator:Tween(loadingFill, {Size = UDim2.new(1, 0, 1, 0)}, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 	task.delay(0.9, function()
+		-- 🔧 PRE-LOAD CONFIG: Load configuration BEFORE showing UI
+		if self.ConfigurationSaving and self.ConfigurationFileName then
+			print("[RvrseUI] 📂 Pre-loading configuration...")
+			local success, message = self:LoadConfiguration()
+			if success then
+				print("[RvrseUI] ✅ Configuration loaded successfully")
+			else
+				print("[RvrseUI] ⚠️ Config load warning:", message)
+			end
+			-- Small delay to ensure all elements have applied their values
+			task.wait(0.1)
+		end
+
+		-- Hide splash screen
 		if splash and splash.Parent then
 			Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 			task.wait(0.2)
 			splash.Visible = false
 		end
+
+		-- 🔧 SHOW ROOT: Now that config is loaded, show the UI
+		root.Visible = true
+		print("[RvrseUI] ✨ UI visible - all settings applied")
 	end)
 
 	-- Mobile chip
