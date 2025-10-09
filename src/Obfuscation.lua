@@ -99,4 +99,9 @@ function Obfuscation.getObfuscatedName(hint)
 	return Obfuscation:Generate(hint)
 end
 
+-- Helper function to get full name set (called by init.lua)
+function Obfuscation.getObfuscatedNames()
+	return Obfuscation:GenerateSet()
+end
+
 return Obfuscation
