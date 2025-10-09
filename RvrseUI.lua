@@ -608,6 +608,22 @@ State.Locks = {
 	_listeners = {}
 }
 
+function State:SetLocked(group, isLocked)
+	return self.Locks:SetLocked(group, isLocked)
+end
+
+function State:IsLocked(group)
+	return self.Locks:IsLocked(group)
+end
+
+function State:RegisterLockListener(callback)
+	return self.Locks:RegisterListener(callback)
+end
+
+function State:ClearLockListeners()
+	return self.Locks:ClearListeners()
+end
+
 function State.Locks:SetLocked(group, isLocked)
 	if not group then return end
 	self._locks[group] = isLocked and true or false
