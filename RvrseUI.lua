@@ -3130,7 +3130,34 @@ end
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
 
-	Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
+	local debugf
+	if Debug and Debug.printf then
+		debugf = function(...)
+			return Debug.printf(...)
+		end
+	elseif Debug and Debug.Print then
+		debugf = function(fmt, ...)
+			if type(fmt) == "string" and select("#", ...) > 0 then
+				local ok, formatted = pcall(string.format, fmt, ...)
+				if ok then
+					return Debug:Print(formatted)
+				end
+			end
+			return Debug:Print(fmt, ...)
+		end
+	else
+		debugf = function(fmt, ...)
+			if type(fmt) == "string" and select("#", ...) > 0 then
+				local ok, formatted = pcall(string.format, fmt, ...)
+				if ok then
+					return print("[RvrseUI]", formatted)
+				end
+			end
+			return print("[RvrseUI]", fmt, ...)
+		end
+	end
+
+	debugf("=== CREATEWINDOW THEME DEBUG ===")
 
 	-- IMPORTANT: Load saved theme FIRST before applying precedence
 	if RvrseUI.ConfigurationSaving and RvrseUI.ConfigurationFileName then
@@ -3139,26 +3166,26 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			fullPath = RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName
 		end
 
-		Debug.printf("🔍 PRE-LOAD VERIFICATION (CreateWindow)")
-		Debug.printf("PRE-LOAD PATH:", fullPath)
-		Debug.printf("CONFIG INSTANCE:", tostring(RvrseUI))
+		debugf("🔍 PRE-LOAD VERIFICATION (CreateWindow)")
+		debugf("PRE-LOAD PATH:", fullPath)
+		debugf("CONFIG INSTANCE:", tostring(RvrseUI))
 
 		local success, existingConfig = pcall(readfile, fullPath)
 		if success then
 			local decoded = HttpService:JSONDecode(existingConfig)
-			Debug.printf("PRE-LOAD VALUE: _RvrseUI_Theme =", decoded._RvrseUI_Theme or "nil")
+			debugf("PRE-LOAD VALUE: _RvrseUI_Theme =", decoded._RvrseUI_Theme or "nil")
 			if decoded._RvrseUI_Theme then
 				RvrseUI._savedTheme = decoded._RvrseUI_Theme
-				Debug.printf("✅ Pre-loaded saved theme from config:", RvrseUI._savedTheme)
+				debugf("✅ Pre-loaded saved theme from config:", RvrseUI._savedTheme)
 			end
 		else
-			Debug.printf("PRE-LOAD: No config file found (first run or deleted)")
+			debugf("PRE-LOAD: No config file found (first run or deleted)")
 		end
 	end
 
-	Debug.printf("RvrseUI._savedTheme:", RvrseUI._savedTheme)
-	Debug.printf("cfg.Theme:", cfg.Theme)
-	Debug.printf("Theme.Current before:", Theme.Current)
+	debugf("RvrseUI._savedTheme:", RvrseUI._savedTheme)
+	debugf("cfg.Theme:", cfg.Theme)
+	debugf("Theme.Current before:", Theme.Current)
 
 	-- Deterministic precedence: saved theme wins, else cfg.Theme, else default
 	local finalTheme = RvrseUI._savedTheme or cfg.Theme or "Dark"
@@ -3167,10 +3194,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Apply theme (does NOT mark dirty - this is initialization)
 	Theme:Apply(finalTheme)
 
-	Debug.printf("🎯 FINAL THEME APPLICATION")
-	Debug.printf("✅ Applied theme (source=" .. source .. "):", finalTheme)
-	Debug.printf("Theme.Current after:", Theme.Current)
-	Debug.printf("Theme._dirty:", Theme._dirty)
+	debugf("🎯 FINAL THEME APPLICATION")
+	debugf("✅ Applied theme (source=" .. source .. "):", finalTheme)
+	debugf("Theme.Current after:", Theme.Current)
+	debugf("Theme._dirty:", Theme._dirty)
 
 	-- Assert valid theme
 	assert(Theme.Current == "Dark" or Theme.Current == "Light", "Invalid Theme.Current at end of init: " .. tostring(Theme.Current))
@@ -3183,16 +3210,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			RvrseUI.ConfigurationSaving = true
 			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving .. ".json"
 			RvrseUI.ConfigurationFolderName = "RvrseUI/Configs"
-			Debug.printf("📂 Named profile mode:", cfg.ConfigurationSaving)
+			debugf("📂 Named profile mode:", cfg.ConfigurationSaving)
 		elseif typeof(cfg.ConfigurationSaving) == "table" then
 			RvrseUI.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
 			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
 			RvrseUI.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
-			Debug.printf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
+			debugf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
 		elseif cfg.ConfigurationSaving == true then
 			local lastConfig, lastTheme = RvrseUI:GetLastConfig()
 			if lastConfig then
-				Debug.printf("📂 Auto-loading last config:", lastConfig)
+				debugf("📂 Auto-loading last config:", lastConfig)
 				local configParts = lastConfig:match("(.+)/(.+)")
 				if configParts then
 					RvrseUI.ConfigurationFolderName = configParts:match("(.+)/")
@@ -3204,12 +3231,12 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 				if lastTheme then
 					RvrseUI._savedTheme = lastTheme
-					Debug.printf("📂 Overriding theme with last saved:", lastTheme)
+					debugf("📂 Overriding theme with last saved:", lastTheme)
 				end
 			else
 				RvrseUI.ConfigurationSaving = true
 				RvrseUI.ConfigurationFileName = "RvrseUI_Config.json"
-				Debug.printf("📂 No last config, using default")
+				debugf("📂 No last config, using default")
 			end
 		end
 	end
@@ -3253,7 +3280,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			customHost.Parent = containerTarget
 			windowHost = customHost
 			table.insert(RvrseUI._windows, {host = customHost})
-			Debug.printf("Container set to:", cfg.Container)
+			debugf("Container set to:", cfg.Container)
 		else
 			warn("[RvrseUI] Invalid container specified, using default PlayerGui")
 		end
