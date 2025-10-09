@@ -16,9 +16,33 @@ local SectionBuilder = {}
 --   - RvrseUI: Main RvrseUI instance (for _lockListeners, Flags, Store, _autoSave)
 function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local Theme = dependencies.Theme
-	local corner = dependencies.UIHelpers.corner
-	local stroke = dependencies.UIHelpers.stroke
-	local padding = dependencies.UIHelpers.padding
+	local helpers = dependencies.UIHelpers or {}
+	local corner = helpers.corner or function(inst, radius)
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, radius or 12)
+		c.Parent = inst
+		return c
+	end
+	local stroke = helpers.stroke or function(inst, color, thickness)
+		local s = Instance.new("UIStroke")
+		s.Color = color or Color3.fromRGB(45, 45, 55)
+		s.Thickness = thickness or 1
+		s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		s.Parent = inst
+		return s
+	end
+	local padding = helpers.padding or function(inst, inset)
+		local pad = Instance.new("UIPadding")
+		local offset = UDim.new(0, inset or 12)
+		pad.PaddingTop = offset
+		pad.PaddingBottom = offset
+		pad.PaddingLeft = offset
+		pad.PaddingRight = offset
+		pad.Parent = inst
+		return pad
+	end
+	local gradient = helpers.gradient or function() end
+	local shadow = helpers.shadow or function() end
 	local Elements = dependencies.Elements
 	local RvrseUI = dependencies.RvrseUI
 
@@ -80,8 +104,8 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 			Animator = dependencies.Animator,
 			RvrseUI = RvrseUI,
 			UIS = dependencies.UIS,
-			gradient = dependencies.UIHelpers.gradient,
-			shadow = dependencies.UIHelpers.shadow
+			gradient = gradient,
+			shadow = shadow
 		}
 	end
 
