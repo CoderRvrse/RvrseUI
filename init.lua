@@ -1,0 +1,288 @@
+-- init.lua
+-- Main entry point for RvrseUI modular architecture
+-- This file aggregates all modules and exposes the public API
+
+-- ============================================
+-- ROBLOX SERVICES
+-- ============================================
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
+local HttpService = game:GetService("HttpService")
+
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- ============================================
+-- IMPORT ALL MODULES
+-- ============================================
+local Version = require(script.src.Version)
+local Debug = require(script.src.Debug)
+local Obfuscation = require(script.src.Obfuscation)
+local Theme = require(script.src.Theme)
+local Animator = require(script.src.Animator)
+local State = require(script.src.State)
+local Config = require(script.src.Config)
+local UIHelpers = require(script.src.UIHelpers)
+local Icons = require(script.src.Icons)
+local Notifications = require(script.src.Notifications)
+local Hotkeys = require(script.src.Hotkeys)
+local WindowManager = require(script.src.WindowManager)
+local TabBuilder = require(script.src.TabBuilder)
+local SectionBuilder = require(script.src.SectionBuilder)
+local WindowBuilder = require(script.src.WindowBuilder)
+
+-- ============================================
+-- INITIALIZE MODULES
+-- ============================================
+
+-- Initialize Obfuscation first (generates names on init)
+Obfuscation:Initialize()
+
+-- Initialize Theme
+Theme:Initialize()
+
+-- Initialize Animator with TweenService
+Animator:Initialize(TweenService)
+
+-- Initialize State
+State:Initialize()
+
+-- Initialize UIHelpers with services
+UIHelpers:Initialize({
+	Animator = Animator,
+	Theme = Theme,
+	Icons = Icons,
+	PlayerGui = PlayerGui
+})
+
+-- Initialize Icons
+Icons:Initialize()
+
+-- Create host ScreenGui for notifications and windows
+local host = Instance.new("ScreenGui")
+host.Name = Obfuscation.getObfuscatedName("gui")
+host.ResetOnSpawn = false
+host.IgnoreGuiInset = true
+host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+host.DisplayOrder = 999
+host.Parent = PlayerGui
+
+-- Initialize Notifications with host
+Notifications:Initialize({
+	host = host,
+	Theme = Theme,
+	Animator = Animator,
+	UIHelpers = UIHelpers
+})
+
+-- Initialize Hotkeys with services
+Hotkeys:Initialize({
+	UIS = UserInputService
+})
+
+-- Initialize WindowManager
+WindowManager:Initialize()
+
+-- Prepare dependency injection object
+local deps = {
+	Theme = Theme,
+	Animator = Animator,
+	State = State,
+	Config = Config,
+	UIHelpers = UIHelpers,
+	Icons = Icons,
+	TabBuilder = TabBuilder,
+	SectionBuilder = SectionBuilder,
+	WindowManager = WindowManager,
+	Notifications = Notifications,
+	Debug = Debug,
+	Obfuscation = Obfuscation,
+	Hotkeys = Hotkeys,
+	Version = Version,
+
+	-- Services
+	UIS = UserInputService,
+	GuiService = GuiService,
+	RS = RunService,
+	PlayerGui = PlayerGui,
+	HttpService = HttpService,
+	TweenService = TweenService
+}
+
+-- Initialize builders with dependencies
+TabBuilder:Initialize(deps)
+SectionBuilder:Initialize(deps)
+WindowBuilder:Initialize(deps)
+
+-- ============================================
+-- MAIN RVRSEUI TABLE
+-- ============================================
+local RvrseUI = {}
+
+-- Version information
+RvrseUI.Version = Version
+
+-- Public state
+RvrseUI.NotificationsEnabled = true
+RvrseUI.Flags = {}
+RvrseUI.Store = State
+RvrseUI.UI = Hotkeys
+
+-- Internal state
+RvrseUI._windows = {}
+RvrseUI._lockListeners = {}
+RvrseUI._themeListeners = {}
+RvrseUI._savedTheme = nil
+RvrseUI._lastWindowPosition = nil
+RvrseUI._controllerChipPosition = nil
+RvrseUI._obfuscatedNames = Obfuscation.getObfuscatedNames()
+
+-- Configuration settings
+RvrseUI.ConfigurationSaving = false
+RvrseUI.ConfigurationFileName = nil
+RvrseUI.ConfigurationFolderName = nil
+
+-- ============================================
+-- PUBLIC API METHODS
+-- ============================================
+
+-- Create Window (main entry point)
+function RvrseUI:CreateWindow(cfg)
+	return WindowBuilder:CreateWindow(self, cfg, host)
+end
+
+-- Notifications
+function RvrseUI:Notify(options)
+	if not self.NotificationsEnabled then return end
+	return Notifications:Notify(options)
+end
+
+-- Destroy all UI
+function RvrseUI:Destroy()
+	if host and host.Parent then
+		host:Destroy()
+	end
+
+	if self.UI._toggleTargets then
+		table.clear(self.UI._toggleTargets)
+	end
+	if self._lockListeners then
+		table.clear(self._lockListeners)
+	end
+	if self._themeListeners then
+		table.clear(self._themeListeners)
+	end
+
+	print("[RvrseUI] All interfaces destroyed")
+end
+
+-- Toggle UI visibility
+function RvrseUI:ToggleVisibility()
+	self.UI:ToggleAllWindows()
+end
+
+-- Configuration Management
+function RvrseUI:SaveConfiguration()
+	return Config:SaveConfiguration(self)
+end
+
+function RvrseUI:LoadConfiguration()
+	return Config:LoadConfiguration(self)
+end
+
+function RvrseUI:_autoSave()
+	if self.ConfigurationSaving then
+		task.defer(function()
+			self:SaveConfiguration()
+		end)
+	end
+end
+
+function RvrseUI:GetLastConfig()
+	return Config:GetLastConfig()
+end
+
+function RvrseUI:SetConfigProfile(profileName)
+	return Config:SetConfigProfile(self, profileName)
+end
+
+function RvrseUI:ListProfiles()
+	return Config:ListProfiles()
+end
+
+function RvrseUI:DeleteProfile(profileName)
+	return Config:DeleteProfile(profileName)
+end
+
+-- Version Information
+function RvrseUI:GetVersionInfo()
+	return {
+		Full = Version.Full,
+		Major = Version.Major,
+		Minor = Version.Minor,
+		Patch = Version.Patch,
+		Build = Version.Build,
+		Hash = Version.Hash,
+		Channel = Version.Channel
+	}
+end
+
+function RvrseUI:GetVersionString()
+	return Version.Full
+end
+
+-- Theme Management
+function RvrseUI:SetTheme(themeName)
+	Theme:Switch(themeName)
+	if self.ConfigurationSaving then
+		self:_autoSave()
+	end
+end
+
+function RvrseUI:GetTheme()
+	return Theme.Current
+end
+
+-- Debug Methods
+function RvrseUI:EnableDebug(enabled)
+	Debug.enabled = enabled
+end
+
+function RvrseUI:IsDebugEnabled()
+	return Debug.enabled
+end
+
+-- Window Management
+function RvrseUI:GetWindows()
+	return self._windows
+end
+
+function RvrseUI:MinimizeAll()
+	for _, window in ipairs(self._windows) do
+		if window.Minimize then
+			window:Minimize()
+		end
+	end
+end
+
+function RvrseUI:RestoreAll()
+	for _, window in ipairs(self._windows) do
+		if window.Restore then
+			window:Restore()
+		end
+	end
+end
+
+-- ============================================
+-- INITIALIZATION COMPLETE
+-- ============================================
+
+print("[RvrseUI] ✅ Modular architecture loaded successfully")
+print("[RvrseUI] 📦 Version:", Version.Full)
+print("[RvrseUI] 🔨 Build:", Version.Build)
+print("[RvrseUI] 🔑 Hash:", Version.Hash)
+print("[RvrseUI] 📡 Channel:", Version.Channel)
+
+return RvrseUI

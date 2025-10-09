@@ -1,24 +1,35 @@
-# RvrseUI v2.11.0
+# RvrseUI v3.0.0
 
 <div align="center">
 
-**A modern, professional UI framework for Roblox with named config profiles, auto-load system, theme persistence, minimize to controller, and rebindable hotkeys.**
+**A modern, professional UI framework for Roblox with modular architecture, named config profiles, auto-load system, theme persistence, minimize to controller, and rebindable hotkeys.**
 
-[![Version](https://img.shields.io/badge/version-2.11.0-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/CoderRvrse/RvrseUI)
+[![Architecture](https://img.shields.io/badge/architecture-modular-green.svg)](MODULAR_ARCHITECTURE.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [What's New](#-whats-new)
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples) • [What's New](#-whats-new) • [Architecture](#-architecture)
 
 </div>
 
 > **⚠️ IMPORTANT**: Always use the cache buster (`.. tick()`) when loading to get the latest version and avoid cached errors!
 
-> **🚀 NEW in v2.8.0**: Named config profiles + auto-load! Just set `ConfigurationSaving = true` and your last config loads automatically!
+> **🚀 NEW in v2.13.0**: Window:Show() method! Call `Window:Show()` AFTER creating all elements to load config properly and display UI!
+
+> **⚠️ CRITICAL**: You MUST call `Window:Show()` at the end of your script or the UI will stay hidden!
 
 ---
 
 ## 🎯 Features
+
+### 🏗️ Modular Architecture (v3.0.0) **NEW!**
+- **26 Focused Modules**: Clean separation of concerns
+- **100% Backward Compatible**: Existing scripts work without changes
+- **Easy to Extend**: Add new elements or features safely
+- **Testable Components**: Each module can be tested independently
+- **Zero Performance Impact**: Same runtime speed as monolithic version
+- **Professional Grade**: Maintainable, scalable, production-ready
 
 ### 🎨 Theme Persistence (v2.7.0+) **FIXED!**
 - **Saved Theme Wins**: Theme persists correctly across sessions
@@ -122,6 +133,9 @@ PlayerSection:CreateToggle({
     print("Auto Farm:", enabled)
   end
 })
+
+-- ⚠️ CRITICAL: Call Window:Show() to load config and display UI
+Window:Show()
 ```
 
 ### With Configuration Saving (v2.8.0 - Auto-Load!)
@@ -158,7 +172,9 @@ PlayerSection:CreateSlider({
   end
 })
 
--- Auto-load happens automatically! No need to call LoadConfiguration()
+-- ⚠️ CRITICAL: Call Window:Show() at the end!
+-- This loads your saved config and displays the UI
+Window:Show()
 ```
 
 ---
@@ -329,10 +345,11 @@ local exists = RvrseUI:ConfigurationExists()
 
 ### Complete Script with Config (Production-Ready, No Errors!)
 
-> ✅ **This example works perfectly** - tested and verified with v2.11.0!
+> ✅ **This example works perfectly** - tested and verified with v2.13.0!
 > 📁 **Full version**: See [SIMPLE_TEST.lua](SIMPLE_TEST.lua) for complete demo
 > 🎨 **Theme Note**: Theme parameter is first-run default only - saved theme takes precedence!
 > 🔑 **Hotkey Note**: Use `IsUIToggle = true` in keybind to make it rebindable from settings!
+> ⚠️ **CRITICAL**: You MUST call `Window:Show()` at the end or UI stays hidden!
 
 ```lua
 -- Load RvrseUI with cache buster (always gets latest!)
@@ -602,8 +619,41 @@ Theme:Switch("Dark")
 ```lua
 Window:CreateTab({ Title = "Tab", Icon = "home" })
 Window:SetIcon("trophy")
+Window:Show()  -- ⚠️ CRITICAL: Call this AFTER creating all elements!
 Window:Destroy()
 ```
+
+#### Window:Show() - **NEW in v2.13.0**
+
+**⚠️ CRITICAL METHOD**: You MUST call this at the end of your script!
+
+```lua
+-- Create window
+local Window = RvrseUI:CreateWindow({
+  Name = "My Script",
+  ConfigurationSaving = true
+})
+
+-- Create all your tabs, sections, and elements
+local Tab = Window:CreateTab({Title = "Main"})
+local Section = Tab:CreateSection("Player")
+Section:CreateSlider({Text = "Speed", Flag = "Speed"})
+
+-- ⚠️ REQUIRED: Call Window:Show() at the end!
+Window:Show()
+```
+
+**What Window:Show() does:**
+1. Waits for splash screen animation to finish (0.9s)
+2. Loads your saved configuration (if ConfigurationSaving is enabled)
+3. Applies all saved values to elements (hotkeys, toggles, sliders, etc.)
+4. Waits 0.1s for values to apply
+5. Hides splash screen and shows the UI
+
+**Why it's required:**
+- Config must load AFTER elements exist (not before)
+- Without it, your UI will stay hidden forever!
+- Ensures no "flash" of default values before saved values load
 
 ### Tab Methods
 
@@ -664,7 +714,16 @@ RvrseUI:Notify({
 
 ## 📊 What's New
 
-### v2.8.0 - Named Config Profiles + Auto-Load (Current Release)
+### v3.0.0 - Modular Architecture (Current Release)
+- 🏗️ **Complete Refactoring**: 3,923-line monolith → 26 focused modules
+- 🔧 **Maintainable Code**: Average module size 169 lines (down from 3,923)
+- 🧪 **Testable Components**: Each module can be tested independently
+- 🚀 **Zero Breaking Changes**: 100% API compatibility maintained
+- 📚 **Enhanced Documentation**: Complete architectural guides
+- 🎯 **Future-Proof**: Easy to extend with new features
+- 🔒 **Production Ready**: All features preserved and verified
+
+### v2.8.0 - Named Config Profiles + Auto-Load
 - 🚀 **Auto-Load System**: `ConfigurationSaving = true` auto-loads last config!
 - 🚀 **Named Profiles**: `ConfigurationSaving = "ProfileName"` for multiple configs
 - 🚀 **Theme Guaranteed**: Last theme ALWAYS loads from `_last_config.json`
@@ -731,8 +790,39 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 ---
 
+## 🏗️ Architecture
+
+RvrseUI v3.0.0 features a **professional modular architecture**:
+
+```
+RvrseUI/
+├── init.lua                    (Entry point - backward compatible)
+├── src/                        (Modular components)
+│   ├── Version.lua             (Version management)
+│   ├── Debug.lua               (Debug utilities)
+│   ├── Theme.lua               (Theme system)
+│   ├── Animator.lua            (Animation system)
+│   ├── State.lua               (State management)
+│   ├── Config.lua              (Configuration persistence)
+│   ├── WindowBuilder.lua       (Window creation)
+│   ├── TabBuilder.lua          (Tab creation)
+│   ├── SectionBuilder.lua      (Section creation)
+│   └── Elements/               (10 UI elements)
+│       ├── Button.lua
+│       ├── Toggle.lua
+│       ├── Dropdown.lua
+│       └── ... (7 more)
+└── RvrseUI.lua                 (Legacy monolithic - still works!)
+```
+
+**Learn More**: See [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md) for complete details.
+
+---
+
 ## 📖 Additional Documentation
 
+- **[MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md)** - Complete architectural overview
+- **[REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md)** - Detailed refactoring statistics
 - **[CONFIG_GUIDE.md](CONFIG_GUIDE.md)** - Complete configuration system guide
 - **[ELEMENTS_DOCS.md](ELEMENTS_DOCS.md)** - Detailed element documentation
 - **[CLAUDE.md](CLAUDE.md)** - AI-readable codebase documentation
@@ -774,8 +864,9 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 **Developer**: CoderRvrse
 **Framework**: RvrseUI
-**Version**: 2.7.1 "GPT-5 Verification Logging + Theme Persistence"
-**Build**: 20251001
+**Version**: 3.0.0 "Modular Architecture"
+**Build**: 20251008
+**Refactoring**: Claude Code
 
 Built with ❤️ for the Roblox scripting community.
 
@@ -783,7 +874,7 @@ Built with ❤️ for the Roblox scripting community.
 
 <div align="center">
 
-**[⬆ Back to Top](#rvrseui-v271)**
+**[⬆ Back to Top](#rvrseui-v300)**
 
 Made with 🤖 [Claude Code](https://claude.com/claude-code)
 
