@@ -100,6 +100,7 @@ if not chunk then
 end
 
 local RvrseUI = chunk()
+RvrseUI:EnableDebug(true) -- Optional: surfaces [FS] diagnostics in the output window
 
 -- ✅ v3.0.0 - Compiled from modular architecture (115 KB, all 26 modules inlined)
 -- All features: 12 elements, theme system, config persistence, animations
@@ -118,6 +119,7 @@ if not chunk then
 end
 
 local RvrseUI = chunk()
+RvrseUI:EnableDebug(true) -- Optional: enable verbose diagnostics for live testing
 ```
 
 ### Basic Example
@@ -898,11 +900,18 @@ RvrseUI/
 2. Verify elements have `Flag` parameter
 3. Ensure executor supports `writefile()`
 4. Wait 1 second for auto-save debounce
+5. Enable diagnostics with `RvrseUI:EnableDebug(true)` to surface `[FS]` logging
 
 ### Elements not loading?
 1. Ensure `RvrseUI:LoadConfiguration()` is at the **END** of your script
 2. Check if config file exists with `RvrseUI:ConfigurationExists()`
 3. Verify Flag names match exactly
+
+### Executor missing file APIs?
+1. Call `RvrseUI:EnableDebug(true)` right after `loadstring` to view guard output
+2. Look for `[FS] readfile unavailable` / `[FS] writefile unavailable` logs – CreateWindow now skips the read rather than erroring
+3. If `[FS]` logs appear, disable `ConfigurationSaving` or switch to an executor that exposes those functions
+4. Once file APIs are present, the guards auto-enable and configuration saving resumes normally
 
 ### Dropdown not working?
 **Fixed in v2.3.1!** Update to latest version for proper dropdown list.

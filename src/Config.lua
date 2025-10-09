@@ -27,6 +27,53 @@ Config._configCache = {}  -- In-memory config cache
 Config._lastSaveTime = nil  -- Debounce timestamp
 
 -- ============================================
+-- EXECUTOR FILE-SYSTEM PROBE
+-- ============================================
+
+local FileApi = {
+	readfile = type(readfile) == "function" and readfile or nil,
+	writefile = type(writefile) == "function" and writefile or nil,
+	isfile = type(isfile) == "function" and isfile or nil,
+	isfolder = type(isfolder) == "function" and isfolder or nil,
+	makefolder = type(makefolder) == "function" and makefolder or nil,
+	delfile = type(delfile) == "function" and delfile or nil,
+	listfiles = type(listfiles) == "function" and listfiles or nil
+}
+
+local function fsCall(name, ...)
+	local fn = FileApi[name]
+	if not fn then
+		return false, string.format("%s unavailable in this executor", name)
+	end
+
+	local ok, result = pcall(fn, ...)
+	if not ok then
+		return false, result
+	end
+	return true, result
+end
+
+local function fsSupports(name)
+	return FileApi[name] ~= nil
+end
+
+local function traceFsSupport(tag)
+	if not dprintf then
+		return
+	end
+
+	dprintf(string.format(
+		"[FS] %s support | readfile:%s writefile:%s isfile:%s isfolder:%s makefolder:%s",
+		tag,
+		fsSupports("readfile") and "✅" or "⛔",
+		fsSupports("writefile") and "✅" or "⛔",
+		fsSupports("isfile") and "✅" or "⛔",
+		fsSupports("isfolder") and "✅" or "⛔",
+		fsSupports("makefolder") and "✅" or "⛔"
+	))
+end
+
+-- ============================================
 -- INITIALIZATION
 -- ============================================
 
@@ -34,6 +81,9 @@ function Config:Init(dependencies)
 	State = dependencies.State
 	Theme = dependencies.Theme
 	dprintf = dependencies.dprintf or function() end
+
+	traceFsSupport("Init")
+
 	return self
 end
 
@@ -46,9 +96,15 @@ function Config:SaveConfiguration()
 		return false, "Configuration saving not enabled"
 	end
 
+	if not (fsSupports("writefile") and fsSupports("readfile")) then
+		if dprintf then
+			dprintf("[FS] Save aborted - writefile/readfile unavailable")
+		end
+		return false, "Executor does not expose writefile/readfile"
+	end
+
 	local config = {}
 
-	-- Save all flagged elements
 	for flagName, element in pairs(State.Flags) do
 		if element.Get then
 			local success, value = pcall(element.Get, element)
@@ -58,7 +114,6 @@ function Config:SaveConfiguration()
 		end
 	end
 
-	-- Save current theme (only if dirty - user changed it)
 	dprintf("=== THEME SAVE DEBUG ===")
 	dprintf("Theme exists?", Theme ~= nil)
 	if Theme then
@@ -69,59 +124,70 @@ function Config:SaveConfiguration()
 	if Theme and Theme.Current and Theme._dirty then
 		config._RvrseUI_Theme = Theme.Current
 		dprintf("✅ Saved theme to config (dirty):", config._RvrseUI_Theme)
-		Theme._dirty = false  -- Clear dirty flag after save
+		Theme._dirty = false
 	else
 		dprintf("Theme not saved (not dirty or unavailable)")
-		-- Preserve existing saved theme if it exists
 		if self._configCache and self._configCache._RvrseUI_Theme then
 			config._RvrseUI_Theme = self._configCache._RvrseUI_Theme
 			dprintf("Preserving existing saved theme:", config._RvrseUI_Theme)
 		end
 	end
 
-	-- Cache configuration
 	self._configCache = config
 	local configKeys = {}
 	for k in pairs(config) do table.insert(configKeys, k) end
 	dprintf("Config keys being saved:", table.concat(configKeys, ", "))
 
-	-- Build full file path with optional folder
 	local fullPath = self.ConfigurationFileName
 	if self.ConfigurationFolderName then
-		-- Create folder if it doesn't exist
-		pcall(function()
-			if not isfolder(self.ConfigurationFolderName) then
-				makefolder(self.ConfigurationFolderName)
+		if fsSupports("isfolder") then
+			local existsOk, existsOrErr = fsCall("isfolder", self.ConfigurationFolderName)
+			if existsOk then
+				if not existsOrErr and fsSupports("makefolder") then
+					local createOk, createErr = fsCall("makefolder", self.ConfigurationFolderName)
+					if not createOk and dprintf then
+						dprintf("[FS] makefolder failed:", createErr)
+					end
+				end
+			elseif dprintf then
+				dprintf("[FS] isfolder failed:", existsOrErr)
 			end
-		end)
+		elseif dprintf then
+			dprintf("[FS] isfolder unavailable - skipping folder creation probe")
+		end
 		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
 	end
 
-	-- GPT-5 VERIFICATION: Print save path, key, and instance
-	dprintf("🔍 SAVE VERIFICATION")
+	dprintf("?? SAVE VERIFICATION")
 	dprintf("SAVE PATH:", fullPath)
 	dprintf("SAVE KEY: _RvrseUI_Theme =", config._RvrseUI_Theme or "nil")
 	dprintf("CONFIG INSTANCE:", tostring(self))
 
-	-- Save to datastore using writefile
 	local success, err = pcall(function()
 		local jsonData = HttpService:JSONEncode(config)
-		writefile(fullPath, jsonData)
+		FileApi.writefile(fullPath, jsonData)
 	end)
 
 	if success then
-		-- GPT-5 VERIFICATION: Readback after save to confirm it landed
-		local readbackSuccess, readbackData = pcall(function()
-			return HttpService:JSONDecode(readfile(fullPath))
-		end)
-		if readbackSuccess and readbackData then
-			dprintf("READBACK AFTER SAVE: _RvrseUI_Theme =", readbackData._RvrseUI_Theme or "nil")
-			if readbackData._RvrseUI_Theme ~= config._RvrseUI_Theme then
-				warn("⚠️ READBACK MISMATCH! Expected:", config._RvrseUI_Theme, "Got:", readbackData._RvrseUI_Theme)
+		if fsSupports("readfile") then
+			local readOk, rawOrErr = fsCall("readfile", fullPath)
+			if readOk and rawOrErr then
+				local decodeOk, readbackData = pcall(HttpService.JSONDecode, HttpService, rawOrErr)
+				if decodeOk and typeof(readbackData) == "table" then
+					dprintf("READBACK AFTER SAVE: _RvrseUI_Theme =", readbackData._RvrseUI_Theme or "nil")
+					if readbackData._RvrseUI_Theme ~= config._RvrseUI_Theme then
+						warn("?? READBACK MISMATCH! Expected:", config._RvrseUI_Theme, "Got:", readbackData._RvrseUI_Theme)
+					end
+				elseif dprintf then
+					dprintf("[FS] Readback decode failed:", readbackData)
+				end
+			elseif dprintf then
+				dprintf("[FS] Readback skipped:", rawOrErr)
 			end
+		elseif dprintf then
+			dprintf("[FS] Readback skipped - readfile unavailable")
 		end
 
-		-- Save this as the last used config
 		self:SaveLastConfig(fullPath, config._RvrseUI_Theme or "Dark")
 
 		dprintf("Configuration saved:", self.ConfigurationFileName)
@@ -152,18 +218,35 @@ function Config:LoadConfiguration()
 	dprintf("LOAD PATH:", fullPath)
 	dprintf("CONFIG INSTANCE:", tostring(self))
 
-	local success, result = pcall(function()
-		if not isfile(fullPath) then
-			return nil, "No saved configuration found"
+	if not fsSupports("readfile") then
+		if dprintf then
+			dprintf("[FS] Load aborted - readfile unavailable")
 		end
+		return false, "Executor does not expose readfile"
+	end
 
-		local jsonData = readfile(fullPath)
-		return HttpService:JSONDecode(jsonData)
-	end)
+	if fsSupports("isfile") then
+		local existsOk, existsOrErr = fsCall("isfile", fullPath)
+		if not existsOk then
+			dprintf("File existence check failed:", existsOrErr)
+			return false, existsOrErr
+		end
+		if not existsOrErr then
+			dprintf("No configuration to load or error:", existsOrErr)
+			dprintf("VALUE AT LOAD: nil (no file)")
+			return false, "No saved configuration found"
+		end
+	end
 
-	if not success or not result then
-		dprintf("No configuration to load or error:", result)
-		dprintf("VALUE AT LOAD: nil (no file)")
+	local readOk, rawOrErr = fsCall("readfile", fullPath)
+	if not readOk then
+		dprintf("Read failed:", rawOrErr)
+		return false, rawOrErr
+	end
+
+	local decodeOk, result = pcall(HttpService.JSONDecode, HttpService, rawOrErr)
+	if not decodeOk then
+		dprintf("JSON decode failed:", result)
 		return false, result
 	end
 
@@ -230,18 +313,24 @@ function Config:DeleteConfiguration()
 	if self.ConfigurationFolderName then
 		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
 	end
+	if not (fsSupports("isfile") and fsSupports("delfile")) then
+		return false, "Executor does not expose isfile/delfile"
+	end
 
-	local success, err = pcall(function()
-		if isfile(fullPath) then
-			delfile(fullPath)
-		end
-	end)
+	local existsOk, existsOrErr = fsCall("isfile", fullPath)
+	if not existsOk then
+		return false, existsOrErr
+	end
+	if not existsOrErr then
+		return false, "Configuration file not found"
+	end
 
-	if success then
+	local deleteOk, deleteErr = fsCall("delfile", fullPath)
+	if deleteOk then
 		self._configCache = {}
 		return true, "Configuration deleted"
 	else
-		return false, err
+		return false, deleteErr
 	end
 end
 
@@ -260,11 +349,12 @@ function Config:ConfigurationExists()
 		fullPath = self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName
 	end
 
-	local success, result = pcall(function()
-		return isfile(fullPath)
-	end)
+	if not fsSupports("isfile") then
+		return false
+	end
 
-	return success and result
+	local existsOk, existsOrErr = fsCall("isfile", fullPath)
+	return existsOk and existsOrErr or false
 end
 
 -- ============================================
@@ -274,15 +364,29 @@ end
 function Config:GetLastConfig()
 	local lastConfigPath = "RvrseUI/_last_config.json"
 
-	local success, data = pcall(function()
-		if not isfile(lastConfigPath) then
-			return nil
-		end
-		local jsonData = readfile(lastConfigPath)
-		return HttpService:JSONDecode(jsonData)
-	end)
+	if not (fsSupports("isfile") and fsSupports("readfile")) then
+		dprintf("[FS] Last config probe skipped - filesystem unavailable")
+		return nil, nil
+	end
 
-	if success and data then
+	local existsOk, existsOrErr = fsCall("isfile", lastConfigPath)
+	if not existsOk then
+		dprintf("Last config isfile failed:", existsOrErr)
+		return nil, nil
+	end
+	if not existsOrErr then
+		dprintf("📂 No last config found")
+		return nil, nil
+	end
+
+	local readOk, rawOrErr = fsCall("readfile", lastConfigPath)
+	if not readOk then
+		dprintf("Last config read failed:", rawOrErr)
+		return nil, nil
+	end
+
+	local decodeOk, data = pcall(HttpService.JSONDecode, HttpService, rawOrErr)
+	if decodeOk and data then
 		dprintf("📂 Last config found:", data.lastConfig, "Theme:", data.lastTheme)
 		return data.lastConfig, data.lastTheme
 	end
@@ -298,29 +402,36 @@ end
 function Config:SaveLastConfig(configName, theme)
 	local lastConfigPath = "RvrseUI/_last_config.json"
 
-	-- Ensure RvrseUI folder exists
-	pcall(function()
-		if not isfolder("RvrseUI") then
-			makefolder("RvrseUI")
+	if fsSupports("isfolder") and fsSupports("makefolder") then
+		local existsOk, existsOrErr = fsCall("isfolder", "RvrseUI")
+		if existsOk and not existsOrErr then
+			fsCall("makefolder", "RvrseUI")
+		elseif not existsOk and dprintf then
+			dprintf("[FS] isfolder('RvrseUI') failed:", existsOrErr)
 		end
-	end)
-
-	local success, err = pcall(function()
-		local data = {
-			lastConfig = configName,
-			lastTheme = theme,
-			timestamp = os.time()
-		}
-		writefile(lastConfigPath, HttpService:JSONEncode(data))
-	end)
-
-	if success then
-		dprintf("📂 Saved last config reference:", configName, "Theme:", theme)
-	else
-		warn("[RvrseUI] Failed to save last config:", err)
+	elseif dprintf then
+		dprintf("[FS] Skipping folder ensure - isfolder/makefolder unavailable")
 	end
 
-	return success
+	if not fsSupports("writefile") then
+		return false
+	end
+
+	local data = {
+		lastConfig = configName,
+		lastTheme = theme,
+		timestamp = os.time()
+	}
+
+	local writeOk, writeErr = fsCall("writefile", lastConfigPath, HttpService:JSONEncode(data))
+
+	if writeOk then
+		dprintf("📂 Saved last config reference:", configName, "Theme:", theme)
+	else
+		warn("[RvrseUI] Failed to save last config:", writeErr)
+	end
+
+	return writeOk
 end
 
 -- ============================================
@@ -382,3 +493,4 @@ function Config:SaveConfigAs(configName)
 end
 
 return Config
+

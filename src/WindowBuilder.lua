@@ -52,16 +52,24 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		Debug.printf("PRE-LOAD PATH:", fullPath)
 		Debug.printf("CONFIG INSTANCE:", tostring(RvrseUI))
 
-		local success, existingConfig = pcall(readfile, fullPath)
-		if success then
-			local decoded = HttpService:JSONDecode(existingConfig)
-			Debug.printf("PRE-LOAD VALUE: _RvrseUI_Theme =", decoded._RvrseUI_Theme or "nil")
-			if decoded._RvrseUI_Theme then
-				RvrseUI._savedTheme = decoded._RvrseUI_Theme
-				Debug.printf("✅ Pre-loaded saved theme from config:", RvrseUI._savedTheme)
-			end
+		if type(readfile) ~= "function" then
+			Debug.printf("[FS] readfile unavailable - skipping config pre-load")
 		else
-			Debug.printf("PRE-LOAD: No config file found (first run or deleted)")
+			local success, existingConfig = pcall(readfile, fullPath)
+			if success and existingConfig then
+				local decodeOk, decoded = pcall(HttpService.JSONDecode, HttpService, existingConfig)
+				if decodeOk and typeof(decoded) == "table" then
+					Debug.printf("PRE-LOAD VALUE: _RvrseUI_Theme =", decoded._RvrseUI_Theme or "nil")
+					if decoded._RvrseUI_Theme then
+						RvrseUI._savedTheme = decoded._RvrseUI_Theme
+						Debug.printf("✅ Pre-loaded saved theme from config:", RvrseUI._savedTheme)
+					end
+				else
+					Debug.printf("PRE-LOAD: JSON decode failed:", decoded)
+				end
+			else
+				Debug.printf("PRE-LOAD readfile failed:", existingConfig)
+			end
 		end
 	end
 
@@ -921,3 +929,5 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 end
 
 return WindowBuilder
+
+
