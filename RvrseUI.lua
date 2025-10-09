@@ -3505,30 +3505,30 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
 			RvrseUI.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
 			debugf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
-			elseif cfg.ConfigurationSaving == true then
-				local lastConfig, lastTheme = RvrseUI:GetLastConfig()
-				if lastConfig then
-					debugf("📂 Auto-loading last config:", lastConfig)
-					local folder, file = lastConfig:match("^(.*)/([^/]+)$")
-					if folder and file then
-						RvrseUI.ConfigurationFolderName = folder
-						RvrseUI.ConfigurationFileName = file
-					else
-						RvrseUI.ConfigurationFolderName = nil
-						RvrseUI.ConfigurationFileName = lastConfig
-					end
-					RvrseUI.ConfigurationSaving = true
-
-					if lastTheme then
-						RvrseUI._savedTheme = lastTheme
-						debugf("📂 Overriding theme with last saved:", lastTheme)
-					end
+		elseif cfg.ConfigurationSaving == true then
+			local lastConfig, lastTheme = RvrseUI:GetLastConfig()
+			if lastConfig then
+				debugf("📂 Auto-loading last config:", lastConfig)
+				local folder, file = lastConfig:match("^(.*)/([^/]+)$")
+				if folder and file then
+					RvrseUI.ConfigurationFolderName = folder
+					RvrseUI.ConfigurationFileName = file
 				else
-					RvrseUI.ConfigurationSaving = true
-					RvrseUI.ConfigurationFileName = "RvrseUI_Config.json"
-					debugf("📂 No last config, using default")
+					RvrseUI.ConfigurationFolderName = nil
+					RvrseUI.ConfigurationFileName = lastConfig
 				end
+				RvrseUI.ConfigurationSaving = true
+
+				if lastTheme then
+					RvrseUI._savedTheme = lastTheme
+					debugf("📂 Overriding theme with last saved:", lastTheme)
+				end
+			else
+				RvrseUI.ConfigurationSaving = true
+				RvrseUI.ConfigurationFileName = "RvrseUI_Config.json"
+				debugf("📂 No last config, using default")
 			end
+		end
 		end
 
 	Config.ConfigurationSaving = RvrseUI.ConfigurationSaving
