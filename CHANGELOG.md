@@ -1,4 +1,37 @@
-# RvrseUI v2.3.1 Complete Changelog
+# RvrseUI v3.0.1 Changelog
+
+**Release Date**: October 10, 2025  
+**Build**: 20251010  
+**Hash**: `Q1W2E3R4`  
+**Codename**: Configuration Hotfix
+
+---
+
+## 🎯 Summary
+
+v3.0.1 delivers a focused hotfix for the configuration persistence pipeline. The Config module now initializes alongside State and Theme, restoring the debug logging hooks that guard save/load execution. This resolves the `attempt to call a nil value` failure seen when loading configurations immediately after window creation.
+
+---
+
+## 🔧 Fixes
+
+- Ensured `Config:Init` runs during bootstrap so `dprintf` and module references are available before the first save/load call.
+- Added a lightweight logger fallback so executors without debug mode still see meaningful messages.
+- Refreshed README badges, build headers, and version metadata to match v3.0.1.
+
+---
+
+## 🔎 Validation
+
+- Manual regression in a live executor: Save / Load / Delete configuration flows execute without stack traces.
+- Verified auto-save debounce continues to function with the new initialization order.
+- Confirmed version metadata aligns across `RvrseUI.lua`, `src/Version.lua`, `VERSION.json`, and documentation.
+
+---
+
+# Legacy Release Notes
+
+## RvrseUI v2.3.1 Complete Changelog
 
 **Release Date**: September 30, 2025
 **Build**: 20250930

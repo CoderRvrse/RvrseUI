@@ -1,5 +1,5 @@
--- RvrseUI v3.0.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-09
+-- RvrseUI v3.0.1 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-10-10
 -- Source: https://github.com/CoderRvrse/RvrseUI
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
@@ -19,10 +19,10 @@ local Version = {}
 Version.Data = {
 	Major = 3,
 	Minor = 0,
-	Patch = 0,
-	Build = "20251009",  -- YYYYMMDD format
-	Full = "3.0.0",
-	Hash = "M6D8A3L1",  -- Release hash for integrity verification
+	Patch = 1,
+	Build = "20251010",  -- YYYYMMDD format
+	Full = "3.0.1",
+	Hash = "Q1W2E3R4",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -4624,6 +4624,22 @@ Animator:Initialize(TweenService)
 
 -- Initialize State
 State:Initialize()
+
+-- Prepare lightweight logger for configuration module
+local function configLogger(...)
+	if Debug and Debug.Print then
+		Debug:Print(...)
+	else
+		print("[RvrseUI]", ...)
+	end
+end
+
+-- Initialize configuration module with required dependencies
+Config:Init({
+	State = State,
+	Theme = Theme,
+	dprintf = configLogger
+})
 
 -- Initialize UIHelpers with services
 UIHelpers:Initialize({

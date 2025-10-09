@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 RvrseUI v3.0.0 Monolithic Build Script');
+console.log('🔨 RvrseUI v3.0.1 Monolithic Build Script');
 console.log('='.repeat(60));
 
 // Read init.lua as the template
@@ -14,7 +14,7 @@ console.log('📖 Reading init.lua template...');
 let initContent = fs.readFileSync('init.lua', 'utf8');
 
 // Header for compiled file
-const header = `-- RvrseUI v3.0.0 | Modern Professional UI Framework
+const header = `-- RvrseUI v3.0.1 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString().split('T')[0]}
 -- Source: https://github.com/CoderRvrse/RvrseUI
 

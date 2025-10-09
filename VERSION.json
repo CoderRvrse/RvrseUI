@@ -2,17 +2,17 @@
   "version": {
     "major": 3,
     "minor": 0,
-    "patch": 0,
-    "full": "3.0.0",
-    "build": "20251009",
-    "hash": "M6D8A3L1",
+    "patch": 1,
+    "full": "3.0.1",
+    "build": "20251010",
+    "hash": "Q1W2E3R4",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-09",
-    "name": "Modular Architecture Refresh",
+    "date": "2025-10-10",
+    "name": "Configuration Hotfix",
     "codename": "Aurora",
-    "notes": "Major repository cleanup, consolidated master test suite, and refreshed documentation to match the modular v3 architecture."
+    "notes": "Patches configuration bootstrapping so save/load logging is available and prevents nil method calls on initialization."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,15 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "3.0.1": {
+      "date": "2025-10-10",
+      "hash": "Q1W2E3R4",
+      "changes": [
+        "🐛 Fixed configuration initialization so logging hooks exist prior to save/load calls.",
+        "⚙️ Ensured Config module receives State/Theme dependencies during bootstrap to eliminate nil reference errors.",
+        "📄 Updated documentation and build headers to reflect v3.0.1 release metadata."
+      ]
+    },
     "3.0.0": {
       "date": "2025-10-09",
       "hash": "M6D8A3L1",
