@@ -149,6 +149,16 @@ function Obfuscation:GenerateSet()
 	}
 end
 
+function Obfuscation:Initialize()
+	-- Reset seed and cache for new session
+	self._seed = tick() * math.random(1, 999999)
+	self._cache = {}
+end
+
+function Obfuscation.getObfuscatedName(hint)
+	return Obfuscation:Generate(hint)
+end
+
 	return Obfuscation
 end)()
 
@@ -368,6 +378,13 @@ function Icons:Resolve(icon)
 	return nil, nil
 end
 
+function Icons:Initialize()
+	-- Icons table is ready to use, no initialization needed
+	-- UnicodeIcons are defined at module load time
+end
+
+return Icons
+
 	return Icons
 end)()
 
@@ -477,6 +494,11 @@ function Theme:ClearListeners()
 	self._listeners = {}
 end
 
+function Theme:Initialize()
+	-- Theme is ready to use, no initialization needed
+	-- Palettes are defined at module load time
+end
+
 	return Theme
 end)()
 
@@ -564,6 +586,11 @@ end
 
 function State.Locks:ClearListeners()
 	self._listeners = {}
+end
+
+function State:Initialize()
+	-- State is ready to use, no initialization needed
+	-- Flags and Locks are defined at module load time
 end
 
 	return State
@@ -1159,6 +1186,11 @@ function WindowManager:ClearListeners(lockListeners, themeListeners, toggleTarge
 	if themeListeners then
 		table.clear(themeListeners)
 	end
+end
+
+function WindowManager:Initialize()
+	-- WindowManager is ready to use
+	-- _host and _windows will be set when CreateHost is called
 end
 
 	return WindowManager

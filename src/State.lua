@@ -40,4 +40,10 @@ function State.Locks:ClearListeners()
 	self._listeners = {}
 end
 
+-- Initialize method (called by init.lua)
+function State:Initialize()
+	-- State is ready to use, no initialization needed
+	-- Flags and Locks are defined at module load time
+end
+
 return State

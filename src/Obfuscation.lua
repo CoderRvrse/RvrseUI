@@ -87,4 +87,16 @@ function Obfuscation:GenerateSet()
 	}
 end
 
+-- Initialize method (called by init.lua)
+function Obfuscation:Initialize()
+	-- Reset seed and cache for new session
+	self._seed = tick() * math.random(1, 999999)
+	self._cache = {}
+end
+
+-- Helper function for compatibility with init.lua
+function Obfuscation.getObfuscatedName(hint)
+	return Obfuscation:Generate(hint)
+end
+
 return Obfuscation

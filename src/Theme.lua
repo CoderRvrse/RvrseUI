@@ -111,4 +111,10 @@ function Theme:ClearListeners()
 	self._listeners = {}
 end
 
+-- Initialize method (called by init.lua)
+function Theme:Initialize()
+	-- Theme is ready to use, no initialization needed
+	-- Palettes are defined at module load time
+end
+
 return Theme

@@ -120,4 +120,10 @@ function WindowManager:ClearListeners(lockListeners, themeListeners, toggleTarge
 	end
 end
 
+-- Initialize method (called by init.lua)
+function WindowManager:Initialize()
+	-- WindowManager is ready to use
+	-- _host and _windows will be set when CreateHost is called
+end
+
 return WindowManager

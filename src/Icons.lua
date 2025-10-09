@@ -219,3 +219,11 @@ function Icons:Resolve(icon)
 end
 
 return Icons
+
+-- Initialize method (called by init.lua)
+function Icons:Initialize()
+	-- Icons table is ready to use, no initialization needed
+	-- UnicodeIcons are defined at module load time
+end
+
+return Icons
