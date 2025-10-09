@@ -139,4 +139,11 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	return SectionAPI
 end
 
+-- Initialize method (called by init.lua)
+function SectionBuilder:Initialize(deps)
+	-- SectionBuilder is ready to use
+	-- Dependencies are passed when CreateSection is called
+	-- No initialization state needed
+end
+
 return SectionBuilder

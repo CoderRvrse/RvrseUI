@@ -5,7 +5,8 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(git tag:*)",
       "Bash(for module in Animator UIHelpers Notifications Hotkeys Config WindowManager)",
-      "Bash(do echo \"=== $module.lua ===\")"
+      "Bash(do echo \"=== $module.lua ===\")",
+      "Bash(for:*)"
     ],
     "deny": [],
     "ask": []

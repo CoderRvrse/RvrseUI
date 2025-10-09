@@ -2865,6 +2865,12 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	return SectionAPI
 end
 
+function SectionBuilder:Initialize(deps)
+	-- SectionBuilder is ready to use
+	-- Dependencies are passed when CreateSection is called
+	-- No initialization state needed
+end
+
 	return SectionBuilder
 end)()
 
@@ -3038,6 +3044,12 @@ function TabBuilder.CreateTab(t, dependencies)
 	end
 
 	return TabAPI
+end
+
+function TabBuilder:Initialize(deps)
+	-- TabBuilder is ready to use
+	-- Dependencies are passed when CreateTab is called
+	-- No initialization state needed
 end
 
 	return TabBuilder

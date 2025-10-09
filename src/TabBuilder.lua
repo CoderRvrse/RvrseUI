@@ -184,4 +184,11 @@ function TabBuilder.CreateTab(t, dependencies)
 	return TabAPI
 end
 
+-- Initialize method (called by init.lua)
+function TabBuilder:Initialize(deps)
+	-- TabBuilder is ready to use
+	-- Dependencies are passed when CreateTab is called
+	-- No initialization state needed
+end
+
 return TabBuilder
