@@ -13,7 +13,7 @@
 
 </div>
 
-> **⚠️ IMPORTANT**: Always use the cache buster (`.. tick()`) when loading to get the latest version and avoid cached errors!
+> **⚠️ IMPORTANT**: For production scripts, pin to a version tag (e.g., `v3.0.0`) for reproducibility. See [INSTALL_VARIANTS.md](INSTALL_VARIANTS.md) for error-handling patterns.
 
 > **🚀 NEW in v2.13.0**: Window:Show() method! Call `Window:Show()` AFTER creating all elements to load config properly and display UI!
 
@@ -90,23 +90,45 @@
 ### Installation
 
 ```lua
--- ⚠️ ALWAYS use cache buster to get latest version!
--- v3.0.0 - Compiled from modular architecture (115 KB, all 26 modules inlined)
-local RvrseUI = loadstring(game:HttpGet(
-  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
-))()
+-- 🚀 Production (Recommended): Pin to version tag for reproducibility
+local VERSION = "v3.0.0"
+local url = "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/" .. VERSION .. "/RvrseUI.lua"
+local chunk, err = loadstring(game:HttpGet(url, true))
 
--- ✅ This single line loads the complete v3.0.0 framework!
+if not chunk then
+    error("[RvrseUI] Failed to load " .. VERSION .. ": " .. tostring(err), 0)
+end
+
+local RvrseUI = chunk()
+
+-- ✅ v3.0.0 - Compiled from modular architecture (115 KB, all 26 modules inlined)
 -- All features: 12 elements, theme system, config persistence, animations
+```
+
+**Alternative (Latest from main branch):**
+```lua
+-- ⚠️ Development only - Use for testing latest changes
+local url = "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"
+local body = game:HttpGet(url, true)
+local chunk, err = loadstring(body)
+
+if not chunk then
+    error("[RvrseUI] loadstring failed: " .. tostring(err) ..
+          "\nFirst 120 chars:\n" .. string.sub(body, 1, 120), 0)
+end
+
+local RvrseUI = chunk()
 ```
 
 ### Basic Example
 
 ```lua
--- Load RvrseUI v3.0.0
-local RvrseUI = loadstring(game:HttpGet(
-  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
-))()
+-- Load RvrseUI v3.0.0 (pinned version)
+local chunk, err = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/v3.0.0/RvrseUI.lua", true
+))
+if not chunk then error(err) end
+local RvrseUI = chunk()
 
 -- Create Window
 local Window = RvrseUI:CreateWindow({
@@ -150,10 +172,12 @@ Window:Show()
 ### With Configuration Saving (v2.8.0+ - Auto-Load!)
 
 ```lua
--- Load RvrseUI v3.0.0
-local RvrseUI = loadstring(game:HttpGet(
-  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
-))()
+-- Load RvrseUI v3.0.0 (pinned version)
+local chunk, err = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/v3.0.0/RvrseUI.lua", true
+))
+if not chunk then error(err) end
+local RvrseUI = chunk()
 
 -- 🚀 NEW: Auto-load last config (recommended!)
 local Window = RvrseUI:CreateWindow({
@@ -366,10 +390,14 @@ local exists = RvrseUI:ConfigurationExists()
 > ⚠️ **CRITICAL**: You MUST call `Window:Show()` at the end or UI stays hidden!
 
 ```lua
--- Load RvrseUI v3.0.0 (compiled from 26 modules, 115 KB)
-local RvrseUI = loadstring(game:HttpGet(
-  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
-))()
+-- Load RvrseUI v3.0.0 (pinned version for reproducibility)
+local chunk, err = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/v3.0.0/RvrseUI.lua", true
+))
+if not chunk then
+  error("[RvrseUI] Failed to load v3.0.0: " .. tostring(err), 0)
+end
+local RvrseUI = chunk()
 
 -- Create window with configuration saving
 local Window = RvrseUI:CreateWindow({

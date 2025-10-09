@@ -15,7 +15,17 @@
       "Bash(openssl rand:*)",
       "Bash(git log:*)",
       "Bash(curl -s \"https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua\")",
-      "Bash(luac:*)"
+      "Bash(luac:*)",
+      "Bash(cp:*)",
+      "Bash(mkdir:*)",
+      "Bash(for file in \"d:\\RvrseUI\\src\\Elements\"/*.lua)",
+      "Bash(head:*)",
+      "Bash(done)",
+      "Bash(tail:*)",
+      "Bash(tree:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(lua:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
