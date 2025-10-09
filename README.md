@@ -91,14 +91,23 @@
 
 ```lua
 -- ⚠️ ALWAYS use cache buster to get latest version!
+-- v3.0.0 - Compiled from modular architecture (115 KB, all 26 modules inlined)
 local RvrseUI = loadstring(game:HttpGet(
   "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
 ))()
+
+-- ✅ This single line loads the complete v3.0.0 framework!
+-- All features: 12 elements, theme system, config persistence, animations
 ```
 
 ### Basic Example
 
 ```lua
+-- Load RvrseUI v3.0.0
+local RvrseUI = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
+))()
+
 -- Create Window
 local Window = RvrseUI:CreateWindow({
   Name = "My Script",
@@ -138,9 +147,14 @@ PlayerSection:CreateToggle({
 Window:Show()
 ```
 
-### With Configuration Saving (v2.8.0 - Auto-Load!)
+### With Configuration Saving (v2.8.0+ - Auto-Load!)
 
 ```lua
+-- Load RvrseUI v3.0.0
+local RvrseUI = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
+))()
+
 -- 🚀 NEW: Auto-load last config (recommended!)
 local Window = RvrseUI:CreateWindow({
   Name = "My Script",
@@ -345,14 +359,14 @@ local exists = RvrseUI:ConfigurationExists()
 
 ### Complete Script with Config (Production-Ready, No Errors!)
 
-> ✅ **This example works perfectly** - tested and verified with v2.13.0!
+> ✅ **This example works perfectly** - tested and verified with v3.0.0!
 > 📁 **Full version**: See [SIMPLE_TEST.lua](SIMPLE_TEST.lua) for complete demo
 > 🎨 **Theme Note**: Theme parameter is first-run default only - saved theme takes precedence!
 > 🔑 **Hotkey Note**: Use `IsUIToggle = true` in keybind to make it rebindable from settings!
 > ⚠️ **CRITICAL**: You MUST call `Window:Show()` at the end or UI stays hidden!
 
 ```lua
--- Load RvrseUI with cache buster (always gets latest!)
+-- Load RvrseUI v3.0.0 (compiled from 26 modules, 115 KB)
 local RvrseUI = loadstring(game:HttpGet(
   "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
 ))()
@@ -714,14 +728,17 @@ RvrseUI:Notify({
 
 ## 📊 What's New
 
-### v3.0.0 - Modular Architecture (Current Release)
+### v3.0.0 - Modular Architecture + Compiled Release (Current Release)
 - 🏗️ **Complete Refactoring**: 3,923-line monolith → 26 focused modules
-- 🔧 **Maintainable Code**: Average module size 169 lines (down from 3,923)
-- 🧪 **Testable Components**: Each module can be tested independently
-- 🚀 **Zero Breaking Changes**: 100% API compatibility maintained
+- 📦 **Compiled Single File**: All modules inlined into RvrseUI.lua (115 KB, 4199 lines)
+- ⚡ **Instant Loading**: Single loadstring() loads entire framework
+- 🔧 **Maintainable Code**: Modular source, compiled for production
+- 🚀 **Zero Breaking Changes**: 100% API compatibility with v2.x
+- 🛠️ **Build System**: Automated compilation with BUILD_MONOLITHIC.js
 - 📚 **Enhanced Documentation**: Complete architectural guides
-- 🎯 **Future-Proof**: Easy to extend with new features
+- 🎯 **Future-Proof**: Easy to extend with new modules
 - 🔒 **Production Ready**: All features preserved and verified
+- 🧪 **Fully Tested**: All 12 elements, theme system, config persistence working
 
 ### v2.8.0 - Named Config Profiles + Auto-Load
 - 🚀 **Auto-Load System**: `ConfigurationSaving = true` auto-loads last config!
@@ -792,28 +809,44 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 
 ## 🏗️ Architecture
 
-RvrseUI v3.0.0 features a **professional modular architecture**:
+RvrseUI v3.0.0 features a **professional modular architecture** compiled into a single production file:
 
+### For Users (Production)
+```lua
+-- Single file, all features included (115 KB)
+local RvrseUI = loadstring(game:HttpGet(
+  "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua?" .. tick()
+))()
+```
+
+**What's Inside**: 26 modules compiled into one file:
+- ✅ 12 UI Elements (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider, Section, Tab)
+- ✅ Theme System (Dark/Light with persistence)
+- ✅ Animation System (Spring presets, smooth transitions)
+- ✅ Configuration System (Auto-save, profiles, theme persistence)
+- ✅ State Management (Lock groups, flags system)
+- ✅ Notifications (Toast system with priorities)
+- ✅ Hotkeys (Toggle UI, destroy keys)
+- ✅ Window Manager (Minimize to controller, drag-to-move)
+
+### For Developers (Modular Source)
 ```
 RvrseUI/
-├── init.lua                    (Entry point - backward compatible)
-├── src/                        (Modular components)
+├── RvrseUI.lua                 (Compiled production file - USE THIS!)
+├── init.lua                    (Entry point for modular version)
+├── src/                        (Modular source code)
 │   ├── Version.lua             (Version management)
-│   ├── Debug.lua               (Debug utilities)
 │   ├── Theme.lua               (Theme system)
 │   ├── Animator.lua            (Animation system)
-│   ├── State.lua               (State management)
-│   ├── Config.lua              (Configuration persistence)
 │   ├── WindowBuilder.lua       (Window creation)
-│   ├── TabBuilder.lua          (Tab creation)
-│   ├── SectionBuilder.lua      (Section creation)
 │   └── Elements/               (10 UI elements)
 │       ├── Button.lua
 │       ├── Toggle.lua
-│       ├── Dropdown.lua
-│       └── ... (7 more)
-└── RvrseUI.lua                 (Legacy monolithic - still works!)
+│       └── ... (8 more)
+└── BUILD_MONOLITHIC.js         (Build script: compiles src/ → RvrseUI.lua)
 ```
+
+**Build Command**: `node BUILD_MONOLITHIC.js` (recompiles all modules)
 
 **Learn More**: See [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md) for complete details.
 
@@ -864,11 +897,15 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 **Developer**: CoderRvrse
 **Framework**: RvrseUI
-**Version**: 3.0.0 "Modular Architecture"
-**Build**: 20251008
+**Version**: 3.0.0 "Modular Architecture + Compiled Release"
+**Build**: 20251009
+**Hash**: M6D8A3L1
 **Refactoring**: Claude Code
 
 Built with ❤️ for the Roblox scripting community.
+
+**Production File**: RvrseUI.lua (115 KB, 4199 lines, 26 modules inlined)
+**Source Code**: 26 modules in `src/` directory
 
 ---
 
