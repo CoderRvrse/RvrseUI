@@ -224,4 +224,9 @@ function Icons:Initialize()
 	-- UnicodeIcons are defined at module load time
 end
 
+-- Helper function for compatibility (dot notation, lowercase)
+function Icons.resolveIcon(icon)
+	return Icons:Resolve(icon)
+end
+
 return Icons

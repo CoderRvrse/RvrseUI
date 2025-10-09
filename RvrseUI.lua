@@ -387,6 +387,10 @@ function Icons:Initialize()
 	-- UnicodeIcons are defined at module load time
 end
 
+function Icons.resolveIcon(icon)
+	return Icons:Resolve(icon)
+end
+
 	return Icons
 end)()
 
