@@ -126,4 +126,11 @@ function Hotkeys:Init()
 	end)
 end
 
+-- Initialize method (called by init.lua)
+function Hotkeys:Initialize(deps)
+	-- Hotkeys system is ready to use
+	-- deps contains: UserInputService, WindowManager
+	-- Input listeners are set up when BindToggleKey is called
+end
+
 return Hotkeys

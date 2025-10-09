@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(for file in Animator.lua Config.lua Debug.lua Hotkeys.lua Icons.lua Notifications.lua Obfuscation.lua State.lua Theme.lua UIHelpers.lua Version.lua WindowManager.lua)",
-      "Bash(do echo \"=== $file ===\")"
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(git tag:*)",
+      "Bash(for module in Animator UIHelpers Notifications Hotkeys Config WindowManager)",
+      "Bash(do echo \"=== $module.lua ===\")"
     ],
     "deny": [],
     "ask": []

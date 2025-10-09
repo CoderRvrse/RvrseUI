@@ -549,6 +549,12 @@ function Animator:Ripple(parent, x, y, Theme)
 	end)
 end
 
+function Animator:Initialize(tweenService)
+	-- Animator is ready to use
+	-- TweenService is already imported at module level (line 7)
+	-- Spring presets are defined at module load time
+end
+
 	return Animator
 end)()
 
@@ -721,6 +727,12 @@ function UIHelpers.addGlow(inst, color, intensity)
 	glowTween:Play()
 
 	return glow
+end
+
+function UIHelpers:Initialize(deps)
+	-- UIHelpers is ready to use
+	-- Dependencies (Animator, Theme, Icons, PlayerGui) are passed but not stored
+	-- Helper functions are self-contained and don't need initialization
 end
 
 	return UIHelpers
@@ -1316,6 +1328,12 @@ function Hotkeys:Init()
 	end)
 end
 
+function Hotkeys:Initialize(deps)
+	-- Hotkeys system is ready to use
+	-- deps contains: UserInputService, WindowManager
+	-- Input listeners are set up when BindToggleKey is called
+end
+
 	return Hotkeys
 end)()
 
@@ -1461,6 +1479,12 @@ function Notifications:Notify(opt)
 			card:Destroy()
 		end
 	end)
+end
+
+function Notifications:Initialize(deps)
+	-- Store dependencies for Notify function
+	-- deps contains: host, Theme, Animator, UIHelpers
+	-- These are accessed directly in RvrseUI:Notify() via closure
 end
 
 	return Notifications

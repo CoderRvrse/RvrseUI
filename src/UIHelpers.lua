@@ -138,4 +138,11 @@ function UIHelpers.addGlow(inst, color, intensity)
 	return glow
 end
 
+-- Initialize method (called by init.lua)
+function UIHelpers:Initialize(deps)
+	-- UIHelpers is ready to use
+	-- Dependencies (Animator, Theme, Icons, PlayerGui) are passed but not stored
+	-- Helper functions are self-contained and don't need initialization
+end
+
 return UIHelpers

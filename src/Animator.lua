@@ -53,4 +53,11 @@ function Animator:Ripple(parent, x, y, Theme)
 	end)
 end
 
+-- Initialize method (called by init.lua)
+function Animator:Initialize(tweenService)
+	-- Animator is ready to use
+	-- TweenService is already imported at module level (line 7)
+	-- Spring presets are defined at module load time
+end
+
 return Animator

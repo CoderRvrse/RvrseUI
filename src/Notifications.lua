@@ -149,4 +149,11 @@ function Notifications:Notify(opt)
 	end)
 end
 
+-- Initialize method (called by init.lua)
+function Notifications:Initialize(deps)
+	-- Store dependencies for Notify function
+	-- deps contains: host, Theme, Animator, UIHelpers
+	-- These are accessed directly in RvrseUI:Notify() via closure
+end
+
 return Notifications
