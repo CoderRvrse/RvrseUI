@@ -16,6 +16,7 @@ v3.0.1 delivers a focused hotfix for the configuration persistence pipeline. The
 ## 🔧 Fixes
 
 - Ensured `Config:Init` runs during bootstrap so `dprintf` and module references are available before the first save/load call.
+- Corrected last-profile path parsing so auto-loading reuses the saved folder/file combination.
 - Added a lightweight logger fallback so executors without debug mode still see meaningful messages.
 - Refreshed README badges, build headers, and version metadata to match v3.0.1.
 

@@ -45,6 +45,7 @@
       "hash": "Q1W2E3R4",
       "changes": [
         "🐛 Fixed configuration initialization so logging hooks exist prior to save/load calls.",
+        "🔁 Restored auto-load profile detection so last saved configs reattach folder and filename correctly.",
         "⚙️ Ensured Config module receives State/Theme dependencies during bootstrap to eliminate nil reference errors.",
         "📄 Updated documentation and build headers to reflect v3.0.1 release metadata."
       ]
