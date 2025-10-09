@@ -383,8 +383,6 @@ function Icons:Initialize()
 	-- UnicodeIcons are defined at module load time
 end
 
-return Icons
-
 	return Icons
 end)()
 

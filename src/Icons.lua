@@ -218,8 +218,6 @@ function Icons:Resolve(icon)
 	return nil, nil
 end
 
-return Icons
-
 -- Initialize method (called by init.lua)
 function Icons:Initialize()
 	-- Icons table is ready to use, no initialization needed
