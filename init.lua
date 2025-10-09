@@ -62,6 +62,22 @@ Animator:Initialize(TweenService)
 -- Initialize State
 State:Initialize()
 
+-- Prepare lightweight logger for configuration module
+local function configLogger(...)
+	if Debug and Debug.Print then
+		Debug:Print(...)
+	else
+		print("[RvrseUI]", ...)
+	end
+end
+
+-- Initialize configuration module with required dependencies
+Config:Init({
+	State = State,
+	Theme = Theme,
+	dprintf = configLogger
+})
+
 -- Initialize UIHelpers with services
 UIHelpers:Initialize({
 	Animator = Animator,
