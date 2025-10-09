@@ -133,6 +133,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end
 
+	Config.ConfigurationSaving = RvrseUI.ConfigurationSaving
+	Config.ConfigurationFileName = RvrseUI.ConfigurationFileName
+	Config.ConfigurationFolderName = RvrseUI.ConfigurationFolderName
+
 	local name = cfg.Name or "RvrseUI"
 	local toggleKey = UIHelpers.coerceKeycode(cfg.ToggleUIKeybind or "K")
 	RvrseUI.UI:BindToggleKey(toggleKey)
@@ -699,29 +703,228 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end)
 
-	-- Particle flow system (continues in next part due to length...)
-	-- This would include the createParticleFlow function from lines 1994-2124
-	-- And minimize/restore functions from lines 2126-2403
-	-- For brevity, I'll include placeholders and the essential WindowAPI
+	-- Enhanced particle flow system for minimize/restore transitions
+	local function createParticleFlow(startPos, endPos, count, duration, flowType)
+		for i = 1, count do
+			local particle = Instance.new("Frame")
+			particle.Size = UDim2.new(0, math.random(2, 12), 0, math.random(2, 12))
+			particle.BackgroundColor3 = pal.Accent
+			particle.BackgroundTransparency = math.random(40, 70) / 100
+			particle.BorderSizePixel = 0
+			particle.Position = UDim2.new(0, startPos.X, 0, startPos.Y)
+			particle.ZIndex = 999
+			particle.Parent = host
+			UIHelpers.corner(particle, math.random(2, 6))
+
+			local delay = (i / count) * (duration * 0.7)
+			task.delay(delay, function()
+				if not particle or not particle.Parent then return end
+
+				if flowType == "spread" then
+					local angle = (i / count) * math.pi * 2
+					local spreadRadius = math.random(300, 450)
+					local spreadX = endPos.X + math.cos(angle) * spreadRadius
+					local spreadY = endPos.Y + math.sin(angle) * spreadRadius
+					local midX = (startPos.X + spreadX) / 2 + math.random(-80, 80)
+					local midY = (startPos.Y + spreadY) / 2 + math.random(-80, 80)
+
+					Animator:Tween(particle, {
+						Position = UDim2.new(0, midX, 0, midY),
+						BackgroundTransparency = 0.2,
+						Size = UDim2.new(0, math.random(8, 14), 0, math.random(8, 14))
+					}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
+
+					task.wait(duration * 0.5)
+					if not particle or not particle.Parent then return end
+
+					Animator:Tween(particle, {
+						Position = UDim2.new(0, spreadX, 0, spreadY),
+						BackgroundTransparency = 0.3,
+						Size = UDim2.new(0, math.random(6, 10), 0, math.random(6, 10))
+					}, TweenInfo.new(duration * 0.45, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut))
+
+					task.wait(duration * 0.45)
+					if not particle or not particle.Parent then return end
+
+					local orbitX = spreadX + math.random(-30, 30)
+					local orbitY = spreadY + math.random(-30, 30)
+					Animator:Tween(particle, {
+						Position = UDim2.new(0, orbitX, 0, orbitY),
+						BackgroundTransparency = 0.6,
+						Size = UDim2.new(0, math.random(4, 8), 0, math.random(4, 8))
+					}, TweenInfo.new(duration * 0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut))
+
+					task.wait(duration * 0.3)
+					if not particle or not particle.Parent then return end
+
+					Animator:Tween(particle, {
+						BackgroundTransparency = 1,
+						Size = UDim2.new(0, 2, 0, 2)
+					}, TweenInfo.new(duration * 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+
+					task.wait(duration * 0.25)
+					if particle and particle.Parent then
+						particle:Destroy()
+					end
+				else
+					local angle = (i / count) * math.pi * 2
+					local gatherRadius = math.random(300, 450)
+					local gatherStartX = startPos.X + math.cos(angle) * gatherRadius
+					local gatherStartY = startPos.Y + math.sin(angle) * gatherRadius
+
+					particle.Position = UDim2.new(0, gatherStartX, 0, gatherStartY)
+					particle.BackgroundTransparency = 0.6
+					particle.Size = UDim2.new(0, math.random(4, 10), 0, math.random(4, 10))
+
+					local midX = (gatherStartX + endPos.X) / 2 + math.random(-80, 80)
+					local midY = (gatherStartY + endPos.Y) / 2 + math.random(-80, 80)
+
+					Animator:Tween(particle, {
+						Position = UDim2.new(0, midX, 0, midY),
+						BackgroundTransparency = 0.2,
+						Size = UDim2.new(0, math.random(8, 12), 0, math.random(8, 12))
+					}, TweenInfo.new(duration * 0.45, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
+
+					task.wait(duration * 0.45)
+					if not particle or not particle.Parent then return end
+
+					Animator:Tween(particle, {
+						Position = UDim2.new(0, endPos.X, 0, endPos.Y),
+						BackgroundTransparency = 0.1,
+						Size = UDim2.new(0, math.random(5, 8), 0, math.random(5, 8))
+					}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut))
+
+					task.wait(duration * 0.5)
+					if not particle or not particle.Parent then return end
+
+					Animator:Tween(particle, {
+						Position = UDim2.new(0, endPos.X, 0, endPos.Y),
+						BackgroundTransparency = 1,
+						Size = UDim2.new(0, 1, 0, 1)
+					}, TweenInfo.new(duration * 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In))
+
+					task.wait(duration * 0.25)
+					if particle and particle.Parent then
+						particle:Destroy()
+					end
+				end
+			end)
+		end
+	end
 
 	local isMinimized = false
+
 	local function minimizeWindow()
-		-- Minimize logic from original (lines 2129-2189)
+		if isMinimized then return end
 		isMinimized = true
-		-- ... (full implementation)
+		Animator:Ripple(minimizeBtn, 16, 12)
+
+		local screenSize = workspace.CurrentCamera.ViewportSize
+		local chipTargetPos = UDim2.new(0.5, 0, 0.5, 0)
+		if RvrseUI._controllerChipPosition then
+			local saved = RvrseUI._controllerChipPosition
+			chipTargetPos = UDim2.new(saved.XScale, saved.XOffset, saved.YScale, saved.YOffset)
+		end
+
+		local chipTargetX = chipTargetPos.X.Scale * screenSize.X + chipTargetPos.X.Offset
+		local chipTargetY = chipTargetPos.Y.Scale * screenSize.Y + chipTargetPos.Y.Offset
+
+		local rootPos = root.AbsolutePosition
+		local rootSize = root.AbsoluteSize
+		local windowCenterX = rootPos.X + (rootSize.X / 2)
+		local windowCenterY = rootPos.Y + (rootSize.Y / 2)
+
+		createParticleFlow(
+			{X = windowCenterX, Y = windowCenterY},
+			{X = chipTargetX, Y = chipTargetY},
+			120,
+			1.2,
+			"gather"
+		)
+
+		Animator:Tween(root, {
+			Size = UDim2.new(0, 0, 0, 0),
+			Position = chipTargetPos,
+			BackgroundTransparency = 1,
+			Rotation = 180
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In))
+
+		Animator:Tween(glassOverlay, {
+			BackgroundTransparency = 1
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.In))
+
+		task.wait(0.6)
+		if isMinimized then
+			root.Visible = false
+			controllerChip.Visible = true
+			controllerChip.Size = UDim2.new(0, 0, 0, 0)
+
+			Animator:Tween(controllerChip, {
+				Size = UDim2.new(0, 50, 0, 50)
+			}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+		end
 	end
 
 	local function restoreWindow()
-		-- Restore logic from original (lines 2191-2257)
+		if not isMinimized then return end
 		isMinimized = false
-		-- ... (full implementation)
+		Animator:Ripple(controllerChip, 25, 25)
+
+		local screenSize = workspace.CurrentCamera.ViewportSize
+		local chipPos = controllerChip.AbsolutePosition
+		local chipCenterX = chipPos.X + 25
+		local chipCenterY = chipPos.Y + 25
+
+		local targetSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
+		local targetPos = UDim2.new(0.5, 0, 0.5, 0)
+		if RvrseUI._lastWindowPosition then
+			local savedPos = RvrseUI._lastWindowPosition
+			targetPos = UDim2.new(savedPos.XScale, savedPos.XOffset, savedPos.YScale, savedPos.YOffset)
+		end
+
+		local targetWidth = isMobile and 380 or baseWidth
+		local targetHeight = isMobile and 520 or baseHeight
+		local windowCenterX = targetPos.X.Scale * screenSize.X + targetPos.X.Offset + (targetWidth / 2)
+		local windowCenterY = targetPos.Y.Scale * screenSize.Y + targetPos.Y.Offset + (targetHeight / 2)
+
+		createParticleFlow(
+			{X = chipCenterX, Y = chipCenterY},
+			{X = windowCenterX, Y = windowCenterY},
+			120,
+			1.2,
+			"spread"
+		)
+
+		Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 0, 0, 0)
+		}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In))
+
+		task.wait(0.3)
+		controllerChip.Visible = false
+
+		root.Visible = true
+		root.Size = UDim2.new(0, 0, 0, 0)
+		root.Position = controllerChip.Position
+		root.Rotation = -180
+		root.BackgroundTransparency = 1
+		glassOverlay.BackgroundTransparency = 1
+
+		Animator:Tween(root, {
+			Size = targetSize,
+			Position = targetPos,
+			BackgroundTransparency = 0.05,
+			Rotation = 0
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+
+		Animator:Tween(glassOverlay, {
+			BackgroundTransparency = Theme.Current == "Dark" and 0.97 or 0.95
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
 	end
 
-	minimizeBtn.MouseButton1Click:Connect(function()
-		minimizeWindow()
-	end)
+	minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
 
-	local chipWasDragged = false
+	local chipDragging, chipWasDragged, chipDragThreshold
+
 	controllerChip.MouseButton1Click:Connect(function()
 		if not chipWasDragged then
 			restoreWindow()
@@ -729,8 +932,80 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		chipWasDragged = false
 	end)
 
-	-- Chip dragging logic (lines 2285-2403)
-	-- ... (full implementation)
+	controllerChip.MouseEnter:Connect(function()
+		Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 60, 0, 60)
+		}, Animator.Spring.Fast)
+	end)
+
+	controllerChip.MouseLeave:Connect(function()
+		Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 50, 0, 50)
+		}, Animator.Spring.Fast)
+	end)
+
+	controllerChip.InputBegan:Connect(function(io)
+		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+			chipDragging = true
+			chipWasDragged = false
+			chipDragThreshold = false
+		end
+	end)
+
+	controllerChip.InputEnded:Connect(function(io)
+		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+			if chipDragging then
+				chipDragging = false
+				RvrseUI._controllerChipPosition = {
+					XScale = controllerChip.Position.X.Scale,
+					XOffset = controllerChip.Position.X.Offset,
+					YScale = controllerChip.Position.Y.Scale,
+					YOffset = controllerChip.Position.Y.Offset
+				}
+			end
+		end
+	end)
+
+	UIS.InputChanged:Connect(function(io)
+		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
+			local mouseLocation = UIS:GetMouseLocation()
+			local guiInset = GuiService:GetGuiInset()
+			local mousePos = Vector2.new(
+				mouseLocation.X - guiInset.X,
+				mouseLocation.Y - guiInset.Y
+			)
+
+			if not chipDragThreshold then
+				local halfSize = controllerChip.AbsoluteSize.X / 2
+				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(halfSize, halfSize)
+				if (mousePos - chipCenter).Magnitude > 5 then
+					chipDragThreshold = true
+					chipWasDragged = true
+				end
+			end
+
+			if chipDragThreshold then
+				local chipSize = controllerChip.AbsoluteSize.X
+				local halfSize = chipSize / 2
+				local screenSize = workspace.CurrentCamera.ViewportSize
+
+				local newX = math.clamp(mousePos.X, halfSize, screenSize.X - halfSize)
+				local newY = math.clamp(mousePos.Y, halfSize, screenSize.Y - halfSize)
+
+				controllerChip.Position = UDim2.fromOffset(newX, newY)
+			end
+		end
+	end)
+
+	if RvrseUI._controllerChipPosition then
+		local savedPos = RvrseUI._controllerChipPosition
+		controllerChip.Position = UDim2.new(
+			savedPos.XScale,
+			savedPos.XOffset,
+			savedPos.YScale,
+			savedPos.YOffset
+		)
+	end
 
 	-- Save and restore window position
 	local windowData = {
