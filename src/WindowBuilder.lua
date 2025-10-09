@@ -5,8 +5,8 @@
 local WindowBuilder = {}
 
 -- Dependencies will be injected via Initialize()
-local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, WindowManager, Notifications
-local Debug, Obfuscation, Hotkeys, Version
+local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, Notifications
+local Debug, Obfuscation, Hotkeys, Version, Elements
 
 -- Roblox services (will be injected)
 local UIS, GuiService, RS, PlayerGui, HttpService
@@ -20,12 +20,14 @@ function WindowBuilder:Initialize(deps)
 	UIHelpers = deps.UIHelpers
 	Icons = deps.Icons
 	TabBuilder = deps.TabBuilder
+	SectionBuilder = deps.SectionBuilder
 	WindowManager = deps.WindowManager
 	Notifications = deps.Notifications
 	Debug = deps.Debug
 	Obfuscation = deps.Obfuscation
 	Hotkeys = deps.Hotkeys
 	Version = deps.Version
+	Elements = deps.Elements
 
 	-- Services
 	UIS = deps.UIS
@@ -823,15 +825,22 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	-- CreateTab uses TabBuilder module
-	function WindowAPI:CreateTab(t)
-		return TabBuilder:CreateTab(RvrseUI, t, {
-			tabBar = tabBar,
-			body = body,
-			tabs = tabs,
-			activePage = activePage,
-			setActivePage = function(page) activePage = page end
-		})
-	end
+		function WindowAPI:CreateTab(t)
+			return TabBuilder.CreateTab(t, {
+				Theme = Theme,
+				UIHelpers = UIHelpers,
+				Animator = Animator,
+				Icons = Icons,
+				SectionBuilder = SectionBuilder,
+				tabBar = tabBar,
+				body = body,
+				tabs = tabs,
+				activePage = activePage,
+				RvrseUI = RvrseUI,
+				Elements = Elements,
+				UIS = UIS
+			})
+		end
 
 	-- Welcome notifications
 	if not cfg.DisableBuildWarnings then

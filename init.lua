@@ -33,6 +33,19 @@ local TabBuilder = require(script.src.TabBuilder)
 local SectionBuilder = require(script.src.SectionBuilder)
 local WindowBuilder = require(script.src.WindowBuilder)
 
+local Elements = {
+	Button = require(script.src.Elements.Button),
+	Toggle = require(script.src.Elements.Toggle),
+	Dropdown = require(script.src.Elements.Dropdown),
+	Slider = require(script.src.Elements.Slider),
+	Keybind = require(script.src.Elements.Keybind),
+	TextBox = require(script.src.Elements.TextBox),
+	ColorPicker = require(script.src.Elements.ColorPicker),
+	Label = require(script.src.Elements.Label),
+	Paragraph = require(script.src.Elements.Paragraph),
+	Divider = require(script.src.Elements.Divider)
+}
+
 -- ============================================
 -- INITIALIZE MODULES
 -- ============================================
@@ -101,6 +114,7 @@ local deps = {
 	Obfuscation = Obfuscation,
 	Hotkeys = Hotkeys,
 	Version = Version,
+	Elements = Elements,
 
 	-- Services
 	UIS = UserInputService,

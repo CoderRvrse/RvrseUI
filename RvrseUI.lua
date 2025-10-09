@@ -2987,6 +2987,19 @@ end
 	return Divider
 end)()
 
+local ElementModules = {
+	Button = Button,
+	Toggle = Toggle,
+	Dropdown = Dropdown,
+	Slider = Slider,
+	Keybind = Keybind,
+	TextBox = TextBox,
+	ColorPicker = ColorPicker,
+	Label = Label,
+	Paragraph = Paragraph,
+	Divider = Divider
+}
+
 -- ============================================
 -- SectionBuilder Module (Inlined)
 -- ============================================
@@ -3314,8 +3327,8 @@ end)()
 local WindowBuilder = (function()
 local WindowBuilder = {}
 
-local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, WindowManager, Notifications
-local Debug, Obfuscation, Hotkeys, Version
+local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, Notifications
+local Debug, Obfuscation, Hotkeys, Version, Elements
 
 local UIS, GuiService, RS, PlayerGui, HttpService
 
@@ -3328,12 +3341,14 @@ function WindowBuilder:Initialize(deps)
 	UIHelpers = deps.UIHelpers
 	Icons = deps.Icons
 	TabBuilder = deps.TabBuilder
+	SectionBuilder = deps.SectionBuilder
 	WindowManager = deps.WindowManager
 	Notifications = deps.Notifications
 	Debug = deps.Debug
 	Obfuscation = deps.Obfuscation
 	Hotkeys = deps.Hotkeys
 	Version = deps.Version
+	Elements = deps.Elements
 
 	-- Services
 	UIS = deps.UIS
@@ -4157,15 +4172,22 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	-- CreateTab uses TabBuilder module
-	function WindowAPI:CreateTab(t)
-		return TabBuilder:CreateTab(RvrseUI, t, {
-			tabBar = tabBar,
-			body = body,
-			tabs = tabs,
-			activePage = activePage,
-			setActivePage = function(page) activePage = page end
-		})
-	end
+		function WindowAPI:CreateTab(t)
+			return TabBuilder.CreateTab(t, {
+				Theme = Theme,
+				UIHelpers = UIHelpers,
+				Animator = Animator,
+				Icons = Icons,
+				SectionBuilder = SectionBuilder,
+				tabBar = tabBar,
+				body = body,
+				tabs = tabs,
+				activePage = activePage,
+				RvrseUI = RvrseUI,
+				Elements = Elements,
+				UIS = UIS
+			})
+		end
 
 	-- Welcome notifications
 	if not cfg.DisableBuildWarnings then
@@ -4365,6 +4387,7 @@ local deps = {
 	Obfuscation = Obfuscation,
 	Hotkeys = Hotkeys,
 	Version = Version,
+	Elements = ElementModules,
 
 	-- Services
 	UIS = UserInputService,
