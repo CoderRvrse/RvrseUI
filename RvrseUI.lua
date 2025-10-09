@@ -50,6 +50,19 @@ function Version:Check(onlineVersion)
 	else return "latest" end
 end
 
+setmetatable(Version, {
+	__index = function(_, key)
+		return Version.Data[key]
+	end,
+	__newindex = function(_, key, value)
+		if Version.Data[key] ~= nil then
+			Version.Data[key] = value
+		else
+			rawset(Version, key, value)
+		end
+	end
+})
+
 	return Version
 end)()
 
@@ -68,6 +81,22 @@ function Debug:Print(...)
 end
 
 Debug.Log = Debug.Print
+
+function Debug.printf(fmt, ...)
+	if not Debug.Enabled then
+		return
+	end
+
+	if type(fmt) == "string" and select("#", ...) > 0 then
+		local args = table.pack(...)
+		local ok, formatted = pcall(string.format, fmt, table.unpack(args, 1, args.n))
+		if ok then
+			return Debug.Print(Debug, formatted)
+		end
+	end
+
+	return Debug.Print(Debug, fmt, ...)
+end
 
 	return Debug
 end)()
