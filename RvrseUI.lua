@@ -1,4 +1,4 @@
--- RvrseUI v3.0.1 | Modern Professional UI Framework
+-- RvrseUI v3.0.2 | Modern Professional UI Framework
 -- Compiled from modular architecture on 2025-10-10
 -- Source: https://github.com/CoderRvrse/RvrseUI
 
@@ -19,10 +19,10 @@ local Version = {}
 Version.Data = {
 	Major = 3,
 	Minor = 0,
-	Patch = 1,
-	Build = "20251010",  -- YYYYMMDD format
-	Full = "3.0.1",
-	Hash = "Q1W2E3R4",  -- Release hash for integrity verification
+	Patch = 2,
+	Build = "20251010B",  -- YYYYMMDD format with hotfix suffix
+	Full = "3.0.2",
+	Hash = "Z4X7C2V1",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -822,6 +822,7 @@ Config.ConfigurationFileName = nil  -- Set via CreateWindow
 Config.ConfigurationFolderName = nil  -- Optional folder name
 Config._configCache = {}  -- In-memory config cache
 Config._lastSaveTime = nil  -- Debounce timestamp
+Config._lastContext = nil  -- Most recent RvrseUI instance used for persistence
 
 -- ============================================
 -- EXECUTOR FILE-SYSTEM PROBE
@@ -878,6 +879,7 @@ function Config:Init(dependencies)
 	State = dependencies.State
 	Theme = dependencies.Theme
 	dprintf = dependencies.dprintf or function() end
+	self._lastContext = nil
 
 	traceFsSupport("Init")
 
@@ -888,7 +890,13 @@ end
 -- SAVE CONFIGURATION
 -- ============================================
 
-function Config:SaveConfiguration()
+function Config:SaveConfiguration(context)
+	if context ~= nil then
+		self._lastContext = context
+	elseif self._lastContext then
+		context = self._lastContext
+	end
+
 	if not self.ConfigurationSaving or not self.ConfigurationFileName then
 		return false, "Configuration saving not enabled"
 	end
@@ -902,7 +910,14 @@ function Config:SaveConfiguration()
 
 	local config = {}
 
-	for flagName, element in pairs(State.Flags) do
+	local flagSource = {}
+	if context and context.Flags then
+		flagSource = context.Flags
+	elseif State and State.Flags then
+		flagSource = State.Flags
+	end
+
+	for flagName, element in pairs(flagSource) do
 		if element.Get then
 			local success, value = pcall(element.Get, element)
 			if success then
@@ -999,7 +1014,13 @@ end
 -- LOAD CONFIGURATION
 -- ============================================
 
-function Config:LoadConfiguration()
+function Config:LoadConfiguration(context)
+	if context ~= nil then
+		self._lastContext = context
+	elseif self._lastContext then
+		context = self._lastContext
+	end
+
 	if not self.ConfigurationSaving or not self.ConfigurationFileName then
 		return false, "Configuration saving not enabled"
 	end
@@ -1055,6 +1076,13 @@ function Config:LoadConfiguration()
 	dprintf("Config loaded, checking for _RvrseUI_Theme...")
 
 	local loadedCount = 0
+	local flagSource = {}
+	if context and context.Flags then
+		flagSource = context.Flags
+	elseif State and State.Flags then
+		flagSource = State.Flags
+	end
+
 	for flagName, value in pairs(result) do
 		-- Skip internal RvrseUI settings (start with _RvrseUI_)
 		if flagName:sub(1, 9) == "_RvrseUI_" then
@@ -1062,12 +1090,18 @@ function Config:LoadConfiguration()
 			-- Handle theme loading
 			if flagName == "_RvrseUI_Theme" and (value == "Dark" or value == "Light") then
 				-- Store theme to apply when window is created
-				State._savedTheme = value
-				dprintf("✅ Saved theme found and stored:", value)
-				dprintf("State._savedTheme is now:", State._savedTheme)
+				if context then
+					context._savedTheme = value
+					dprintf("✅ Saved theme found and stored:", value)
+					dprintf("context._savedTheme is now:", context._savedTheme)
+				else
+					State._savedTheme = value
+					dprintf("✅ Saved theme stored on State:", value)
+					dprintf("State._savedTheme is now:", State._savedTheme)
+				end
 			end
-		elseif State.Flags[flagName] and State.Flags[flagName].Set then
-			local setSuccess = pcall(State.Flags[flagName].Set, State.Flags[flagName], value)
+		elseif flagSource[flagName] and flagSource[flagName].Set then
+			local setSuccess = pcall(flagSource[flagName].Set, flagSource[flagName], value)
 			if setSuccess then
 				loadedCount = loadedCount + 1
 			end
@@ -1090,7 +1124,7 @@ function Config:_autoSave()
 		if not self._lastSaveTime or (tick() - self._lastSaveTime) > 1 then
 			self._lastSaveTime = tick()
 			task.spawn(function()
-				self:SaveConfiguration()
+				self:SaveConfiguration(self._lastContext)
 			end)
 		end
 	end
@@ -1235,10 +1269,10 @@ end
 -- LOAD CONFIGURATION BY NAME
 -- ============================================
 
-function Config:LoadConfigByName(configName)
-	if not configName or configName == "" then
-		return false, "Config name required"
-	end
+	function Config:LoadConfigByName(configName, context)
+		if not configName or configName == "" then
+			return false, "Config name required"
+		end
 
 	-- Temporarily set the config file name
 	local originalFileName = self.ConfigurationFileName
@@ -1247,7 +1281,7 @@ function Config:LoadConfigByName(configName)
 	self.ConfigurationFileName = configName .. ".json"
 	self.ConfigurationFolderName = "RvrseUI/Configs"
 
-	local success, message = self:LoadConfiguration()
+		local success, message = self:LoadConfiguration(context or self._lastContext)
 
 	-- Restore original config names
 	self.ConfigurationFileName = originalFileName
@@ -1260,10 +1294,10 @@ end
 -- SAVE CONFIGURATION AS
 -- ============================================
 
-function Config:SaveConfigAs(configName)
-	if not configName or configName == "" then
-		return false, "Config name required"
-	end
+	function Config:SaveConfigAs(configName, context)
+		if not configName or configName == "" then
+			return false, "Config name required"
+		end
 
 	-- Temporarily set the config file name
 	local originalFileName = self.ConfigurationFileName
@@ -1272,7 +1306,7 @@ function Config:SaveConfigAs(configName)
 	self.ConfigurationFileName = configName .. ".json"
 	self.ConfigurationFolderName = "RvrseUI/Configs"
 
-	local success, message = self:SaveConfiguration()
+		local success, message = self:SaveConfiguration(context or self._lastContext)
 
 	if success then
 		-- Save this as the last used config

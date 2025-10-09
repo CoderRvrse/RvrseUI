@@ -3,7 +3,7 @@
 -- Compiles all modular files from src/ into a single RvrseUI.lua file
 -- Usage: lua build.lua
 
-print("🔨 RvrseUI v3.0.1 Build Script")
+print("🔨 RvrseUI v3.0.2 Build Script")
 print("=" .. string.rep("=", 50))
 
 local function readFile(path)
@@ -26,7 +26,7 @@ local function writeFile(path, content)
 end
 
 -- Header for compiled file
-local header = [[-- RvrseUI v3.0.1 | Modern Professional UI Framework
+local header = [[-- RvrseUI v3.0.2 | Modern Professional UI Framework
 -- Compiled from modular architecture on ]] .. os.date("%Y-%m-%d %H:%M:%S") .. [[
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized

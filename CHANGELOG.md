@@ -1,38 +1,51 @@
-# RvrseUI v3.0.1 Changelog
+# RvrseUI v3.0.2 Changelog
+
+**Release Date**: October 10, 2025  
+**Build**: 20251010B  
+**Hash**: `Z4X7C2V1`  
+**Codename**: Configuration Persistence Hotfix
+
+---
+
+## 🎯 Summary
+
+v3.0.2 resolves the regression where saves only captured theme data. Configuration now travels through the active RvrseUI instance so every flagged element serializes and hydrates correctly, and last-used profiles restore folders/files without manual input.
+
+---
+
+## 🔧 Fixes
+
+- Routed `Config:SaveConfiguration` / `LoadConfiguration` through the live UI context, reusing `RvrseUI.Flags` for persistence.
+- Repaired boolean `ConfigurationSaving = true` flows so last-profile paths unpack into folder and filename before boot.
+- Synced theme cache back onto the active window when loading configs, keeping visuals aligned with saved state.
+- Refreshed README badges, build headers, and version metadata for the v3.0.2 hotfix.
+
+---
+
+## 🔎 Validation
+
+- Manual regression in executor: toggles, sliders, dropdowns, keybinds, and color pickers persist across save/load cycles.
+- Confirmed auto-save debounce continues to fire after element interactions.
+- Verified profile switching respects archived folder structure and theme playback.
+
+---
+
+## Previous Release
+
+### RvrseUI v3.0.1 Changelog
 
 **Release Date**: October 10, 2025  
 **Build**: 20251010  
 **Hash**: `Q1W2E3R4`  
 **Codename**: Configuration Hotfix
 
----
-
-## 🎯 Summary
-
-v3.0.1 delivers a focused hotfix for the configuration persistence pipeline. The Config module now initializes alongside State and Theme, restoring the debug logging hooks that guard save/load execution. This resolves the `attempt to call a nil value` failure seen when loading configurations immediately after window creation.
+See repository history for the full v3.0.1 notes.
 
 ---
 
-## 🔧 Fixes
+## Legacy Release Notes
 
-- Ensured `Config:Init` runs during bootstrap so `dprintf` and module references are available before the first save/load call.
-- Corrected last-profile path parsing so auto-loading reuses the saved folder/file combination.
-- Added a lightweight logger fallback so executors without debug mode still see meaningful messages.
-- Refreshed README badges, build headers, and version metadata to match v3.0.1.
-
----
-
-## 🔎 Validation
-
-- Manual regression in a live executor: Save / Load / Delete configuration flows execute without stack traces.
-- Verified auto-save debounce continues to function with the new initialization order.
-- Confirmed version metadata aligns across `RvrseUI.lua`, `src/Version.lua`, `VERSION.json`, and documentation.
-
----
-
-# Legacy Release Notes
-
-## RvrseUI v2.3.1 Complete Changelog
+### RvrseUI v2.3.1 Complete Changelog
 
 **Release Date**: September 30, 2025
 **Build**: 20250930
