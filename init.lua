@@ -216,6 +216,9 @@ function RvrseUI:DeleteProfile(profileName)
 	return Config:DeleteProfile(profileName)
 end
 
+-- Provide notifications module with RvrseUI context for toggle checks
+Notifications:SetContext(RvrseUI)
+
 -- Version Information
 function RvrseUI:GetVersionInfo()
 	return {

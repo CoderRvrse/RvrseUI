@@ -151,9 +151,53 @@ end
 
 -- Initialize method (called by init.lua)
 function Notifications:Initialize(deps)
-	-- Store dependencies for Notify function
-	-- deps contains: host, Theme, Animator, UIHelpers
-	-- These are accessed directly in RvrseUI:Notify() via closure
+	if not deps then return end
+
+	local helpers = deps.UIHelpers
+
+	local cornerFn = deps.corner
+	if helpers and helpers.corner then
+		cornerFn = function(inst, radius)
+            -- delegate to helper for consistent styling
+			return helpers.corner(inst, radius)
+		end
+	elseif not cornerFn then
+		cornerFn = function(inst, radius)
+			local c = Instance.new("UICorner")
+			c.CornerRadius = UDim.new(0, radius or 12)
+			c.Parent = inst
+			return c
+		end
+	end
+
+	local strokeFn = deps.stroke
+	if helpers and helpers.stroke then
+		strokeFn = function(inst, color, thickness)
+			return helpers.stroke(inst, color, thickness, deps.Theme)
+		end
+	elseif not strokeFn then
+		strokeFn = function(inst, color, thickness)
+			local s = Instance.new("UIStroke")
+			s.Color = color or (deps.Theme and deps.Theme:Get().Border) or Color3.fromRGB(45, 45, 55)
+			s.Thickness = thickness or 1
+			s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			s.Parent = inst
+			return s
+		end
+	end
+
+	self:Init({
+		Theme = deps.Theme,
+		Animator = deps.Animator,
+		host = deps.host,
+		RvrseUI = deps.RvrseUI,
+		corner = cornerFn,
+		stroke = strokeFn
+	})
+end
+
+function Notifications:SetContext(rvrseUI)
+	RvrseUI = rvrseUI
 end
 
 return Notifications
