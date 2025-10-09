@@ -36,6 +36,7 @@ Thumbs.db
 test_*
 *_test.lua
 TEST_*.lua
+!TEST_ALL_FEATURES.lua
 
 # Anti-cheat testing files (DO NOT COMMIT - keeps our defensive security private)
 AntiCheat_*.lua

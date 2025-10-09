@@ -19,7 +19,7 @@
 - ✅ `REFACTORING_SUMMARY.md` - Detailed statistics
 - ✅ `REFACTORING_COMPLETE.md` - Completion report
 - ✅ `TESTING_GUIDE.md` - How to test both versions
-- ✅ `TEST_MODULAR.lua` - Comprehensive test script
+- ✅ `TEST_ALL_FEATURES.lua` - Consolidated regression script
 - ✅ `README.md` - Updated to v3.0.0
 
 ### Backups
@@ -173,12 +173,12 @@ local RvrseUI = require(game.ReplicatedStorage.RvrseUI.init)
 -- Use normally - 100% compatible with v2.x API
 ```
 
-### Test with TEST_MODULAR.lua
+### Master Regression Script
 
 ```lua
--- Comprehensive test of all features:
-require(game.ReplicatedStorage.RvrseUI.TEST_MODULAR)
--- Will test all 10 elements, theme switching, config, etc.
+-- Comprehensive test of all systems:
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/TEST_ALL_FEATURES.lua"))()
+-- Exercises 12 elements, notifications, locks, config, and theme switching.
 ```
 
 ---
@@ -201,7 +201,7 @@ require(game.ReplicatedStorage.RvrseUI.TEST_MODULAR)
 ✅ **Modular architecture complete** (26 modules + init.lua)
 ✅ **All files pushed to GitHub** (34 files)
 ✅ **Documentation complete** (5 guides)
-✅ **Testing ready** (TEST_MODULAR.lua)
+✅ **Testing ready** (TEST_ALL_FEATURES.lua)
 ⚠️ **RvrseUI.lua not yet updated** (decision needed)
 
 **The refactoring is COMPLETE and SUCCESSFUL** - we just need to decide how to update the monolithic file for production use!

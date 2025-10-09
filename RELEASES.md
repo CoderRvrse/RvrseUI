@@ -1,5 +1,22 @@
 # RvrseUI Release History
 
+## Version 3.0.0 "Aurora" – Modular Refresh + Test Consolidation
+**Release Date**: October 9, 2025  
+**Build**: 20251009  
+**Hash**: `M6D8A3L1`  
+**Channel**: Stable
+
+### 🚀 Highlights
+- 🧪 **Master Test Suite**: Introduced `TEST_ALL_FEATURES.lua`, a single regression script covering the 12 core elements, notifications, lock groups, configuration save/load, theme toggling, and window controls.
+- 🧹 **Repository Cleanup**: Retired legacy demo/test scripts (`FULL_DEMO.lua`, `CONFIG_DEMO.lua`, etc.) to reduce maintenance overhead and confusion.
+- 📝 **Documentation Refresh**: Rebuilt `README.md`, `CLAUDE.md`, and supporting guides to reflect the modular architecture, new testing flow, and current APIs.
+- 🧰 **Build Guidance**: Updated build tooling output to reference the new test procedure.
+
+### ✅ Recommended Actions
+1. Pull latest main.
+2. Run `TEST_ALL_FEATURES.lua` in a LocalScript to validate the UI in-game.
+3. Update any internal documentation or pipelines that referenced the removed scripts.
+
 ## Version 2.5.1 "Draggable Controller + Position Memory" - Bug Fix + Enhancement
 **Release Date**: October 1, 2025
 **Build**: 20251001

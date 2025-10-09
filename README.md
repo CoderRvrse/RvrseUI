@@ -386,7 +386,7 @@ local exists = RvrseUI:ConfigurationExists()
 ### Complete Script with Config (Production-Ready, No Errors!)
 
 > ✅ **This example works perfectly** - tested and verified with v3.0.0!
-> 📁 **Full version**: See [SIMPLE_TEST.lua](SIMPLE_TEST.lua) for complete demo
+> 📁 **Master demo**: See [TEST_ALL_FEATURES.lua](TEST_ALL_FEATURES.lua) for the consolidated end-to-end script
 > 🎨 **Theme Note**: Theme parameter is first-run default only - saved theme takes precedence!
 > 🔑 **Hotkey Note**: Use `IsUIToggle = true` in keybind to make it rebindable from settings!
 > ⚠️ **CRITICAL**: You MUST call `Window:Show()` at the end or UI stays hidden!
@@ -818,22 +818,15 @@ RvrseUI:Notify({
 
 ---
 
-## 🎬 Demo Scripts
+## 🎬 Demo Script
 
-### Full Demo (All 12 Elements)
+All regression coverage now lives in a single master script:
+
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/FULL_DEMO.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/TEST_ALL_FEATURES.lua"))()
 ```
 
-### Configuration Demo
-```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/CONFIG_DEMO.lua"))()
-```
-
-### v2.2.2 Enhancements Demo
-```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/TEST_v2.2.2_ENHANCEMENTS.lua"))()
-```
+It exercises the 12 UI elements, notifications, lock groups, configuration save/load, and theme switching in one place.
 
 ---
 

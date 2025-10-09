@@ -131,7 +131,7 @@ console.log(`📏 Lines: ${lines}`);
 console.log(`🔧 Modules: ${modules.length} inlined`);
 console.log('\n🚀 Ready for production use!');
 console.log('\n📝 Next steps:');
-console.log('  1. Test: Use TEST_MODULAR.lua in Roblox Studio');
+console.log('  1. Test: Run TEST_ALL_FEATURES.lua in Roblox Studio');
 console.log('  2. Verify: All 12 elements work correctly');
 console.log('  3. Push: git add RvrseUI.lua && git commit && git push');
 console.log('\n💡 Usage in Roblox:');

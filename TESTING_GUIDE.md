@@ -20,25 +20,23 @@ After the v3.0.0 refactoring, RvrseUI has **two versions** available:
 
 ## 🧪 How to Test the Modular Version
 
-### Option 1: Use the Test Script (Recommended)
+### Option 1: Use the Master Test Script (Recommended)
 
-We've created `TEST_MODULAR.lua` to verify everything works:
+`TEST_ALL_FEATURES.lua` is the single, end-to-end regression suite:
 
 ```lua
--- In Roblox Studio:
--- 1. Place the entire RvrseUI folder in ReplicatedStorage
--- 2. Create a LocalScript in StarterPlayer.StarterPlayerScripts
--- 3. Paste this code:
+-- Roblox Studio workflow:
+-- 1. Create a LocalScript in StarterPlayer.StarterPlayerScripts.
+-- 2. Paste the following line:
 
-local TestScript = require(game.ReplicatedStorage.RvrseUI.TEST_MODULAR)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/TEST_ALL_FEATURES.lua"))()
 ```
 
-This will test:
-- ✅ All 10 element types
-- ✅ Theme switching
-- ✅ Notifications
-- ✅ Configuration save/load
-- ✅ Window creation and display
+This covers:
+- ✅ All 12 element types (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider, Section, Tab)
+- ✅ Notifications, lock groups, Flags registry
+- ✅ Configuration save/load (named profile)
+- ✅ Theme switching, toggle hotkeys, minimize/destroy helpers
 
 ### Option 2: Manual Testing
 
@@ -171,7 +169,7 @@ print("Locked?", State.Locks:IsLocked("TestGroup"))
 
 ## 📊 Test Results Format
 
-When running `TEST_MODULAR.lua`, you'll see:
+When running `TEST_ALL_FEATURES.lua`, you'll see:
 
 ```
 🧪 Testing RvrseUI v3.0.0 Modular Architecture...
@@ -228,7 +226,7 @@ All tests passed! The modular version is working correctly.
 - ⚠️ `RvrseUI.lua` (monolithic) still at v2.13.0 (not yet updated)
 
 **To Test**:
-1. Use `TEST_MODULAR.lua` for comprehensive testing
+1. Use `TEST_ALL_FEATURES.lua` for comprehensive testing
 2. Verify all modules work independently
 3. Confirm 100% API compatibility
 
