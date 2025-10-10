@@ -9,12 +9,12 @@ local Theme = {}
 -- 🎨 REVOLUTIONARY COLOR PALETTE - Cyberpunk Neon meets Modern Minimalism
 Theme.Palettes = {
 	Dark = {
-		-- 🌌 Deep space backgrounds with rich depth
-		Bg = Color3.fromRGB(15, 15, 25),            -- Deep space with visibility
-		Glass = Color3.fromRGB(25, 25, 40),         -- Translucent glass effect
-		Card = Color3.fromRGB(30, 30, 50),          -- Elevated card surfaces
-		Elevated = Color3.fromRGB(35, 35, 55),      -- Highest elevation
-		Surface = Color3.fromRGB(28, 28, 45),       -- Standard surface
+		-- 🌌 Deep space backgrounds with rich depth (significantly brightened for visibility)
+		Bg = Color3.fromRGB(20, 20, 32),            -- Main background
+		Glass = Color3.fromRGB(30, 30, 48),         -- Translucent glass effect
+		Card = Color3.fromRGB(40, 40, 65),          -- Card surfaces (sections, elements)
+		Elevated = Color3.fromRGB(50, 50, 80),      -- Body container (brightest - main content area)
+		Surface = Color3.fromRGB(35, 35, 55),       -- Standard surface
 
 		-- 🌈 Vibrant gradient accents - Electric Purple to Cyan
 		Primary = Color3.fromRGB(138, 43, 226),     -- Electric purple (BlueViolet)
