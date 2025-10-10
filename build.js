@@ -296,11 +296,25 @@ end
 
 -- Debug Methods
 function RvrseUI:EnableDebug(enabled)
-	Debug.enabled = enabled
+	if Debug then
+		if Debug.SetEnabled then
+			Debug:SetEnabled(enabled)
+		else
+			local flag = enabled and true or false
+			Debug.Enabled = flag
+			Debug.enabled = flag
+		end
+	end
 end
 
 function RvrseUI:IsDebugEnabled()
-	return Debug.enabled
+	if Debug then
+		if Debug.IsEnabled then
+			return Debug:IsEnabled()
+		end
+		return not not (Debug.Enabled or Debug.enabled)
+	end
+	return false
 end
 
 -- Window Management

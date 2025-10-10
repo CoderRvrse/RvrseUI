@@ -7,10 +7,21 @@
 local Debug = {}
 
 Debug.Enabled = true  -- Global debug toggle
+Debug.enabled = Debug.Enabled  -- Back-compat alias for legacy references
+
+function Debug:SetEnabled(state)
+	local flag = state and true or false
+	self.Enabled = flag
+	self.enabled = flag
+end
+
+function Debug:IsEnabled()
+	return self.Enabled and true or false
+end
 
 -- Debug print helper (only prints when Enabled = true)
 function Debug:Print(...)
-	if self.Enabled then
+	if self:IsEnabled() then
 		print("[RvrseUI]", ...)
 	end
 end
@@ -19,7 +30,7 @@ end
 Debug.Log = Debug.Print
 
 function Debug.printf(fmt, ...)
-	if not Debug.Enabled then
+	if not Debug:IsEnabled() then
 		return
 	end
 

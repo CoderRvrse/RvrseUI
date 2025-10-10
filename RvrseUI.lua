@@ -85,9 +85,20 @@ setmetatable(Version, {
 Debug = {}
 
 Debug.Enabled = true  -- Global debug toggle
+Debug.enabled = Debug.Enabled  -- Back-compat alias for legacy references
+
+function Debug:SetEnabled(state)
+	local flag = state and true or false
+	self.Enabled = flag
+	self.enabled = flag
+end
+
+function Debug:IsEnabled()
+	return self.Enabled and true or false
+end
 
 function Debug:Print(...)
-	if self.Enabled then
+	if self:IsEnabled() then
 		print("[RvrseUI]", ...)
 	end
 end
@@ -95,7 +106,7 @@ end
 Debug.Log = Debug.Print
 
 function Debug.printf(fmt, ...)
-	if not Debug.Enabled then
+	if not Debug:IsEnabled() then
 		return
 	end
 
@@ -5383,11 +5394,25 @@ end
 
 -- Debug Methods
 function RvrseUI:EnableDebug(enabled)
-	Debug.enabled = enabled
+	if Debug then
+		if Debug.SetEnabled then
+			Debug:SetEnabled(enabled)
+		else
+			local flag = enabled and true or false
+			Debug.Enabled = flag
+			Debug.enabled = flag
+		end
+	end
 end
 
 function RvrseUI:IsDebugEnabled()
-	return Debug.enabled
+	if Debug then
+		if Debug.IsEnabled then
+			return Debug:IsEnabled()
+		end
+		return not not (Debug.Enabled or Debug.enabled)
+	end
+	return false
 end
 
 -- Window Management
