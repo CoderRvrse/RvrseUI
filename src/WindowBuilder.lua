@@ -235,7 +235,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	glassOverlay.BackgroundColor3 = Theme.Current == "Dark"
 		and Color3.fromRGB(255, 255, 255)
 		or Color3.fromRGB(245, 245, 250)
-	glassOverlay.BackgroundTransparency = 0.95
+	glassOverlay.BackgroundTransparency = 1
 	glassOverlay.BorderSizePixel = 0
 	glassOverlay.ZIndex = 0
 	glassOverlay.Parent = root
@@ -1152,7 +1152,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 
 		Animator:Tween(glassOverlay, {
-			BackgroundTransparency = Theme.Current == "Dark" and 0.97 or 0.95
+			BackgroundTransparency = 1
 		}, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.Out))
 	end
 
@@ -1747,6 +1747,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		glassOverlay.BackgroundColor3 = newTheme == "Dark"
 			and Color3.fromRGB(255, 255, 255)
 			or Color3.fromRGB(245, 245, 250)
+		glassOverlay.BackgroundTransparency = 1
 
 		root.BackgroundColor3 = newPal.Bg
 		UIHelpers.stroke(root, newPal.Border, 1)
