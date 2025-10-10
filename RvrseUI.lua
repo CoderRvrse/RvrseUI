@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T13:13:05.571Z
+-- Compiled from modular architecture on 2025-10-10T13:30:47.076Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -5302,6 +5302,85 @@ end
 
 
 -- ============================================
+-- MODULE INITIALIZATION (compiled from init.lua)
+-- ============================================
+
+Obfuscation:Initialize()
+Theme:Initialize()
+Animator:Initialize(TweenService)
+State:Initialize()
+
+local function configLogger(...)
+	if Debug and Debug.Print then
+		Debug:Print(...)
+	else
+		print("[RvrseUI]", ...)
+	end
+end
+
+Config:Init({
+	State = State,
+	Theme = Theme,
+	dprintf = configLogger
+})
+
+UIHelpers:Initialize({
+	Animator = Animator,
+	Theme = Theme,
+	Icons = Icons,
+	PlayerGui = PlayerGui
+})
+
+Icons:Initialize()
+
+Elements = {
+	Button = Button,
+	Toggle = Toggle,
+	Dropdown = Dropdown,
+	Slider = Slider,
+	Keybind = Keybind,
+	TextBox = TextBox,
+	ColorPicker = ColorPicker,
+	Label = Label,
+	Paragraph = Paragraph,
+	Divider = Divider
+}
+
+RvrseUI.NotificationsEnabled = true
+
+local DEFAULT_HOST = Instance.new("ScreenGui")
+DEFAULT_HOST.Name = Obfuscation.getObfuscatedName("gui")
+DEFAULT_HOST.ResetOnSpawn = false
+DEFAULT_HOST.IgnoreGuiInset = true
+DEFAULT_HOST.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+DEFAULT_HOST.DisplayOrder = 999
+DEFAULT_HOST.Parent = PlayerGui
+
+local DEFAULT_OVERLAY = Instance.new("Frame")
+DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
+DEFAULT_OVERLAY.BackgroundTransparency = 1
+DEFAULT_OVERLAY.BorderSizePixel = 0
+DEFAULT_OVERLAY.ClipsDescendants = false
+DEFAULT_OVERLAY.ZIndex = 20000
+DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
+DEFAULT_OVERLAY.Parent = DEFAULT_HOST
+
+Notifications:Initialize({
+	host = DEFAULT_HOST,
+	Theme = Theme,
+	Animator = Animator,
+	UIHelpers = UIHelpers,
+	RvrseUI = RvrseUI
+})
+
+Hotkeys:Initialize({
+	UIS = UIS
+})
+
+WindowManager:Initialize()
+
+
+-- ============================================
 -- MAIN RVRSEUI TABLE & PUBLIC API
 -- ============================================
 
@@ -5343,7 +5422,7 @@ function RvrseUI:CreateWindow(cfg)
 		Hotkeys = Hotkeys,
 		Version = Version,
 		Elements = Elements,
-		OverlayLayer = nil,
+		OverlayLayer = DEFAULT_OVERLAY,
 		UIS = UIS,
 		GuiService = GuiService,
 		RS = RS,
@@ -5355,18 +5434,34 @@ function RvrseUI:CreateWindow(cfg)
 	SectionBuilder:Initialize(deps)
 	WindowBuilder:Initialize(deps)
 
-	local host = PlayerGui:FindFirstChild(Obfuscation.getObfuscatedName("gui"))
-	if not host then
-		host = Instance.new("ScreenGui")
-		host.Name = Obfuscation.getObfuscatedName("gui")
-		host.ResetOnSpawn = false
-		host.IgnoreGuiInset = true
-		host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		host.DisplayOrder = 999
-		host.Parent = PlayerGui
+	if not DEFAULT_HOST or not DEFAULT_HOST.Parent then
+		DEFAULT_HOST = Instance.new("ScreenGui")
+		DEFAULT_HOST.Name = Obfuscation.getObfuscatedName("gui")
+		DEFAULT_HOST.ResetOnSpawn = false
+		DEFAULT_HOST.IgnoreGuiInset = true
+		DEFAULT_HOST.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		DEFAULT_HOST.DisplayOrder = 999
+		DEFAULT_HOST.Parent = PlayerGui
+
+		DEFAULT_OVERLAY = Instance.new("Frame")
+		DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
+		DEFAULT_OVERLAY.BackgroundTransparency = 1
+		DEFAULT_OVERLAY.BorderSizePixel = 0
+		DEFAULT_OVERLAY.ClipsDescendants = false
+		DEFAULT_OVERLAY.ZIndex = 20000
+		DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
+		DEFAULT_OVERLAY.Parent = DEFAULT_HOST
+
+		Notifications:Initialize({
+			host = DEFAULT_HOST,
+			Theme = Theme,
+			Animator = Animator,
+			UIHelpers = UIHelpers,
+			RvrseUI = RvrseUI
+		})
 	end
 
-	return WindowBuilder:CreateWindow(self, cfg, host)
+	return WindowBuilder:CreateWindow(self, cfg, DEFAULT_HOST)
 end
 
 -- Notifications
