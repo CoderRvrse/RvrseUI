@@ -11,6 +11,7 @@ Hotkeys.UI = {
 	_key = Enum.KeyCode.K,
 	_escapeKey = Enum.KeyCode.Escape
 }
+Hotkeys._initialized = false
 
 -- Utility: Convert string/KeyCode to Enum.KeyCode
 local function coerceKeycode(k)
@@ -114,6 +115,11 @@ end
 
 -- Initialize hotkey listeners
 function Hotkeys:Init()
+	if self._initialized then
+		return
+	end
+	self._initialized = true
+
 	UIS.InputBegan:Connect(function(io, gpe)
 		if gpe then return end
 
@@ -150,6 +156,7 @@ function Hotkeys:Initialize(deps)
 	-- Hotkeys system is ready to use
 	-- deps contains: UserInputService, WindowManager
 	-- Input listeners are set up when BindToggleKey is called
+	self:Init()
 end
 
 return Hotkeys

@@ -4,6 +4,10 @@
 -- Handles save/load system for RvrseUI
 -- Supports file-based persistence with folder structure
 -- Integrates with State (Flags) and Theme modules
+-- ⚠️ Maintainers: The save/load pipeline is tightly coupled to
+--    the live RvrseUI context. Do not refactor these functions
+--    without replicating the v3.0.2 behaviour (context hand-off,
+--    theme cache preservation, last-profile parsing).
 -- ============================================
 
 local Config = {}

@@ -91,6 +91,7 @@ Window:Show()
 ### Configuration Tips
 - When `ConfigurationSaving` is truthy, element `Flag` values and dirty theme selections are written to JSON using executor `writefile` support.
 - Use `RvrseUI:SaveConfiguration()` and `RvrseUI:LoadConfiguration()` to manage profiles manually.
+- v3.0.2 routes save/load through the active window context so every flagged element persists; avoid modifying `src/Config.lua` unless you replicate this behaviour.
 - Call `Window:Show()` after building tabs/sections so saved settings apply before the UI becomes visible.
 
 ### Example Config Table

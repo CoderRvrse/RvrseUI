@@ -801,6 +801,9 @@ local Config = (function()
 -- Handles save/load system for RvrseUI
 -- Supports file-based persistence with folder structure
 -- Integrates with State (Flags) and Theme modules
+-- ⚠️ Maintainers: Preserve the v3.0.2 context hand-off and
+--    theme caching behaviour unless you are deliberately
+--    reworking persistence with equivalent safeguards.
 -- ============================================
 
 local Config = {}
@@ -1460,6 +1463,7 @@ Hotkeys.UI = {
 	_key = Enum.KeyCode.K,
 	_escapeKey = Enum.KeyCode.Escape
 }
+Hotkeys._initialized = false
 
 local function coerceKeycode(k)
 	if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
@@ -1556,9 +1560,14 @@ function Hotkeys:ToggleAllWindows()
 	handleToggle(self)
 end
 
-function Hotkeys:Init()
-	UIS.InputBegan:Connect(function(io, gpe)
-		if gpe then return end
+	function Hotkeys:Init()
+		if self._initialized then
+			return
+		end
+		self._initialized = true
+
+		UIS.InputBegan:Connect(function(io, gpe)
+			if gpe then return end
 
 		-- ESC KEY: DESTROY the UI completely
 		if io.KeyCode == self.UI._escapeKey then
@@ -1588,11 +1597,12 @@ function Hotkeys:Init()
 	end)
 end
 
-function Hotkeys:Initialize(deps)
-	-- Hotkeys system is ready to use
-	-- deps contains: UserInputService, WindowManager
-	-- Input listeners are set up when BindToggleKey is called
-end
+	function Hotkeys:Initialize(deps)
+		-- Hotkeys system is ready to use
+		-- deps contains: UserInputService, WindowManager
+		-- Input listeners are set up when BindToggleKey is called
+		self:Init()
+	end
 
 	return Hotkeys
 end)()
@@ -4387,33 +4397,38 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end)
 
-	UIS.InputChanged:Connect(function(io)
-		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-			local mouseLocation = UIS:GetMouseLocation()
-			local guiInset = GuiService:GetGuiInset()
-			local mousePos = Vector2.new(
-				mouseLocation.X - guiInset.X,
-				mouseLocation.Y - guiInset.Y
-			)
+		local function getMousePosition()
+			local location = UIS:GetMouseLocation()
+			local inset = host and host.IgnoreGuiInset and Vector2.new(0, 0) or GuiService:GetGuiInset()
+			return Vector2.new(location.X - inset.X, location.Y - inset.Y)
+		end
 
-			if not chipDragThreshold then
-				local halfSize = controllerChip.AbsoluteSize.X / 2
-				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(halfSize, halfSize)
-				if (mousePos - chipCenter).Magnitude > 5 then
+		UIS.InputChanged:Connect(function(io)
+			if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
+				local mousePos = getMousePosition()
+
+				if not chipDragThreshold then
+					local halfSize = controllerChip.AbsoluteSize.X / 2
+					local chipCenter = controllerChip.AbsolutePosition + Vector2.new(halfSize, halfSize)
+					if (mousePos - chipCenter).Magnitude > 5 then
 					chipDragThreshold = true
 					chipWasDragged = true
 				end
 			end
 
 			if chipDragThreshold then
-				local chipSize = controllerChip.AbsoluteSize.X
-				local halfSize = chipSize / 2
-				local screenSize = workspace.CurrentCamera.ViewportSize
+					local chipSize = controllerChip.AbsoluteSize.X
+					local halfSize = chipSize / 2
+					local camera = workspace.CurrentCamera
+					if not camera then
+						return
+					end
+					local screenSize = camera.ViewportSize
 
-				local newX = math.clamp(mousePos.X, halfSize, screenSize.X - halfSize)
-				local newY = math.clamp(mousePos.Y, halfSize, screenSize.Y - halfSize)
+					local newX = math.clamp(mousePos.X, halfSize, screenSize.X - halfSize)
+					local newY = math.clamp(mousePos.Y, halfSize, screenSize.Y - halfSize)
 
-				controllerChip.Position = UDim2.fromOffset(newX, newY)
+					controllerChip.Position = UDim2.fromOffset(newX, newY)
 			end
 		end
 	end)
