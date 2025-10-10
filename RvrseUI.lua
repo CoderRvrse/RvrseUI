@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T12:22:55.958Z
+-- Compiled from modular architecture on 2025-10-10T12:32:51.808Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -1725,7 +1725,7 @@ local corner, stroke
 local Theme, Animator, host
 
 local notifyRoot
-local RvrseUI -- Reference to main RvrseUI table for NotificationsEnabled flag
+-- [Removed conflicting local RvrseUI]
 
 function Notifications:Init(dependencies)
 	-- Extract dependencies

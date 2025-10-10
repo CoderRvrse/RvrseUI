@@ -99,6 +99,10 @@ for (let i = 0; i < moduleOrder.length; i++) {
 	// Exception: Keep the table initialization, just remove "local"
 	content = content.replace(/^local ([A-Z][A-Za-z]+) = \{\}/gm, '$1 = {}');
 
+	// Remove conflicting local RvrseUI declarations that would shadow the main one
+	// These appear in modules that reference RvrseUI but we handle via dependencies
+	content = content.replace(/^local RvrseUI.*$/gm, '-- [Removed conflicting local RvrseUI]');
+
 	// Remove "return X" at end of modules
 	content = content.replace(/\nreturn [A-Z][A-Za-z]+\s*$/g, '');
 	content = content.replace(/\nreturn [A-Z][A-Za-z]+\n*$/g, '');

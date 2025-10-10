@@ -115,6 +115,9 @@ for i, modulePath in ipairs(moduleOrder) do
 	-- Convert "local ModuleName = {}" to "ModuleName = {}"
 	content = content:gsub("^local ([A-Z][A-Za-z]+) = %{%}", "%1 = {}")
 
+	-- Remove conflicting local RvrseUI declarations that would shadow the main one
+	content = content:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
+
 	-- Remove "return X" at end of modules
 	content = content:gsub("\nreturn [A-Z][A-Za-z]+%s*$", "")
 	content = content:gsub("\nreturn [A-Z][A-Za-z]+\n*$", "")
