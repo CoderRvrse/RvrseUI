@@ -57,6 +57,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 		OverlayLayer = overlayLayer
 	end
+	overlayLayer.BackgroundTransparency = 1
+	overlayLayer.BackgroundColor3 = Color3.new(0, 0, 0)
 
 	Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 
@@ -725,8 +727,60 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	bodyPadding.PaddingRight = UDim.new(0, 24)
 	bodyPadding.Parent = body
 
+	local function describeFrame(label, inst)
+		if not Debug:IsEnabled() or not inst then
+			return
+		end
+
+		local ok, info = pcall(function()
+			local absPos = inst.AbsolutePosition
+			local absSize = inst.AbsoluteSize
+			local bg = inst.BackgroundColor3 or Color3.new(0, 0, 0)
+			return string.format(
+				"%s visible=%s z=%d clips=%s pos=(%d,%d) size=(%d,%d) alpha=%.2f rgb=(%d,%d,%d)",
+				label,
+				tostring(inst.Visible),
+				inst.ZIndex or 0,
+				tostring(inst.ClipsDescendants),
+				math.floor(absPos.X),
+				math.floor(absPos.Y),
+				math.floor(absSize.X),
+				math.floor(absSize.Y),
+				inst.BackgroundTransparency or 0,
+				math.floor(bg.R * 255 + 0.5),
+				math.floor(bg.G * 255 + 0.5),
+				math.floor(bg.B * 255 + 0.5)
+			)
+		end)
+
+		if ok and info then
+			Debug.printf("[LAYOUT] %s", info)
+		end
+	end
+
+	local function snapshotLayout(stage)
+		if not Debug:IsEnabled() then
+			return
+		end
+
+		Debug.printf("[LAYOUT] --- %s ---", stage)
+		describeFrame("root", root)
+		describeFrame("header", header)
+		describeFrame("content", content)
+		describeFrame("tabRail", tabBar)
+		describeFrame("body", body)
+		describeFrame("splash", splash)
+		describeFrame("overlay", overlayLayer)
+		if overlayLayer then
+			for _, child in ipairs(overlayLayer:GetChildren()) do
+				describeFrame("overlay." .. child.Name, child)
+			end
+		end
+	end
+
 	-- Splash screen
-	local splash = Instance.new("Frame")
+	local splash
+	splash = Instance.new("Frame")
 	splash.BackgroundColor3 = pal.Elevated
 	splash.BorderSizePixel = 0
 	splash.Position = body.Position
@@ -775,6 +829,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	UIHelpers.gradient(loadingFill, 90, {pal.Accent, pal.AccentHover})
 
 	Animator:Tween(loadingFill, {Size = UDim2.new(1, 0, 1, 0)}, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+
+	task.defer(function()
+		snapshotLayout("initial-build")
+	end)
 
 	local hideSplashAndShowRoot = function()
 		if splash and splash.Parent then
@@ -977,6 +1035,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		if isMinimized then return end
 		isMinimized = true
 		Animator:Ripple(minimizeBtn, 16, 12)
+		snapshotLayout("pre-minimize")
 
 		local screenSize = workspace.CurrentCamera.ViewportSize
 		local chipTargetPos = UDim2.new(0.5, 0, 0.5, 0)
@@ -1069,6 +1128,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			BackgroundTransparency = 0,
 			Rotation = 0
 		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+
+		task.defer(function()
+			snapshotLayout("post-restore")
+		end)
 	end
 
 	minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
@@ -1710,6 +1773,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				tabData.icon.ImageColor3 = isActive and newPal.Text or newPal.TextSub
 			end
 		end
+
+		snapshotLayout("theme-switch")
 
 		Animator:Ripple(themeToggle, 25, 12)
 
