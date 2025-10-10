@@ -46,6 +46,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local Elements = dependencies.Elements
 	local RvrseUI = dependencies.RvrseUI
 	local overlayLayer = dependencies.OverlayLayer
+	local overlayService = dependencies.Overlay
 
 	local pal3 = Theme:Get()
 
@@ -107,7 +108,8 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 			UIS = dependencies.UIS,
 			gradient = gradient,
 			shadow = shadow,
-			OverlayLayer = overlayLayer
+			OverlayLayer = overlayLayer,
+			Overlay = overlayService
 		}
 	end
 

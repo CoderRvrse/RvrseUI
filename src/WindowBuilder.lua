@@ -6,7 +6,7 @@ local WindowBuilder = {}
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
-local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
+local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay
 
 -- Roblox services (will be injected)
 local UIS, GuiService, RS, PlayerGui, HttpService
@@ -29,6 +29,7 @@ function WindowBuilder:Initialize(deps)
 	Version = deps.Version
 	Elements = deps.Elements
 	OverlayLayer = deps.OverlayLayer
+	Overlay = deps.Overlay
 
 	-- Services
 	UIS = deps.UIS
@@ -42,47 +43,7 @@ end
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
 
-	local overlayLayer = OverlayLayer
-	if not overlayLayer or not overlayLayer.Parent then
-		overlayLayer = host:FindFirstChild("RvrseUI_Overlay")
-		if not overlayLayer then
-			overlayLayer = Instance.new("Frame")
-			overlayLayer.Name = "RvrseUI_Overlay"
-			overlayLayer.BackgroundTransparency = 1
-			overlayLayer.BorderSizePixel = 0
-			overlayLayer.ClipsDescendants = false
-			overlayLayer.ZIndex = 20000
-			overlayLayer.Size = UDim2.new(1, 0, 1, 0)
-			overlayLayer.Parent = host
-		end
-		OverlayLayer = overlayLayer
-	end
-	overlayLayer.BackgroundTransparency = 1
-	overlayLayer.BackgroundColor3 = Color3.new(0, 0, 0)
-	overlayLayer.Visible = false
-
-	local function syncOverlayVisibility()
-		if not overlayLayer then
-			return
-		end
-		local hasVisibleChild = false
-		for _, child in ipairs(overlayLayer:GetChildren()) do
-			if child.Visible then
-				hasVisibleChild = true
-				break
-			end
-		end
-		overlayLayer.Visible = hasVisibleChild
-	end
-
-	overlayLayer.ChildAdded:Connect(function(child)
-		child:GetPropertyChangedSignal("Visible"):Connect(syncOverlayVisibility)
-		syncOverlayVisibility()
-	end)
-
-	overlayLayer.ChildRemoved:Connect(function()
-		task.defer(syncOverlayVisibility)
-	end)
+	local overlayLayer = Overlay and Overlay:GetLayer() or OverlayLayer
 
 	Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 
@@ -250,7 +211,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.BorderSizePixel = 0
 	root.Visible = false
 	root.ClipsDescendants = false
-	root.ZIndex = 10000
+	root.ZIndex = 100
 	root.Parent = windowHost
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Border, 1.5)
@@ -517,6 +478,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end)
 
 	closeBtn.MouseButton1Click:Connect(function()
+		if Overlay then
+			Overlay:HideBlocker(true)
+		end
 		Animator:Ripple(closeBtn, 16, 16)
 		Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 
@@ -888,6 +852,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	UIHelpers.stroke(chip, pal.Border, 1)
 
 	local function setHidden(hidden)
+		if hidden and Overlay then
+			Overlay:HideBlocker(true)
+		end
 		root.Visible = not hidden
 		chip.Visible = hidden
 	end
@@ -907,7 +874,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	controllerChip.AnchorPoint = Vector2.new(0.5, 0.5)
 	controllerChip.Position = UDim2.new(0.5, 0, 0.5, 0)
 	controllerChip.Visible = false
-	controllerChip.ZIndex = 10000
+	controllerChip.ZIndex = 200
 	controllerChip.Parent = host
 	UIHelpers.corner(controllerChip, 25)
 	UIHelpers.stroke(controllerChip, pal.Accent, 2)
@@ -919,7 +886,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	chipShine.BackgroundTransparency = 1
 	chipShine.Size = UDim2.new(1, 0, 1, 0)
 	chipShine.Position = UDim2.new(0, 0, 0, 0)
-	chipShine.ZIndex = 999
+	chipShine.ZIndex = 210
 	chipShine.Parent = controllerChip
 	UIHelpers.corner(chipShine, 25)
 
@@ -1061,6 +1028,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local function minimizeWindow()
 		if isMinimized then return end
 		isMinimized = true
+		if Overlay then
+			Overlay:HideBlocker(true)
+		end
 		Animator:Ripple(minimizeBtn, 16, 12)
 		snapshotLayout("pre-minimize")
 
@@ -1398,6 +1368,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	function WindowAPI:Destroy()
+		if Overlay then
+			Overlay:HideBlocker(true)
+		end
 		Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 		Animator:Tween(chip, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 		task.wait(0.3)
@@ -1455,7 +1428,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			RvrseUI = RvrseUI,
 			Elements = Elements,
 			UIS = UIS,
-			OverlayLayer = overlayLayer
+			OverlayLayer = overlayLayer,
+			Overlay = Overlay
 		})
 	end
 
@@ -1827,5 +1801,4 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 end
 
 return WindowBuilder
-
 

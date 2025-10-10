@@ -32,6 +32,7 @@ local WindowManager = require(script.src.WindowManager)
 local TabBuilder = require(script.src.TabBuilder)
 local SectionBuilder = require(script.src.SectionBuilder)
 local WindowBuilder = require(script.src.WindowBuilder)
+local Overlay = require(script.src.Overlay)
 
 local Elements = {
 	Button = require(script.src.Elements.Button),
@@ -95,17 +96,15 @@ host.Name = Obfuscation.getObfuscatedName("gui")
 host.ResetOnSpawn = false
 host.IgnoreGuiInset = true
 host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-host.DisplayOrder = 999
+host.DisplayOrder = 100
 host.Parent = PlayerGui
 
-local overlayLayer = Instance.new("Frame")
-overlayLayer.Name = "RvrseUI_Overlay"
-overlayLayer.BackgroundTransparency = 1
-overlayLayer.BorderSizePixel = 0
-overlayLayer.ClipsDescendants = false
-overlayLayer.ZIndex = 20000
-overlayLayer.Size = UDim2.new(1, 0, 1, 0)
-overlayLayer.Parent = host
+Overlay:Initialize({
+	PlayerGui = PlayerGui,
+	DisplayOrder = host.DisplayOrder + 10,
+	Debug = Debug
+})
+local overlayLayer = Overlay:GetLayer()
 
 -- Initialize Notifications with host
 Notifications:Initialize({
@@ -141,6 +140,7 @@ local deps = {
 	Version = Version,
 	Elements = Elements,
 	OverlayLayer = overlayLayer,
+	Overlay = Overlay,
 
 	-- Services
 	UIS = UserInputService,

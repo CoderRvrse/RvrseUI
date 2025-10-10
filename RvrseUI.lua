@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T16:39:00.024Z
+-- Compiled from modular architecture on 2025-10-10T17:04:27.151Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2157,6 +2157,11 @@ do
 		local RvrseUI = dependencies.RvrseUI
 		local UIS = dependencies.UIS
 		local OverlayLayer = dependencies.OverlayLayer
+	local OverlayService = dependencies.Overlay
+	
+	if OverlayService and not OverlayLayer then
+		OverlayLayer = OverlayService:GetLayer()
+	end
 	
 		-- Settings
 		local values = {}
@@ -2249,6 +2254,8 @@ do
 		local dropdownHeight = 0
 	
 		local overlayBlocker
+		local overlayBlockerConnection
+		local blockerActive = false
 		local dropdownOpen = false
 		local optionButtons = {}
 		local idx = 1
@@ -2265,51 +2272,62 @@ do
 			arrow.TextTransparency = isLocked and 0.5 or 0
 		end
 	
-		local function ensureBlocker()
+		local function showOverlayBlocker()
 			if not useOverlay then
 				return
 			end
 	
-			if overlayBlocker and overlayBlocker.Parent then
+			if OverlayService then
+				overlayBlocker = OverlayService:ShowBlocker({ Transparency = 0.45 })
+				if overlayBlockerConnection then
+					overlayBlockerConnection:Disconnect()
+				end
+				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(function()
+					setOpen(false)
+				end)
+			else
+				if not overlayBlocker or not overlayBlocker.Parent then
+					overlayBlocker = Instance.new("TextButton")
+					overlayBlocker.Name = "DropdownOverlayBlocker"
+					overlayBlocker.AutoButtonColor = false
+					overlayBlocker.Text = ""
+					overlayBlocker.BackgroundColor3 = Color3.new(0, 0, 0)
+					overlayBlocker.BackgroundTransparency = 0.55
+					overlayBlocker.BorderSizePixel = 0
+					overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
+					overlayBlocker.ZIndex = 900
+					overlayBlocker.Visible = false
+					overlayBlocker.Parent = OverlayLayer
+					overlayBlocker.MouseButton1Click:Connect(function()
+						setOpen(false)
+					end)
+				end
+				overlayBlocker.Visible = true
+				overlayBlocker.Active = true
+				overlayBlocker.Modal = true
+			end
+	
+			blockerActive = true
+		end
+	
+		local function hideOverlayBlocker(force)
+			if not blockerActive then
 				return
 			end
 	
-			overlayBlocker = Instance.new("TextButton")
-			overlayBlocker.Name = "DropdownOverlayBlocker"
-			overlayBlocker.BackgroundTransparency = 1
-			overlayBlocker.BorderSizePixel = 0
-			overlayBlocker.AutoButtonColor = false
-			overlayBlocker.Text = ""
-			overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
-			overlayBlocker.Position = UDim2.new(0, 0, 0, 0)
-			overlayBlocker.ZIndex = 190
-			overlayBlocker.Visible = false
-			overlayBlocker.Parent = OverlayLayer
-			overlayBlocker.MouseButton1Click:Connect(function()
-				if dropdownOpen then
-					dropdownOpen = false
-					arrow.Text = "▼"
-					if o.OnClose then
-						o.OnClose()
-					end
-					Animator:Tween(dropdownList, {
-						Size = UDim2.new(0, math.max(btn.AbsoluteSize.X, inlineWidth), 0, 0)
-					}, Animator.Spring.Fast)
-					task.delay(0.15, function()
-						if dropdownList then
-							dropdownList.Visible = false
-							dropdownList.Parent = inlineParent
-							dropdownList.ZIndex = 100
-							dropdownScroll.ZIndex = 101
-							dropdownList.Position = UDim2.new(1, -(inlineWidth + 6), 0.5, 40)
-							dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
-							if overlayBlocker then
-								overlayBlocker.Visible = false
-							end
-						end
-					end)
+			if OverlayService then
+				if overlayBlockerConnection then
+					overlayBlockerConnection:Disconnect()
+					overlayBlockerConnection = nil
 				end
-			end)
+				OverlayService:HideBlocker(force)
+			elseif overlayBlocker then
+				overlayBlocker.Visible = false
+				overlayBlocker.Active = false
+				overlayBlocker.Modal = false
+			end
+	
+			blockerActive = false
 		end
 	
 		local function updateButtonText()
@@ -2450,10 +2468,7 @@ do
 				dropdownHeight = math.min(#values * itemHeight, maxHeight)
 	
 				if useOverlay then
-					ensureBlocker()
-					if overlayBlocker then
-						overlayBlocker.Visible = true
-					end
+					showOverlayBlocker()
 					local width = repositionOverlay()
 					dropdownList.Size = UDim2.new(0, width, 0, 0)
 				else
@@ -2477,8 +2492,8 @@ do
 						dropdownList.Visible = false
 						collapseInline()
 						dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
-						if overlayBlocker then
-							overlayBlocker.Visible = false
+						if useOverlay then
+							hideOverlayBlocker(false)
 						end
 						if o.OnClose then
 							o.OnClose()
@@ -2534,6 +2549,14 @@ do
 		end)
 	
 		table.insert(RvrseUI._lockListeners, visual)
+	
+			f.Destroying:Connect(function()
+				if dropdownOpen then
+					hideOverlayBlocker(true)
+					dropdownOpen = false
+				end
+			end)
+	
 	
 		local dropdownAPI = {
 			Set = function(_, v, suppressCallback)
@@ -3309,6 +3332,7 @@ do
 		local Elements = dependencies.Elements
 		local RvrseUI = dependencies.RvrseUI
 		local overlayLayer = dependencies.OverlayLayer
+		local overlayService = dependencies.Overlay
 	
 		local pal3 = Theme:Get()
 	
@@ -3370,7 +3394,8 @@ do
 				UIS = dependencies.UIS,
 				gradient = gradient,
 				shadow = shadow,
-				OverlayLayer = overlayLayer
+				OverlayLayer = overlayLayer,
+				Overlay = overlayService
 			}
 		end
 	
@@ -3666,7 +3691,7 @@ do
 	WindowBuilder = {}
 	
 	local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
-	local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
+	local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay
 	
 	local UIS, GuiService, RS, PlayerGui, HttpService
 	
@@ -3688,6 +3713,7 @@ do
 		Version = deps.Version
 		Elements = deps.Elements
 		OverlayLayer = deps.OverlayLayer
+		Overlay = deps.Overlay
 	
 		-- Services
 		UIS = deps.UIS
@@ -3700,47 +3726,7 @@ do
 	function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		cfg = cfg or {}
 	
-		local overlayLayer = OverlayLayer
-		if not overlayLayer or not overlayLayer.Parent then
-			overlayLayer = host:FindFirstChild("RvrseUI_Overlay")
-			if not overlayLayer then
-				overlayLayer = Instance.new("Frame")
-				overlayLayer.Name = "RvrseUI_Overlay"
-				overlayLayer.BackgroundTransparency = 1
-				overlayLayer.BorderSizePixel = 0
-				overlayLayer.ClipsDescendants = false
-				overlayLayer.ZIndex = 20000
-				overlayLayer.Size = UDim2.new(1, 0, 1, 0)
-				overlayLayer.Parent = host
-			end
-			OverlayLayer = overlayLayer
-		end
-		overlayLayer.BackgroundTransparency = 1
-		overlayLayer.BackgroundColor3 = Color3.new(0, 0, 0)
-		overlayLayer.Visible = false
-	
-		local function syncOverlayVisibility()
-			if not overlayLayer then
-				return
-			end
-			local hasVisibleChild = false
-			for _, child in ipairs(overlayLayer:GetChildren()) do
-				if child.Visible then
-					hasVisibleChild = true
-					break
-				end
-			end
-			overlayLayer.Visible = hasVisibleChild
-		end
-	
-		overlayLayer.ChildAdded:Connect(function(child)
-			child:GetPropertyChangedSignal("Visible"):Connect(syncOverlayVisibility)
-			syncOverlayVisibility()
-		end)
-	
-		overlayLayer.ChildRemoved:Connect(function()
-			task.defer(syncOverlayVisibility)
-		end)
+		local overlayLayer = Overlay and Overlay:GetLayer() or OverlayLayer
 	
 		Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 	
@@ -3908,7 +3894,7 @@ do
 		root.BorderSizePixel = 0
 		root.Visible = false
 		root.ClipsDescendants = false
-		root.ZIndex = 10000
+		root.ZIndex = 100
 		root.Parent = windowHost
 		UIHelpers.corner(root, 16)
 		UIHelpers.stroke(root, pal.Border, 1.5)
@@ -4175,6 +4161,9 @@ do
 		end)
 	
 		closeBtn.MouseButton1Click:Connect(function()
+			if Overlay then
+				Overlay:HideBlocker(true)
+			end
 			Animator:Ripple(closeBtn, 16, 16)
 			Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 	
@@ -4546,6 +4535,9 @@ do
 		UIHelpers.stroke(chip, pal.Border, 1)
 	
 		local function setHidden(hidden)
+			if hidden and Overlay then
+				Overlay:HideBlocker(true)
+			end
 			root.Visible = not hidden
 			chip.Visible = hidden
 		end
@@ -4565,7 +4557,7 @@ do
 		controllerChip.AnchorPoint = Vector2.new(0.5, 0.5)
 		controllerChip.Position = UDim2.new(0.5, 0, 0.5, 0)
 		controllerChip.Visible = false
-		controllerChip.ZIndex = 10000
+		controllerChip.ZIndex = 200
 		controllerChip.Parent = host
 		UIHelpers.corner(controllerChip, 25)
 		UIHelpers.stroke(controllerChip, pal.Accent, 2)
@@ -4577,7 +4569,7 @@ do
 		chipShine.BackgroundTransparency = 1
 		chipShine.Size = UDim2.new(1, 0, 1, 0)
 		chipShine.Position = UDim2.new(0, 0, 0, 0)
-		chipShine.ZIndex = 999
+		chipShine.ZIndex = 210
 		chipShine.Parent = controllerChip
 		UIHelpers.corner(chipShine, 25)
 	
@@ -4719,6 +4711,9 @@ do
 		local function minimizeWindow()
 			if isMinimized then return end
 			isMinimized = true
+			if Overlay then
+				Overlay:HideBlocker(true)
+			end
 			Animator:Ripple(minimizeBtn, 16, 12)
 			snapshotLayout("pre-minimize")
 	
@@ -5056,6 +5051,9 @@ do
 		end
 	
 		function WindowAPI:Destroy()
+			if Overlay then
+				Overlay:HideBlocker(true)
+			end
 			Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 			Animator:Tween(chip, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 			task.wait(0.3)
@@ -5113,7 +5111,8 @@ do
 				RvrseUI = RvrseUI,
 				Elements = Elements,
 				UIS = UIS,
-				OverlayLayer = overlayLayer
+				OverlayLayer = overlayLayer,
+				Overlay = Overlay
 			})
 		end
 	
