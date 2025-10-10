@@ -45,6 +45,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local shadow = helpers.shadow or function() end
 	local Elements = dependencies.Elements
 	local RvrseUI = dependencies.RvrseUI
+	local overlayLayer = dependencies.OverlayLayer
 
 	local pal3 = Theme:Get()
 
@@ -105,7 +106,8 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 			RvrseUI = RvrseUI,
 			UIS = dependencies.UIS,
 			gradient = gradient,
-			shadow = shadow
+			shadow = shadow,
+			OverlayLayer = overlayLayer
 		}
 	end
 

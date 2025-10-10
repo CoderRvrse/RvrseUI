@@ -6,7 +6,7 @@ local WindowBuilder = {}
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, Notifications
-local Debug, Obfuscation, Hotkeys, Version, Elements
+local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
 
 -- Roblox services (will be injected)
 local UIS, GuiService, RS, PlayerGui, HttpService
@@ -28,6 +28,7 @@ function WindowBuilder:Initialize(deps)
 	Hotkeys = deps.Hotkeys
 	Version = deps.Version
 	Elements = deps.Elements
+	OverlayLayer = deps.OverlayLayer
 
 	-- Services
 	UIS = deps.UIS
@@ -40,6 +41,22 @@ end
 -- Extract all the CreateWindow logic from RvrseUI.lua lines 1293-3922
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
+
+	local overlayLayer = OverlayLayer
+	if not overlayLayer or not overlayLayer.Parent then
+		overlayLayer = host:FindFirstChild("RvrseUI_Overlay")
+		if not overlayLayer then
+			overlayLayer = Instance.new("Frame")
+			overlayLayer.Name = "RvrseUI_Overlay"
+			overlayLayer.BackgroundTransparency = 1
+			overlayLayer.BorderSizePixel = 0
+			overlayLayer.ClipsDescendants = false
+			overlayLayer.ZIndex = 20000
+			overlayLayer.Size = UDim2.new(1, 0, 1, 0)
+			overlayLayer.Parent = host
+		end
+		OverlayLayer = overlayLayer
+	end
 
 	Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 
@@ -1119,7 +1136,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			activePage = activePage,
 			RvrseUI = RvrseUI,
 			Elements = Elements,
-			UIS = UIS
+			UIS = UIS,
+			OverlayLayer = overlayLayer
 		})
 	end
 

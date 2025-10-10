@@ -16,6 +16,7 @@ function Dropdown.Create(o, dependencies)
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
 	local UIS = dependencies.UIS
+	local OverlayLayer = dependencies.OverlayLayer
 
 	-- Calculate dropdown height
 	local values = o.Values or {}
@@ -108,8 +109,34 @@ function Dropdown.Create(o, dependencies)
 	dropdownLayout.Padding = UDim.new(0, 2)
 	dropdownLayout.Parent = dropdownScroll
 
-	local dropdownOpen = false
-	local optionButtons = {}
+local dropdownOpen = false
+local optionButtons = {}
+local inlineParent = dropdownList.Parent
+local overlayBlocker
+local inlineWidth = btn.Size.X.Offset
+local useOverlay = OverlayLayer ~= nil and (o.Overlay ~= false)
+local setOpen
+local function ensureBlocker()
+	if overlayBlocker or not useOverlay then
+		return
+	end
+	overlayBlocker = Instance.new("TextButton")
+	overlayBlocker.Name = "DropdownOverlayBlocker"
+	overlayBlocker.BackgroundTransparency = 1
+	overlayBlocker.BorderSizePixel = 0
+	overlayBlocker.Text = ""
+	overlayBlocker.AutoButtonColor = false
+	overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
+	overlayBlocker.Position = UDim2.new(0, 0, 0, 0)
+	overlayBlocker.ZIndex = 190
+	overlayBlocker.Visible = false
+	overlayBlocker.Parent = OverlayLayer
+	overlayBlocker.MouseButton1Click:Connect(function()
+		if dropdownOpen and setOpen then
+			setOpen(false)
+		end
+	end)
+end
 
 	-- Create option buttons
 	for i, value in ipairs(values) do
@@ -155,18 +182,7 @@ function Dropdown.Create(o, dependencies)
 				end
 			end
 
-			-- Close dropdown with animation
-			dropdownOpen = false
-			arrow.Text = "▼"
-			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, 130, 0, 0)
-			}, Animator.Spring.Fast)
-
-			task.delay(0.15, function()
-				if dropdownList and dropdownList.Parent then
-					dropdownList.Visible = false
-				end
-			end)
+			setOpen(false)
 
 			-- Trigger callback
 			if o.OnChanged then
@@ -203,40 +219,92 @@ function Dropdown.Create(o, dependencies)
 	end
 	visual()
 
-	-- Toggle dropdown on button click
-	btn.MouseButton1Click:Connect(function()
-		if locked() then return end
-
-		dropdownOpen = not dropdownOpen
-		arrow.Text = dropdownOpen and "▲" or "▼"
-
-		if dropdownOpen then
-			dropdownList.Visible = true
+	local function positionOverlay()
+		local width = btn.AbsoluteSize.X
+		if width <= 0 then
+			width = inlineWidth
+		end
+		if useOverlay and OverlayLayer then
+			local absPos = btn.AbsolutePosition
+			dropdownList.Parent = OverlayLayer
+			dropdownList.ZIndex = 200
+			dropdownScroll.ZIndex = 201
+			dropdownList.Position = UDim2.fromOffset(absPos.X, absPos.Y + btn.AbsoluteSize.Y + 6)
+			dropdownList.Size = UDim2.new(0, width, 0, dropdownList.Size.Y.Offset)
+		else
+			dropdownList.Parent = inlineParent
 			dropdownList.ZIndex = 100
 			dropdownScroll.ZIndex = 101
+			dropdownList.Position = UDim2.new(1, -136, 0.5, 40)
+		end
+		return width
+	end
 
-			-- Animate dropdown expansion
+	function setOpen(state)
+	if locked() then return end
+if state == dropdownOpen then
+	if not state then
+		return
+	end
+else
+	dropdownOpen = state
+end
+arrow.Text = dropdownOpen and "▲" or "▼"
+
+		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
+		dropdownHeight = math.min(#values * itemHeight, maxHeight)
+
+		if dropdownOpen then
+			local width = positionOverlay()
+			if useOverlay and OverlayLayer then
+				ensureBlocker()
+				if overlayBlocker then
+					overlayBlocker.Visible = true
+					overlayBlocker.Parent = OverlayLayer
+				end
+			else
+				dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
+			end
+			dropdownList.Visible = true
+			local targetWidth = useOverlay and btn.AbsoluteSize.X or inlineWidth
+			if targetWidth <= 0 then targetWidth = inlineWidth end
 			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, 130, 0, dropdownHeight)
+				Size = UDim2.new(0, targetWidth, 0, dropdownHeight)
 			}, Animator.Spring.Snappy)
 		else
-			-- Animate dropdown collapse
+			local width = useOverlay and btn.AbsoluteSize.X or inlineWidth
+			if width <= 0 then width = inlineWidth end
 			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, 130, 0, 0)
+				Size = UDim2.new(0, width, 0, 0)
 			}, Animator.Spring.Fast)
-
 			task.delay(0.15, function()
-				if dropdownList and dropdownList.Parent then
+				if dropdownList then
 					dropdownList.Visible = false
+					if useOverlay and OverlayLayer then
+						dropdownList.Parent = inlineParent
+						dropdownList.Position = UDim2.new(1, -136, 0.5, 40)
+						dropdownList.Size = UDim2.new(0, 130, 0, 0)
+						if overlayBlocker then
+							overlayBlocker.Visible = false
+							overlayBlocker.Parent = OverlayLayer
+						end
+					end
 				end
 			end)
 		end
+	end
+
+	btn.MouseButton1Click:Connect(function()
+		setOpen(not dropdownOpen)
 	end)
 
 	-- Close dropdown when clicking outside
 	UIS.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if not dropdownOpen then return end
+			if useOverlay and OverlayLayer then
+				return
+			end
 
 			task.wait(0.05)  -- Small delay to ensure AbsolutePosition is updated
 
@@ -257,18 +325,7 @@ function Dropdown.Create(o, dependencies)
 							mousePos.Y >= btnPos.Y and mousePos.Y <= btnPos.Y + btnSize.Y
 
 			if not inDropdown and not inButton then
-				dropdownOpen = false
-				arrow.Text = "▼"
-
-				Animator:Tween(dropdownList, {
-					Size = UDim2.new(0, 130, 0, 0)
-				}, Animator.Spring.Fast)
-
-				task.delay(0.15, function()
-					if dropdownList and dropdownList.Parent then
-						dropdownList.Visible = false
-					end
-				end)
+				setOpen(false)
 			end
 		end
 	end)
@@ -367,12 +424,7 @@ function Dropdown.Create(o, dependencies)
 							end
 						end
 
-						dropdownOpen = false
-						arrow.Text = "▼"
-						Animator:Tween(dropdownList, {Size = UDim2.new(0, 130, 0, 0)}, Animator.Spring.Fast)
-						task.delay(0.15, function()
-							if dropdownList and dropdownList.Parent then dropdownList.Visible = false end
-						end)
+						setOpen(false)
 
 						if o.OnChanged then task.spawn(o.OnChanged, value) end
 						if o.Flag then RvrseUI:_autoSave() end
@@ -389,10 +441,13 @@ function Dropdown.Create(o, dependencies)
 							Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
 						end
 					end)
-				end
 			end
-			visual()
-		end,
+			if dropdownOpen then
+				setOpen(true)
+			end
+		end
+		visual()
+	end,
 		SetVisible = function(_, visible)
 			f.Visible = visible
 		end,

@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.3 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-11
+-- Compiled from modular architecture on 2025-10-10
 -- Source: https://github.com/CoderRvrse/RvrseUI
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
@@ -50,19 +50,6 @@ function Version:Check(onlineVersion)
 	else return "latest" end
 end
 
-setmetatable(Version, {
-	__index = function(_, key)
-		return Version.Data[key]
-	end,
-	__newindex = function(_, key, value)
-		if Version.Data[key] ~= nil then
-			Version.Data[key] = value
-		else
-			rawset(Version, key, value)
-		end
-	end
-})
-
 	return Version
 end)()
 
@@ -81,22 +68,6 @@ function Debug:Print(...)
 end
 
 Debug.Log = Debug.Print
-
-function Debug.printf(fmt, ...)
-	if not Debug.Enabled then
-		return
-	end
-
-	if type(fmt) == "string" and select("#", ...) > 0 then
-		local args = table.pack(...)
-		local ok, formatted = pcall(string.format, fmt, table.unpack(args, 1, args.n))
-		if ok then
-			return Debug.Print(Debug, formatted)
-		end
-	end
-
-	return Debug.Print(Debug, fmt, ...)
-end
 
 	return Debug
 end)()
@@ -795,30 +766,14 @@ end)()
 -- Config Module (Inlined)
 -- ============================================
 local Config = (function()
--- ============================================
--- CONFIGURATION MODULE
--- ============================================
--- Handles save/load system for RvrseUI
--- Supports file-based persistence with folder structure
--- Integrates with State (Flags) and Theme modules
--- ⚠️ Maintainers: Preserve the v3.0.3 context hand-off and
---    theme caching behaviour unless you are deliberately
---    reworking persistence with equivalent safeguards.
--- ============================================
-
 local Config = {}
 
--- Module dependencies (injected on initialization)
 local State = nil
 local Theme = nil
 local dprintf = nil
 
--- Services
 local HttpService = game:GetService("HttpService")
 
--- ============================================
--- MODULE PROPERTIES
--- ============================================
 
 Config.ConfigurationSaving = false  -- Enabled via CreateWindow
 Config.ConfigurationFileName = nil  -- Set via CreateWindow
@@ -828,9 +783,6 @@ Config._lastSaveTime = nil  -- Debounce timestamp
 Config._lastContext = nil  -- Most recent RvrseUI instance used for persistence
 Config.AutoSaveEnabled = true  -- Auto-save flag (can be disabled via configuration)
 
--- ============================================
--- EXECUTOR FILE-SYSTEM PROBE
--- ============================================
 
 local FileApi = {
 	readfile = type(readfile) == "function" and readfile or nil,
@@ -916,9 +868,6 @@ local function resolveFullPath(folder, fileName)
 	return fileName
 end
 
--- ============================================
--- INITIALIZATION
--- ============================================
 
 function Config:Init(dependencies)
 	State = dependencies.State
@@ -932,9 +881,6 @@ function Config:Init(dependencies)
 	return self
 end
 
--- ============================================
--- SAVE CONFIGURATION
--- ============================================
 
 function Config:SaveConfiguration(context)
 	if context ~= nil then
@@ -1056,9 +1002,6 @@ function Config:SaveConfiguration(context)
 	end
 end
 
--- ============================================
--- LOAD CONFIGURATION
--- ============================================
 
 function Config:LoadConfiguration(context)
 	if context ~= nil then
@@ -1160,9 +1103,6 @@ function Config:LoadConfiguration(context)
 	return true, string.format("Loaded %d elements", loadedCount)
 end
 
--- ============================================
--- AUTO-SAVE HELPER
--- ============================================
 
 function Config:_autoSave()
 	if self.ConfigurationSaving and self.AutoSaveEnabled then
@@ -1181,9 +1121,6 @@ function Config:SetAutoSave(enabled)
 	return self.AutoSaveEnabled
 end
 
--- ============================================
--- DELETE CONFIGURATION
--- ============================================
 
 function Config:DeleteConfiguration()
 	if not self.ConfigurationFileName then
@@ -1216,9 +1153,6 @@ function Config:DeleteConfiguration()
 	end
 end
 
--- ============================================
--- CONFIGURATION EXISTS CHECK
--- ============================================
 
 function Config:ConfigurationExists()
 	if not self.ConfigurationFileName then
@@ -1239,9 +1173,6 @@ function Config:ConfigurationExists()
 	return existsOk and existsOrErr or false
 end
 
--- ============================================
--- GET LAST CONFIG
--- ============================================
 
 function Config:GetLastConfig()
 	local lastConfigPath = "RvrseUI/_last_config.json"
@@ -1277,9 +1208,6 @@ function Config:GetLastConfig()
 	return nil, nil
 end
 
--- ============================================
--- SAVE LAST CONFIG REFERENCE
--- ============================================
 
 function Config:SaveLastConfig(configName, theme)
 	local lastConfigPath = "RvrseUI/_last_config.json"
@@ -1316,9 +1244,6 @@ function Config:SaveLastConfig(configName, theme)
 	return writeOk
 end
 
--- ============================================
--- LOAD CONFIGURATION BY NAME
--- ============================================
 
 function Config:LoadConfigByName(configName, context)
 	if not configName or configName == "" then
@@ -1338,15 +1263,13 @@ function Config:LoadConfigByName(configName, context)
 
 	local success, message = self:LoadConfiguration(context or self._lastContext)
 
+	-- Restore original config names
 	self.ConfigurationFileName = originalFileName
 	self.ConfigurationFolderName = originalFolderName
 
 	return success, message
 end
 
--- ============================================
--- SAVE CONFIGURATION AS
--- ============================================
 
 function Config:SaveConfigAs(configName, context)
 	if not configName or configName == "" then
@@ -1369,17 +1292,20 @@ function Config:SaveConfigAs(configName, context)
 	local success, message = self:SaveConfiguration(context or self._lastContext)
 
 	if success then
+		-- Save this as the last used config
 		self:SaveLastConfig(
 			self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName,
 			Theme and Theme.Current or "Dark"
 		)
 	end
 
+	-- Restore original config names
 	self.ConfigurationFileName = originalFileName
 	self.ConfigurationFolderName = originalFolderName
 
 	return success, message
 end
+
 
 function Config:ListProfiles()
 	local profiles = {}
@@ -1421,6 +1347,7 @@ function Config:ListProfiles()
 	return profiles, warning
 end
 
+
 function Config:SetConfigProfile(context, profileName)
 	local normalized = normalizeProfileName(profileName)
 	if not normalized then
@@ -1449,6 +1376,7 @@ function Config:SetConfigProfile(context, profileName)
 
 	return true, self.ConfigurationFileName
 end
+
 
 function Config:DeleteProfile(profileName)
 	local normalized = normalizeProfileName(profileName)
@@ -1484,7 +1412,7 @@ function Config:DeleteProfile(profileName)
 	return true, "Profile deleted"
 end
 
-return Config
+	return Config
 end)()
 
 -- ============================================
@@ -1718,14 +1646,14 @@ function Hotkeys:ToggleAllWindows()
 	handleToggle(self)
 end
 
-	function Hotkeys:Init()
-		if self._initialized then
-			return
-		end
-		self._initialized = true
+function Hotkeys:Init()
+	if self._initialized then
+		return
+	end
+	self._initialized = true
 
-		UIS.InputBegan:Connect(function(io, gpe)
-			if gpe then return end
+	UIS.InputBegan:Connect(function(io, gpe)
+		if gpe then return end
 
 		-- ESC KEY: DESTROY the UI completely
 		if io.KeyCode == self.UI._escapeKey then
@@ -1755,12 +1683,12 @@ end
 	end)
 end
 
-	function Hotkeys:Initialize(deps)
-		-- Hotkeys system is ready to use
-		-- deps contains: UserInputService, WindowManager
-		-- Input listeners are set up when BindToggleKey is called
-		self:Init()
-	end
+function Hotkeys:Initialize(deps)
+	-- Hotkeys system is ready to use
+	-- deps contains: UserInputService, WindowManager
+	-- Input listeners are set up when BindToggleKey is called
+	self:Init()
+end
 
 	return Hotkeys
 end)()
@@ -1917,6 +1845,7 @@ function Notifications:Initialize(deps)
 	local cornerFn = deps.corner
 	if helpers and helpers.corner then
 		cornerFn = function(inst, radius)
+            -- delegate to helper for consistent styling
 			return helpers.corner(inst, radius)
 		end
 	elseif not cornerFn then
@@ -2157,6 +2086,7 @@ function Dropdown.Create(o, dependencies)
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
 	local UIS = dependencies.UIS
+	local OverlayLayer = dependencies.OverlayLayer
 
 	-- Calculate dropdown height
 	local values = o.Values or {}
@@ -2249,8 +2179,34 @@ function Dropdown.Create(o, dependencies)
 	dropdownLayout.Padding = UDim.new(0, 2)
 	dropdownLayout.Parent = dropdownScroll
 
-	local dropdownOpen = false
-	local optionButtons = {}
+local dropdownOpen = false
+local optionButtons = {}
+local inlineParent = dropdownList.Parent
+local overlayBlocker
+local inlineWidth = btn.Size.X.Offset
+local useOverlay = OverlayLayer ~= nil and (o.Overlay ~= false)
+local setOpen
+local function ensureBlocker()
+	if overlayBlocker or not useOverlay then
+		return
+	end
+	overlayBlocker = Instance.new("TextButton")
+	overlayBlocker.Name = "DropdownOverlayBlocker"
+	overlayBlocker.BackgroundTransparency = 1
+	overlayBlocker.BorderSizePixel = 0
+	overlayBlocker.Text = ""
+	overlayBlocker.AutoButtonColor = false
+	overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
+	overlayBlocker.Position = UDim2.new(0, 0, 0, 0)
+	overlayBlocker.ZIndex = 190
+	overlayBlocker.Visible = false
+	overlayBlocker.Parent = OverlayLayer
+	overlayBlocker.MouseButton1Click:Connect(function()
+		if dropdownOpen and setOpen then
+			setOpen(false)
+		end
+	end)
+end
 
 	-- Create option buttons
 	for i, value in ipairs(values) do
@@ -2296,18 +2252,7 @@ function Dropdown.Create(o, dependencies)
 				end
 			end
 
-			-- Close dropdown with animation
-			dropdownOpen = false
-			arrow.Text = "▼"
-			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, 130, 0, 0)
-			}, Animator.Spring.Fast)
-
-			task.delay(0.15, function()
-				if dropdownList and dropdownList.Parent then
-					dropdownList.Visible = false
-				end
-			end)
+			setOpen(false)
 
 			-- Trigger callback
 			if o.OnChanged then
@@ -2344,40 +2289,92 @@ function Dropdown.Create(o, dependencies)
 	end
 	visual()
 
-	-- Toggle dropdown on button click
-	btn.MouseButton1Click:Connect(function()
-		if locked() then return end
-
-		dropdownOpen = not dropdownOpen
-		arrow.Text = dropdownOpen and "▲" or "▼"
-
-		if dropdownOpen then
-			dropdownList.Visible = true
+	local function positionOverlay()
+		local width = btn.AbsoluteSize.X
+		if width <= 0 then
+			width = inlineWidth
+		end
+		if useOverlay and OverlayLayer then
+			local absPos = btn.AbsolutePosition
+			dropdownList.Parent = OverlayLayer
+			dropdownList.ZIndex = 200
+			dropdownScroll.ZIndex = 201
+			dropdownList.Position = UDim2.fromOffset(absPos.X, absPos.Y + btn.AbsoluteSize.Y + 6)
+			dropdownList.Size = UDim2.new(0, width, 0, dropdownList.Size.Y.Offset)
+		else
+			dropdownList.Parent = inlineParent
 			dropdownList.ZIndex = 100
 			dropdownScroll.ZIndex = 101
+			dropdownList.Position = UDim2.new(1, -136, 0.5, 40)
+		end
+		return width
+	end
 
-			-- Animate dropdown expansion
+	function setOpen(state)
+	if locked() then return end
+if state == dropdownOpen then
+	if not state then
+		return
+	end
+else
+	dropdownOpen = state
+end
+arrow.Text = dropdownOpen and "▲" or "▼"
+
+		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
+		dropdownHeight = math.min(#values * itemHeight, maxHeight)
+
+		if dropdownOpen then
+			local width = positionOverlay()
+			if useOverlay and OverlayLayer then
+				ensureBlocker()
+				if overlayBlocker then
+					overlayBlocker.Visible = true
+					overlayBlocker.Parent = OverlayLayer
+				end
+			else
+				dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
+			end
+			dropdownList.Visible = true
+			local targetWidth = useOverlay and btn.AbsoluteSize.X or inlineWidth
+			if targetWidth <= 0 then targetWidth = inlineWidth end
 			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, 130, 0, dropdownHeight)
+				Size = UDim2.new(0, targetWidth, 0, dropdownHeight)
 			}, Animator.Spring.Snappy)
 		else
-			-- Animate dropdown collapse
+			local width = useOverlay and btn.AbsoluteSize.X or inlineWidth
+			if width <= 0 then width = inlineWidth end
 			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, 130, 0, 0)
+				Size = UDim2.new(0, width, 0, 0)
 			}, Animator.Spring.Fast)
-
 			task.delay(0.15, function()
-				if dropdownList and dropdownList.Parent then
+				if dropdownList then
 					dropdownList.Visible = false
+					if useOverlay and OverlayLayer then
+						dropdownList.Parent = inlineParent
+						dropdownList.Position = UDim2.new(1, -136, 0.5, 40)
+						dropdownList.Size = UDim2.new(0, 130, 0, 0)
+						if overlayBlocker then
+							overlayBlocker.Visible = false
+							overlayBlocker.Parent = OverlayLayer
+						end
+					end
 				end
 			end)
 		end
+	end
+
+	btn.MouseButton1Click:Connect(function()
+		setOpen(not dropdownOpen)
 	end)
 
 	-- Close dropdown when clicking outside
 	UIS.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if not dropdownOpen then return end
+			if useOverlay and OverlayLayer then
+				return
+			end
 
 			task.wait(0.05)  -- Small delay to ensure AbsolutePosition is updated
 
@@ -2398,18 +2395,7 @@ function Dropdown.Create(o, dependencies)
 							mousePos.Y >= btnPos.Y and mousePos.Y <= btnPos.Y + btnSize.Y
 
 			if not inDropdown and not inButton then
-				dropdownOpen = false
-				arrow.Text = "▼"
-
-				Animator:Tween(dropdownList, {
-					Size = UDim2.new(0, 130, 0, 0)
-				}, Animator.Spring.Fast)
-
-				task.delay(0.15, function()
-					if dropdownList and dropdownList.Parent then
-						dropdownList.Visible = false
-					end
-				end)
+				setOpen(false)
 			end
 		end
 	end)
@@ -2508,12 +2494,7 @@ function Dropdown.Create(o, dependencies)
 							end
 						end
 
-						dropdownOpen = false
-						arrow.Text = "▼"
-						Animator:Tween(dropdownList, {Size = UDim2.new(0, 130, 0, 0)}, Animator.Spring.Fast)
-						task.delay(0.15, function()
-							if dropdownList and dropdownList.Parent then dropdownList.Visible = false end
-						end)
+						setOpen(false)
 
 						if o.OnChanged then task.spawn(o.OnChanged, value) end
 						if o.Flag then RvrseUI:_autoSave() end
@@ -2530,10 +2511,13 @@ function Dropdown.Create(o, dependencies)
 							Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
 						end
 					end)
-				end
 			end
-			visual()
-		end,
+			if dropdownOpen then
+				setOpen(true)
+			end
+		end
+		visual()
+	end,
 		SetVisible = function(_, visible)
 			f.Visible = visible
 		end,
@@ -3205,19 +3189,6 @@ end
 	return Divider
 end)()
 
-local ElementModules = {
-	Button = Button,
-	Toggle = Toggle,
-	Dropdown = Dropdown,
-	Slider = Slider,
-	Keybind = Keybind,
-	TextBox = TextBox,
-	ColorPicker = ColorPicker,
-	Label = Label,
-	Paragraph = Paragraph,
-	Divider = Divider
-}
-
 -- ============================================
 -- SectionBuilder Module (Inlined)
 -- ============================================
@@ -3255,6 +3226,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local shadow = helpers.shadow or function() end
 	local Elements = dependencies.Elements
 	local RvrseUI = dependencies.RvrseUI
+	local overlayLayer = dependencies.OverlayLayer
 
 	local pal3 = Theme:Get()
 
@@ -3315,7 +3287,8 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 			RvrseUI = RvrseUI,
 			UIS = dependencies.UIS,
 			gradient = gradient,
-			shadow = shadow
+			shadow = shadow,
+			OverlayLayer = overlayLayer
 		}
 	end
 
@@ -3570,7 +3543,7 @@ local WindowBuilder = (function()
 local WindowBuilder = {}
 
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, Notifications
-local Debug, Obfuscation, Hotkeys, Version, Elements
+local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
 
 local UIS, GuiService, RS, PlayerGui, HttpService
 
@@ -3591,6 +3564,7 @@ function WindowBuilder:Initialize(deps)
 	Hotkeys = deps.Hotkeys
 	Version = deps.Version
 	Elements = deps.Elements
+	OverlayLayer = deps.OverlayLayer
 
 	-- Services
 	UIS = deps.UIS
@@ -3603,34 +3577,23 @@ end
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
 
-	local debugf
-	if Debug and Debug.printf then
-		debugf = function(...)
-			return Debug.printf(...)
+	local overlayLayer = OverlayLayer
+	if not overlayLayer or not overlayLayer.Parent then
+		overlayLayer = host:FindFirstChild("RvrseUI_Overlay")
+		if not overlayLayer then
+			overlayLayer = Instance.new("Frame")
+			overlayLayer.Name = "RvrseUI_Overlay"
+			overlayLayer.BackgroundTransparency = 1
+			overlayLayer.BorderSizePixel = 0
+			overlayLayer.ClipsDescendants = false
+			overlayLayer.ZIndex = 20000
+			overlayLayer.Size = UDim2.new(1, 0, 1, 0)
+			overlayLayer.Parent = host
 		end
-	elseif Debug and Debug.Print then
-		debugf = function(fmt, ...)
-			if type(fmt) == "string" and select("#", ...) > 0 then
-				local ok, formatted = pcall(string.format, fmt, ...)
-				if ok then
-					return Debug:Print(formatted)
-				end
-			end
-			return Debug:Print(fmt, ...)
-		end
-	else
-		debugf = function(fmt, ...)
-			if type(fmt) == "string" and select("#", ...) > 0 then
-				local ok, formatted = pcall(string.format, fmt, ...)
-				if ok then
-					return print("[RvrseUI]", formatted)
-				end
-			end
-			return print("[RvrseUI]", fmt, ...)
-		end
+		OverlayLayer = overlayLayer
 	end
 
-	debugf("=== CREATEWINDOW THEME DEBUG ===")
+	Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 
 	-- IMPORTANT: Load saved theme FIRST before applying precedence
 	if RvrseUI.ConfigurationSaving and RvrseUI.ConfigurationFileName then
@@ -3639,34 +3602,34 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			fullPath = RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName
 		end
 
-		debugf("🔍 PRE-LOAD VERIFICATION (CreateWindow)")
-		debugf("PRE-LOAD PATH:", fullPath)
-		debugf("CONFIG INSTANCE:", tostring(RvrseUI))
+		Debug.printf("🔍 PRE-LOAD VERIFICATION (CreateWindow)")
+		Debug.printf("PRE-LOAD PATH:", fullPath)
+		Debug.printf("CONFIG INSTANCE:", tostring(RvrseUI))
 
 		if type(readfile) ~= "function" then
-			debugf("[FS] readfile unavailable - skipping config pre-load")
+			Debug.printf("[FS] readfile unavailable - skipping config pre-load")
 		else
 			local success, existingConfig = pcall(readfile, fullPath)
 			if success and existingConfig then
 				local decodeOk, decoded = pcall(HttpService.JSONDecode, HttpService, existingConfig)
 				if decodeOk and typeof(decoded) == "table" then
-					debugf("PRE-LOAD VALUE: _RvrseUI_Theme =", decoded._RvrseUI_Theme or "nil")
+					Debug.printf("PRE-LOAD VALUE: _RvrseUI_Theme =", decoded._RvrseUI_Theme or "nil")
 					if decoded._RvrseUI_Theme then
 						RvrseUI._savedTheme = decoded._RvrseUI_Theme
-						debugf("✅ Pre-loaded saved theme from config:", RvrseUI._savedTheme)
+						Debug.printf("✅ Pre-loaded saved theme from config:", RvrseUI._savedTheme)
 					end
 				else
-					debugf("PRE-LOAD: JSON decode failed:", decoded)
+					Debug.printf("PRE-LOAD: JSON decode failed:", decoded)
 				end
 			else
-				debugf("PRE-LOAD readfile failed:", existingConfig)
+				Debug.printf("PRE-LOAD readfile failed:", existingConfig)
 			end
 		end
 	end
 
-	debugf("RvrseUI._savedTheme:", RvrseUI._savedTheme)
-	debugf("cfg.Theme:", cfg.Theme)
-	debugf("Theme.Current before:", Theme.Current)
+	Debug.printf("RvrseUI._savedTheme:", RvrseUI._savedTheme)
+	Debug.printf("cfg.Theme:", cfg.Theme)
+	Debug.printf("Theme.Current before:", Theme.Current)
 
 	-- Deterministic precedence: saved theme wins, else cfg.Theme, else default
 	local finalTheme = RvrseUI._savedTheme or cfg.Theme or "Dark"
@@ -3675,34 +3638,35 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Apply theme (does NOT mark dirty - this is initialization)
 	Theme:Apply(finalTheme)
 
-	debugf("🎯 FINAL THEME APPLICATION")
-	debugf("✅ Applied theme (source=" .. source .. "):", finalTheme)
-	debugf("Theme.Current after:", Theme.Current)
-	debugf("Theme._dirty:", Theme._dirty)
+	Debug.printf("🎯 FINAL THEME APPLICATION")
+	Debug.printf("✅ Applied theme (source=" .. source .. "):", finalTheme)
+	Debug.printf("Theme.Current after:", Theme.Current)
+	Debug.printf("Theme._dirty:", Theme._dirty)
 
 	-- Assert valid theme
 	assert(Theme.Current == "Dark" or Theme.Current == "Light", "Invalid Theme.Current at end of init: " .. tostring(Theme.Current))
 
 	local pal = Theme:Get()
 
-		-- Configuration system setup
-		local autoSaveEnabled = true
-		if cfg.ConfigurationSaving then
-			if typeof(cfg.ConfigurationSaving) == "string" then
-				RvrseUI.ConfigurationSaving = true
-				RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving .. ".json"
-				RvrseUI.ConfigurationFolderName = "RvrseUI/Configs"
-				debugf("📂 Named profile mode:", cfg.ConfigurationSaving)
-			elseif typeof(cfg.ConfigurationSaving) == "table" then
-				RvrseUI.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
-				RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
-				RvrseUI.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
-				autoSaveEnabled = cfg.ConfigurationSaving.AutoSave ~= false
-				debugf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
-			elseif cfg.ConfigurationSaving == true then
-				local lastConfig, lastTheme = RvrseUI:GetLastConfig()
-				if lastConfig then
-					debugf("📂 Auto-loading last config:", lastConfig)
+	-- Configuration system setup
+	local autoSaveEnabled = true
+
+	if cfg.ConfigurationSaving then
+		if typeof(cfg.ConfigurationSaving) == "string" then
+			RvrseUI.ConfigurationSaving = true
+			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving .. ".json"
+			RvrseUI.ConfigurationFolderName = "RvrseUI/Configs"
+			Debug.printf("📂 Named profile mode:", cfg.ConfigurationSaving)
+		elseif typeof(cfg.ConfigurationSaving) == "table" then
+			RvrseUI.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
+			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
+			RvrseUI.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
+			autoSaveEnabled = cfg.ConfigurationSaving.AutoSave ~= false
+			Debug.printf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
+		elseif cfg.ConfigurationSaving == true then
+			local lastConfig, lastTheme = RvrseUI:GetLastConfig()
+			if lastConfig then
+				Debug.printf("📂 Auto-loading last config:", lastConfig)
 				local folder, file = lastConfig:match("^(.*)/([^/]+)$")
 				if folder and file then
 					RvrseUI.ConfigurationFolderName = folder
@@ -3715,16 +3679,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 				if lastTheme then
 					RvrseUI._savedTheme = lastTheme
-					debugf("📂 Overriding theme with last saved:", lastTheme)
+					Debug.printf("📂 Overriding theme with last saved:", lastTheme)
 				end
 			else
 				RvrseUI.ConfigurationSaving = true
 				RvrseUI.ConfigurationFileName = "RvrseUI_Config.json"
-				debugf("📂 No last config, using default")
-				end
+				Debug.printf("📂 No last config, using default")
 			end
 		end
-	
+	end
+
 	Config.ConfigurationSaving = RvrseUI.ConfigurationSaving
 	Config.ConfigurationFileName = RvrseUI.ConfigurationFileName
 	Config.ConfigurationFolderName = RvrseUI.ConfigurationFolderName
@@ -3770,7 +3734,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			customHost.Parent = containerTarget
 			windowHost = customHost
 			table.insert(RvrseUI._windows, {host = customHost})
-			debugf("Container set to:", cfg.Container)
+			Debug.printf("Container set to:", cfg.Container)
 		else
 			warn("[RvrseUI] Invalid container specified, using default PlayerGui")
 		end
@@ -4297,6 +4261,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end)
 
+	-- Enhanced particle flow system for minimize/restore transitions
 	local function createParticleFlow(startPos, endPos, count, duration, flowType)
 		for i = 1, count do
 			local particle = Instance.new("Frame")
@@ -4428,11 +4393,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local windowCenterY = rootPos.Y + (rootSize.Y / 2)
 
 		createParticleFlow(
-		{X = windowCenterX, Y = windowCenterY},
-		{X = chipTargetX, Y = chipTargetY},
-		120,
-		1.2,
-		"gather"
+			{X = windowCenterX, Y = windowCenterY},
+			{X = chipTargetX, Y = chipTargetY},
+			120,
+			1.2,
+			"gather"
 		)
 
 		Animator:Tween(root, {
@@ -4481,11 +4446,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local windowCenterY = targetPos.Y.Scale * screenSize.Y + targetPos.Y.Offset + (targetHeight / 2)
 
 		createParticleFlow(
-		{X = chipCenterX, Y = chipCenterY},
-		{X = windowCenterX, Y = windowCenterY},
-		120,
-		1.2,
-		"spread"
+			{X = chipCenterX, Y = chipCenterY},
+			{X = windowCenterX, Y = windowCenterY},
+			120,
+			1.2,
+			"spread"
 		)
 
 		Animator:Tween(controllerChip, {
@@ -4559,38 +4524,33 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end)
 
-		local function getMousePosition()
-			local location = UIS:GetMouseLocation()
-			local inset = host and host.IgnoreGuiInset and Vector2.new(0, 0) or GuiService:GetGuiInset()
-			return Vector2.new(location.X - inset.X, location.Y - inset.Y)
-		end
+	UIS.InputChanged:Connect(function(io)
+		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
+			local mouseLocation = UIS:GetMouseLocation()
+			local guiInset = GuiService:GetGuiInset()
+			local mousePos = Vector2.new(
+				mouseLocation.X - guiInset.X,
+				mouseLocation.Y - guiInset.Y
+			)
 
-		UIS.InputChanged:Connect(function(io)
-			if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-				local mousePos = getMousePosition()
-
-				if not chipDragThreshold then
-					local halfSize = controllerChip.AbsoluteSize.X / 2
-					local chipCenter = controllerChip.AbsolutePosition + Vector2.new(halfSize, halfSize)
-					if (mousePos - chipCenter).Magnitude > 5 then
+			if not chipDragThreshold then
+				local halfSize = controllerChip.AbsoluteSize.X / 2
+				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(halfSize, halfSize)
+				if (mousePos - chipCenter).Magnitude > 5 then
 					chipDragThreshold = true
 					chipWasDragged = true
 				end
 			end
 
 			if chipDragThreshold then
-					local chipSize = controllerChip.AbsoluteSize.X
-					local halfSize = chipSize / 2
-					local camera = workspace.CurrentCamera
-					if not camera then
-						return
-					end
-					local screenSize = camera.ViewportSize
+				local chipSize = controllerChip.AbsoluteSize.X
+				local halfSize = chipSize / 2
+				local screenSize = workspace.CurrentCamera.ViewportSize
 
-					local newX = math.clamp(mousePos.X, halfSize, screenSize.X - halfSize)
-					local newY = math.clamp(mousePos.Y, halfSize, screenSize.Y - halfSize)
+				local newX = math.clamp(mousePos.X, halfSize, screenSize.X - halfSize)
+				local newY = math.clamp(mousePos.Y, halfSize, screenSize.Y - halfSize)
 
-					controllerChip.Position = UDim2.fromOffset(newX, newY)
+				controllerChip.Position = UDim2.fromOffset(newX, newY)
 			end
 		end
 	end)
@@ -4698,7 +4658,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	-- CreateTab uses TabBuilder module
-		function WindowAPI:CreateTab(t)
+	function WindowAPI:CreateTab(t)
 		return TabBuilder.CreateTab(t, {
 			Theme = Theme,
 			UIHelpers = UIHelpers,
@@ -4711,7 +4671,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			activePage = activePage,
 			RvrseUI = RvrseUI,
 			Elements = Elements,
-			UIS = UIS
+			UIS = UIS,
+			OverlayLayer = overlayLayer
 		})
 	end
 
@@ -5073,6 +5034,19 @@ local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 -- (module inlined above)
 -- (module inlined above)
 
+local Elements = {
+	Button = require(script.src.Elements.Button),
+	Toggle = require(script.src.Elements.Toggle),
+	Dropdown = require(script.src.Elements.Dropdown),
+	Slider = require(script.src.Elements.Slider),
+	Keybind = require(script.src.Elements.Keybind),
+	TextBox = require(script.src.Elements.TextBox),
+	ColorPicker = require(script.src.Elements.ColorPicker),
+	Label = require(script.src.Elements.Label),
+	Paragraph = require(script.src.Elements.Paragraph),
+	Divider = require(script.src.Elements.Divider)
+}
+
 -- ============================================
 -- INITIALIZE MODULES
 -- ============================================
@@ -5157,7 +5131,7 @@ local deps = {
 	Obfuscation = Obfuscation,
 	Hotkeys = Hotkeys,
 	Version = Version,
-	Elements = ElementModules,
+	Elements = Elements,
 
 	-- Services
 	UIS = UserInputService,
@@ -5196,11 +5170,11 @@ RvrseUI._lastWindowPosition = nil
 RvrseUI._controllerChipPosition = nil
 RvrseUI._obfuscatedNames = Obfuscation.getObfuscatedNames()
 
-	-- Configuration settings
-	RvrseUI.ConfigurationSaving = false
-	RvrseUI.ConfigurationFileName = nil
-	RvrseUI.ConfigurationFolderName = nil
-	RvrseUI.AutoSaveEnabled = true
+-- Configuration settings
+RvrseUI.ConfigurationSaving = false
+RvrseUI.ConfigurationFileName = nil
+RvrseUI.ConfigurationFolderName = nil
+RvrseUI.AutoSaveEnabled = true
 
 -- ============================================
 -- PUBLIC API METHODS
@@ -5242,56 +5216,57 @@ function RvrseUI:ToggleVisibility()
 end
 
 -- Configuration Management
-	function RvrseUI:SaveConfiguration()
-		return Config:SaveConfiguration(self)
-	end
+function RvrseUI:SaveConfiguration()
+	return Config:SaveConfiguration(self)
+end
 
-	function RvrseUI:LoadConfiguration()
-		return Config:LoadConfiguration(self)
-	end
+function RvrseUI:LoadConfiguration()
+	return Config:LoadConfiguration(self)
+end
 
-	function RvrseUI:SaveConfigAs(profileName)
-		return Config:SaveConfigAs(profileName, self)
-	end
+function RvrseUI:SaveConfigAs(profileName)
+	return Config:SaveConfigAs(profileName, self)
+end
 
-	function RvrseUI:LoadConfigByName(profileName)
-		return Config:LoadConfigByName(profileName, self)
-	end
+function RvrseUI:LoadConfigByName(profileName)
+	return Config:LoadConfigByName(profileName, self)
+end
 
-	function RvrseUI:_autoSave()
-		if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
-			task.defer(function()
-				self:SaveConfiguration()
-			end)
-		end
+function RvrseUI:_autoSave()
+    if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
+		task.defer(function()
+			self:SaveConfiguration()
+		end)
 	end
+end
 
 function RvrseUI:GetLastConfig()
 	return Config:GetLastConfig()
 end
 
-	function RvrseUI:SetConfigProfile(profileName)
-		return Config:SetConfigProfile(self, profileName)
-	end
+function RvrseUI:SetConfigProfile(profileName)
+	return Config:SetConfigProfile(self, profileName)
+end
 
-	function RvrseUI:ListProfiles()
-		return Config:ListProfiles()
-	end
+function RvrseUI:ListProfiles()
+	return Config:ListProfiles()
+end
 
-	function RvrseUI:DeleteProfile(profileName)
-		return Config:DeleteProfile(profileName)
-	end
+function RvrseUI:DeleteProfile(profileName)
+	return Config:DeleteProfile(profileName)
+end
 
-	function RvrseUI:SetAutoSaveEnabled(enabled)
-		local state = Config:SetAutoSave(enabled)
-		self.AutoSaveEnabled = state
-		return state
-	end
+function RvrseUI:SetAutoSaveEnabled(enabled)
+    local state = Config:SetAutoSave(enabled)
+    self.AutoSaveEnabled = state
+    return state
+end
 
-	function RvrseUI:IsAutoSaveEnabled()
-		return self.AutoSaveEnabled
-	end
+function RvrseUI:IsAutoSaveEnabled()
+    return self.AutoSaveEnabled
+end
 
+-- Provide notifications module with RvrseUI context for toggle checks
 Notifications:SetContext(RvrseUI)
 
 -- Version Information
@@ -5364,4 +5339,3 @@ print("[RvrseUI] 🔑 Hash:", Version.Hash)
 print("[RvrseUI] 📡 Channel:", Version.Channel)
 
 return RvrseUI
-
