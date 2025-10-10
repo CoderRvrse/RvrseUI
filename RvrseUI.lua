@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-10T22:19:09.969Z
+-- Compiled from modular architecture on 2025-10-10T23:43:26.995Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -462,12 +462,12 @@ do
 	
 	Theme.Palettes = {
 		Dark = {
-			-- 🌌 Deep space backgrounds with rich depth (significantly brightened for visibility)
-			Bg = Color3.fromRGB(20, 20, 32),            -- Main background
-			Glass = Color3.fromRGB(30, 30, 48),         -- Translucent glass effect
-			Card = Color3.fromRGB(40, 40, 65),          -- Card surfaces (sections, elements)
-			Elevated = Color3.fromRGB(50, 50, 80),      -- Body container (brightest - main content area)
-			Surface = Color3.fromRGB(35, 35, 55),       -- Standard surface
+			-- 🌌 MAXIMUM BRIGHTNESS - Visibility Priority
+			Bg = Color3.fromRGB(35, 35, 50),            -- Main background (BRIGHT)
+			Glass = Color3.fromRGB(45, 45, 65),         -- Translucent glass effect
+			Card = Color3.fromRGB(55, 55, 80),          -- Card surfaces (sections, elements)
+			Elevated = Color3.fromRGB(70, 70, 100),     -- Body container (VERY BRIGHT)
+			Surface = Color3.fromRGB(50, 50, 75),       -- Standard surface
 	
 			-- 🌈 Vibrant gradient accents - Electric Purple to Cyan
 			Primary = Color3.fromRGB(138, 43, 226),     -- Electric purple (BlueViolet)
@@ -4544,34 +4544,7 @@ do
 		root.ZIndex = 100
 		root.Parent = windowHost
 		UIHelpers.corner(root, 16)
-	
-		-- Animated gradient border around entire window
-		local windowBorder = Instance.new("UIStroke")
-		windowBorder.Name = "WindowBorder"
-		windowBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		windowBorder.Thickness = 2
-		windowBorder.Transparency = 0.3
-		windowBorder.Parent = root
-	
-		local windowBorderGradient = Instance.new("UIGradient")
-		windowBorderGradient.Color = ColorSequence.new{
-			ColorSequenceKeypoint.new(0, pal.Primary),
-			ColorSequenceKeypoint.new(0.5, pal.Accent),
-			ColorSequenceKeypoint.new(1, pal.Secondary),
-		}
-		windowBorderGradient.Rotation = 0
-		windowBorderGradient.Parent = windowBorder
-	
-		-- Animate border gradient rotation
-		task.spawn(function()
-			while windowBorder and windowBorder.Parent do
-				for rotation = 0, 360, 2 do
-					if not windowBorder or not windowBorder.Parent then break end
-					windowBorderGradient.Rotation = rotation
-					task.wait(0.05)
-				end
-			end
-		end)
+		UIHelpers.stroke(root, pal.BorderBright, 2)
 	
 		-- Header bar with vibrant gradient
 		local header = Instance.new("Frame")

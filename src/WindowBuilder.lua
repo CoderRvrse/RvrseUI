@@ -214,34 +214,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.ZIndex = 100
 	root.Parent = windowHost
 	UIHelpers.corner(root, 16)
-
-	-- Animated gradient border around entire window
-	local windowBorder = Instance.new("UIStroke")
-	windowBorder.Name = "WindowBorder"
-	windowBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	windowBorder.Thickness = 2
-	windowBorder.Transparency = 0.3
-	windowBorder.Parent = root
-
-	local windowBorderGradient = Instance.new("UIGradient")
-	windowBorderGradient.Color = ColorSequence.new{
-		ColorSequenceKeypoint.new(0, pal.Primary),
-		ColorSequenceKeypoint.new(0.5, pal.Accent),
-		ColorSequenceKeypoint.new(1, pal.Secondary),
-	}
-	windowBorderGradient.Rotation = 0
-	windowBorderGradient.Parent = windowBorder
-
-	-- Animate border gradient rotation
-	task.spawn(function()
-		while windowBorder and windowBorder.Parent do
-			for rotation = 0, 360, 2 do
-				if not windowBorder or not windowBorder.Parent then break end
-				windowBorderGradient.Rotation = rotation
-				task.wait(0.05)
-			end
-		end
-	end)
+	UIHelpers.stroke(root, pal.BorderBright, 2)
 
 	-- Header bar with vibrant gradient
 	local header = Instance.new("Frame")
