@@ -274,15 +274,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- mouse input with sub-pixel precision.
 	-- ═══════════════════════════════════════════════════════════════
 
-	local dragging, activeDragInput, dragOffset
+	local dragging, activeDragInput
+	local dragPointerOffset
 	local hostScreenGui = typeof(windowHost) == "Instance"
 		and windowHost:IsA("ScreenGui")
 		and windowHost
 	local hostIgnoresInset = hostScreenGui and windowHost.IgnoreGuiInset == true
 
-	-- Get raw pointer position in screen space (accounting for touch vs mouse)
-	local function getRawPointerPosition(inputObject)
-		if inputObject.UserInputType == Enum.UserInputType.Touch then
+	-- Get current pointer position in screen space (touch or mouse)
+	local function getPointerPosition(inputObject)
+		if inputObject and inputObject.UserInputType == Enum.UserInputType.Touch then
 			return Vector2.new(inputObject.Position.X, inputObject.Position.Y)
 		end
 		return UIS:GetMouseLocation()
@@ -298,29 +299,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return Vector2.new(inset.X, inset.Y)
 	end
 
-	-- Convert screen-space pointer to UI coordinate space
-	local function pointerToUISpace(inputObject)
-		local rawPointer = getRawPointerPosition(inputObject)
-		local inset = getGuiInset()
-		return rawPointer - inset
-	end
-
-	-- Get the root window's top-left position in UI space
-	local function getWindowTopLeftInUISpace()
-		local absPos = root.AbsolutePosition
-		return absPos - getGuiInset()
-	end
-
-	-- Cache the EXACT offset from pointer to window top-left at grab time
-	-- This is the "glue point" that will be maintained throughout the drag
-	local function cacheGrabOffset(inputObject)
-		local pointerInUI = pointerToUISpace(inputObject)
-		local windowTopLeft = getWindowTopLeftInUISpace()
-		dragOffset = pointerInUI - windowTopLeft
-
-		Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragOffset.X, dragOffset.Y)
-	end
-
 	-- Finish drag and save final position
 	local function finishDrag()
 		if not dragging then
@@ -329,7 +307,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		dragging = false
 		activeDragInput = nil
-		dragOffset = nil
+		dragPointerOffset = nil
 
 		-- Save absolute position for restoration
 		RvrseUI._lastWindowPosition = {
@@ -348,7 +326,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			activeDragInput = io
-			cacheGrabOffset(io)
+			local pointer = getPointerPosition(io)
+			dragPointerOffset = pointer - root.AbsolutePosition
+			Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragPointerOffset.X, dragPointerOffset.Y)
 			Debug.printf("[DRAG] Started - input type: %s", tostring(io.UserInputType))
 		end
 	end)
@@ -376,40 +356,44 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			return
 		end
 
-		-- Safety: recache offset if somehow lost
-		if not dragOffset then
-			cacheGrabOffset(activeDragInput or io)
+		local pointerPosition = getPointerPosition(io)
+		if not dragPointerOffset then
+			dragPointerOffset = pointerPosition - root.AbsolutePosition
 		end
 
-		-- Calculate target position: pointer - cached offset = new top-left
-		local pointerInUI = pointerToUISpace(io)
-		local targetX = pointerInUI.X - dragOffset.X
-		local targetY = pointerInUI.Y - dragOffset.Y
+		-- Calculate target top-left using cached delta
+		local targetTopLeftX = pointerPosition.X - dragPointerOffset.X
+		local targetTopLeftY = pointerPosition.Y - dragPointerOffset.Y
 
 		-- Get screen bounds for clamping
 		local currentCamera = workspace.CurrentCamera
 		local screenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
 		local inset = getGuiInset()
 		local windowWidth = root.AbsoluteSize.X
-		local windowHeight = root.AbsoluteSize.Y
 		local headerHeight = 52
 
 		-- Clamp to keep window mostly on screen
-		local minX = -(windowWidth - 100)
-		local maxX = (screenSize.X - inset.X) - 100
-		local minY = 0
-		local maxY = (screenSize.Y - inset.Y) - headerHeight
+		local effectiveWidth = hostIgnoresInset and screenSize.X or (screenSize.X + inset.X)
+		local effectiveHeight = hostIgnoresInset and screenSize.Y or (screenSize.Y + inset.Y)
+		local minTopLeftX = -(windowWidth - 100)
+		local maxTopLeftX = effectiveWidth - 100
+		local minTopLeftY = hostIgnoresInset and 0 or inset.Y
+		local maxTopLeftY = effectiveHeight - headerHeight
 
-		targetX = math.clamp(targetX, minX, maxX)
-		targetY = math.clamp(targetY, minY, maxY)
+		targetTopLeftX = math.clamp(targetTopLeftX, minTopLeftX, maxTopLeftX)
+		targetTopLeftY = math.clamp(targetTopLeftY, minTopLeftY, maxTopLeftY)
 
-		-- If host doesn't ignore inset, we need to ADD inset back to final position
-		-- because AbsolutePosition is in screen space
-		local finalX = targetX + inset.X
-		local finalY = targetY + inset.Y
+		local finalX = targetTopLeftX
+		local finalY = targetTopLeftY
+		if not hostIgnoresInset then
+			finalX -= inset.X
+			finalY -= inset.Y
+		end
 
-		-- Apply position - cursor is now perfectly locked to grab point
-		root.Position = UDim2.fromOffset(math.floor(finalX + 0.5), math.floor(finalY + 0.5))
+		root.Position = UDim2.fromOffset(
+			math.floor(finalX + 0.5),
+			math.floor(finalY + 0.5)
+		)
 	end)
 
 	-- Global input end handler (in case release happens outside header)
@@ -1066,8 +1050,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local chipDragging = false
 	local chipWasDragged = false
 	local chipDragThreshold = false
-	local chipDragOffset = nil  -- Offset from pointer to chip center at grab time
+	local chipCenterOffset = nil  -- Offset from pointer to chip center at grab time
 	local chipActiveDragInput = nil
+	local chipInitialPointer = nil
 
 	-- Restore window on click (only if not dragged)
 	controllerChip.MouseButton1Click:Connect(function()
@@ -1097,7 +1082,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			chipWasDragged = false
 			chipDragThreshold = false
 			chipActiveDragInput = io
-			chipDragOffset = nil  -- Will be calculated on first movement
+			chipCenterOffset = nil  -- Will be calculated on first movement
+			chipInitialPointer = getPointerPosition(io)
 
 			Debug.printf("[CHIP DRAG] Started - input type: %s", tostring(io.UserInputType))
 		end
@@ -1106,15 +1092,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- End chip drag and save position
 	controllerChip.InputEnded:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-			if chipDragging and io == chipActiveDragInput then
-				chipDragging = false
-				chipActiveDragInput = nil
-				chipDragOffset = nil
+				if chipDragging and io == chipActiveDragInput then
+					chipDragging = false
+					chipActiveDragInput = nil
+					chipCenterOffset = nil
+					chipInitialPointer = nil
 
-				-- Save final position
-				RvrseUI._controllerChipPosition = {
-					XScale = controllerChip.Position.X.Scale,
-					XOffset = controllerChip.Position.X.Offset,
+					-- Save final position
+					RvrseUI._controllerChipPosition = {
+						XScale = controllerChip.Position.X.Scale,
+						XOffset = controllerChip.Position.X.Offset,
 					YScale = controllerChip.Position.Y.Scale,
 					YOffset = controllerChip.Position.Y.Offset
 				}
@@ -1142,28 +1129,29 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		-- Get current pointer position in UI space
-		local pointerRaw = getRawPointerPosition(io)
+		local pointer = getPointerPosition(io)
 		local inset = getGuiInset()
-		local pointerInUI = pointerRaw - inset
 
-		-- Calculate chip center in UI space (AbsolutePosition is top-left, so include AnchorPoint)
 		local chipTopLeft = controllerChip.AbsolutePosition
 		local chipSize = controllerChip.AbsoluteSize
 		local chipAnchor = controllerChip.AnchorPoint
-		local chipCenterInUI = Vector2.new(
+		local chipCenter = Vector2.new(
 			chipTopLeft.X + (chipSize.X * chipAnchor.X),
 			chipTopLeft.Y + (chipSize.Y * chipAnchor.Y)
-		) - inset
+		)
 
-		-- On first move, cache the exact offset from pointer to chip center
-		if not chipDragOffset then
-			chipDragOffset = pointerInUI - chipCenterInUI
-			Debug.printf("[CHIP DRAG] Cached grab offset: X=%.2f, Y=%.2f", chipDragOffset.X, chipDragOffset.Y)
+		if not chipCenterOffset then
+			chipCenterOffset = pointer - chipCenter
+			Debug.printf("[CHIP DRAG] Cached grab offset: X=%.2f, Y=%.2f", chipCenterOffset.X, chipCenterOffset.Y)
+		end
+
+		if not chipInitialPointer then
+			chipInitialPointer = pointer
 		end
 
 		-- Check if we've moved enough to activate dragging (prevents accidental drags)
 		if not chipDragThreshold then
-			local dragDistance = (pointerInUI - chipCenterInUI).Magnitude
+			local dragDistance = (pointer - chipInitialPointer).Magnitude
 			if dragDistance > 5 then
 				chipDragThreshold = true
 				chipWasDragged = true
@@ -1173,32 +1161,38 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			end
 		end
 
-		-- Calculate target position: pointer - cached offset = new center
-		local targetCenterX = pointerInUI.X - chipDragOffset.X
-		local targetCenterY = pointerInUI.Y - chipDragOffset.Y
-
-		-- Get screen bounds and chip size for clamping
-		local currentCamera = workspace.CurrentCamera
-		local currentScreenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
-		local chipWidth = controllerChip.AbsoluteSize.X
-		local chipHeight = controllerChip.AbsoluteSize.Y
+		local chipWidth = chipSize.X
+		local chipHeight = chipSize.Y
 		local halfWidth = chipWidth / 2
 		local halfHeight = chipHeight / 2
 
-		-- Clamp to keep chip fully on screen
-		local minX = halfWidth
-		local maxX = currentScreenSize.X - halfWidth
-		local minY = halfHeight
-		local maxY = currentScreenSize.Y - halfHeight
+		-- Calculate target center: pointer - cached offset
+		local targetCenterX = pointer.X - chipCenterOffset.X
+		local targetCenterY = pointer.Y - chipCenterOffset.Y
 
-		targetCenterX = math.clamp(targetCenterX, minX, maxX)
-		targetCenterY = math.clamp(targetCenterY, minY, maxY)
+		-- Get screen bounds and clamp center to keep chip fully on screen
+		local currentCamera = workspace.CurrentCamera
+		local screenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
+		local effectiveWidth = hostIgnoresInset and screenSize.X or (screenSize.X + inset.X)
+		local effectiveHeight = hostIgnoresInset and screenSize.Y or (screenSize.Y + inset.Y)
+		local minCenterX = (hostIgnoresInset and 0 or inset.X) + halfWidth
+		local maxCenterX = effectiveWidth - halfWidth
+		local minCenterY = (hostIgnoresInset and 0 or inset.Y) + halfHeight
+		local maxCenterY = effectiveHeight - halfHeight
 
-		-- Apply position - cursor is now perfectly locked to grab point
-		-- Since AnchorPoint is (0.5, 0.5), Position.Offset IS the center
+		targetCenterX = math.clamp(targetCenterX, minCenterX, maxCenterX)
+		targetCenterY = math.clamp(targetCenterY, minCenterY, maxCenterY)
+
+		local finalCenterX = targetCenterX
+		local finalCenterY = targetCenterY
+		if not hostIgnoresInset then
+			finalCenterX -= inset.X
+			finalCenterY -= inset.Y
+		end
+
 		controllerChip.Position = UDim2.fromOffset(
-			math.floor(targetCenterX + 0.5),
-			math.floor(targetCenterY + 0.5)
+			math.floor(finalCenterX + 0.5),
+			math.floor(finalCenterY + 0.5)
 		)
 	end)
 
