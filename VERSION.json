@@ -51,7 +51,8 @@
         "🖱️ Unified touch and mouse input support with active input tracking to prevent cross-contamination.",
         "🐛 Fixed drag offset drift issues that caused cursor to slip away from initial grab point.",
         "📝 Added debug logging for drag offset caching and position tracking when debug mode enabled.",
-        "📦 Embedded the init bootstrap in the monolith build and updated README/CLAUDE guidance to keep `src/` and the bundled file aligned."
+        "📦 Embedded the init bootstrap in the monolith build and updated README/CLAUDE guidance to keep `src/` and the bundled file aligned.",
+        "📚 Comprehensive CLAUDE.md rewrite documenting architecture, build system, common pitfalls, troubleshooting, and AI assistant guidelines."
       ]
     },
     "3.0.3": {
