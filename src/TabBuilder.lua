@@ -31,19 +31,29 @@ function TabBuilder.CreateTab(t, dependencies)
 	local tabs = dependencies.tabs
 	local activePage = dependencies.activePage
 
-	local pal2 = Theme:Get()
+	local function currentPalette()
+		return Theme:Get()
+	end
+	local pal2 = currentPalette()
 
 	-- Tab button with icon support (Lucide, Roblox asset ID, or emoji)
 	local tabBtn = Instance.new("TextButton")
 	tabBtn.AutoButtonColor = false
 	tabBtn.BackgroundColor3 = pal2.Card
-	tabBtn.BackgroundTransparency = 0.7
-	tabBtn.Size = UDim2.new(0, 100, 1, 0)
+	tabBtn.BackgroundTransparency = 0
+	tabBtn.BorderSizePixel = 0
+	tabBtn.Size = UDim2.new(1, -16, 0, 48)
 	tabBtn.Font = Enum.Font.GothamMedium
-	tabBtn.TextSize = 13
+	tabBtn.TextSize = 14
 	tabBtn.TextColor3 = pal2.TextSub
+	tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 	tabBtn.Parent = tabBar
-	corner(tabBtn, 8)
+	corner(tabBtn, 10)
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingLeft = UDim.new(0, 16)
+	padding.PaddingRight = UDim.new(0, 12)
+	padding.Parent = tabBtn
 
 	-- Handle icon display
 	local tabIcon = nil
@@ -58,37 +68,40 @@ function TabBuilder.CreateTab(t, dependencies)
 			tabIcon.BackgroundTransparency = 1
 			tabIcon.Image = iconAsset
 			tabIcon.Size = UDim2.new(0, 16, 0, 16)
-			tabIcon.Position = UDim2.new(0, 8, 0.5, -8)
+			tabIcon.Position = UDim2.new(0, 0, 0.5, -8)
 			tabIcon.ImageColor3 = pal2.TextSub
 			tabIcon.Parent = tabBtn
 
-			-- Adjust text position for image icon
-			tabBtn.Text = "     " .. tabText
+			-- Increase padding to account for icon width
+			padding.PaddingLeft = UDim.new(0, 44)
+			tabBtn.Text = tabText
 			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 		elseif iconType == "text" then
 			-- Use emoji/text icon inline
-			tabBtn.Text = iconAsset .. " " .. tabText
+			tabBtn.Text = iconAsset .. "  " .. tabText
+			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 		end
 	else
-		-- No icon, just text
 		tabBtn.Text = tabText
+		tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 	end
 
 	local tabIndicator = Instance.new("Frame")
 	tabIndicator.BackgroundColor3 = pal2.Accent
 	tabIndicator.BorderSizePixel = 0
-	tabIndicator.Position = UDim2.new(0, 0, 1, -3)
-	tabIndicator.Size = UDim2.new(0, 0, 0, 3)
+	tabIndicator.AnchorPoint = Vector2.new(0, 0.5)
+	tabIndicator.Position = UDim2.new(0, -6, 0.5, 0)
+	tabIndicator.Size = UDim2.new(0, 3, 0, 0)
 	tabIndicator.Visible = false
 	tabIndicator.Parent = tabBtn
-	corner(tabIndicator, 2)
+	corner(tabIndicator, 3)
 
 	-- Tab page (scrollable)
 	local page = Instance.new("ScrollingFrame")
 	page.BackgroundTransparency = 1
 	page.BorderSizePixel = 0
-	page.Position = UDim2.new(0, 8, 0, 8)
-	page.Size = UDim2.new(1, -16, 1, -16)
+	page.Position = UDim2.new(0, 0, 0, 0)
+	page.Size = UDim2.new(1, 0, 1, 0)
 	page.ScrollBarThickness = 6
 	page.ScrollBarImageColor3 = pal2.Border
 	page.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -96,36 +109,58 @@ function TabBuilder.CreateTab(t, dependencies)
 	page.Visible = false
 	page.Parent = body
 
+	local pagePadding = Instance.new("UIPadding")
+	pagePadding.PaddingTop = UDim.new(0, 4)
+	pagePadding.PaddingBottom = UDim.new(0, 4)
+	pagePadding.Parent = page
+
 	local pageLayout = Instance.new("UIListLayout")
 	pageLayout.Padding = UDim.new(0, 12)
 	pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	pageLayout.Parent = page
 
+	local function setInactive(tabData)
+		local pal = currentPalette()
+		tabData.btn:SetAttribute("Active", false)
+		tabData.page.Visible = false
+		tabData.btn.BackgroundColor3 = pal.Card
+		tabData.btn.TextColor3 = pal.TextSub
+		if tabData.icon then
+			tabData.icon.ImageColor3 = pal.TextSub
+		end
+		tabData.indicator.Visible = false
+	end
+
 	-- Tab activation
 	local function activateTab()
+		local pal = currentPalette()
 		for _, tabData in ipairs(tabs) do
-			tabData.page.Visible = false
-			tabData.btn.BackgroundTransparency = 0.7
-			tabData.btn.TextColor3 = pal2.TextSub
-			tabData.indicator.Visible = false
+			setInactive(tabData)
 		end
 		page.Visible = true
-		tabBtn.BackgroundTransparency = 0
-		tabBtn.TextColor3 = pal2.Text
+		tabBtn:SetAttribute("Active", true)
+		tabBtn.BackgroundColor3 = pal.Active
+		tabBtn.TextColor3 = pal.Text
+		if tabIcon then
+			tabIcon.ImageColor3 = pal.Text
+		end
 		tabIndicator.Visible = true
-		Animator:Tween(tabIndicator, {Size = UDim2.new(1, 0, 0, 3)}, Animator.Spring.Snappy)
+		tabIndicator.Size = UDim2.new(0, 3, 0, 0)
+		Animator:Tween(tabIndicator, {Size = UDim2.new(0, 3, 1, -12)}, Animator.Spring.Snappy)
 		dependencies.activePage = page  -- Update active page reference
 	end
 
 	tabBtn.MouseButton1Click:Connect(activateTab)
 	tabBtn.MouseEnter:Connect(function()
 		if page.Visible == false then
-			Animator:Tween(tabBtn, {BackgroundTransparency = 0.4}, Animator.Spring.Fast)
+			local pal = currentPalette()
+			Animator:Tween(tabBtn, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
 		end
 	end)
 	tabBtn.MouseLeave:Connect(function()
 		if page.Visible == false then
-			Animator:Tween(tabBtn, {BackgroundTransparency = 0.7}, Animator.Spring.Fast)
+			local pal = currentPalette()
+			Animator:Tween(tabBtn, {BackgroundColor3 = pal.Card}, Animator.Spring.Fast)
 		end
 	end)
 
@@ -143,6 +178,7 @@ function TabBuilder.CreateTab(t, dependencies)
 		if not newIcon then return end
 
 		local iconAsset, iconType = Icons:Resolve(newIcon)
+		local pal = currentPalette()
 
 		-- Remove old icon if exists
 		if tabIcon and tabIcon.Parent then
@@ -156,15 +192,18 @@ function TabBuilder.CreateTab(t, dependencies)
 			tabIcon.BackgroundTransparency = 1
 			tabIcon.Image = iconAsset
 			tabIcon.Size = UDim2.new(0, 16, 0, 16)
-			tabIcon.Position = UDim2.new(0, 8, 0.5, -8)
-			tabIcon.ImageColor3 = pal2.TextSub
+			tabIcon.Position = UDim2.new(0, 0, 0.5, -8)
+			tabIcon.ImageColor3 = pal.TextSub
 			tabIcon.Parent = tabBtn
 
-			tabBtn.Text = "     " .. tabText
+			padding.PaddingLeft = UDim.new(0, 44)
+			tabBtn.Text = tabText
 			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 		elseif iconType == "text" then
 			-- Use emoji/text icon inline
-			tabBtn.Text = iconAsset .. " " .. tabText
+			padding.PaddingLeft = UDim.new(0, 16)
+			tabBtn.Text = iconAsset .. "  " .. tabText
+			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 		end
 
 		-- Update the tabs table reference
