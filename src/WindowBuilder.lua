@@ -237,7 +237,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		or Color3.fromRGB(245, 245, 250)
 	glassOverlay.BackgroundTransparency = 0.95
 	glassOverlay.BorderSizePixel = 0
-	glassOverlay.ZIndex = root.ZIndex - 1
+	glassOverlay.ZIndex = 0
 	glassOverlay.Parent = root
 	UIHelpers.corner(glassOverlay, 16)
 

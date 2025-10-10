@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T15:07:44.322Z
+-- Compiled from modular architecture on 2025-10-10T15:20:45.770Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3856,7 +3856,7 @@ do
 			or Color3.fromRGB(245, 245, 250)
 		glassOverlay.BackgroundTransparency = 0.95
 		glassOverlay.BorderSizePixel = 0
-		glassOverlay.ZIndex = root.ZIndex - 1
+		glassOverlay.ZIndex = 0
 		glassOverlay.Parent = root
 		UIHelpers.corner(glassOverlay, 16)
 	
