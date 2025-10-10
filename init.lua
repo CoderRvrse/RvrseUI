@@ -98,6 +98,15 @@ host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 host.DisplayOrder = 999
 host.Parent = PlayerGui
 
+local overlayLayer = Instance.new("Frame")
+overlayLayer.Name = "RvrseUI_Overlay"
+overlayLayer.BackgroundTransparency = 1
+overlayLayer.BorderSizePixel = 0
+overlayLayer.ClipsDescendants = false
+overlayLayer.ZIndex = 20000
+overlayLayer.Size = UDim2.new(1, 0, 1, 0)
+overlayLayer.Parent = host
+
 -- Initialize Notifications with host
 Notifications:Initialize({
 	host = host,
@@ -131,6 +140,7 @@ local deps = {
 	Hotkeys = Hotkeys,
 	Version = Version,
 	Elements = Elements,
+	OverlayLayer = overlayLayer,
 
 	-- Services
 	UIS = UserInputService,

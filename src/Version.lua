@@ -40,4 +40,17 @@ function Version:Check(onlineVersion)
 	else return "latest" end
 end
 
+setmetatable(Version, {
+	__index = function(_, key)
+		return Version.Data[key]
+	end,
+	__newindex = function(_, key, value)
+		if Version.Data[key] ~= nil then
+			Version.Data[key] = value
+		else
+			rawset(Version, key, value)
+		end
+	end
+})
+
 return Version

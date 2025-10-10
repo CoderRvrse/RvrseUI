@@ -18,4 +18,20 @@ end
 -- Alias for convenience
 Debug.Log = Debug.Print
 
+function Debug.printf(fmt, ...)
+	if not Debug.Enabled then
+		return
+	end
+
+	if type(fmt) == "string" and select("#", ...) > 0 then
+		local ok, message = pcall(string.format, fmt, ...)
+		if ok then
+			Debug:Print(message)
+			return
+		end
+	end
+
+	Debug:Print(fmt, ...)
+end
+
 return Debug

@@ -50,6 +50,19 @@ function Version:Check(onlineVersion)
 	else return "latest" end
 end
 
+setmetatable(Version, {
+	__index = function(_, key)
+		return Version.Data[key]
+	end,
+	__newindex = function(_, key, value)
+		if Version.Data[key] ~= nil then
+			Version.Data[key] = value
+		else
+			rawset(Version, key, value)
+		end
+	end
+})
+
 	return Version
 end)()
 
@@ -68,6 +81,22 @@ function Debug:Print(...)
 end
 
 Debug.Log = Debug.Print
+
+function Debug.printf(fmt, ...)
+	if not Debug.Enabled then
+		return
+	end
+
+	if type(fmt) == "string" and select("#", ...) > 0 then
+		local ok, message = pcall(string.format, fmt, ...)
+		if ok then
+			Debug:Print(message)
+			return
+		end
+	end
+
+	Debug:Print(fmt, ...)
+end
 
 	return Debug
 end)()
@@ -5099,6 +5128,15 @@ host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 host.DisplayOrder = 999
 host.Parent = PlayerGui
 
+local overlayLayer = Instance.new("Frame")
+overlayLayer.Name = "RvrseUI_Overlay"
+overlayLayer.BackgroundTransparency = 1
+overlayLayer.BorderSizePixel = 0
+overlayLayer.ClipsDescendants = false
+overlayLayer.ZIndex = 20000
+overlayLayer.Size = UDim2.new(1, 0, 1, 0)
+overlayLayer.Parent = host
+
 -- Initialize Notifications with host
 Notifications:Initialize({
 	host = host,
@@ -5132,6 +5170,7 @@ local deps = {
 	Hotkeys = Hotkeys,
 	Version = Version,
 	Elements = Elements,
+	OverlayLayer = overlayLayer,
 
 	-- Services
 	UIS = UserInputService,
