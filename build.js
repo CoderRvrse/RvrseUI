@@ -111,7 +111,15 @@ for (let i = 0; i < moduleOrder.length; i++) {
 	const moduleName = fileName.replace('.lua', '');
 	const marker = `\n-- ========================\n-- ${moduleName} Module\n-- ========================\n`;
 
-	compiledModules.push(marker + content);
+	const indented = content
+		.replace(/\s+$/, '') // trim trailing whitespace to keep wrapping clean
+		.split('\n')
+		.map(line => '\t' + line)
+		.join('\n');
+
+	const wrapped = `\ndo\n${indented}\nend\n`;
+
+	compiledModules.push(marker + wrapped);
 }
 
 console.log('\n✅ All modules read successfully!');

@@ -127,7 +127,15 @@ for i, modulePath in ipairs(moduleOrder) do
 	marker = marker .. "-- " .. fileName:gsub("%.lua$", "") .. " Module\n"
 	marker = marker .. "-- ========================\n"
 
-	table.insert(compiledModules, marker .. content)
+	local trimmed = content:gsub("%s+$", "")
+	local indentedLines = {}
+	for line in (trimmed .. "\n"):gmatch("([^\n]*)\n") do
+		table.insert(indentedLines, "\t" .. line)
+	end
+	local indented = table.concat(indentedLines, "\n")
+	local wrapped = "\ndo\n" .. indented .. "\nend\n"
+
+	table.insert(compiledModules, marker .. wrapped)
 end
 
 print("\n✅ All modules read successfully!")
