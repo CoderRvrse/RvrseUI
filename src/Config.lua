@@ -6,7 +6,7 @@
 -- Integrates with State (Flags) and Theme modules
 -- ⚠️ Maintainers: The save/load pipeline is tightly coupled to
 --    the live RvrseUI context. Do not refactor these functions
---    without replicating the v3.0.2 behaviour (context hand-off,
+--    without replicating the v3.0.3 behaviour (context hand-off,
 --    theme cache preservation, last-profile parsing).
 -- ============================================
 
@@ -30,6 +30,7 @@ Config.ConfigurationFolderName = nil  -- Optional folder name
 Config._configCache = {}  -- In-memory config cache
 Config._lastSaveTime = nil  -- Debounce timestamp
 Config._lastContext = nil  -- Most recent RvrseUI instance used for persistence
+Config.AutoSaveEnabled = true  -- Auto-save flag (can be disabled via configuration)
 
 -- ============================================
 -- EXECUTOR FILE-SYSTEM PROBE
@@ -87,6 +88,7 @@ function Config:Init(dependencies)
 	Theme = dependencies.Theme
 	dprintf = dependencies.dprintf or function() end
 	self._lastContext = nil
+	self.AutoSaveEnabled = true
 
 	traceFsSupport("Init")
 
@@ -326,7 +328,7 @@ end
 -- ============================================
 
 function Config:_autoSave()
-	if self.ConfigurationSaving then
+	if self.ConfigurationSaving and self.AutoSaveEnabled then
 		-- Debounce saves (max once per second)
 		if not self._lastSaveTime or (tick() - self._lastSaveTime) > 1 then
 			self._lastSaveTime = tick()
@@ -335,6 +337,11 @@ function Config:_autoSave()
 			end)
 		end
 	end
+end
+
+function Config:SetAutoSave(enabled)
+	self.AutoSaveEnabled = enabled ~= false
+	return self.AutoSaveEnabled
 end
 
 -- ============================================

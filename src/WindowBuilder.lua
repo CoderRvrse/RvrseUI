@@ -97,6 +97,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local pal = Theme:Get()
 
 	-- Configuration system setup
+	local autoSaveEnabled = true
+
 	if cfg.ConfigurationSaving then
 		if typeof(cfg.ConfigurationSaving) == "string" then
 			RvrseUI.ConfigurationSaving = true
@@ -107,6 +109,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			RvrseUI.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
 			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
 			RvrseUI.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
+			autoSaveEnabled = cfg.ConfigurationSaving.AutoSave ~= false
 			Debug.printf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
 		elseif cfg.ConfigurationSaving == true then
 			local lastConfig, lastTheme = RvrseUI:GetLastConfig()
@@ -137,6 +140,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	Config.ConfigurationSaving = RvrseUI.ConfigurationSaving
 	Config.ConfigurationFileName = RvrseUI.ConfigurationFileName
 	Config.ConfigurationFolderName = RvrseUI.ConfigurationFolderName
+	Config.AutoSaveEnabled = autoSaveEnabled
+	RvrseUI.AutoSaveEnabled = autoSaveEnabled
 
 	local name = cfg.Name or "RvrseUI"
 	local toggleKey = UIHelpers.coerceKeycode(cfg.ToggleUIKeybind or "K")

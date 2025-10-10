@@ -2,17 +2,17 @@
   "version": {
     "major": 3,
     "minor": 0,
-    "patch": 2,
-    "full": "3.0.2",
-    "build": "20251010B",
-    "hash": "Z4X7C2V1",
+    "patch": 3,
+    "full": "3.0.3",
+    "build": "20251011",
+    "hash": "N8P4Q6R2",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-10",
+    "date": "2025-10-11",
     "name": "Configuration Persistence Hotfix",
     "codename": "Aurora",
-    "notes": "Patches configuration bootstrapping so save/load logging is available and prevents nil method calls on initialization."
+    "notes": "Adds configurable auto-save, stabilizes minimized drag alignment, and keeps hotkeys reliable across rebuilds."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,16 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "3.0.3": {
+      "date": "2025-10-11",
+      "hash": "N8P4Q6R2",
+      "changes": [
+        "💾 Added configurable auto-save toggle so manual loads can restore snapshots without immediate overwrites.",
+        "🧷 Guarded minimization chip drag against inset/viewport drift for precise cursor alignment.",
+        "🎛️ Hardened hotkey listeners to avoid duplicate bindings and keep destroy/toggle keys reliable.",
+        "📚 Documented maintainer rules for persistence and new AutoSave option across README/CLAUDE notes."
+      ]
+    },
     "3.0.2": {
       "date": "2025-10-10",
       "hash": "Z4X7C2V1",

@@ -6,11 +6,11 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 RvrseUI v3.0.2 Build Script');
+console.log('🔨 RvrseUI v3.0.3 Build Script');
 console.log('='.repeat(52));
 
 // Header for compiled file
-const header = `-- RvrseUI v3.0.2 | Modern Professional UI Framework
+const header = `-- RvrseUI v3.0.3 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized

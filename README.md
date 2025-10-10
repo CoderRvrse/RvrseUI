@@ -2,7 +2,7 @@
 
 Modern Roblox UI toolkit built in Luau with modular architecture, persistent themes, and a polished desktop/mobile experience.
 
-![Version](https://img.shields.io/badge/version-3.0.2-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-3.0.3-blue) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -15,7 +15,7 @@ Modern Roblox UI toolkit built in Luau with modular architecture, persistent the
 
 ### Install
 ```lua
-local VERSION = "v3.0.2"
+local VERSION = "v3.0.3"
 local SOURCE = string.format(
     "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua",
     VERSION
@@ -82,6 +82,7 @@ Window:Show()
 | `ToggleUIKeybind` | string/Enum | `"K"` | Key that toggles the interface. |
 | `EscapeKey` | string/Enum | `Enum.KeyCode.Backspace` | Key that destroys the UI. |
 | `ConfigurationSaving` | bool/string/table | `false` | `true` auto-saves last profile, string creates named profile, or table `{ Enabled = true, FileName = "name.json", FolderName = "Folder" }`. |
+| `AutoSave` | bool (table only) | `true` | Include inside `ConfigurationSaving` table to disable background writes: `{ Enabled = true, FileName = "Config.json", AutoSave = false }`. |
 | `Container` | string/Instance | `nil` | Target ScreenGui parent (`"PlayerGui"`, `"CoreGui"`, etc. or Instance). |
 | `DisplayOrder` | number | `100000` | Display order applied when `Container` is overridden. |
 | `ShowText` | string | `"RvrseUI"` | Label shown on the mobile chip. |
@@ -91,7 +92,9 @@ Window:Show()
 ### Configuration Tips
 - When `ConfigurationSaving` is truthy, element `Flag` values and dirty theme selections are written to JSON using executor `writefile` support.
 - Use `RvrseUI:SaveConfiguration()` and `RvrseUI:LoadConfiguration()` to manage profiles manually.
-- v3.0.2 routes save/load through the active window context so every flagged element persists; avoid modifying `src/Config.lua` unless you replicate this behaviour.
+- v3.0.3 routes save/load through the active window context so every flagged element persists; avoid modifying `src/Config.lua` unless you replicate this behaviour.
+- Set `ConfigurationSaving.AutoSave = false` if you want to manually save without overwriting your last profile on every flag change.
+- Call `RvrseUI:SetAutoSaveEnabled(false)` at runtime to pause auto-save temporarily.
 - Call `Window:Show()` after building tabs/sections so saved settings apply before the UI becomes visible.
 
 ### Example Config Table
@@ -104,7 +107,8 @@ local profile = {
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "RvrseUI/Profiles",
-        FileName = "utility.json"
+        FileName = "utility.json",
+        AutoSave = false -- Optional: disable background writes
     },
     DisableBuildWarnings = true,
     LoadingTitle = "Utility Hub",

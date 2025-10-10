@@ -1,5 +1,5 @@
--- RvrseUI v3.0.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10
+-- RvrseUI v3.0.3 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-10-11
 -- Source: https://github.com/CoderRvrse/RvrseUI
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
@@ -19,10 +19,10 @@ local Version = {}
 Version.Data = {
 	Major = 3,
 	Minor = 0,
-	Patch = 2,
-	Build = "20251010B",  -- YYYYMMDD format with hotfix suffix
-	Full = "3.0.2",
-	Hash = "Z4X7C2V1",  -- Release hash for integrity verification
+	Patch = 3,
+	Build = "20251011",  -- YYYYMMDD format
+	Full = "3.0.3",
+	Hash = "N8P4Q6R2",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -801,7 +801,7 @@ local Config = (function()
 -- Handles save/load system for RvrseUI
 -- Supports file-based persistence with folder structure
 -- Integrates with State (Flags) and Theme modules
--- ⚠️ Maintainers: Preserve the v3.0.2 context hand-off and
+-- ⚠️ Maintainers: Preserve the v3.0.3 context hand-off and
 --    theme caching behaviour unless you are deliberately
 --    reworking persistence with equivalent safeguards.
 -- ============================================
@@ -826,6 +826,7 @@ Config.ConfigurationFolderName = nil  -- Optional folder name
 Config._configCache = {}  -- In-memory config cache
 Config._lastSaveTime = nil  -- Debounce timestamp
 Config._lastContext = nil  -- Most recent RvrseUI instance used for persistence
+Config.AutoSaveEnabled = true  -- Auto-save flag (can be disabled via configuration)
 
 -- ============================================
 -- EXECUTOR FILE-SYSTEM PROBE
@@ -883,6 +884,7 @@ function Config:Init(dependencies)
 	Theme = dependencies.Theme
 	dprintf = dependencies.dprintf or function() end
 	self._lastContext = nil
+	self.AutoSaveEnabled = true
 
 	traceFsSupport("Init")
 
@@ -1122,7 +1124,7 @@ end
 -- ============================================
 
 function Config:_autoSave()
-	if self.ConfigurationSaving then
+	if self.ConfigurationSaving and self.AutoSaveEnabled then
 		-- Debounce saves (max once per second)
 		if not self._lastSaveTime or (tick() - self._lastSaveTime) > 1 then
 			self._lastSaveTime = tick()
@@ -1131,6 +1133,11 @@ function Config:_autoSave()
 			end)
 		end
 	end
+end
+
+function Config:SetAutoSave(enabled)
+	self.AutoSaveEnabled = enabled ~= false
+	return self.AutoSaveEnabled
 end
 
 -- ============================================
@@ -3527,22 +3534,24 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	local pal = Theme:Get()
 
-	-- Configuration system setup
-	if cfg.ConfigurationSaving then
-		if typeof(cfg.ConfigurationSaving) == "string" then
-			RvrseUI.ConfigurationSaving = true
-			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving .. ".json"
-			RvrseUI.ConfigurationFolderName = "RvrseUI/Configs"
-			debugf("📂 Named profile mode:", cfg.ConfigurationSaving)
-		elseif typeof(cfg.ConfigurationSaving) == "table" then
-			RvrseUI.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
-			RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
-			RvrseUI.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
-			debugf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
-		elseif cfg.ConfigurationSaving == true then
-			local lastConfig, lastTheme = RvrseUI:GetLastConfig()
-			if lastConfig then
-				debugf("📂 Auto-loading last config:", lastConfig)
+		-- Configuration system setup
+		local autoSaveEnabled = true
+		if cfg.ConfigurationSaving then
+			if typeof(cfg.ConfigurationSaving) == "string" then
+				RvrseUI.ConfigurationSaving = true
+				RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving .. ".json"
+				RvrseUI.ConfigurationFolderName = "RvrseUI/Configs"
+				debugf("📂 Named profile mode:", cfg.ConfigurationSaving)
+			elseif typeof(cfg.ConfigurationSaving) == "table" then
+				RvrseUI.ConfigurationSaving = cfg.ConfigurationSaving.Enabled or true
+				RvrseUI.ConfigurationFileName = cfg.ConfigurationSaving.FileName or "RvrseUI_Config.json"
+				RvrseUI.ConfigurationFolderName = cfg.ConfigurationSaving.FolderName
+				autoSaveEnabled = cfg.ConfigurationSaving.AutoSave ~= false
+				debugf("Configuration saving enabled:", RvrseUI.ConfigurationFolderName and (RvrseUI.ConfigurationFolderName .. "/" .. RvrseUI.ConfigurationFileName) or RvrseUI.ConfigurationFileName)
+			elseif cfg.ConfigurationSaving == true then
+				local lastConfig, lastTheme = RvrseUI:GetLastConfig()
+				if lastConfig then
+					debugf("📂 Auto-loading last config:", lastConfig)
 				local folder, file = lastConfig:match("^(.*)/([^/]+)$")
 				if folder and file then
 					RvrseUI.ConfigurationFolderName = folder
@@ -3561,13 +3570,15 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				RvrseUI.ConfigurationSaving = true
 				RvrseUI.ConfigurationFileName = "RvrseUI_Config.json"
 				debugf("📂 No last config, using default")
+				end
 			end
 		end
-		end
-
+	
 	Config.ConfigurationSaving = RvrseUI.ConfigurationSaving
 	Config.ConfigurationFileName = RvrseUI.ConfigurationFileName
 	Config.ConfigurationFolderName = RvrseUI.ConfigurationFolderName
+	Config.AutoSaveEnabled = autoSaveEnabled
+	RvrseUI.AutoSaveEnabled = autoSaveEnabled
 
 	local name = cfg.Name or "RvrseUI"
 	local toggleKey = UIHelpers.coerceKeycode(cfg.ToggleUIKeybind or "K")
@@ -4806,10 +4817,11 @@ RvrseUI._lastWindowPosition = nil
 RvrseUI._controllerChipPosition = nil
 RvrseUI._obfuscatedNames = Obfuscation.getObfuscatedNames()
 
--- Configuration settings
-RvrseUI.ConfigurationSaving = false
-RvrseUI.ConfigurationFileName = nil
-RvrseUI.ConfigurationFolderName = nil
+	-- Configuration settings
+	RvrseUI.ConfigurationSaving = false
+	RvrseUI.ConfigurationFileName = nil
+	RvrseUI.ConfigurationFolderName = nil
+	RvrseUI.AutoSaveEnabled = true
 
 -- ============================================
 -- PUBLIC API METHODS
@@ -4859,13 +4871,13 @@ function RvrseUI:LoadConfiguration()
 	return Config:LoadConfiguration(self)
 end
 
-function RvrseUI:_autoSave()
-	if self.ConfigurationSaving then
-		task.defer(function()
-			self:SaveConfiguration()
-		end)
+	function RvrseUI:_autoSave()
+		if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
+			task.defer(function()
+				self:SaveConfiguration()
+			end)
+		end
 	end
-end
 
 function RvrseUI:GetLastConfig()
 	return Config:GetLastConfig()
@@ -4879,9 +4891,19 @@ function RvrseUI:ListProfiles()
 	return Config:ListProfiles()
 end
 
-function RvrseUI:DeleteProfile(profileName)
-	return Config:DeleteProfile(profileName)
-end
+	function RvrseUI:DeleteProfile(profileName)
+		return Config:DeleteProfile(profileName)
+	end
+
+	function RvrseUI:SetAutoSaveEnabled(enabled)
+		local state = Config:SetAutoSave(enabled)
+		self.AutoSaveEnabled = state
+		return state
+	end
+
+	function RvrseUI:IsAutoSaveEnabled()
+		return self.AutoSaveEnabled
+	end
 
 Notifications:SetContext(RvrseUI)
 

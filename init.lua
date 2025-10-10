@@ -173,6 +173,7 @@ RvrseUI._obfuscatedNames = Obfuscation.getObfuscatedNames()
 RvrseUI.ConfigurationSaving = false
 RvrseUI.ConfigurationFileName = nil
 RvrseUI.ConfigurationFolderName = nil
+RvrseUI.AutoSaveEnabled = true
 
 -- ============================================
 -- PUBLIC API METHODS
@@ -223,7 +224,7 @@ function RvrseUI:LoadConfiguration()
 end
 
 function RvrseUI:_autoSave()
-	if self.ConfigurationSaving then
+    if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
 		task.defer(function()
 			self:SaveConfiguration()
 		end)
@@ -244,6 +245,16 @@ end
 
 function RvrseUI:DeleteProfile(profileName)
 	return Config:DeleteProfile(profileName)
+end
+
+function RvrseUI:SetAutoSaveEnabled(enabled)
+    local state = Config:SetAutoSave(enabled)
+    self.AutoSaveEnabled = state
+    return state
+end
+
+function RvrseUI:IsAutoSaveEnabled()
+    return self.AutoSaveEnabled
 end
 
 -- Provide notifications module with RvrseUI context for toggle checks

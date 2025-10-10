@@ -1,45 +1,44 @@
-# RvrseUI v3.0.2 Changelog
+# RvrseUI v3.0.3 Changelog
 
-**Release Date**: October 10, 2025  
-**Build**: 20251010B  
-**Hash**: `Z4X7C2V1`  
+**Release Date**: October 11, 2025  
+**Build**: 20251011  
+**Hash**: `N8P4Q6R2`  
 **Codename**: Configuration Persistence Hotfix
 
 ---
 
 ## 🎯 Summary
 
-v3.0.2 resolves the regression where saves only captured theme data. Configuration now travels through the active RvrseUI instance so every flagged element serializes and hydrates correctly, and last-used profiles restore folders/files without manual input.
+v3.0.3 finishes the persistence hardening: you can now disable auto-save when you need to preserve a snapshot, the minimized chip aligns perfectly with the cursor, and hotkey listeners are locked down against duplicates.
 
 ---
 
-## 🔧 Fixes
+## 🔧 Fixes & Enhancements
 
-- Routed `Config:SaveConfiguration` / `LoadConfiguration` through the live UI context, reusing `RvrseUI.Flags` for persistence.
-- Repaired boolean `ConfigurationSaving = true` flows so last-profile paths unpack into folder and filename before boot.
-- Synced theme cache back onto the active window when loading configs, keeping visuals aligned with saved state.
-- Refreshed README badges, build headers, and version metadata for the v3.0.2 hotfix.
+- Added configurable auto-save (`ConfigurationSaving.AutoSave = false` or `RvrseUI:SetAutoSaveEnabled(false)`) so manual loads no longer overwrite the previous save instantly.
+- Adjusted minimize controller token drag logic to respect GUI insets and camera viewport for accurate mouse alignment.
+- Prevented repeated hotkey bindings and ensured Escape/toggle keys stay reliable after rebuilds.
+- Documented maintenance rules for the persistence pipeline in README and CLAUDE notes.
 
 ---
 
 ## 🔎 Validation
 
-- Manual regression in executor: toggles, sliders, dropdowns, keybinds, and color pickers persist across save/load cycles.
-- Confirmed auto-save debounce continues to fire after element interactions.
-- Verified profile switching respects archived folder structure and theme playback.
+- Manual executor regression: Disable auto-save, tweak flags, load last profile, confirm previous values return.
+- Drag controller chip across screen edges before/after minimize; verify it tracks cursor center.
+- Trigger toggle/destroy hotkeys repeatedly to ensure no double firings.
 
 ---
 
-## Previous Release
+## Previous Releases
 
-### RvrseUI v3.0.1 Changelog
+### RvrseUI v3.0.2 Changelog
 
 **Release Date**: October 10, 2025  
-**Build**: 20251010  
-**Hash**: `Q1W2E3R4`  
-**Codename**: Configuration Hotfix
+**Build**: 20251010B  
+**Hash**: `Z4X7C2V1`
 
-See repository history for the full v3.0.1 notes.
+See repository history for the full v3.0.2 notes.
 
 ---
 

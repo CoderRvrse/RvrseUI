@@ -1,9 +1,10 @@
-# RvrseUI – Maintainer Notes (v3.0.2)
+# RvrseUI – Maintainer Notes (v3.0.3)
 
 ## Configuration Persistence Lockdown
 - Save/load now routes through the live `RvrseUI` context (`src/Config.lua`) so every flagged element serializes correctly.  
 - Theme cache (`_savedTheme`) is synced back to the active window; do not strip this hand-off.  
 - Boolean `ConfigurationSaving = true` reuses the last profile by splitting `folder/file.json`; keep this parsing intact.  
+- `ConfigurationSaving.AutoSave = false` disables background writes; keep `_autoSave` guard in sync if you extend persistence.
 - When touching persistence code, verify the executor supports `writefile/readfile/isfile` and rerun a full save → load cycle with all 12 elements.
 
 ## Minimize Chip Alignment
@@ -14,6 +15,7 @@
 
 ## Quick Validation Checklist
 1. Toggle each element flag, call `SaveConfiguration`, restart script, confirm values restore.  
-2. Minimize to the 🎮 chip, drag around edges, restore, then destroy via `Escape`.  
-3. Confirm `ToggleUIKeybind` still acts globally after any hotkey changes.  
-4. Run docs build (README badge/version) when bumping releases.
+2. If auto-save is disabled, ensure manual saves still write expected profiles.  
+3. Minimize to the 🎮 chip, drag around edges, restore, then destroy via `Escape`.  
+4. Confirm `ToggleUIKeybind` still acts globally after any hotkey changes.  
+5. Run docs build (README badge/version) when bumping releases.
