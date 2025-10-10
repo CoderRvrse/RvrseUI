@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T14:53:10.973Z
+-- Compiled from modular architecture on 2025-10-10T15:07:44.322Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3895,10 +3895,15 @@ do
 	
 		local dragging, activeDragInput
 		local dragPointerOffset
+		local headerLastPointer
 		local debugOverlay, debugLabels = nil, {}
 		local hostScreenGui = typeof(windowHost) == "Instance"
 			and windowHost:IsA("ScreenGui")
 			and windowHost
+		if hostScreenGui and hostScreenGui.ZIndexBehavior ~= Enum.ZIndexBehavior.Global then
+			Debug.printf("[DRAG] Enforcing Global ZIndexBehavior on host ScreenGui")
+			hostScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+		end
 		local hostIgnoresInset = hostScreenGui and windowHost.IgnoreGuiInset == true
 	
 		-- Get current pointer position in screen space (touch or mouse)
@@ -4020,6 +4025,7 @@ do
 			dragging = false
 			activeDragInput = nil
 			dragPointerOffset = nil
+			headerLastPointer = nil
 			hideDebugLabel("HeaderDrag")
 	
 			-- Save absolute position for restoration
@@ -4035,12 +4041,15 @@ do
 		end
 	
 		-- Start dragging when header is clicked
+		header.Active = true
+	
 		header.InputBegan:Connect(function(io)
 			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 				dragging = true
 				activeDragInput = io
 				local pointer = getPointerPosition(io)
 				dragPointerOffset = pointer - root.AbsolutePosition
+				headerLastPointer = pointer
 				Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragPointerOffset.X, dragPointerOffset.Y)
 				Debug.printf("[DRAG] Started - input type: %s", tostring(io.UserInputType))
 			end
@@ -4073,6 +4082,8 @@ do
 			if not dragPointerOffset then
 				dragPointerOffset = pointerPosition - root.AbsolutePosition
 			end
+			local previousPointer = headerLastPointer or pointerPosition
+			headerLastPointer = pointerPosition
 	
 			-- Calculate target top-left using cached delta
 			local targetTopLeftX = pointerPosition.X - dragPointerOffset.X
@@ -4110,10 +4121,11 @@ do
 	
 			if Debug:IsEnabled() then
 				local gluePoint = Vector2.new(targetTopLeftX + dragPointerOffset.X, targetTopLeftY + dragPointerOffset.Y)
-				local pointerDelta = pointerPosition - gluePoint
+				local pointerDelta = pointerPosition - previousPointer
 				local distance = pointerDelta.Magnitude
-				Debug.printf("[DRAG][Header] pointer=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
+				Debug.printf("[DRAG][Header] pointer=(%.1f, %.1f) prev=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
 					pointerPosition.X, pointerPosition.Y,
+					previousPointer.X, previousPointer.Y,
 					gluePoint.X, gluePoint.Y,
 					pointerDelta.X, pointerDelta.Y,
 					distance
@@ -4779,6 +4791,7 @@ do
 		local chipCenterOffset = nil  -- Offset from pointer to chip center at grab time
 		local chipActiveDragInput = nil
 		local chipInitialPointer = nil
+		local chipLastPointer = nil
 	
 		-- Restore window on click (only if not dragged)
 		controllerChip.MouseButton1Click:Connect(function()
@@ -4810,6 +4823,7 @@ do
 				chipActiveDragInput = io
 				chipCenterOffset = nil  -- Will be calculated on first movement
 				chipInitialPointer = getPointerPosition(io)
+				chipLastPointer = chipInitialPointer
 	
 				Debug.printf("[CHIP DRAG] Started - input type: %s", tostring(io.UserInputType))
 			end
@@ -4823,6 +4837,7 @@ do
 					chipActiveDragInput = nil
 					chipCenterOffset = nil
 					chipInitialPointer = nil
+					chipLastPointer = nil
 					hideDebugLabel("ChipDrag")
 	
 					-- Save final position
@@ -4857,6 +4872,8 @@ do
 	
 			-- Get current pointer position in UI space
 			local pointer = getPointerPosition(io)
+			local previousPointer = chipLastPointer or pointer
+			chipLastPointer = pointer
 			local inset = getGuiInset()
 	
 			local chipTopLeft = controllerChip.AbsolutePosition
@@ -4924,10 +4941,11 @@ do
 	
 			if Debug:IsEnabled() then
 				local gluePoint = Vector2.new(targetCenterX + chipCenterOffset.X, targetCenterY + chipCenterOffset.Y)
-				local pointerDelta = pointer - gluePoint
+				local pointerDelta = pointer - previousPointer
 				local distance = pointerDelta.Magnitude
-				Debug.printf("[DRAG][Chip] pointer=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
+				Debug.printf("[DRAG][Chip] pointer=(%.1f, %.1f) prev=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
 					pointer.X, pointer.Y,
+					previousPointer.X, previousPointer.Y,
 					gluePoint.X, gluePoint.Y,
 					pointerDelta.X, pointerDelta.Y,
 					distance
