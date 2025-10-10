@@ -1,37 +1,52 @@
-# RvrseUI v3.0.3 Changelog
+# RvrseUI v3.0.4 Changelog
+
+**Release Date**: October 10, 2025  
+**Build**: 20251010  
+**Hash**: `K7M3P9X1`  
+**Codename**: Precision
+
+---
+
+## 🎯 Summary
+
+v3.0.4 locks in the advanced cursor-aligned drag system for both the main window header and the minimized controller chip, then brings the single-file build into parity with the modular loader by executing the full bootstrap at runtime. Maintainer docs now spell out the build workflow so the monolith never drifts from `src/`.
+
+---
+
+## ✨ Enhancements
+
+- Cached the exact grab offset when the header is picked up so the cursor never slips while dragging.
+- Reworked chip dragging to use AnchorPoint-aware math and the same precision rounding as the window.
+- Normalised UI-space coordinate calculations with GUI inset awareness for every host configuration.
+- Unifed touch/mouse handling with active input tracking to prevent cross-input conflicts.
+- Added debug instrumentation around drag start/stop events to aid future tuning.
+- Scoped compiled modules in `do ... end` blocks and hydrated shared singletons (`DEFAULT_HOST`, overlay, notifications, hotkeys) before exposing the API.
+- Embedded the `init.lua` bootstrap into the monolith so both entry-points spin up themes, config, and notifications identically.
+- Refreshed README/CLAUDE guidance to document the new build pipeline and how to keep `RvrseUI.lua` in sync with `src/`.
+
+---
+
+## 🔎 Validation
+
+- Drag header and chip repeatedly across viewport bounds to confirm the cursor stays locked to the grab point.
+- Toggle debug mode and review `[DRAG]` logs to ensure offset caching and final position writes behave.
+- Destroy and recreate the UI via `RvrseUI:Destroy()` / `RvrseUI:CreateWindow()` to verify the cached host/overlay are rebuilt correctly.
+- Run the monolith and modular loader back-to-back; both should produce identical init output, notifications, and profile handling.
+
+---
+
+## Previous Releases
+
+### RvrseUI v3.0.3 Changelog
 
 **Release Date**: October 11, 2025  
 **Build**: 20251011  
 **Hash**: `N8P4Q6R2`  
 **Codename**: Configuration Persistence Hotfix
 
----
-
-## 🎯 Summary
-
-v3.0.3 finishes the persistence hardening: you can now disable auto-save when you need to preserve a snapshot, the minimized chip aligns perfectly with the cursor, and hotkey listeners are locked down against duplicates.
-
----
-
-## 🔧 Fixes & Enhancements
-
-- Added configurable auto-save (`ConfigurationSaving.AutoSave = false` or `RvrseUI:SetAutoSaveEnabled(false)`) so manual loads no longer overwrite the previous save instantly.
-- Adjusted minimize controller token drag logic to respect GUI insets and camera viewport for accurate mouse alignment.
-- Prevented repeated hotkey bindings and ensured Escape/toggle keys stay reliable after rebuilds.
-- Documented maintenance rules for the persistence pipeline in README and CLAUDE notes.
-- Injected an in-app Profiles tab (customisable via `ConfigurationManager`) to list, switch, save, and delete configs without leaving the UI.
-
----
-
-## 🔎 Validation
-
-- Manual executor regression: Disable auto-save, tweak flags, load last profile, confirm previous values return.
-- Drag controller chip across screen edges before/after minimize; verify it tracks cursor center.
-- Trigger toggle/destroy hotkeys repeatedly to ensure no double firings.
-
----
-
-## Previous Releases
+- Added configurable auto-save toggles so manual snapshots stop overwriting themselves.  
+- Tightened minimize chip alignment and hotkey wiring to remove drift/duplicate bindings.  
+- Documented persistence rules and injected a Profiles tab for managing configs in-app.
 
 ### RvrseUI v3.0.2 Changelog
 

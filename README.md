@@ -262,11 +262,19 @@ LockSection:CreateSlider({
 ---
 
 ## Development Notes
-- `init.lua` wires services, builders, and elements for modular consumption.
-- `src/` contains 26 focused modules (Theme, Animator, Hotkeys, WindowBuilder, individual elements, etc.).
-- `RvrseUI.lua` is the generated single-file build for `loadstring` consumers.
-- `build.js` / `build.lua` rebuild the monolithic bundle from `src/`.
-- Legacy documentation, deep-dive reports, and historical tests now live under `docs/__archive/` for reference.
+- `src/` contains the authoritative modules (`Theme`, `Animator`, `WindowBuilder`, element factories, etc.) that power both the modular loader (`init.lua`) and the bundled monolith.
+- `init.lua` is still the source of truth for wiring services, configuration, overlay creation, and notification setup. The monolith now embeds the same bootstrap so both entry-points initialise identically.
+- `RvrseUI.lua` is generated; never hand-edit it. After touching any file in `src/` (or `init.lua`), run `node build.js` to rebuild the bundle. A Lua fallback (`lua build.lua`) exists for environments without Node.
+- The build scripts now scope every module in a `do ... end` block and hydrate shared singletons (`DEFAULT_HOST`, overlay frame, notifications, hotkeys) before exposing the public API, preventing cross-module leakage.
+- Keep `VERSION.json`, `README.md`, and `CLAUDE.md` consistent with each release; the push guard expects the version badge and metadata to match.
+- Legacy documentation, deep-dive reports, and historical tests remain archived under `docs/__archive/` for reference.
+
+### Monolith ↔ Modular Workflow
+1. Edit modules under `src/` (or the public API in `init.lua`).
+2. Run `node build.js` (or `lua build.lua`) to regenerate `RvrseUI.lua`.
+3. Verify runtime in Roblox/your executor using the rebuilt monolith.
+4. Commit both the source changes and the regenerated `RvrseUI.lua` together so GitHub consumers stay in sync with `main`.
+5. When testing persistence, remember that the compiled bundle now creates/retains the default `ScreenGui` + overlay globally—destroying them in your scripts requires calling `RvrseUI:Destroy()` to match the cached handles.
 
 ### Testing & Validation
 - Use Roblox Studio or an executor to run manual smoke tests with your own scripts.

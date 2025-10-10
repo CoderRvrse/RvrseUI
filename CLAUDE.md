@@ -23,6 +23,12 @@
 - Overlay mode requires the blocker to close menus—preserve `ensureBlocker()` and `setOpen(false)` patterns when extending.  
 - When adding new overlay elements, clamp to `OverlayLayer.ZIndex` ≥ 200 to keep them above the base window.
 
+## Monolith Build Pipeline
+- `build.js` / `build.lua` now wrap each module in a `do ... end` scope before concatenation and immediately execute the same bootstrap logic as `init.lua`. This pre-creates the default ScreenGui (`DEFAULT_HOST`), overlay frame, notifications, hotkeys, and window manager so `RvrseUI.lua` is safe to run standalone.  
+- Any edits in `src/` or `init.lua` must be followed by `node build.js` (or `lua build.lua` where available) to keep the monolith aligned. Never patch `RvrseUI.lua` directly.  
+- The compiled file caches `_DEFAULT_HOST` / `_DEFAULT_OVERLAY`. If a consumer destroys the ScreenGui manually, `RvrseUI:CreateWindow` will recreate it and reinitialise notifications on demand—retain that guard when touching the builder.  
+- Version bumps require updating `VERSION.json`, refreshing the README badge, and rerunning the build so the header comment reflects the new timestamp.
+
 ## Hotkey Pipeline
 - `Hotkeys:Initialize` immediately wires `InputBegan` and prevents double hookups. Ensure any future hotkey changes toggle `_initialized` carefully.
 

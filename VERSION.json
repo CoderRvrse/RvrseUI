@@ -12,7 +12,7 @@
     "date": "2025-10-10",
     "name": "Advanced Cursor-Locked Drag",
     "codename": "Precision",
-    "notes": "Completely redesigned drag system ensures cursor stays perfectly glued to grab point on both window header and minimized chip."
+    "notes": "Completely redesigned drag system ensures cursor stays perfectly glued to grab point on both window header and minimized chip, and the monolith now bootstraps the same services as the modular loader with refreshed maintainer docs."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -50,7 +50,8 @@
         "🔍 Implemented consistent UI-space coordinate calculations with proper GUI inset handling for all host types.",
         "🖱️ Unified touch and mouse input support with active input tracking to prevent cross-contamination.",
         "🐛 Fixed drag offset drift issues that caused cursor to slip away from initial grab point.",
-        "📝 Added debug logging for drag offset caching and position tracking when debug mode enabled."
+        "📝 Added debug logging for drag offset caching and position tracking when debug mode enabled.",
+        "📦 Embedded the init bootstrap in the monolith build and updated README/CLAUDE guidance to keep `src/` and the bundled file aligned."
       ]
     },
     "3.0.3": {
@@ -117,7 +118,7 @@
   },
   "download": {
     "url": "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua",
-    "size_kb": 115,
+    "size_kb": 159,
     "format": "lua"
   },
   "repository": {
