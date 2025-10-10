@@ -1149,6 +1149,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				local tabIcon = managerOptions.Icon or "folder"
 				local sectionTitle = managerOptions.SectionTitle or "Configuration Profiles"
 				local profilePlaceholder = managerOptions.NewProfilePlaceholder or "my_profile"
+				local dropdownPlaceholder = managerOptions.DropdownPlaceholder or "Select profile"
 
 				local function safeNotify(title, message, kind)
 					local notifyPayload = {
@@ -1193,7 +1194,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				})
 
 				local selectedProfile = RvrseUI.ConfigurationFileName
-
+				local lastProfileList = {}
 				local profilesDropdown
 
 				local function updateLabels(profileName)
@@ -1204,12 +1205,39 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				local function gatherProfiles()
 					local list, warning = RvrseUI:ListProfiles()
 					list = list or {}
-					local activeFile = RvrseUI.ConfigurationFileName
-					if activeFile and activeFile ~= "" and not containsValue(list, activeFile) then
-						table.insert(list, activeFile)
-					end
 					table.sort(list)
 					return list, warning
+				end
+
+				local function refreshProfiles(target, opts)
+					opts = opts or {}
+					local list, warning = gatherProfiles()
+					lastProfileList = list
+					profilesDropdown:Refresh(list)
+					if warning and not opts.suppressWarning and managerOptions.SuppressWarnings ~= true then
+						safeNotify("Profiles", tostring(warning), "warning")
+					end
+
+					local resolveTarget = target
+					if resolveTarget and not containsValue(list, resolveTarget) then
+						resolveTarget = nil
+					end
+					if not resolveTarget and selectedProfile and containsValue(list, selectedProfile) then
+						resolveTarget = selectedProfile
+					end
+					if not resolveTarget and list[1] then
+						resolveTarget = list[1]
+					end
+
+					selectedProfile = resolveTarget
+					if resolveTarget then
+						profilesDropdown:Set(resolveTarget, true)
+						updateLabels(resolveTarget)
+					else
+						updateLabels(nil)
+					end
+
+					return list
 				end
 
 				local function applyProfile(profileName, opts)
@@ -1218,16 +1246,18 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						safeNotify("Profiles", "No profile selected", "warning")
 						return false
 					end
+
 					local base = profileName:gsub("%.json$", "")
 					local setOk, setMsg = RvrseUI:SetConfigProfile(base)
 					if not setOk then
 						safeNotify("Profiles", tostring(setMsg), "error")
 						return false
 					end
+
 					local loadOk, loadMsg = RvrseUI:LoadConfigByName(base)
 					if loadOk then
 						selectedProfile = profileName
-						updateLabels(profileName)
+						refreshProfiles(profileName, {suppressWarning = true})
 						if not opts.muteNotify then
 							safeNotify("Profiles", "Loaded " .. profileName, "success")
 						end
@@ -1241,8 +1271,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				profilesDropdown = profileSection:CreateDropdown({
 					Text = "Profiles",
 					Values = {},
+					PlaceholderText = dropdownPlaceholder,
+					Overlay = true,
+					OnOpen = function()
+						refreshProfiles(selectedProfile, {suppressWarning = true})
+					end,
 					OnChanged = function(value)
 						if not value or value == "" then return end
+						if not containsValue(lastProfileList, value) then
+							return
+						end
 						if value == selectedProfile then
 							updateLabels(value)
 							return
@@ -1260,23 +1298,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 				})
 
-				local function refreshProfiles(target)
-					local list, warning = gatherProfiles()
-					profilesDropdown:Refresh(list)
-					if warning and managerOptions.SuppressWarnings ~= true then
-						safeNotify("Profiles", tostring(warning), "warning")
-					end
-					local resolveTarget = target or selectedProfile or list[1]
-					if resolveTarget then
-						selectedProfile = resolveTarget
-						profilesDropdown:Set(resolveTarget)
-						updateLabels(resolveTarget)
-					else
-						selectedProfile = nil
-						updateLabels(nil)
-					end
-				end
-
 				profileSection:CreateButton({
 					Text = "🔄 Refresh Profiles",
 					Callback = function()
@@ -1292,7 +1313,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						if okSave then
 							local active = RvrseUI.ConfigurationFileName or selectedProfile
 							safeNotify("Profiles", "Saved to " .. tostring(active or "config"), "success")
-							refreshProfiles(active)
+							refreshProfiles(active, {suppressWarning = true})
 						else
 							safeNotify("Profiles", "Save failed: " .. tostring(saveMsg), "error")
 						end
@@ -1311,7 +1332,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						if okSaveAs then
 							local fileName = trimmed:gsub("%.json$", "") .. ".json"
 							safeNotify("Profiles", "Saved " .. fileName, "success")
-							refreshProfiles(fileName)
+							refreshProfiles(fileName, {suppressWarning = true})
 							if managerOptions.ClearNameAfterSave ~= false then
 								newProfileName = ""
 								nameInput:Set("")
@@ -1345,7 +1366,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						if okDelete then
 							safeNotify("Profiles", "Deleted " .. selectedProfile, "warning")
 							selectedProfile = nil
-							refreshProfiles()
+							refreshProfiles(nil, {suppressWarning = true})
 						else
 							safeNotify("Profiles", "Delete failed: " .. tostring(deleteMsg), "error")
 						end
@@ -1361,7 +1382,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 				})
 
-				refreshProfiles(selectedProfile)
+				refreshProfiles(selectedProfile, {suppressWarning = true})
 			end)
 			if not ok then
 				warn("[RvrseUI] Config manager initialization failed:", err)

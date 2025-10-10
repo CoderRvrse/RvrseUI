@@ -1,6 +1,5 @@
 -- Dropdown Element Module
--- Part of RvrseUI v2.13.0 Modular Architecture
--- Extracted from RvrseUI.lua (lines 2856-3246)
+-- Provides in-flow or overlay dropdown with dynamic data refresh support
 
 local Dropdown = {}
 
@@ -18,16 +17,22 @@ function Dropdown.Create(o, dependencies)
 	local UIS = dependencies.UIS
 	local OverlayLayer = dependencies.OverlayLayer
 
-	-- Calculate dropdown height
-	local values = o.Values or {}
-	local maxHeight = 160
-	local itemHeight = 32
-	local dropdownHeight = math.min(#values * itemHeight, maxHeight)
+	-- Settings
+	local values = {}
+	for _, v in ipairs(o.Values or {}) do
+		table.insert(values, v)
+	end
 
-	-- Create card with DISABLED clipping (CRITICAL for dropdown overflow)
+	local maxHeight = o.MaxHeight or 160
+	local itemHeight = 32
+	local placeholder = o.PlaceholderText or "Select"
+	local useOverlay = OverlayLayer ~= nil and o.Overlay ~= false
+
+	-- Base card
 	local f = card(48)
 	f.ClipsDescendants = false
 
+	-- Label
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
 	lbl.Size = UDim2.new(1, -140, 1, 0)
@@ -38,6 +43,7 @@ function Dropdown.Create(o, dependencies)
 	lbl.Text = o.Text or "Dropdown"
 	lbl.Parent = f
 
+	-- Trigger button
 	local btn = Instance.new("TextButton")
 	btn.AnchorPoint = Vector2.new(1, 0.5)
 	btn.Position = UDim2.new(1, -6, 0.5, 0)
@@ -53,7 +59,6 @@ function Dropdown.Create(o, dependencies)
 	corner(btn, 8)
 	stroke(btn, pal3.Border, 1)
 
-	-- Dropdown arrow indicator
 	local arrow = Instance.new("TextLabel")
 	arrow.BackgroundTransparency = 1
 	arrow.AnchorPoint = Vector2.new(1, 0.5)
@@ -66,30 +71,19 @@ function Dropdown.Create(o, dependencies)
 	arrow.ZIndex = 3
 	arrow.Parent = btn
 
-	local idx = 1
-	for i, v in ipairs(values) do
-		if v == o.Default then
-			idx = i
-			break
-		end
-	end
-	btn.Text = tostring(values[idx] or "Select")
-
-	-- Dropdown list container (positioned BELOW the button with 8px gap)
+	-- Dropdown list container
 	local dropdownList = Instance.new("Frame")
 	dropdownList.Name = "DropdownList"
 	dropdownList.BackgroundColor3 = pal3.Elevated
 	dropdownList.BorderSizePixel = 0
-	dropdownList.Position = UDim2.new(1, -136, 0.5, 40)  -- Below button with gap
-	dropdownList.Size = UDim2.new(0, 130, 0, 0)  -- Start at 0 height for animation
+	dropdownList.Position = UDim2.new(1, -(btn.Size.X.Offset + 6), 0.5, 40)
+	dropdownList.Size = UDim2.new(0, btn.Size.X.Offset, 0, 0)
 	dropdownList.Visible = false
 	dropdownList.ZIndex = 100
-	dropdownList.ClipsDescendants = true
+	dropdownList.ClipsDescendants = false
 	dropdownList.Parent = f
 	corner(dropdownList, 8)
 	stroke(dropdownList, pal3.Accent, 1)
-
-	-- Shadow for dropdown
 	shadow(dropdownList, 0.6, 16)
 
 	local dropdownScroll = Instance.new("ScrollingFrame")
@@ -97,7 +91,7 @@ function Dropdown.Create(o, dependencies)
 	dropdownScroll.BorderSizePixel = 0
 	dropdownScroll.Size = UDim2.new(1, -8, 1, -8)
 	dropdownScroll.Position = UDim2.new(0, 4, 0, 4)
-	dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
+	dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 	dropdownScroll.ScrollBarThickness = 4
 	dropdownScroll.ScrollBarImageColor3 = pal3.Accent
 	dropdownScroll.ZIndex = 101
@@ -109,102 +103,14 @@ function Dropdown.Create(o, dependencies)
 	dropdownLayout.Padding = UDim.new(0, 2)
 	dropdownLayout.Parent = dropdownScroll
 
-local dropdownOpen = false
-local optionButtons = {}
-local inlineParent = dropdownList.Parent
-local overlayBlocker
-local inlineWidth = btn.Size.X.Offset
-local useOverlay = OverlayLayer ~= nil and (o.Overlay ~= false)
-local setOpen
-local function ensureBlocker()
-	if overlayBlocker or not useOverlay then
-		return
-	end
-	overlayBlocker = Instance.new("TextButton")
-	overlayBlocker.Name = "DropdownOverlayBlocker"
-	overlayBlocker.BackgroundTransparency = 1
-	overlayBlocker.BorderSizePixel = 0
-	overlayBlocker.Text = ""
-	overlayBlocker.AutoButtonColor = false
-	overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
-	overlayBlocker.Position = UDim2.new(0, 0, 0, 0)
-	overlayBlocker.ZIndex = 190
-	overlayBlocker.Visible = false
-	overlayBlocker.Parent = OverlayLayer
-	overlayBlocker.MouseButton1Click:Connect(function()
-		if dropdownOpen and setOpen then
-			setOpen(false)
-		end
-	end)
-end
+	local inlineParent = dropdownList.Parent
+	local inlineWidth = btn.Size.X.Offset
+	local dropdownHeight = 0
 
-	-- Create option buttons
-	for i, value in ipairs(values) do
-		local optionBtn = Instance.new("TextButton")
-		optionBtn.Name = "Option_" .. i
-		optionBtn.Size = UDim2.new(1, -8, 0, 28)
-		optionBtn.BackgroundColor3 = i == idx and pal3.Accent or pal3.Card
-		optionBtn.BackgroundTransparency = i == idx and 0.8 or 0
-		optionBtn.BorderSizePixel = 0
-		optionBtn.Font = Enum.Font.Gotham
-		optionBtn.TextSize = 12
-		optionBtn.TextColor3 = i == idx and pal3.Accent or pal3.Text
-		optionBtn.Text = tostring(value)
-		optionBtn.AutoButtonColor = false
-		optionBtn.LayoutOrder = i
-		optionBtn.ZIndex = 102
-		optionBtn.Parent = dropdownScroll
-		corner(optionBtn, 6)
-
-		optionButtons[i] = optionBtn
-
-		optionBtn.MouseButton1Click:Connect(function()
-			local function locked()
-				return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
-			end
-
-			if locked() then return end
-
-			-- Update selection
-			idx = i
-			btn.Text = tostring(value)
-
-			-- Update all option visuals
-			for j, obtn in ipairs(optionButtons) do
-				if j == i then
-					obtn.BackgroundColor3 = pal3.Accent
-					obtn.BackgroundTransparency = 0.8
-					obtn.TextColor3 = pal3.Accent
-				else
-					obtn.BackgroundColor3 = pal3.Card
-					obtn.BackgroundTransparency = 0
-					obtn.TextColor3 = pal3.Text
-				end
-			end
-
-			setOpen(false)
-
-			-- Trigger callback
-			if o.OnChanged then
-				task.spawn(function()
-					o.OnChanged(value)
-				end)
-			end
-			if o.Flag then RvrseUI:_autoSave() end
-		end)
-
-		optionBtn.MouseEnter:Connect(function()
-			if i ~= idx then
-				Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
-			end
-		end)
-
-		optionBtn.MouseLeave:Connect(function()
-			if i ~= idx then
-				Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
-			end
-		end)
-	end
+	local overlayBlocker
+	local dropdownOpen = false
+	local optionButtons = {}
+	local idx = 1
 
 	local function locked()
 		return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
@@ -217,97 +123,242 @@ end
 		btn.TextTransparency = isLocked and 0.5 or 0
 		arrow.TextTransparency = isLocked and 0.5 or 0
 	end
-	visual()
 
-	local function positionOverlay()
-		local width = btn.AbsoluteSize.X
-		if width <= 0 then
-			width = inlineWidth
+	local function ensureBlocker()
+		if not useOverlay then
+			return
 		end
-		if useOverlay and OverlayLayer then
-			local absPos = btn.AbsolutePosition
-			dropdownList.Parent = OverlayLayer
-			dropdownList.ZIndex = 200
-			dropdownScroll.ZIndex = 201
-			dropdownList.Position = UDim2.fromOffset(absPos.X, absPos.Y + btn.AbsoluteSize.Y + 6)
-			dropdownList.Size = UDim2.new(0, width, 0, dropdownList.Size.Y.Offset)
+
+		if overlayBlocker and overlayBlocker.Parent then
+			return
+		end
+
+		overlayBlocker = Instance.new("TextButton")
+		overlayBlocker.Name = "DropdownOverlayBlocker"
+		overlayBlocker.BackgroundTransparency = 1
+		overlayBlocker.BorderSizePixel = 0
+		overlayBlocker.AutoButtonColor = false
+		overlayBlocker.Text = ""
+		overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
+		overlayBlocker.Position = UDim2.new(0, 0, 0, 0)
+		overlayBlocker.ZIndex = 190
+		overlayBlocker.Visible = false
+		overlayBlocker.Parent = OverlayLayer
+		overlayBlocker.MouseButton1Click:Connect(function()
+			if dropdownOpen then
+				dropdownOpen = false
+				arrow.Text = "▼"
+				if o.OnClose then
+					o.OnClose()
+				end
+				Animator:Tween(dropdownList, {
+					Size = UDim2.new(0, math.max(btn.AbsoluteSize.X, inlineWidth), 0, 0)
+				}, Animator.Spring.Fast)
+				task.delay(0.15, function()
+					if dropdownList then
+						dropdownList.Visible = false
+						dropdownList.Parent = inlineParent
+						dropdownList.ZIndex = 100
+						dropdownScroll.ZIndex = 101
+						dropdownList.Position = UDim2.new(1, -(inlineWidth + 6), 0.5, 40)
+						dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
+						if overlayBlocker then
+							overlayBlocker.Visible = false
+						end
+					end
+				end)
+			end
+		end)
+	end
+
+	local function updateButtonText()
+		if values[idx] then
+			btn.Text = tostring(values[idx])
 		else
-			dropdownList.Parent = inlineParent
-			dropdownList.ZIndex = 100
-			dropdownScroll.ZIndex = 101
-			dropdownList.Position = UDim2.new(1, -136, 0.5, 40)
+			btn.Text = placeholder
 		end
+	end
+
+	local function updateHighlight()
+		for i, optionBtn in ipairs(optionButtons) do
+			if i == idx then
+				optionBtn.BackgroundColor3 = pal3.Accent
+				optionBtn.BackgroundTransparency = 0.8
+				optionBtn.TextColor3 = pal3.Accent
+			else
+				optionBtn.BackgroundColor3 = pal3.Card
+				optionBtn.BackgroundTransparency = 0
+				optionBtn.TextColor3 = pal3.Text
+			end
+		end
+	end
+
+	local function collapseInline()
+		dropdownList.Parent = inlineParent
+		dropdownList.ZIndex = 100
+		dropdownScroll.ZIndex = 101
+		dropdownList.Position = UDim2.new(1, -(inlineWidth + 6), 0.5, 40)
+		dropdownList.Size = UDim2.new(0, inlineWidth, 0, dropdownList.Size.Y.Offset)
+	end
+
+	local function repositionOverlay(width)
+		width = width or math.max(btn.AbsoluteSize.X, inlineWidth)
+		dropdownList.Parent = OverlayLayer
+		dropdownList.ZIndex = 200
+		dropdownScroll.ZIndex = 201
+		local absPos = btn.AbsolutePosition
+		dropdownList.Position = UDim2.fromOffset(absPos.X, absPos.Y + btn.AbsoluteSize.Y + 6)
+		dropdownList.Size = UDim2.new(0, width, 0, dropdownList.Size.Y.Offset)
 		return width
 	end
 
-	function setOpen(state)
-	if locked() then return end
-if state == dropdownOpen then
-	if not state then
-		return
-	end
-else
-	dropdownOpen = state
-end
-arrow.Text = dropdownOpen and "▲" or "▼"
+	local setOpen -- forward declaration
 
+	local function rebuildOptions()
+		for _, child in ipairs(dropdownScroll:GetChildren()) do
+			if child:IsA("TextButton") then
+				child:Destroy()
+			end
+		end
+
+		table.clear(optionButtons)
 		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
 		dropdownHeight = math.min(#values * itemHeight, maxHeight)
 
+		if #values == 0 then
+			idx = 0
+		else
+			if idx < 1 or idx > #values then
+				idx = 1
+			end
+		end
+		updateButtonText()
+
+		for i, value in ipairs(values) do
+			local optionBtn = Instance.new("TextButton")
+			optionBtn.Name = "Option_" .. i
+			optionBtn.Size = UDim2.new(1, -8, 0, 28)
+			optionBtn.BackgroundColor3 = i == idx and pal3.Accent or pal3.Card
+			optionBtn.BackgroundTransparency = i == idx and 0.8 or 0
+			optionBtn.BorderSizePixel = 0
+			optionBtn.Font = Enum.Font.Gotham
+			optionBtn.TextSize = 12
+			optionBtn.TextColor3 = i == idx and pal3.Accent or pal3.Text
+			optionBtn.Text = tostring(value)
+			optionBtn.AutoButtonColor = false
+			optionBtn.LayoutOrder = i
+			optionBtn.ZIndex = 102
+			optionBtn.Parent = dropdownScroll
+			corner(optionBtn, 6)
+
+			optionBtn.MouseButton1Click:Connect(function()
+				if locked() then return end
+				idx = i
+				updateButtonText()
+				updateHighlight()
+				setOpen(false)
+
+				if o.OnChanged then
+					task.spawn(o.OnChanged, value)
+				end
+				if o.Flag then RvrseUI:_autoSave() end
+			end)
+
+			optionBtn.MouseEnter:Connect(function()
+				if i ~= idx then
+					Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
+				end
+			end)
+
+			optionBtn.MouseLeave:Connect(function()
+				if i ~= idx then
+					Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+				end
+			end)
+
+			optionButtons[i] = optionBtn
+		end
+
+		updateHighlight()
+	end
+
+	rebuildOptions()
+	visual()
+
+	function setOpen(state)
+		if locked() then
+			return
+		end
+
+		if state == dropdownOpen then
+			if state and useOverlay then
+				repositionOverlay()
+			end
+			return
+		end
+
+		dropdownOpen = state
+		arrow.Text = dropdownOpen and "▲" or "▼"
+
 		if dropdownOpen then
-			local width = positionOverlay()
-			if useOverlay and OverlayLayer then
+			if o.OnOpen then
+				o.OnOpen()
+			end
+
+			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
+			dropdownHeight = math.min(#values * itemHeight, maxHeight)
+
+			if useOverlay then
 				ensureBlocker()
 				if overlayBlocker then
 					overlayBlocker.Visible = true
-					overlayBlocker.Parent = OverlayLayer
 				end
+				local width = repositionOverlay()
+				dropdownList.Size = UDim2.new(0, width, 0, 0)
 			else
+				collapseInline()
 				dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
 			end
+
 			dropdownList.Visible = true
-			local targetWidth = useOverlay and btn.AbsoluteSize.X or inlineWidth
-			if targetWidth <= 0 then targetWidth = inlineWidth end
+			local targetWidth = useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
 			Animator:Tween(dropdownList, {
 				Size = UDim2.new(0, targetWidth, 0, dropdownHeight)
 			}, Animator.Spring.Snappy)
 		else
-			local width = useOverlay and btn.AbsoluteSize.X or inlineWidth
-			if width <= 0 then width = inlineWidth end
+			local targetWidth = useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
 			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, width, 0, 0)
+				Size = UDim2.new(0, targetWidth, 0, 0)
 			}, Animator.Spring.Fast)
+
 			task.delay(0.15, function()
 				if dropdownList then
 					dropdownList.Visible = false
-					if useOverlay and OverlayLayer then
-						dropdownList.Parent = inlineParent
-						dropdownList.Position = UDim2.new(1, -136, 0.5, 40)
-						dropdownList.Size = UDim2.new(0, 130, 0, 0)
-						if overlayBlocker then
-							overlayBlocker.Visible = false
-							overlayBlocker.Parent = OverlayLayer
-						end
+					collapseInline()
+					dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
+					if overlayBlocker then
+						overlayBlocker.Visible = false
+					end
+					if o.OnClose then
+						o.OnClose()
 					end
 				end
 			end)
 		end
 	end
 
+	-- Toggle dropdown on button click
 	btn.MouseButton1Click:Connect(function()
 		setOpen(not dropdownOpen)
 	end)
 
-	-- Close dropdown when clicking outside
+	-- Close when clicking outside (inline mode)
 	UIS.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if not dropdownOpen then return end
-			if useOverlay and OverlayLayer then
-				return
-			end
+			if useOverlay then return end
 
-			task.wait(0.05)  -- Small delay to ensure AbsolutePosition is updated
-
+			task.wait(0.05)
 			if not btn:IsDescendantOf(game) then
 				return
 			end
@@ -319,10 +370,10 @@ arrow.Text = dropdownOpen and "▲" or "▼"
 			local btnSize = btn.AbsoluteSize
 
 			local inDropdown = mousePos.X >= dropdownPos.X and mousePos.X <= dropdownPos.X + dropdownSize.X and
-							  mousePos.Y >= dropdownPos.Y and mousePos.Y <= dropdownPos.Y + dropdownSize.Y
+				mousePos.Y >= dropdownPos.Y and mousePos.Y <= dropdownPos.Y + dropdownSize.Y
 
 			local inButton = mousePos.X >= btnPos.X and mousePos.X <= btnPos.X + btnSize.X and
-							mousePos.Y >= btnPos.Y and mousePos.Y <= btnPos.Y + btnSize.Y
+				mousePos.Y >= btnPos.Y and mousePos.Y <= btnPos.Y + btnSize.Y
 
 			if not inDropdown and not inButton then
 				setOpen(false)
@@ -344,114 +395,66 @@ arrow.Text = dropdownOpen and "▲" or "▼"
 	table.insert(RvrseUI._lockListeners, visual)
 
 	local dropdownAPI = {
-		Set = function(_, v)
-			for i, val in ipairs(values) do
-				if val == v then
-					idx = i
-					break
-				end
-			end
-			btn.Text = tostring(values[idx])
-
-			-- Update dropdown options highlighting
-			for j, obtn in ipairs(optionButtons) do
-				if j == idx then
-					obtn.BackgroundColor3 = pal3.Accent
-					obtn.BackgroundTransparency = 0.8
-					obtn.TextColor3 = pal3.Accent
-				else
-					obtn.BackgroundColor3 = pal3.Card
-					obtn.BackgroundTransparency = 0
-					obtn.TextColor3 = pal3.Text
-				end
-			end
-
-			visual()
-			if o.OnChanged then task.spawn(o.OnChanged, values[idx]) end
-			if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on Set
-		end,
-		Get = function() return values[idx] end,
-		Refresh = function(_, newValues)
-			if newValues then
-				values = newValues
-				idx = 1
-				btn.Text = tostring(values[idx] or "Select")
-
-				-- Rebuild dropdown options
-				for _, child in ipairs(dropdownScroll:GetChildren()) do
-					if child:IsA("TextButton") then
-						child:Destroy()
+		Set = function(_, v, suppressCallback)
+			local foundIndex
+			if v ~= nil then
+				for i, val in ipairs(values) do
+					if val == v then
+						foundIndex = i
+						break
 					end
 				end
-
-				table.clear(optionButtons)
-				dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
-				dropdownHeight = math.min(#values * itemHeight, maxHeight)
-
-				for i, value in ipairs(values) do
-					local optionBtn = Instance.new("TextButton")
-					optionBtn.Name = "Option_" .. i
-					optionBtn.Size = UDim2.new(1, -8, 0, 28)
-					optionBtn.BackgroundColor3 = i == idx and pal3.Accent or pal3.Card
-					optionBtn.BackgroundTransparency = i == idx and 0.8 or 0
-					optionBtn.BorderSizePixel = 0
-					optionBtn.Font = Enum.Font.Gotham
-					optionBtn.TextSize = 12
-					optionBtn.TextColor3 = i == idx and pal3.Accent or pal3.Text
-					optionBtn.Text = tostring(value)
-					optionBtn.AutoButtonColor = false
-					optionBtn.LayoutOrder = i
-					optionBtn.ZIndex = 102
-					optionBtn.Parent = dropdownScroll
-					corner(optionBtn, 6)
-
-					optionButtons[i] = optionBtn
-
-					optionBtn.MouseButton1Click:Connect(function()
-						if locked() then return end
-						idx = i
-						btn.Text = tostring(value)
-
-						for j, obtn in ipairs(optionButtons) do
-							if j == i then
-								obtn.BackgroundColor3 = pal3.Accent
-								obtn.BackgroundTransparency = 0.8
-								obtn.TextColor3 = pal3.Accent
-							else
-								obtn.BackgroundColor3 = pal3.Card
-								obtn.BackgroundTransparency = 0
-								obtn.TextColor3 = pal3.Text
-							end
-						end
-
-						setOpen(false)
-
-						if o.OnChanged then task.spawn(o.OnChanged, value) end
-						if o.Flag then RvrseUI:_autoSave() end
-					end)
-
-					optionBtn.MouseEnter:Connect(function()
-						if i ~= idx then
-							Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
-						end
-					end)
-
-					optionBtn.MouseLeave:Connect(function()
-						if i ~= idx then
-							Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
-						end
-					end)
 			end
+
+			if foundIndex then
+				idx = foundIndex
+			else
+				if #values > 0 then
+					idx = 1
+				else
+					idx = 0
+				end
+			end
+
+			updateButtonText()
+			updateHighlight()
+			visual()
+
+			if not suppressCallback and o.OnChanged and values[idx] then
+				task.spawn(o.OnChanged, values[idx])
+			end
+		end,
+
+		Get = function()
+			return values[idx]
+		end,
+
+		Refresh = function(_, newValues)
+			if newValues then
+				values = {}
+				for _, val in ipairs(newValues) do
+					values[#values + 1] = val
+				end
+				idx = 1
+			end
+			rebuildOptions()
+			visual()
 			if dropdownOpen then
-				setOpen(true)
+				if useOverlay then
+					repositionOverlay()
+				end
+				dropdownList.Size = UDim2.new(0, useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth, 0, dropdownHeight)
 			end
-		end
-		visual()
-	end,
+		end,
+
 		SetVisible = function(_, visible)
 			f.Visible = visible
 		end,
-		CurrentOption = values[idx]
+
+		CurrentOption = values[idx],
+		SetOpen = function(_, state)
+			setOpen(state and true or false)
+		end
 	}
 
 	if o.Flag then
