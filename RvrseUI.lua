@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T12:08:05.701Z
+-- Compiled from modular architecture on 2025-10-10T12:13:36.779Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -28,15 +28,15 @@ local RvrseUI = {}
 -- Version Module
 -- ========================
 
-
+Version = {}
 
 Version.Data = {
 	Major = 3,
 	Minor = 0,
-	Patch = 3,
-	Build = "20251011",  -- YYYYMMDD format
-	Full = "3.0.3",
-	Hash = "N8P4Q6R2",  -- Release hash for integrity verification
+	Patch = 4,
+	Build = "20251010",  -- YYYYMMDD format
+	Full = "3.0.4",
+	Hash = "K7M3P9X1",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -82,7 +82,7 @@ setmetatable(Version, {
 -- Debug Module
 -- ========================
 
-
+Debug = {}
 
 Debug.Enabled = true  -- Global debug toggle
 
@@ -115,7 +115,7 @@ end
 -- Obfuscation Module
 -- ========================
 
-
+Obfuscation = {}
 
 Obfuscation._seed = tick() * math.random(1, 999999)  -- Unique seed per session
 Obfuscation._cache = {}  -- Cache generated names to avoid duplicates
@@ -207,7 +207,7 @@ end
 -- Icons Module
 -- ========================
 
-
+Icons = {}
 
 Icons.UnicodeIcons = {
 	-- Navigation & UI
@@ -433,7 +433,7 @@ end
 -- Theme Module
 -- ========================
 
-
+Theme = {}
 
 Theme.Palettes = {
 	Dark = {
@@ -547,7 +547,7 @@ end
 
 local TweenService = game:GetService("TweenService")
 
-
+Animator = {}
 
 Animator.Spring = {
 	Smooth = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -601,7 +601,7 @@ end
 -- State Module
 -- ========================
 
-
+State = {}
 
 State.Flags = {}
 
@@ -659,7 +659,7 @@ end
 
 local TweenService = game:GetService("TweenService")
 
-
+UIHelpers = {}
 
 function UIHelpers.coerceKeycode(k)
 	if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
@@ -793,7 +793,7 @@ end
 -- Config Module
 -- ========================
 
-
+Config = {}
 
 local State = nil
 local Theme = nil
@@ -1450,7 +1450,7 @@ local CoreGui = game:GetService("CoreGui")
 local LP = Players.LocalPlayer
 local PlayerGui = LP:WaitForChild("PlayerGui")
 
-
+WindowManager = {}
 
 function WindowManager:Init(obfuscatedNames)
 	self._host = nil
@@ -1565,7 +1565,7 @@ end
 
 local UIS = game:GetService("UserInputService")
 
-
+Hotkeys = {}
 Hotkeys.UI = {
 	_toggleTargets = {},
 	_windowData = {},
@@ -1718,7 +1718,7 @@ end
 -- Notifications Module
 -- ========================
 
-
+Notifications = {}
 
 local corner, stroke
 
@@ -1913,7 +1913,7 @@ end
 -- Button Module
 -- ========================
 
-
+Button = {}
 
 function Button.Create(o, dependencies)
 	o = o or {}
@@ -1982,7 +1982,7 @@ end
 -- Toggle Module
 -- ========================
 
-
+Toggle = {}
 
 function Toggle.Create(o, dependencies)
 	o = o or {}
@@ -2087,7 +2087,7 @@ end
 -- Dropdown Module
 -- ========================
 
-
+Dropdown = {}
 
 function Dropdown.Create(o, dependencies)
 	o = o or {}
@@ -2555,7 +2555,7 @@ end
 -- Slider Module
 -- ========================
 
-
+Slider = {}
 
 function Slider.Create(o, dependencies)
 	o = o or {}
@@ -2742,7 +2742,7 @@ end
 -- Keybind Module
 -- ========================
 
-
+Keybind = {}
 
 function Keybind.Create(o, dependencies)
 	o = o or {}
@@ -2864,7 +2864,7 @@ end
 -- TextBox Module
 -- ========================
 
-
+TextBox = {}
 
 function TextBox.Create(o, dependencies)
 	o = o or {}
@@ -2956,7 +2956,7 @@ end
 -- ColorPicker Module
 -- ========================
 
-
+ColorPicker = {}
 
 function ColorPicker.Create(o, dependencies)
 	o = o or {}
@@ -3059,7 +3059,7 @@ end
 -- Label Module
 -- ========================
 
-
+Label = {}
 
 function Label.Create(o, dependencies)
 	o = o or {}
@@ -3106,7 +3106,7 @@ end
 -- Paragraph Module
 -- ========================
 
-
+Paragraph = {}
 
 function Paragraph.Create(o, dependencies)
 	o = o or {}
@@ -3162,7 +3162,7 @@ end
 -- Divider Module
 -- ========================
 
-
+Divider = {}
 
 function Divider.Create(o, dependencies)
 	o = o or {}
@@ -3196,7 +3196,7 @@ end
 -- SectionBuilder Module
 -- ========================
 
-
+SectionBuilder = {}
 
 function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local Theme = dependencies.Theme
@@ -3275,7 +3275,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		return c
 	end
 
-	
+	local SectionAPI = {}
 
 	-- Prepare element dependencies
 	local function getElementDeps()
@@ -3360,7 +3360,7 @@ end
 -- TabBuilder Module
 -- ========================
 
-
+TabBuilder = {}
 
 function TabBuilder.CreateTab(t, dependencies)
 	t = t or {}
@@ -3480,7 +3480,7 @@ function TabBuilder.CreateTab(t, dependencies)
 		activateTab()
 	end
 
-	
+	local TabAPI = {}
 
 	-- Tab SetIcon Method
 	function TabAPI:SetIcon(newIcon)
@@ -3539,7 +3539,7 @@ end
 -- WindowBuilder Module
 -- ========================
 
-
+WindowBuilder = {}
 
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, Notifications
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
@@ -4756,7 +4756,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local activePage
 	local tabs = {}
 
-	
+	local WindowAPI = {}
 	function WindowAPI:SetTitle(t) title.Text = t or name end
 	function WindowAPI:Show() setHidden(false) end
 	function WindowAPI:Hide() setHidden(true) end

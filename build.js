@@ -94,8 +94,10 @@ for (let i = 0; i < moduleOrder.length; i++) {
 	// Remove module header comments (lines starting with --)
 	content = content.replace(/^--[^\n]*\n/gm, '');
 
-	// Remove "local X = {}" declarations that will conflict
-	content = content.replace(/local ([A-Z][A-Za-z]+) = \{\}/g, '');
+	// For ALL modules, we need to keep their local declarations
+	// but convert them to global assignments since we're compiling into one file
+	// Exception: Keep the table initialization, just remove "local"
+	content = content.replace(/^local ([A-Z][A-Za-z]+) = \{\}/gm, '$1 = {}');
 
 	// Remove "return X" at end of modules
 	content = content.replace(/\nreturn [A-Z][A-Za-z]+\s*$/g, '');

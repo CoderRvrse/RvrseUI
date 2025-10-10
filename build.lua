@@ -110,8 +110,10 @@ for i, modulePath in ipairs(moduleOrder) do
 	content = content:gsub("^%-%-[^\n]*\n", "")
 	content = content:gsub("\n%-%-[^\n]*\n", "\n")
 
-	-- Remove "local X = {}" declarations that will conflict
-	content = content:gsub("local ([A-Z][A-Za-z]+) = %{%}", "")
+	-- For ALL modules, we need to keep their local declarations
+	-- but convert them to global assignments since we're compiling into one file
+	-- Convert "local ModuleName = {}" to "ModuleName = {}"
+	content = content:gsub("^local ([A-Z][A-Za-z]+) = %{%}", "%1 = {}")
 
 	-- Remove "return X" at end of modules
 	content = content:gsub("\nreturn [A-Z][A-Za-z]+%s*$", "")
