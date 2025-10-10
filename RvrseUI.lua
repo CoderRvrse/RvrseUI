@@ -3541,7 +3541,7 @@ end
 
 WindowBuilder = {}
 
-local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, Notifications
+local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
 
 local UIS, GuiService, RS, PlayerGui, HttpService
@@ -3557,7 +3557,7 @@ function WindowBuilder:Initialize(deps)
 	TabBuilder = deps.TabBuilder
 	SectionBuilder = deps.SectionBuilder
 	WindowManager = deps.WindowManager
-	Notifications = deps.Notifications
+	NotificationsService = deps.Notifications
 	Debug = deps.Debug
 	Obfuscation = deps.Obfuscation
 	Hotkeys = deps.Hotkeys
@@ -4192,13 +4192,15 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end)
 
 	versionBadge.MouseButton1Click:Connect(function()
-		local info = RvrseUI:GetVersionInfo()
-		Notifications:Notify({
-			Title = "RvrseUI " .. RvrseUI:GetVersionString(),
-			Message = string.format("Hash: %s | Channel: %s", info.Hash, info.Channel),
-			Duration = 4,
-			Type = "info"
-		})
+		if NotificationsService and NotificationsService.Notify then
+			local info = RvrseUI:GetVersionInfo()
+			NotificationsService:Notify({
+				Title = "RvrseUI " .. RvrseUI:GetVersionString(),
+				Message = string.format("Hash: %s | Channel: %s", info.Hash, info.Channel),
+				Duration = 4,
+				Type = "info"
+			})
+		end
 	end)
 
 	-- Tab bar
@@ -5104,11 +5106,23 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	-- Welcome notifications
-	if not cfg.DisableBuildWarnings then
-		Notifications:Notify({Title = "RvrseUI v2.0", Message = "Modern UI loaded successfully", Duration = 2, Type = "success"})
-	end
-	if not cfg.DisableRvrseUIPrompts then
-		Notifications:Notify({Title = "Tip", Message = "Press " .. toggleKey.Name .. " to toggle UI", Duration = 3, Type = "info"})
+	if NotificationsService and NotificationsService.Notify then
+		if not cfg.DisableBuildWarnings then
+			NotificationsService:Notify({
+				Title = "RvrseUI v2.0",
+				Message = "Modern UI loaded successfully",
+				Duration = 2,
+				Type = "success"
+			})
+		end
+		if not cfg.DisableRvrseUIPrompts then
+			NotificationsService:Notify({
+				Title = "Tip",
+				Message = "Press " .. toggleKey.Name .. " to toggle UI",
+				Duration = 3,
+				Type = "info"
+			})
+		end
 	end
 
 	-- Pill sync and theme toggle (lines 3816-3916)
@@ -5183,12 +5197,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			RvrseUI:_autoSave()
 		end
 
-		Notifications:Notify({
-			Title = "Theme Changed",
-			Message = "Switched to " .. newTheme .. " mode",
-			Duration = 2,
-			Type = "info"
-		})
+		if NotificationsService and NotificationsService.Notify then
+			NotificationsService:Notify({
+				Title = "Theme Changed",
+				Message = "Switched to " .. newTheme .. " mode",
+				Duration = 2,
+				Type = "info"
+			})
+		end
 	end)
 
 	task.defer(syncPillFromTheme)

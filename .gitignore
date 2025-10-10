@@ -49,6 +49,7 @@ ANTICHEAT_*.md
 # Local configuration
 config.local.lua
 secrets.lua
+.claude/
 
 # Node modules (if using any JS tools)
 node_modules/
