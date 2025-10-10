@@ -277,7 +277,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local dragging, activeDragInput
 	local dragPointerOffset
 	local headerLastPointer
-	local debugOverlay, debugLabels = nil, {}
 	local hostScreenGui = typeof(windowHost) == "Instance"
 		and windowHost:IsA("ScreenGui")
 		and windowHost
@@ -305,78 +304,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return Vector2.new(inset.X, inset.Y)
 	end
 
-	-- Lazily create on-screen debug labels when debug mode is enabled
-	local function getDebugOverlay()
-		if not Debug:IsEnabled() then
-			return nil
-		end
-
-		if not hostScreenGui or not hostScreenGui.Parent then
-			return nil
-		end
-
-		if debugOverlay and debugOverlay.Parent then
-			return debugOverlay
-		end
-
-		debugOverlay = hostScreenGui:FindFirstChild("_DragDebugOverlay")
-		if not debugOverlay then
-			debugOverlay = Instance.new("Frame")
-			debugOverlay.Name = "_DragDebugOverlay"
-			debugOverlay.BackgroundTransparency = 0.4
-			debugOverlay.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-			debugOverlay.BorderSizePixel = 0
-			debugOverlay.Size = UDim2.new(0, 360, 0, 60)
-			debugOverlay.Position = UDim2.new(0, 12, 0, 12)
-			debugOverlay.ZIndex = 999999
-			debugOverlay.Visible = true
-			debugOverlay.Parent = hostScreenGui
-
-			local corner = Instance.new("UICorner")
-			corner.CornerRadius = UDim.new(0, 10)
-			corner.Parent = debugOverlay
-
-			local list = Instance.new("UIListLayout")
-			list.Padding = UDim.new(0, 4)
-			list.FillDirection = Enum.FillDirection.Vertical
-			list.SortOrder = Enum.SortOrder.LayoutOrder
-			list.Parent = debugOverlay
-
-			local padding = Instance.new("UIPadding")
-			padding.PaddingTop = UDim.new(0, 8)
-			padding.PaddingBottom = UDim.new(0, 8)
-			padding.PaddingLeft = UDim.new(0, 10)
-			padding.PaddingRight = UDim.new(0, 10)
-			padding.Parent = debugOverlay
-		end
-
-		return debugOverlay
-	end
-
 	local function setDebugLabel(key, text)
-		local overlay = getDebugOverlay()
-		if not overlay then
-			return
+		if Debug:IsEnabled() then
+			Debug.printf("[TELEMETRY][%s] %s", key, text)
 		end
-
-		local label = debugLabels[key]
-		if not label or not label.Parent then
-			label = Instance.new("TextLabel")
-			label.BackgroundTransparency = 1
-			label.BorderSizePixel = 0
-			label.Size = UDim2.new(1, 0, 0, 18)
-			label.Font = Enum.Font.Code
-			label.TextSize = 14
-			label.TextColor3 = Color3.fromRGB(120, 220, 255)
-			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.Name = key
-			label.Parent = overlay
-			debugLabels[key] = label
-		end
-
-		label.Visible = true
-		label.Text = text
-		overlay.Visible = true
 	end
 
 	local function hideDebugLabel(key)
