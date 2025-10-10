@@ -3849,20 +3849,27 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return UIS:GetMouseLocation()
 	end
 
-	local function pointerInHostSpace(inputObject)
+	local function guiInsetOffset()
+		local inset = GuiService:GetGuiInset()
+		return Vector2.new(inset.X, inset.Y)
+	end
+
+	local function pointerInUiSpace(inputObject)
 		local pointer = pointerPositionFromInput(inputObject)
+		return pointer - guiInsetOffset()
+	end
 
+	local function rootTopLeftInUiSpace()
+		local absPos = root.AbsolutePosition
 		if hostScreenGui and not hostIgnoresInset then
-			local inset = GuiService:GetGuiInset()
-			pointer = pointer - inset
+			absPos -= guiInsetOffset()
 		end
-
-		return pointer
+		return absPos
 	end
 
 	local function cacheDragOffset(inputObject)
-		local pointer = pointerInHostSpace(inputObject)
-		local startAbsPos = root.AbsolutePosition
+		local pointer = pointerInUiSpace(inputObject)
+		local startAbsPos = rootTopLeftInUiSpace()
 		dragOffset = pointer - startAbsPos
 	end
 
@@ -3915,25 +3922,33 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			cacheDragOffset(activeDragInput or io)
 		end
 
-		local pointer = pointerInHostSpace(io)
+		local pointer = pointerInUiSpace(io)
 		local targetX = pointer.X - dragOffset.X
 		local targetY = pointer.Y - dragOffset.Y
 
 		local screenSize = workspace.CurrentCamera.ViewportSize
-		local guiInset = hostIgnoresInset and Vector2.new(0, 0) or GuiService:GetGuiInset()
+		local inset = guiInsetOffset()
 		local windowWidth = root.AbsoluteSize.X
 		local windowHeight = root.AbsoluteSize.Y
 		local headerHeight = 52
 
 		local minX = -(windowWidth - 100)
-		local maxX = screenSize.X - 100
+		local maxX = (screenSize.X - inset.X) - 100
 		local minY = 0
-		local maxY = (screenSize.Y - guiInset.Y) - headerHeight
+		local maxY = (screenSize.Y - inset.Y) - headerHeight
 
 		targetX = math.clamp(targetX, minX, maxX)
 		targetY = math.clamp(targetY, minY, maxY)
 
-		root.Position = UDim2.fromOffset(targetX, targetY)
+		local finalX = targetX
+		local finalY = targetY
+
+		if hostScreenGui and not hostIgnoresInset then
+			finalX += inset.X
+			finalY += inset.Y
+		end
+
+		root.Position = UDim2.fromOffset(finalX, finalY)
 	end)
 
 	UIS.InputEnded:Connect(function(io)
