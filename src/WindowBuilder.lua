@@ -268,9 +268,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	-- Drag to move
 	local dragging, activeDragInput, dragOffset
-	local hostIgnoresInset = typeof(windowHost) == "Instance"
+	local hostScreenGui = typeof(windowHost) == "Instance"
 		and windowHost:IsA("ScreenGui")
-		and windowHost.IgnoreGuiInset == true
+		and windowHost
+	local hostIgnoresInset = hostScreenGui and windowHost.IgnoreGuiInset == true
 
 	local function pointerPositionFromInput(inputObject)
 		if inputObject.UserInputType == Enum.UserInputType.Touch then
@@ -280,8 +281,19 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return UIS:GetMouseLocation()
 	end
 
-	local function cacheDragOffset(inputObject)
+	local function pointerInHostSpace(inputObject)
 		local pointer = pointerPositionFromInput(inputObject)
+
+		if hostScreenGui and not hostIgnoresInset then
+			local inset = GuiService:GetGuiInset()
+			pointer = pointer - inset
+		end
+
+		return pointer
+	end
+
+	local function cacheDragOffset(inputObject)
+		local pointer = pointerInHostSpace(inputObject)
 		local startAbsPos = root.AbsolutePosition
 		dragOffset = pointer - startAbsPos
 	end
@@ -335,7 +347,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			cacheDragOffset(activeDragInput or io)
 		end
 
-		local pointer = pointerPositionFromInput(io)
+		local pointer = pointerInHostSpace(io)
 		local targetX = pointer.X - dragOffset.X
 		local targetY = pointer.Y - dragOffset.Y
 
@@ -347,8 +359,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		local minX = -(windowWidth - 100)
 		local maxX = screenSize.X - 100
-		local minY = guiInset.Y
-		local maxY = screenSize.Y - headerHeight
+		local minY = 0
+		local maxY = (screenSize.Y - guiInset.Y) - headerHeight
 
 		targetX = math.clamp(targetX, minX, maxX)
 		targetY = math.clamp(targetY, minY, maxY)
