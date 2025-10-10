@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T17:04:27.151Z
+-- Compiled from modular architecture on 2025-10-10T17:16:27.585Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2157,11 +2157,11 @@ do
 		local RvrseUI = dependencies.RvrseUI
 		local UIS = dependencies.UIS
 		local OverlayLayer = dependencies.OverlayLayer
-	local OverlayService = dependencies.Overlay
+		local OverlayService = dependencies.Overlay
 	
-	if OverlayService and not OverlayLayer then
-		OverlayLayer = OverlayService:GetLayer()
-	end
+		if OverlayService and not OverlayLayer then
+			OverlayLayer = OverlayService:GetLayer()
+		end
 	
 		-- Settings
 		local values = {}

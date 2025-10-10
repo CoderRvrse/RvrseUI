@@ -118,7 +118,11 @@ function Overlay:ShowBlocker(options)
 	blocker.Visible = true
 	blocker.Active = true
 	blocker.Modal = options.Modal ~= false
-	blocker.BackgroundTransparency = options.Transparency ~= nil and options.Transparency or 0.45
+	local transparency = options.Transparency
+	if transparency == nil then
+		transparency = 1
+	end
+	blocker.BackgroundTransparency = transparency
 
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
 		self.Debug.printf("[OVERLAY] ShowBlocker depth=%d alpha=%.2f", self._blockerCount, blocker.BackgroundTransparency)
