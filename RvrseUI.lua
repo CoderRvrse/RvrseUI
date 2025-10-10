@@ -3856,6 +3856,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			end
 		end
 	end)
+	local hostIgnoresInset = typeof(windowHost) == "Instance"
+		and windowHost:IsA("ScreenGui")
+		and windowHost.IgnoreGuiInset == true
+
 	UIS.InputChanged:Connect(function(io)
 		if dragging and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
 			local delta = io.Position - dragStart
@@ -3863,7 +3867,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			local newY = startAbsPos.Y + delta.Y
 
 			local screenSize = workspace.CurrentCamera.ViewportSize
-			local guiInset = GuiService:GetGuiInset()
+			local guiInset = hostIgnoresInset and Vector2.new(0, 0) or GuiService:GetGuiInset()
 			local windowWidth = root.AbsoluteSize.X
 			local windowHeight = root.AbsoluteSize.Y
 			local headerHeight = 52
