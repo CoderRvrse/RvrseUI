@@ -1,6 +1,6 @@
--- Keybind Element Module
--- Part of RvrseUI v2.13.0 Modular Architecture
--- Extracted from RvrseUI.lua (lines 3249-3352)
+-- Keybind Element Module v4.0
+-- Modern keybind with gradient highlight when capturing
+-- Complete redesign for RvrseUI v4.0
 
 local Keybind = {}
 
@@ -15,33 +15,57 @@ function Keybind.Create(o, dependencies)
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
 	local UIS = dependencies.UIS
+	local Theme = dependencies.Theme
 
-	local f = card(44)
+	local f = card(48) -- Taller for modern look
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
-	lbl.Size = UDim2.new(1, -140, 1, 0)
-	lbl.Font = Enum.Font.GothamMedium
-	lbl.TextSize = 14
+	lbl.Size = UDim2.new(1, -150, 1, 0)
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextSize = 15
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Keybind"
 	lbl.Parent = f
 
+	-- Modern key display button
 	local btn = Instance.new("TextButton")
 	btn.AnchorPoint = Vector2.new(1, 0.5)
-	btn.Position = UDim2.new(1, 0, 0.5, 0)
-	btn.Size = UDim2.new(0, 130, 0, 32)
+	btn.Position = UDim2.new(1, -6, 0.5, 0)
+	btn.Size = UDim2.new(0, 140, 0, 36)
 	btn.BackgroundColor3 = pal3.Card
+	btn.BackgroundTransparency = 0.2
 	btn.BorderSizePixel = 0
 	btn.Font = Enum.Font.Code
-	btn.TextSize = 12
-	btn.TextColor3 = pal3.Text
+	btn.TextSize = 13
+	btn.TextColor3 = pal3.TextBright
 	btn.Text = (o.Default and o.Default.Name) or "Set Key"
 	btn.AutoButtonColor = false
 	btn.Parent = f
-	corner(btn, 8)
-	stroke(btn, pal3.Border, 1)
+	corner(btn, 10)
+
+	-- Border stroke
+	local btnStroke = Instance.new("UIStroke")
+	btnStroke.Color = pal3.Border
+	btnStroke.Thickness = 1
+	btnStroke.Transparency = 0.5
+	btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	btnStroke.Parent = btn
+
+	-- Gradient overlay (shows when capturing)
+	local btnGradient = Instance.new("UIGradient")
+	btnGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal3.Primary),
+		ColorSequenceKeypoint.new(0.5, pal3.Accent),
+		ColorSequenceKeypoint.new(1, pal3.Secondary),
+	}
+	btnGradient.Rotation = 45
+	btnGradient.Transparency = NumberSequence.new{
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	}
+	btnGradient.Parent = btn
 
 	local capturing = false
 	local currentKey = o.Default
@@ -49,8 +73,28 @@ function Keybind.Create(o, dependencies)
 	btn.MouseButton1Click:Connect(function()
 		if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 		capturing = true
-		btn.Text = "Press any key..."
-		btn.TextColor3 = pal3.Accent
+		btn.Text = "⌨️ Press any key..."
+
+		-- Activate gradient background
+		Animator:Tween(btnGradient, {
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.5),
+				NumberSequenceKeypoint.new(1, 0.5),
+			}
+		}, Animator.Spring.Snappy)
+
+		-- Glow border
+		Animator:Tween(btnStroke, {
+			Color = pal3.Accent,
+			Thickness = 2,
+			Transparency = 0.2
+		}, Animator.Spring.Snappy)
+
+		-- Shimmer effect
+		Animator:Shimmer(btn, Theme)
+
+		-- Pulse
+		Animator:Pulse(btn, 1.05, Animator.Spring.Bounce)
 	end)
 
 	UIS.InputBegan:Connect(function(io, gpe)
@@ -59,7 +103,24 @@ function Keybind.Create(o, dependencies)
 			capturing = false
 			currentKey = io.KeyCode
 			btn.Text = io.KeyCode.Name
-			btn.TextColor3 = pal3.Text
+
+			-- Deactivate gradient
+			Animator:Tween(btnGradient, {
+				Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 1),
+					NumberSequenceKeypoint.new(1, 1),
+				}
+			}, Animator.Spring.Glide)
+
+			-- Restore border
+			Animator:Tween(btnStroke, {
+				Color = pal3.Border,
+				Thickness = 1,
+				Transparency = 0.5
+			}, Animator.Spring.Snappy)
+
+			-- Success pulse
+			Animator:Pulse(btn, 1.08, Animator.Spring.Bounce)
 
 			-- SPECIAL: If this keybind is for UI toggle, update the global toggle key
 			if o.Flag == "_UIToggleKey" or o.IsUIToggle then
@@ -74,18 +135,20 @@ function Keybind.Create(o, dependencies)
 			end
 
 			if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
-			if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
+			if o.Flag then RvrseUI:_autoSave() end
 		end
 	end)
 
 	btn.MouseEnter:Connect(function()
 		if not capturing then
-			Animator:Tween(btn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
+			Animator:Tween(btn, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+			Animator:Tween(btnStroke, {Transparency = 0.3}, Animator.Spring.Lightning)
 		end
 	end)
 	btn.MouseLeave:Connect(function()
 		if not capturing then
-			Animator:Tween(btn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+			Animator:Tween(btn, {BackgroundTransparency = 0.2}, Animator.Spring.Snappy)
+			Animator:Tween(btnStroke, {Transparency = 0.5}, Animator.Spring.Snappy)
 		end
 	end)
 

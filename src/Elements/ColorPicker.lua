@@ -1,6 +1,6 @@
--- ColorPicker Element Module
--- Part of RvrseUI v2.13.0 Modular Architecture
--- Extracted from RvrseUI.lua (lines 3704-3789)
+-- ColorPicker Element Module v4.0
+-- Modern color picker with gradient preview circle
+-- Complete redesign for RvrseUI v4.0
 
 local ColorPicker = {}
 
@@ -14,33 +14,42 @@ function ColorPicker.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local Theme = dependencies.Theme
 
-	local f = card(44)
+	local f = card(48) -- Taller for modern look
 
-	local defaultColor = o.Default or Color3.fromRGB(255, 255, 255)
+	local defaultColor = o.Default or pal3.Accent
 	local currentColor = defaultColor
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
-	lbl.Size = UDim2.new(1, -80, 1, 0)
-	lbl.Font = Enum.Font.GothamMedium
-	lbl.TextSize = 14
+	lbl.Size = UDim2.new(1, -90, 1, 0)
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextSize = 15
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Color"
 	lbl.Parent = f
 
+	-- Circular preview button (modern design)
 	local preview = Instance.new("TextButton")
 	preview.AnchorPoint = Vector2.new(1, 0.5)
-	preview.Position = UDim2.new(1, 0, 0.5, 0)
-	preview.Size = UDim2.new(0, 64, 0, 32)
+	preview.Position = UDim2.new(1, -6, 0.5, 0)
+	preview.Size = UDim2.new(0, 40, 0, 40) -- Circular
 	preview.BackgroundColor3 = currentColor
 	preview.BorderSizePixel = 0
 	preview.Text = ""
 	preview.AutoButtonColor = false
 	preview.Parent = f
-	corner(preview, 8)
-	stroke(preview, pal3.Border, 2)
+	corner(preview, 20) -- Full circle
+
+	-- Glowing stroke
+	local previewStroke = Instance.new("UIStroke")
+	previewStroke.Color = pal3.Border
+	previewStroke.Thickness = 2
+	previewStroke.Transparency = 0.4
+	previewStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	previewStroke.Parent = preview
 
 	-- Simple color cycling demo (you can implement full color picker UI)
 	local colors = {
@@ -59,19 +68,48 @@ function ColorPicker.Create(o, dependencies)
 		if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 		colorIdx = (colorIdx % #colors) + 1
 		currentColor = colors[colorIdx]
-		preview.BackgroundColor3 = currentColor
+
+		-- Smooth color transition
+		Animator:Tween(preview, {BackgroundColor3 = currentColor}, Animator.Spring.Snappy)
+
+		-- Pulse effect
+		Animator:Pulse(preview, 1.15, Animator.Spring.Bounce)
+
+		-- Border flashes the new color
+		Animator:Tween(previewStroke, {
+			Color = currentColor,
+			Thickness = 3
+		}, Animator.Spring.Lightning)
+
+		task.delay(0.2, function()
+			Animator:Tween(previewStroke, {
+				Color = pal3.Border,
+				Thickness = 2
+			}, Animator.Spring.Glide)
+		end)
+
 		if o.OnChanged then
 			task.spawn(o.OnChanged, currentColor)
 		end
-		if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
+		if o.Flag then RvrseUI:_autoSave() end
 	end)
 
 	preview.MouseEnter:Connect(function()
-		Animator:Tween(preview, {BackgroundTransparency = 0.2}, Animator.Spring.Fast)
+		-- Glow on hover
+		Animator:Tween(previewStroke, {
+			Thickness = 3,
+			Transparency = 0.2
+		}, Animator.Spring.Snappy)
+
+		Animator:Glow(preview, 0.4, 0.5, Theme)
 	end)
 
 	preview.MouseLeave:Connect(function()
-		Animator:Tween(preview, {BackgroundTransparency = 0}, Animator.Spring.Fast)
+		-- Restore
+		Animator:Tween(previewStroke, {
+			Thickness = 2,
+			Transparency = 0.4
+		}, Animator.Spring.Snappy)
 	end)
 
 	table.insert(RvrseUI._lockListeners, function()

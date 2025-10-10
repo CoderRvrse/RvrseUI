@@ -1,72 +1,79 @@
 -- =========================
--- RvrseUI Theme Module
+-- RvrseUI Theme Module v4.0
 -- =========================
--- Handles theme management, palettes, and theme switching
--- Extracted from RvrseUI.lua (lines 761-847)
+-- Next-gen vibrant design system with stunning gradients and modern aesthetics
+-- Complete redesign - removed Light theme, focusing on one amazing dark experience
 
 local Theme = {}
 
+-- 🎨 REVOLUTIONARY COLOR PALETTE - Cyberpunk Neon meets Modern Minimalism
 Theme.Palettes = {
 	Dark = {
-		-- Glassmorphic backgrounds
-		Bg = Color3.fromRGB(10, 10, 14),
-		Glass = Color3.fromRGB(18, 18, 24),
-		Card = Color3.fromRGB(26, 26, 32),
-		Elevated = Color3.fromRGB(32, 32, 40),
+		-- 🌌 Deep space backgrounds with rich depth
+		Bg = Color3.fromRGB(8, 8, 16),              -- Deep space black with blue tint
+		Glass = Color3.fromRGB(15, 15, 26),         -- Translucent glass effect
+		Card = Color3.fromRGB(20, 20, 35),          -- Elevated card surfaces
+		Elevated = Color3.fromRGB(25, 25, 42),      -- Highest elevation
+		Surface = Color3.fromRGB(18, 18, 30),       -- Standard surface
 
-		-- Text hierarchy
-		Text = Color3.fromRGB(245, 245, 250),
-		TextSub = Color3.fromRGB(160, 165, 180),
-		TextMuted = Color3.fromRGB(110, 115, 130),
+		-- 🌈 Vibrant gradient accents - Electric Purple to Cyan
+		Primary = Color3.fromRGB(138, 43, 226),     -- Electric purple (BlueViolet)
+		PrimaryGlow = Color3.fromRGB(168, 85, 247), -- Lighter purple glow
+		Secondary = Color3.fromRGB(0, 229, 255),    -- Electric cyan
+		SecondaryGlow = Color3.fromRGB(34, 211, 238), -- Cyan glow
 
-		-- Accents & states
-		Accent = Color3.fromRGB(99, 102, 241),  -- Modern indigo
-		AccentHover = Color3.fromRGB(129, 140, 248),
-		Success = Color3.fromRGB(34, 197, 94),
-		Warning = Color3.fromRGB(251, 191, 36),
-		Error = Color3.fromRGB(239, 68, 68),
-		Info = Color3.fromRGB(59, 130, 246),
+		-- 🎯 Main accent - Vibrant magenta/pink
+		Accent = Color3.fromRGB(236, 72, 153),      -- Hot pink
+		AccentHover = Color3.fromRGB(251, 113, 133),-- Lighter pink on hover
+		AccentActive = Color3.fromRGB(219, 39, 119),-- Darker pink when active
+		AccentGlow = Color3.fromRGB(249, 168, 212), -- Pink glow effect
 
-		-- Borders & dividers
-		Border = Color3.fromRGB(45, 45, 55),
-		Divider = Color3.fromRGB(35, 35, 43),
+		-- ✨ Text hierarchy - Crystal clear with vibrant highlights
+		Text = Color3.fromRGB(248, 250, 252),       -- Almost white, perfect clarity
+		TextBright = Color3.fromRGB(255, 255, 255), -- Pure white for emphasis
+		TextSub = Color3.fromRGB(203, 213, 225),    -- Subtle gray for secondary
+		TextMuted = Color3.fromRGB(148, 163, 184),  -- Muted for tertiary
+		TextDim = Color3.fromRGB(100, 116, 139),    -- Very dim for hints
 
-		-- Interactive states
-		Hover = Color3.fromRGB(38, 38, 48),
-		Active = Color3.fromRGB(48, 48, 60),
-		Disabled = Color3.fromRGB(70, 70, 82),
-	},
-	Light = {
-		-- Backgrounds - Clean, modern white with subtle depth
-		Bg = Color3.fromRGB(245, 247, 250),        -- Soft blue-gray background
-		Glass = Color3.fromRGB(255, 255, 255),     -- Pure white glass
-		Card = Color3.fromRGB(252, 253, 255),      -- Slightly off-white cards
-		Elevated = Color3.fromRGB(248, 250, 252),  -- Elevated elements
+		-- 🎨 Status colors - Vibrant and eye-catching
+		Success = Color3.fromRGB(34, 197, 94),      -- Vibrant green
+		SuccessGlow = Color3.fromRGB(74, 222, 128), -- Green glow
+		Warning = Color3.fromRGB(251, 146, 60),     -- Vibrant orange
+		WarningGlow = Color3.fromRGB(253, 186, 116),-- Orange glow
+		Error = Color3.fromRGB(248, 113, 113),      -- Bright red
+		ErrorGlow = Color3.fromRGB(252, 165, 165),  -- Red glow
+		Info = Color3.fromRGB(96, 165, 250),        -- Sky blue
+		InfoGlow = Color3.fromRGB(147, 197, 253),   -- Blue glow
 
-		-- Text - Strong contrast for readability
-		Text = Color3.fromRGB(17, 24, 39),         -- Almost black, high contrast
-		TextSub = Color3.fromRGB(75, 85, 99),      -- Medium gray for secondary
-		TextMuted = Color3.fromRGB(156, 163, 175), -- Light gray for muted
+		-- 🔲 Borders & dividers - Subtle with neon accents
+		Border = Color3.fromRGB(51, 65, 85),        -- Visible border
+		BorderBright = Color3.fromRGB(71, 85, 105), -- Brighter border
+		BorderGlow = Color3.fromRGB(138, 43, 226),  -- Glowing purple border
+		Divider = Color3.fromRGB(30, 41, 59),       -- Subtle divider
+		DividerBright = Color3.fromRGB(51, 65, 85), -- Visible divider
 
-		-- Accent - Vibrant indigo (matches Dark theme)
-		Accent = Color3.fromRGB(99, 102, 241),     -- Bright indigo
-		AccentHover = Color3.fromRGB(79, 70, 229), -- Deeper indigo on hover
-		Success = Color3.fromRGB(16, 185, 129),    -- Bright green
-		Warning = Color3.fromRGB(245, 158, 11),    -- Warm orange
-		Error = Color3.fromRGB(239, 68, 68),       -- Bright red
-		Info = Color3.fromRGB(59, 130, 246),       -- Sky blue
+		-- 🎮 Interactive states - Smooth and responsive
+		Hover = Color3.fromRGB(30, 30, 50),         -- Hover overlay
+		HoverBright = Color3.fromRGB(40, 40, 65),   -- Bright hover
+		Active = Color3.fromRGB(50, 50, 80),        -- Active/pressed state
+		Selected = Color3.fromRGB(45, 45, 75),      -- Selected state
+		Disabled = Color3.fromRGB(71, 85, 105),     -- Disabled gray
+		DisabledText = Color3.fromRGB(100, 116, 139),-- Disabled text
 
-		-- Borders - Subtle but visible
-		Border = Color3.fromRGB(209, 213, 219),    -- Clear gray borders
-		Divider = Color3.fromRGB(229, 231, 235),   -- Lighter dividers
+		-- 🌟 Special effects
+		Glow = Color3.fromRGB(168, 85, 247),        -- General glow effect
+		Shadow = Color3.fromRGB(0, 0, 0),           -- Shadow color
+		Shimmer = Color3.fromRGB(255, 255, 255),    -- Shimmer highlight
+		Overlay = Color3.fromRGB(0, 0, 0),          -- Dark overlay
 
-		-- Interactive states - Clear visual feedback
-		Hover = Color3.fromRGB(243, 244, 246),     -- Light hover
-		Active = Color3.fromRGB(229, 231, 235),    -- Pressed state
-		Disabled = Color3.fromRGB(209, 213, 219),  -- Disabled gray
+		-- 🎭 Gradient stops for advanced effects
+		GradientStart = Color3.fromRGB(138, 43, 226),  -- Purple
+		GradientMid = Color3.fromRGB(236, 72, 153),    -- Pink
+		GradientEnd = Color3.fromRGB(0, 229, 255),     -- Cyan
 	}
 }
 
+-- Default to the new Dark theme (only theme available)
 Theme.Current = "Dark"
 Theme._dirty = false  -- Dirty flag: true if user changed theme in-session
 Theme._listeners = {}  -- Theme change listeners

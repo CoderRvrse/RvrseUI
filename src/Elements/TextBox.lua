@@ -1,6 +1,6 @@
--- TextBox Element Module
--- Part of RvrseUI v2.13.0 Modular Architecture
--- Extracted from RvrseUI.lua (lines 3627-3701)
+-- TextBox Element Module v4.0
+-- Modern input with glowing underline and gradient focus
+-- Complete redesign for RvrseUI v4.0
 
 local TextBox = {}
 
@@ -14,52 +14,119 @@ function TextBox.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local Theme = dependencies.Theme
 
-	local f = card(44)
+	local f = card(52) -- Taller for modern look
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
-	lbl.Size = UDim2.new(1, -240, 1, 0)
-	lbl.Font = Enum.Font.GothamMedium
-	lbl.TextSize = 14
+	lbl.Size = UDim2.new(1, -260, 1, 0)
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextSize = 15
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Input"
 	lbl.Parent = f
 
+	-- Modern input container
 	local inputBox = Instance.new("TextBox")
 	inputBox.AnchorPoint = Vector2.new(1, 0.5)
 	inputBox.Position = UDim2.new(1, -8, 0.5, 0)
-	inputBox.Size = UDim2.new(0, 220, 0, 32)
+	inputBox.Size = UDim2.new(0, 240, 0, 36)
 	inputBox.BackgroundColor3 = pal3.Card
+	inputBox.BackgroundTransparency = 0.3
 	inputBox.BorderSizePixel = 0
-	inputBox.Font = Enum.Font.Gotham
-	inputBox.TextSize = 13
-	inputBox.TextColor3 = pal3.Text
+	inputBox.Font = Enum.Font.GothamMedium
+	inputBox.TextSize = 14
+	inputBox.TextColor3 = pal3.TextBright
 	inputBox.PlaceholderText = o.Placeholder or "Enter text..."
 	inputBox.PlaceholderColor3 = pal3.TextMuted
 	inputBox.Text = o.Default or ""
 	inputBox.ClearTextOnFocus = false
 	inputBox.Parent = f
-	corner(inputBox, 8)
-	stroke(inputBox, pal3.Border, 1)
+	corner(inputBox, 10)
+
+	-- Subtle border (default state)
+	local borderStroke = Instance.new("UIStroke")
+	borderStroke.Color = pal3.Border
+	borderStroke.Thickness = 1
+	borderStroke.Transparency = 0.6
+	borderStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	borderStroke.Parent = inputBox
+
+	-- Gradient underline (glows on focus)
+	local underline = Instance.new("Frame")
+	underline.AnchorPoint = Vector2.new(0.5, 1)
+	underline.Position = UDim2.new(0.5, 0, 1, 0)
+	underline.Size = UDim2.new(0, 0, 0, 3)
+	underline.BackgroundColor3 = pal3.Accent
+	underline.BorderSizePixel = 0
+	underline.ZIndex = 5
+	underline.Parent = inputBox
+	corner(underline, 2)
+
+	-- Gradient on underline
+	local underlineGradient = Instance.new("UIGradient")
+	underlineGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal3.Primary),
+		ColorSequenceKeypoint.new(0.5, pal3.Accent),
+		ColorSequenceKeypoint.new(1, pal3.Secondary),
+	}
+	underlineGradient.Rotation = 0
+	underlineGradient.Parent = underline
 
 	local currentValue = inputBox.Text
+	local isFocused = false
 
+	-- Focus: Glow and expand underline
+	inputBox.Focused:Connect(function()
+		isFocused = true
+
+		-- Background brightens
+		Animator:Tween(inputBox, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+
+		-- Border glows
+		Animator:Tween(borderStroke, {
+			Color = pal3.Accent,
+			Thickness = 2,
+			Transparency = 0.3
+		}, Animator.Spring.Snappy)
+
+		-- Underline expands from center
+		Animator:Tween(underline, {Size = UDim2.new(1, 0, 0, 3)}, Animator.Spring.Spring)
+
+		-- Label brightens
+		Animator:Tween(lbl, {TextColor3 = pal3.TextBright}, Animator.Spring.Lightning)
+
+		-- Add shimmer effect
+		Animator:Shimmer(inputBox, Theme)
+	end)
+
+	-- Blur: Restore
 	inputBox.FocusLost:Connect(function(enterPressed)
+		isFocused = false
 		currentValue = inputBox.Text
+
+		-- Background dims
+		Animator:Tween(inputBox, {BackgroundTransparency = 0.3}, Animator.Spring.Snappy)
+
+		-- Border restores
+		Animator:Tween(borderStroke, {
+			Color = pal3.Border,
+			Thickness = 1,
+			Transparency = 0.6
+		}, Animator.Spring.Snappy)
+
+		-- Underline collapses
+		Animator:Tween(underline, {Size = UDim2.new(0, 0, 0, 3)}, Animator.Spring.Glide)
+
+		-- Label restores
+		Animator:Tween(lbl, {TextColor3 = pal3.Text}, Animator.Spring.Snappy)
+
 		if o.OnChanged then
 			task.spawn(o.OnChanged, currentValue, enterPressed)
 		end
-		if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on focus lost
-	end)
-
-	inputBox.Focused:Connect(function()
-		Animator:Tween(inputBox, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
-	end)
-
-	inputBox.FocusLost:Connect(function()
-		Animator:Tween(inputBox, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+		if o.Flag then RvrseUI:_autoSave() end
 	end)
 
 	table.insert(RvrseUI._lockListeners, function()

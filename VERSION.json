@@ -1,18 +1,18 @@
 {
   "version": {
-    "major": 3,
+    "major": 4,
     "minor": 0,
-    "patch": 4,
-    "full": "3.0.4",
+    "patch": 0,
+    "full": "4.0.0",
     "build": "20251010",
-    "hash": "K7M3P9X1",
+    "hash": "V8N3X7C2",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-10",
-    "name": "Advanced Cursor-Locked Drag",
-    "codename": "Precision",
-    "notes": "Completely redesigned drag system ensures cursor stays perfectly glued to grab point on both window header and minimized chip, and the monolith now bootstraps the same services as the modular loader with refreshed maintainer docs."
+    "name": "Cyberpunk Neon Transformation",
+    "codename": "Vibrant",
+    "notes": "Complete visual redesign with vibrant cyberpunk palette (Purple→Pink→Cyan gradients), 8 animation presets, animated rotating window borders, icon-only vertical tab rail, and 4 simultaneous button effects. Every element redesigned from scratch for a modern, unique aesthetic."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,28 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.0.0": {
+      "date": "2025-10-10",
+      "hash": "V8N3X7C2",
+      "changes": [
+        "🎨 COMPLETE VISUAL REDESIGN - Vibrant cyberpunk neon aesthetic (Purple→Pink→Cyan gradients everywhere)",
+        "🌈 New Theme.lua v4.0 - Electric purple, hot magenta, cyber cyan palette with 50+ new color variants",
+        "🎬 Enhanced Animator.lua v4.0 - 8 animation presets (Butter, Lightning, Glide, Spring, Pop, Expo, Snappy, Bounce)",
+        "✨ 5 new animation effects - Shimmer (sweeping highlight), Pulse (scale), Glow (dynamic stroke), SlideIn, FadeIn",
+        "🔘 Button.lua v4.0 - Gradient background + 4 simultaneous effects (ripple + shimmer + pulse + border flash)",
+        "🔀 Toggle.lua v4.0 - Modern iOS-style switch with gradient track and glowing thumb (56×30px)",
+        "📏 Slider.lua v4.0 - Gradient fill bar, growing/glowing thumb (22px→28px when dragging)",
+        "⌨️ TextBox.lua v4.0 - Gradient underline expands from center on focus + glowing border",
+        "🎹 Keybind.lua v4.0 - Gradient background activates during key capture mode",
+        "🎨 ColorPicker.lua v4.0 - Circular preview (40×40px) with glow effects and pulse animation",
+        "📝 Label.lua v4.0 - Minimal refinement with better spacing",
+        "🪟 WindowBuilder.lua v4.0 - Animated rotating gradient border (360° continuous) + gradient topbar",
+        "📱 TabBuilder.lua v4.0 - Icon-only vertical rail (80px wide, down from 176px) with centered icons",
+        "🎯 Tab active state - Gradient overlay + glowing 2px border + 4px indicator line with Spring animation",
+        "❌ Removed Light theme - Focus on one perfect dark theme with vibrant colors",
+        "📦 File size: 187 KB (only +13 KB for complete redesign, 7.5% increase)"
+      ]
+    },
     "3.0.4": {
       "date": "2025-10-10",
       "hash": "K7M3P9X1",
@@ -119,7 +141,7 @@
   },
   "download": {
     "url": "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua",
-    "size_kb": 159,
+    "size_kb": 187,
     "format": "lua"
   },
   "repository": {

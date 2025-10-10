@@ -1,5 +1,5 @@
--- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T17:24:56.741Z
+-- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
+-- Compiled from modular architecture on 2025-10-10T19:21:32.611Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -33,12 +33,12 @@ do
 	Version = {}
 	
 	Version.Data = {
-		Major = 3,
+		Major = 4,
 		Minor = 0,
-		Patch = 4,
+		Patch = 0,
 		Build = "20251010",  -- YYYYMMDD format
-		Full = "3.0.4",
-		Hash = "K7M3P9X1",  -- Release hash for integrity verification
+		Full = "4.0.0",
+		Hash = "V8N3X7C2",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
@@ -462,62 +462,67 @@ do
 	
 	Theme.Palettes = {
 		Dark = {
-			-- Glassmorphic backgrounds
-			Bg = Color3.fromRGB(10, 10, 14),
-			Glass = Color3.fromRGB(18, 18, 24),
-			Card = Color3.fromRGB(26, 26, 32),
-			Elevated = Color3.fromRGB(32, 32, 40),
+			-- 🌌 Deep space backgrounds with rich depth
+			Bg = Color3.fromRGB(8, 8, 16),              -- Deep space black with blue tint
+			Glass = Color3.fromRGB(15, 15, 26),         -- Translucent glass effect
+			Card = Color3.fromRGB(20, 20, 35),          -- Elevated card surfaces
+			Elevated = Color3.fromRGB(25, 25, 42),      -- Highest elevation
+			Surface = Color3.fromRGB(18, 18, 30),       -- Standard surface
 	
-			-- Text hierarchy
-			Text = Color3.fromRGB(245, 245, 250),
-			TextSub = Color3.fromRGB(160, 165, 180),
-			TextMuted = Color3.fromRGB(110, 115, 130),
+			-- 🌈 Vibrant gradient accents - Electric Purple to Cyan
+			Primary = Color3.fromRGB(138, 43, 226),     -- Electric purple (BlueViolet)
+			PrimaryGlow = Color3.fromRGB(168, 85, 247), -- Lighter purple glow
+			Secondary = Color3.fromRGB(0, 229, 255),    -- Electric cyan
+			SecondaryGlow = Color3.fromRGB(34, 211, 238), -- Cyan glow
 	
-			-- Accents & states
-			Accent = Color3.fromRGB(99, 102, 241),  -- Modern indigo
-			AccentHover = Color3.fromRGB(129, 140, 248),
-			Success = Color3.fromRGB(34, 197, 94),
-			Warning = Color3.fromRGB(251, 191, 36),
-			Error = Color3.fromRGB(239, 68, 68),
-			Info = Color3.fromRGB(59, 130, 246),
+			-- 🎯 Main accent - Vibrant magenta/pink
+			Accent = Color3.fromRGB(236, 72, 153),      -- Hot pink
+			AccentHover = Color3.fromRGB(251, 113, 133),-- Lighter pink on hover
+			AccentActive = Color3.fromRGB(219, 39, 119),-- Darker pink when active
+			AccentGlow = Color3.fromRGB(249, 168, 212), -- Pink glow effect
 	
-			-- Borders & dividers
-			Border = Color3.fromRGB(45, 45, 55),
-			Divider = Color3.fromRGB(35, 35, 43),
+			-- ✨ Text hierarchy - Crystal clear with vibrant highlights
+			Text = Color3.fromRGB(248, 250, 252),       -- Almost white, perfect clarity
+			TextBright = Color3.fromRGB(255, 255, 255), -- Pure white for emphasis
+			TextSub = Color3.fromRGB(203, 213, 225),    -- Subtle gray for secondary
+			TextMuted = Color3.fromRGB(148, 163, 184),  -- Muted for tertiary
+			TextDim = Color3.fromRGB(100, 116, 139),    -- Very dim for hints
 	
-			-- Interactive states
-			Hover = Color3.fromRGB(38, 38, 48),
-			Active = Color3.fromRGB(48, 48, 60),
-			Disabled = Color3.fromRGB(70, 70, 82),
-		},
-		Light = {
-			-- Backgrounds - Clean, modern white with subtle depth
-			Bg = Color3.fromRGB(245, 247, 250),        -- Soft blue-gray background
-			Glass = Color3.fromRGB(255, 255, 255),     -- Pure white glass
-			Card = Color3.fromRGB(252, 253, 255),      -- Slightly off-white cards
-			Elevated = Color3.fromRGB(248, 250, 252),  -- Elevated elements
+			-- 🎨 Status colors - Vibrant and eye-catching
+			Success = Color3.fromRGB(34, 197, 94),      -- Vibrant green
+			SuccessGlow = Color3.fromRGB(74, 222, 128), -- Green glow
+			Warning = Color3.fromRGB(251, 146, 60),     -- Vibrant orange
+			WarningGlow = Color3.fromRGB(253, 186, 116),-- Orange glow
+			Error = Color3.fromRGB(248, 113, 113),      -- Bright red
+			ErrorGlow = Color3.fromRGB(252, 165, 165),  -- Red glow
+			Info = Color3.fromRGB(96, 165, 250),        -- Sky blue
+			InfoGlow = Color3.fromRGB(147, 197, 253),   -- Blue glow
 	
-			-- Text - Strong contrast for readability
-			Text = Color3.fromRGB(17, 24, 39),         -- Almost black, high contrast
-			TextSub = Color3.fromRGB(75, 85, 99),      -- Medium gray for secondary
-			TextMuted = Color3.fromRGB(156, 163, 175), -- Light gray for muted
+			-- 🔲 Borders & dividers - Subtle with neon accents
+			Border = Color3.fromRGB(51, 65, 85),        -- Visible border
+			BorderBright = Color3.fromRGB(71, 85, 105), -- Brighter border
+			BorderGlow = Color3.fromRGB(138, 43, 226),  -- Glowing purple border
+			Divider = Color3.fromRGB(30, 41, 59),       -- Subtle divider
+			DividerBright = Color3.fromRGB(51, 65, 85), -- Visible divider
 	
-			-- Accent - Vibrant indigo (matches Dark theme)
-			Accent = Color3.fromRGB(99, 102, 241),     -- Bright indigo
-			AccentHover = Color3.fromRGB(79, 70, 229), -- Deeper indigo on hover
-			Success = Color3.fromRGB(16, 185, 129),    -- Bright green
-			Warning = Color3.fromRGB(245, 158, 11),    -- Warm orange
-			Error = Color3.fromRGB(239, 68, 68),       -- Bright red
-			Info = Color3.fromRGB(59, 130, 246),       -- Sky blue
+			-- 🎮 Interactive states - Smooth and responsive
+			Hover = Color3.fromRGB(30, 30, 50),         -- Hover overlay
+			HoverBright = Color3.fromRGB(40, 40, 65),   -- Bright hover
+			Active = Color3.fromRGB(50, 50, 80),        -- Active/pressed state
+			Selected = Color3.fromRGB(45, 45, 75),      -- Selected state
+			Disabled = Color3.fromRGB(71, 85, 105),     -- Disabled gray
+			DisabledText = Color3.fromRGB(100, 116, 139),-- Disabled text
 	
-			-- Borders - Subtle but visible
-			Border = Color3.fromRGB(209, 213, 219),    -- Clear gray borders
-			Divider = Color3.fromRGB(229, 231, 235),   -- Lighter dividers
+			-- 🌟 Special effects
+			Glow = Color3.fromRGB(168, 85, 247),        -- General glow effect
+			Shadow = Color3.fromRGB(0, 0, 0),           -- Shadow color
+			Shimmer = Color3.fromRGB(255, 255, 255),    -- Shimmer highlight
+			Overlay = Color3.fromRGB(0, 0, 0),          -- Dark overlay
 	
-			-- Interactive states - Clear visual feedback
-			Hover = Color3.fromRGB(243, 244, 246),     -- Light hover
-			Active = Color3.fromRGB(229, 231, 235),    -- Pressed state
-			Disabled = Color3.fromRGB(209, 213, 219),  -- Disabled gray
+			-- 🎭 Gradient stops for advanced effects
+			GradientStart = Color3.fromRGB(138, 43, 226),  -- Purple
+			GradientMid = Color3.fromRGB(236, 72, 153),    -- Pink
+			GradientEnd = Color3.fromRGB(0, 229, 255),     -- Cyan
 		}
 	}
 	
@@ -578,31 +583,52 @@ do
 	Animator = {}
 	
 	Animator.Spring = {
-		Smooth = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		Snappy = TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		Bounce = TweenInfo.new(0.4, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
-		Fast = TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+		-- Ultra-smooth for premium feel
+		Butter = TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+	
+		-- Snappy and responsive
+		Snappy = TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+	
+		-- Bouncy with personality
+		Bounce = TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
+	
+		-- Lightning fast for instant feedback
+		Lightning = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+	
+		-- Smooth glide for large movements
+		Glide = TweenInfo.new(0.35, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+	
+		-- Spring-back effect
+		Spring = TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+	
+		-- Expo for dramatic entrances
+		Expo = TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
+	
+		-- Quick pop-in
+		Pop = TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out, 0, false, 0, 0.5),
 	}
 	
 	function Animator:Tween(obj, props, info)
-		info = info or self.Spring.Smooth
+		info = info or self.Spring.Butter
 		local tween = TweenService:Create(obj, info, props)
 		tween:Play()
 		return tween
 	end
 	
 	function Animator:Scale(obj, scale, info)
-		return self:Tween(obj, {Size = UDim2.new(scale, 0, scale, 0)}, info or self.Spring.Snappy)
+		return self:Tween(obj, {Size = UDim2.new(scale, 0, scale, 0)}, info or self.Spring.Pop)
 	end
 	
 	function Animator:Ripple(parent, x, y, Theme)
+		local palette = Theme and Theme:Get() or {}
+	
 		local ripple = Instance.new("Frame")
 		ripple.Name = "Ripple"
 		ripple.AnchorPoint = Vector2.new(0.5, 0.5)
 		ripple.Position = UDim2.new(0, x, 0, y)
 		ripple.Size = UDim2.new(0, 0, 0, 0)
-		ripple.BackgroundColor3 = Theme and Theme:Get().Accent or Color3.fromRGB(255, 255, 255)
-		ripple.BackgroundTransparency = 0.5
+		ripple.BackgroundColor3 = palette.Accent or Color3.fromRGB(236, 72, 153)
+		ripple.BackgroundTransparency = 0.3
 		ripple.BorderSizePixel = 0
 		ripple.ZIndex = 100
 		ripple.Parent = parent
@@ -611,11 +637,128 @@ do
 		corner.CornerRadius = UDim.new(1, 0)
 		corner.Parent = ripple
 	
-		-- Expand and fade out
-		self:Tween(ripple, {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1}, self.Spring.Fast)
+		-- Add gradient for extra flair
+		local gradient = Instance.new("UIGradient")
+		gradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, palette.Primary or Color3.fromRGB(138, 43, 226)),
+			ColorSequenceKeypoint.new(0.5, palette.Accent or Color3.fromRGB(236, 72, 153)),
+			ColorSequenceKeypoint.new(1, palette.Secondary or Color3.fromRGB(0, 229, 255)),
+		}
+		gradient.Parent = ripple
+	
+		-- Expand and fade with smooth easing
+		self:Tween(ripple, {
+			Size = UDim2.new(1.5, 0, 1.5, 0),
+			BackgroundTransparency = 1
+		}, self.Spring.Lightning)
+	
 		task.delay(0.15, function()
 			ripple:Destroy()
 		end)
+	end
+	
+	function Animator:Shimmer(obj, Theme)
+		local palette = Theme and Theme:Get() or {}
+	
+		local shimmer = Instance.new("Frame")
+		shimmer.Name = "Shimmer"
+		shimmer.AnchorPoint = Vector2.new(0, 0.5)
+		shimmer.Position = UDim2.new(-0.5, 0, 0.5, 0)
+		shimmer.Size = UDim2.new(0.3, 0, 1, 0)
+		shimmer.BackgroundColor3 = palette.Shimmer or Color3.fromRGB(255, 255, 255)
+		shimmer.BackgroundTransparency = 0.7
+		shimmer.BorderSizePixel = 0
+		shimmer.ZIndex = 150
+		shimmer.Rotation = 15
+		shimmer.Parent = obj
+	
+		local gradient = Instance.new("UIGradient")
+		gradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.5, 0.3),
+			NumberSequenceKeypoint.new(1, 1),
+		}
+		gradient.Parent = shimmer
+	
+		-- Sweep across
+		self:Tween(shimmer, {Position = UDim2.new(1.5, 0, 0.5, 0)}, self.Spring.Glide)
+	
+		task.delay(0.4, function()
+			shimmer:Destroy()
+		end)
+	end
+	
+	function Animator:Pulse(obj, scale, info)
+		scale = scale or 1.05
+		info = info or self.Spring.Bounce
+	
+		local originalSize = obj.Size
+		self:Tween(obj, {Size = originalSize * scale}, info)
+	
+		task.delay(info.Time, function()
+			self:Tween(obj, {Size = originalSize}, info)
+		end)
+	end
+	
+	function Animator:Glow(obj, intensity, duration, Theme)
+		local palette = Theme and Theme:Get() or {}
+		intensity = intensity or 0.3
+		duration = duration or 0.4
+	
+		local glow = Instance.new("UIStroke")
+		glow.Name = "Glow"
+		glow.Color = palette.Glow or Color3.fromRGB(168, 85, 247)
+		glow.Thickness = 0
+		glow.Transparency = 1
+		glow.Parent = obj
+	
+		-- Fade in glow
+		self:Tween(glow, {
+			Thickness = 3,
+			Transparency = intensity
+		}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+	
+		-- Fade out glow
+		task.delay(duration * 0.5, function()
+			self:Tween(glow, {
+				Thickness = 0,
+				Transparency = 1
+			}, TweenInfo.new(duration * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+	
+			task.delay(duration * 0.5, function()
+				glow:Destroy()
+			end)
+		end)
+	end
+	
+	function Animator:SlideIn(obj, direction, distance, info)
+		direction = direction or "Bottom"
+		distance = distance or 50
+		info = info or self.Spring.Spring
+	
+		local originalPosition = obj.Position
+		local startOffset = Vector2.new(0, 0)
+	
+		if direction == "Top" then
+			startOffset = Vector2.new(0, -distance)
+		elseif direction == "Bottom" then
+			startOffset = Vector2.new(0, distance)
+		elseif direction == "Left" then
+			startOffset = Vector2.new(-distance, 0)
+		elseif direction == "Right" then
+			startOffset = Vector2.new(distance, 0)
+		end
+	
+		obj.Position = originalPosition + UDim2.fromOffset(startOffset.X, startOffset.Y)
+		self:Tween(obj, {Position = originalPosition}, info)
+	end
+	
+	function Animator:FadeIn(obj, startTransparency, info)
+		startTransparency = startTransparency or 1
+		info = info or self.Spring.Glide
+	
+		obj.BackgroundTransparency = startTransparency
+		self:Tween(obj, {BackgroundTransparency = 0}, info)
 	end
 	
 	function Animator:Initialize(tweenService)
@@ -1973,41 +2116,153 @@ do
 		local UIS = dependencies.UIS
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
+		local Theme = dependencies.Theme
 	
-		local f = card(44)
+		-- Create container with gradient background
+		local f = card(48) -- Slightly taller for modern look
+		f.BackgroundColor3 = pal3.Card
+		f.BackgroundTransparency = 0.2
 	
+		-- Add gradient background
+		local gradient = Instance.new("UIGradient")
+		gradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal3.Primary),
+			ColorSequenceKeypoint.new(0.5, pal3.Accent),
+			ColorSequenceKeypoint.new(1, pal3.Secondary),
+		}
+		gradient.Rotation = 45
+		gradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.7),
+			NumberSequenceKeypoint.new(1, 0.7),
+		}
+		gradient.Parent = f
+	
+		-- Add glowing border
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = pal3.BorderGlow
+		stroke.Thickness = 1
+		stroke.Transparency = 0.5
+		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		stroke.Parent = f
+	
+		-- Main button
 		local btn = Instance.new("TextButton")
 		btn.Size = UDim2.new(1, 0, 1, 0)
 		btn.BackgroundTransparency = 1
-		btn.Font = Enum.Font.GothamMedium
-		btn.TextSize = 14
-		btn.TextColor3 = pal3.Text
+		btn.Font = Enum.Font.GothamBold
+		btn.TextSize = 15
+		btn.TextColor3 = pal3.TextBright
 		btn.Text = o.Text or "Button"
 		btn.AutoButtonColor = false
 		btn.Parent = f
 	
 		local currentText = btn.Text
+		local isHovering = false
 	
+		-- Click handler with enhanced effects
 		btn.MouseButton1Click:Connect(function()
 			if RvrseUI.Store:IsLocked(o.RespectLock) then return end
+	
+			-- Multi-effect combo: ripple + shimmer + pulse
 			local absPos = btn.AbsolutePosition
 			local mousePos = UIS:GetMouseLocation()
-			Animator:Ripple(btn, mousePos.X - absPos.X, mousePos.Y - absPos.Y)
+	
+			-- Gradient ripple
+			Animator:Ripple(btn, mousePos.X - absPos.X, mousePos.Y - absPos.Y, Theme)
+	
+			-- Shimmer sweep effect
+			Animator:Shimmer(f, Theme)
+	
+			-- Quick pulse
+			Animator:Pulse(f, 1.02, Animator.Spring.Lightning)
+	
+			-- Flash the border
+			Animator:Tween(stroke, {Transparency = 0}, Animator.Spring.Lightning)
+			task.delay(0.12, function()
+				Animator:Tween(stroke, {Transparency = 0.5}, Animator.Spring.Snappy)
+			end)
+	
 			if o.Callback then task.spawn(o.Callback) end
 		end)
 	
+		-- Enhanced hover effects
 		btn.MouseEnter:Connect(function()
-			Animator:Tween(f, {BackgroundTransparency = 0.1}, Animator.Spring.Fast)
-		end)
-		btn.MouseLeave:Connect(function()
-			Animator:Tween(f, {BackgroundTransparency = 0.3}, Animator.Spring.Fast)
+			isHovering = true
+	
+			-- Brighten gradient
+			Animator:Tween(gradient, {
+				Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.4),
+					NumberSequenceKeypoint.new(1, 0.4),
+				}
+			}, Animator.Spring.Lightning)
+	
+			-- Glow the border
+			Animator:Tween(stroke, {
+				Thickness = 2,
+				Transparency = 0.2
+			}, Animator.Spring.Snappy)
+	
+			-- Brighten text
+			Animator:Tween(btn, {TextColor3 = pal3.Shimmer}, Animator.Spring.Lightning)
+	
+			-- Add glow effect
+			Animator:Glow(f, 0.3, 0.4, Theme)
 		end)
 	
+		btn.MouseLeave:Connect(function()
+			isHovering = false
+	
+			-- Restore gradient
+			Animator:Tween(gradient, {
+				Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.7),
+					NumberSequenceKeypoint.new(1, 0.7),
+				}
+			}, Animator.Spring.Snappy)
+	
+			-- Restore border
+			Animator:Tween(stroke, {
+				Thickness = 1,
+				Transparency = 0.5
+			}, Animator.Spring.Snappy)
+	
+			-- Restore text color
+			Animator:Tween(btn, {TextColor3 = pal3.TextBright}, Animator.Spring.Snappy)
+		end)
+	
+		-- Lock state listener with visual feedback
 		table.insert(RvrseUI._lockListeners, function()
 			local locked = RvrseUI.Store:IsLocked(o.RespectLock)
-			btn.TextTransparency = locked and 0.5 or 0
+	
+			if locked then
+				-- Desaturate and dim
+				btn.TextTransparency = 0.5
+				gradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.9),
+					NumberSequenceKeypoint.new(1, 0.9),
+				}
+				stroke.Transparency = 0.8
+			else
+				-- Restore to normal or hover state
+				btn.TextTransparency = 0
+				if isHovering then
+					gradient.Transparency = NumberSequence.new{
+						NumberSequenceKeypoint.new(0, 0.4),
+						NumberSequenceKeypoint.new(1, 0.4),
+					}
+					stroke.Transparency = 0.2
+				else
+					gradient.Transparency = NumberSequence.new{
+						ColorSequenceKeypoint.new(0, 0.7),
+						ColorSequenceKeypoint.new(1, 0.7),
+					}
+					stroke.Transparency = 0.5
+				end
+			end
 		end)
 	
+		-- Public API
 		local buttonAPI = {
 			SetText = function(_, txt)
 				btn.Text = txt
@@ -2015,6 +2270,12 @@ do
 			end,
 			SetVisible = function(_, visible)
 				f.Visible = visible
+			end,
+			Trigger = function(_)
+				-- Programmatically trigger the button
+				if o.Callback and not RvrseUI.Store:IsLocked(o.RespectLock) then
+					task.spawn(o.Callback)
+				end
 			end,
 			CurrentValue = currentText
 		}
@@ -2046,40 +2307,75 @@ do
 		local pal3 = dependencies.pal3
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
+		local Theme = dependencies.Theme
 	
-		local f = card(44)
+		local f = card(48) -- Taller for modern look
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
-		lbl.Size = UDim2.new(1, -60, 1, 0)
-		lbl.Font = Enum.Font.GothamMedium
-		lbl.TextSize = 14
+		lbl.Size = UDim2.new(1, -70, 1, 0)
+		lbl.Font = Enum.Font.GothamBold
+		lbl.TextSize = 15
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
 		lbl.TextColor3 = pal3.Text
 		lbl.Text = o.Text or "Toggle"
 		lbl.Parent = f
 	
+		-- Modern switch track (wider and taller)
 		local shell = Instance.new("Frame")
 		shell.AnchorPoint = Vector2.new(1, 0.5)
-		shell.Position = UDim2.new(1, 0, 0.5, 0)
-		shell.Size = UDim2.new(0, 48, 0, 26)
+		shell.Position = UDim2.new(1, -6, 0.5, 0)
+		shell.Size = UDim2.new(0, 56, 0, 30)
 		shell.BackgroundColor3 = pal3.Border
 		shell.BorderSizePixel = 0
 		shell.Parent = f
-		corner(shell, 13)
+		corner(shell, 15)
 	
+		-- Gradient overlay on track
+		local trackGradient = Instance.new("UIGradient")
+		trackGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal3.Primary),
+			ColorSequenceKeypoint.new(0.5, pal3.Accent),
+			ColorSequenceKeypoint.new(1, pal3.Secondary),
+		}
+		trackGradient.Rotation = 45
+		trackGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.9),
+			NumberSequenceKeypoint.new(1, 0.9),
+		}
+		trackGradient.Parent = shell
+	
+		-- Glowing border on track
+		local trackStroke = Instance.new("UIStroke")
+		trackStroke.Color = pal3.BorderGlow
+		trackStroke.Thickness = 0
+		trackStroke.Transparency = 0.7
+		trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		trackStroke.Parent = shell
+	
+		-- Switch thumb (larger and glowing)
 		local dot = Instance.new("Frame")
-		dot.Size = UDim2.new(0, 22, 0, 22)
-		dot.Position = UDim2.new(0, 2, 0.5, -11)
+		dot.Size = UDim2.new(0, 26, 0, 26)
+		dot.Position = UDim2.new(0, 2, 0.5, -13)
 		dot.BackgroundColor3 = Color3.new(1, 1, 1)
 		dot.BorderSizePixel = 0
+		dot.ZIndex = 3
 		dot.Parent = shell
-		corner(dot, 11)
-		shadow(dot, 0.6, 2)
+		corner(dot, 13)
+		shadow(dot, 0.5, 3)
+	
+		-- Glow ring around thumb (when active)
+		local glowRing = Instance.new("UIStroke")
+		glowRing.Color = pal3.Accent
+		glowRing.Thickness = 0
+		glowRing.Transparency = 0.3
+		glowRing.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		glowRing.Parent = dot
 	
 		local state = o.State == true
 		local controlsGroup = o.LockGroup
 		local respectGroup = o.RespectLock
+		local isHovering = false
 	
 		local function lockedNow()
 			return respectGroup and RvrseUI.Store:IsLocked(respectGroup)
@@ -2087,25 +2383,106 @@ do
 	
 		local function visual()
 			local locked = lockedNow()
-			local targetColor = locked and pal3.Disabled or (state and pal3.Success or pal3.Border)
-			local targetPos = state and UDim2.new(1, -24, 0.5, -11) or UDim2.new(0, 2, 0.5, -11)
 	
-			Animator:Tween(shell, {BackgroundColor3 = targetColor}, Animator.Spring.Smooth)
-			Animator:Tween(dot, {Position = targetPos}, Animator.Spring.Snappy)
-			lbl.TextTransparency = locked and 0.5 or 0
+			if locked then
+				-- Locked state: desaturated
+				shell.BackgroundColor3 = pal3.Disabled
+				trackGradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.95),
+					NumberSequenceKeypoint.new(1, 0.95),
+				}
+				trackStroke.Thickness = 0
+				glowRing.Thickness = 0
+				lbl.TextTransparency = 0.5
+			elseif state then
+				-- Active state: vibrant gradient track
+				shell.BackgroundColor3 = pal3.Accent
+				trackGradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.3),
+					NumberSequenceKeypoint.new(1, 0.3),
+				}
+				trackStroke.Thickness = 1
+				trackStroke.Transparency = 0.4
+	
+				-- Glow the thumb
+				Animator:Tween(glowRing, {Thickness = 3}, Animator.Spring.Snappy)
+	
+				-- Slide thumb to right
+				Animator:Tween(dot, {Position = UDim2.new(1, -28, 0.5, -13)}, Animator.Spring.Spring)
+	
+				lbl.TextTransparency = 0
+				lbl.TextColor3 = pal3.TextBright
+			else
+				-- Inactive state: subtle
+				shell.BackgroundColor3 = pal3.Border
+				trackGradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.9),
+					NumberSequenceKeypoint.new(1, 0.9),
+				}
+				trackStroke.Thickness = 0
+				glowRing.Thickness = 0
+	
+				-- Slide thumb to left
+				Animator:Tween(dot, {Position = UDim2.new(0, 2, 0.5, -13)}, Animator.Spring.Spring)
+	
+				lbl.TextTransparency = 0
+				lbl.TextColor3 = pal3.Text
+			end
 		end
 		visual()
 	
+		-- Click/tap interaction
 		f.InputBegan:Connect(function(io)
 			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 				if lockedNow() then return end
+	
 				state = not state
+	
+				-- Multiple effects on toggle
+				if state then
+					Animator:Shimmer(shell, Theme) -- Shimmer on activate
+				end
+	
+				-- Quick pulse
+				Animator:Pulse(dot, 1.1, Animator.Spring.Lightning)
+	
 				visual()
+	
 				if controlsGroup then
 					RvrseUI.Store:SetLocked(controlsGroup, state)
 				end
 				if o.OnChanged then task.spawn(o.OnChanged, state) end
-				if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
+				if o.Flag then RvrseUI:_autoSave() end
+			end
+		end)
+	
+		-- Hover effects
+		shell.MouseEnter:Connect(function()
+			if lockedNow() then return end
+			isHovering = true
+	
+			-- Brighten on hover
+			if not state then
+				Animator:Tween(trackGradient, {
+					Transparency = NumberSequence.new{
+						NumberSequenceKeypoint.new(0, 0.8),
+						NumberSequenceKeypoint.new(1, 0.8),
+					}
+				}, Animator.Spring.Lightning)
+			end
+		end)
+	
+		shell.MouseLeave:Connect(function()
+			isHovering = false
+	
+			-- Restore transparency
+			if not state then
+				Animator:Tween(trackGradient, {
+					Transparency = NumberSequence.new{
+						NumberSequenceKeypoint.new(0, 0.9),
+						NumberSequenceKeypoint.new(1, 0.9),
+					}
+				}, Animator.Spring.Snappy)
 			end
 		end)
 	
@@ -2650,71 +3027,93 @@ do
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
 		local UIS = dependencies.UIS
+		local Theme = dependencies.Theme
 	
 		local minVal = o.Min or 0
 		local maxVal = o.Max or 100
 		local step = o.Step or 1
 		local value = o.Default or minVal
 	
-		local f = card(56)
+		local f = card(64) -- Taller for modern layout
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
-		lbl.Size = UDim2.new(1, 0, 0, 20)
-		lbl.Font = Enum.Font.GothamMedium
-		lbl.TextSize = 14
+		lbl.Size = UDim2.new(1, -60, 0, 22)
+		lbl.Font = Enum.Font.GothamBold
+		lbl.TextSize = 15
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
 		lbl.TextColor3 = pal3.Text
-		lbl.Text = (o.Text or "Slider") .. ": " .. value
+		lbl.Text = (o.Text or "Slider")
 		lbl.Parent = f
 	
-		-- Track (taller for better hit area)
+		-- Value display (right-aligned)
+		local valueLbl = Instance.new("TextLabel")
+		valueLbl.BackgroundTransparency = 1
+		valueLbl.AnchorPoint = Vector2.new(1, 0)
+		valueLbl.Position = UDim2.new(1, -6, 0, 0)
+		valueLbl.Size = UDim2.new(0, 50, 0, 22)
+		valueLbl.Font = Enum.Font.GothamBold
+		valueLbl.TextSize = 14
+		valueLbl.TextXAlignment = Enum.TextXAlignment.Right
+		valueLbl.TextColor3 = pal3.Accent
+		valueLbl.Text = tostring(value)
+		valueLbl.Parent = f
+	
+		-- Track (thicker for better interaction)
 		local track = Instance.new("Frame")
-		track.Position = UDim2.new(0, 0, 0, 28)
-		track.Size = UDim2.new(1, 0, 0, 8)  -- Increased from 6 to 8 for better feel
-		track.BackgroundColor3 = pal3.Border
+		track.Position = UDim2.new(0, 0, 0, 32)
+		track.Size = UDim2.new(1, 0, 0, 10)
+		track.BackgroundColor3 = pal3.Card
 		track.BorderSizePixel = 0
 		track.Parent = f
-		corner(track, 4)
+		corner(track, 5)
 	
-		-- Fill with animated gradient
+		-- Track border glow
+		local trackStroke = Instance.new("UIStroke")
+		trackStroke.Color = pal3.BorderGlow
+		trackStroke.Thickness = 1
+		trackStroke.Transparency = 0.7
+		trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		trackStroke.Parent = track
+	
+		-- Vibrant gradient fill
 		local fill = Instance.new("Frame")
 		fill.Size = UDim2.new((value - minVal) / (maxVal - minVal), 0, 1, 0)
 		fill.BackgroundColor3 = pal3.Accent
 		fill.BorderSizePixel = 0
+		fill.ZIndex = 2
 		fill.Parent = track
-		corner(fill, 4)
-		gradient(fill, 90, {pal3.Accent, pal3.AccentHover})
+		corner(fill, 5)
+	
+		-- Multi-color gradient on fill
+		local fillGradient = Instance.new("UIGradient")
+		fillGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal3.Primary),
+			ColorSequenceKeypoint.new(0.5, pal3.Accent),
+			ColorSequenceKeypoint.new(1, pal3.Secondary),
+		}
+		fillGradient.Rotation = 0 -- Horizontal gradient
+		fillGradient.Parent = fill
 	
 		-- Premium thumb with glow
 		local thumb = Instance.new("Frame")
 		thumb.AnchorPoint = Vector2.new(0.5, 0.5)
 		thumb.Position = UDim2.new((value - minVal) / (maxVal - minVal), 0, 0.5, 0)
-		thumb.Size = UDim2.new(0, 18, 0, 18)  -- Slightly larger default (was 16)
+		thumb.Size = UDim2.new(0, 22, 0, 22) -- Larger for modern look
 		thumb.BackgroundColor3 = Color3.new(1, 1, 1)
 		thumb.BorderSizePixel = 0
-		thumb.ZIndex = 3
+		thumb.ZIndex = 4
 		thumb.Parent = track
-		corner(thumb, 9)
-		shadow(thumb, 0.4, 4)  -- Enhanced shadow
+		corner(thumb, 11)
+		shadow(thumb, 0.5, 5) -- Enhanced shadow
 	
-		-- Accent glow ring (hidden by default)
-		local glowRing = Instance.new("Frame")
-		glowRing.AnchorPoint = Vector2.new(0.5, 0.5)
-		glowRing.Position = UDim2.new(0.5, 0, 0.5, 0)
-		glowRing.Size = UDim2.new(0, 18, 0, 18)  -- Same as thumb
-		glowRing.BackgroundTransparency = 1
-		glowRing.BorderSizePixel = 0
-		glowRing.ZIndex = 2
-		glowRing.Parent = thumb
-	
+		-- Glowing stroke around thumb
 		local glowStroke = Instance.new("UIStroke")
 		glowStroke.Color = pal3.Accent
 		glowStroke.Thickness = 0
-		glowStroke.Transparency = 0.3
+		glowStroke.Transparency = 0.2
 		glowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		glowStroke.Parent = glowRing
-		corner(glowRing, 12)
+		glowStroke.Parent = thumb
 	
 		local dragging = false
 		local hovering = false
@@ -2724,46 +3123,65 @@ do
 			value = math.round((minVal + relativeX * (maxVal - minVal)) / step) * step
 			value = math.clamp(value, minVal, maxVal)
 	
-			lbl.Text = (o.Text or "Slider") .. ": " .. value
+			valueLbl.Text = tostring(value)
 	
-			-- Buttery smooth animations
-			Animator:Tween(fill, {Size = UDim2.new(relativeX, 0, 1, 0)}, Animator.Spring.Smooth)
-			Animator:Tween(thumb, {Position = UDim2.new(relativeX, 0, 0.5, 0)}, Animator.Spring.Snappy)
+			-- Ultra-smooth animations
+			Animator:Tween(fill, {Size = UDim2.new(relativeX, 0, 1, 0)}, Animator.Spring.Butter)
+			Animator:Tween(thumb, {Position = UDim2.new(relativeX, 0, 0.5, 0)}, Animator.Spring.Glide)
 	
 			if o.OnChanged then task.spawn(o.OnChanged, value) end
 			if o.Flag then RvrseUI:_autoSave() end
 		end
 	
-		-- Hover effects
+		-- Enhanced hover effects
 		track.MouseEnter:Connect(function()
 			if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 			hovering = true
-			-- Subtle hover: thumb grows slightly
-			Animator:Tween(thumb, {Size = UDim2.new(0, 20, 0, 20)}, Animator.Spring.Fast)
-			Animator:Tween(glowRing, {Size = UDim2.new(0, 20, 0, 20)}, Animator.Spring.Fast)
+	
+			-- Thumb grows
+			Animator:Tween(thumb, {Size = UDim2.new(0, 24, 0, 24)}, Animator.Spring.Snappy)
+	
+			-- Subtle glow appears
+			Animator:Tween(glowStroke, {Thickness = 2}, Animator.Spring.Snappy)
+	
+			-- Track border brightens
+			Animator:Tween(trackStroke, {Transparency = 0.4}, Animator.Spring.Lightning)
 		end)
 	
 		track.MouseLeave:Connect(function()
-			if dragging then return end  -- Don't shrink if dragging
+			if dragging then return end
 			hovering = false
-			-- Return to normal size
-			Animator:Tween(thumb, {Size = UDim2.new(0, 18, 0, 18)}, Animator.Spring.Fast)
-			Animator:Tween(glowRing, {Size = UDim2.new(0, 18, 0, 18)}, Animator.Spring.Fast)
-			Animator:Tween(glowStroke, {Thickness = 0}, Animator.Spring.Fast)
+	
+			-- Thumb shrinks
+			Animator:Tween(thumb, {Size = UDim2.new(0, 22, 0, 22)}, Animator.Spring.Bounce)
+	
+			-- Glow fades
+			Animator:Tween(glowStroke, {Thickness = 0}, Animator.Spring.Snappy)
+	
+			-- Track restores
+			Animator:Tween(trackStroke, {Transparency = 0.7}, Animator.Spring.Snappy)
 		end)
 	
-		-- Dragging: GROW and GLOW
+		-- Dragging: GROW, GLOW, and vibrant feedback
 		track.InputBegan:Connect(function(io)
 			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 				if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 				dragging = true
 	
-				-- GROW: Thumb expands on grab
-				Animator:Tween(thumb, {Size = UDim2.new(0, 24, 0, 24)}, Animator.Spring.Snappy)
-				Animator:Tween(glowRing, {Size = UDim2.new(0, 24, 0, 24)}, Animator.Spring.Snappy)
+				-- GROW: Thumb expands dramatically
+				Animator:Tween(thumb, {Size = UDim2.new(0, 28, 0, 28)}, Animator.Spring.Pop)
 	
-				-- GLOW: Accent ring appears
-				Animator:Tween(glowStroke, {Thickness = 3}, Animator.Spring.Smooth)
+				-- GLOW: Strong accent ring
+				Animator:Tween(glowStroke, {Thickness = 4}, Animator.Spring.Snappy)
+	
+				-- Track glows brighter
+				Animator:Tween(trackStroke, {
+					Thickness = 2,
+					Transparency = 0.2
+				}, Animator.Spring.Lightning)
+	
+				-- Value label pulses
+				Animator:Pulse(valueLbl, 1.1, Animator.Spring.Lightning)
 	
 				update(io.Position)
 			end
@@ -2773,13 +3191,19 @@ do
 			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 				dragging = false
 	
-				-- SHRINK: Return to hover size if still hovering, else normal
-				local targetSize = hovering and 20 or 18
+				-- SHRINK: Return to hover or normal size with bounce
+				local targetSize = hovering and 24 or 22
 				Animator:Tween(thumb, {Size = UDim2.new(0, targetSize, 0, targetSize)}, Animator.Spring.Bounce)
-				Animator:Tween(glowRing, {Size = UDim2.new(0, targetSize, 0, targetSize)}, Animator.Spring.Bounce)
 	
-				-- GLOW FADE: Ring disappears
-				Animator:Tween(glowStroke, {Thickness = hovering and 1 or 0}, Animator.Spring.Fast)
+				-- GLOW: Fade to hover or off
+				local targetThickness = hovering and 2 or 0
+				Animator:Tween(glowStroke, {Thickness = targetThickness}, Animator.Spring.Glide)
+	
+				-- Track restores
+				Animator:Tween(trackStroke, {
+					Thickness = 1,
+					Transparency = hovering and 0.4 or 0.7
+				}, Animator.Spring.Snappy)
 			end
 		end)
 	
@@ -2839,33 +3263,57 @@ do
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
 		local UIS = dependencies.UIS
+		local Theme = dependencies.Theme
 	
-		local f = card(44)
+		local f = card(48) -- Taller for modern look
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
-		lbl.Size = UDim2.new(1, -140, 1, 0)
-		lbl.Font = Enum.Font.GothamMedium
-		lbl.TextSize = 14
+		lbl.Size = UDim2.new(1, -150, 1, 0)
+		lbl.Font = Enum.Font.GothamBold
+		lbl.TextSize = 15
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
 		lbl.TextColor3 = pal3.Text
 		lbl.Text = o.Text or "Keybind"
 		lbl.Parent = f
 	
+		-- Modern key display button
 		local btn = Instance.new("TextButton")
 		btn.AnchorPoint = Vector2.new(1, 0.5)
-		btn.Position = UDim2.new(1, 0, 0.5, 0)
-		btn.Size = UDim2.new(0, 130, 0, 32)
+		btn.Position = UDim2.new(1, -6, 0.5, 0)
+		btn.Size = UDim2.new(0, 140, 0, 36)
 		btn.BackgroundColor3 = pal3.Card
+		btn.BackgroundTransparency = 0.2
 		btn.BorderSizePixel = 0
 		btn.Font = Enum.Font.Code
-		btn.TextSize = 12
-		btn.TextColor3 = pal3.Text
+		btn.TextSize = 13
+		btn.TextColor3 = pal3.TextBright
 		btn.Text = (o.Default and o.Default.Name) or "Set Key"
 		btn.AutoButtonColor = false
 		btn.Parent = f
-		corner(btn, 8)
-		stroke(btn, pal3.Border, 1)
+		corner(btn, 10)
+	
+		-- Border stroke
+		local btnStroke = Instance.new("UIStroke")
+		btnStroke.Color = pal3.Border
+		btnStroke.Thickness = 1
+		btnStroke.Transparency = 0.5
+		btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		btnStroke.Parent = btn
+	
+		-- Gradient overlay (shows when capturing)
+		local btnGradient = Instance.new("UIGradient")
+		btnGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal3.Primary),
+			ColorSequenceKeypoint.new(0.5, pal3.Accent),
+			ColorSequenceKeypoint.new(1, pal3.Secondary),
+		}
+		btnGradient.Rotation = 45
+		btnGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(1, 1),
+		}
+		btnGradient.Parent = btn
 	
 		local capturing = false
 		local currentKey = o.Default
@@ -2873,8 +3321,28 @@ do
 		btn.MouseButton1Click:Connect(function()
 			if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 			capturing = true
-			btn.Text = "Press any key..."
-			btn.TextColor3 = pal3.Accent
+			btn.Text = "⌨️ Press any key..."
+	
+			-- Activate gradient background
+			Animator:Tween(btnGradient, {
+				Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.5),
+					NumberSequenceKeypoint.new(1, 0.5),
+				}
+			}, Animator.Spring.Snappy)
+	
+			-- Glow border
+			Animator:Tween(btnStroke, {
+				Color = pal3.Accent,
+				Thickness = 2,
+				Transparency = 0.2
+			}, Animator.Spring.Snappy)
+	
+			-- Shimmer effect
+			Animator:Shimmer(btn, Theme)
+	
+			-- Pulse
+			Animator:Pulse(btn, 1.05, Animator.Spring.Bounce)
 		end)
 	
 		UIS.InputBegan:Connect(function(io, gpe)
@@ -2883,7 +3351,24 @@ do
 				capturing = false
 				currentKey = io.KeyCode
 				btn.Text = io.KeyCode.Name
-				btn.TextColor3 = pal3.Text
+	
+				-- Deactivate gradient
+				Animator:Tween(btnGradient, {
+					Transparency = NumberSequence.new{
+						NumberSequenceKeypoint.new(0, 1),
+						NumberSequenceKeypoint.new(1, 1),
+					}
+				}, Animator.Spring.Glide)
+	
+				-- Restore border
+				Animator:Tween(btnStroke, {
+					Color = pal3.Border,
+					Thickness = 1,
+					Transparency = 0.5
+				}, Animator.Spring.Snappy)
+	
+				-- Success pulse
+				Animator:Pulse(btn, 1.08, Animator.Spring.Bounce)
 	
 				-- SPECIAL: If this keybind is for UI toggle, update the global toggle key
 				if o.Flag == "_UIToggleKey" or o.IsUIToggle then
@@ -2898,18 +3383,20 @@ do
 				end
 	
 				if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
-				if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
+				if o.Flag then RvrseUI:_autoSave() end
 			end
 		end)
 	
 		btn.MouseEnter:Connect(function()
 			if not capturing then
-				Animator:Tween(btn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
+				Animator:Tween(btn, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+				Animator:Tween(btnStroke, {Transparency = 0.3}, Animator.Spring.Lightning)
 			end
 		end)
 		btn.MouseLeave:Connect(function()
 			if not capturing then
-				Animator:Tween(btn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+				Animator:Tween(btn, {BackgroundTransparency = 0.2}, Animator.Spring.Snappy)
+				Animator:Tween(btnStroke, {Transparency = 0.5}, Animator.Spring.Snappy)
 			end
 		end)
 	
@@ -2963,52 +3450,119 @@ do
 		local pal3 = dependencies.pal3
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
+		local Theme = dependencies.Theme
 	
-		local f = card(44)
+		local f = card(52) -- Taller for modern look
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
-		lbl.Size = UDim2.new(1, -240, 1, 0)
-		lbl.Font = Enum.Font.GothamMedium
-		lbl.TextSize = 14
+		lbl.Size = UDim2.new(1, -260, 1, 0)
+		lbl.Font = Enum.Font.GothamBold
+		lbl.TextSize = 15
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
 		lbl.TextColor3 = pal3.Text
 		lbl.Text = o.Text or "Input"
 		lbl.Parent = f
 	
+		-- Modern input container
 		local inputBox = Instance.new("TextBox")
 		inputBox.AnchorPoint = Vector2.new(1, 0.5)
 		inputBox.Position = UDim2.new(1, -8, 0.5, 0)
-		inputBox.Size = UDim2.new(0, 220, 0, 32)
+		inputBox.Size = UDim2.new(0, 240, 0, 36)
 		inputBox.BackgroundColor3 = pal3.Card
+		inputBox.BackgroundTransparency = 0.3
 		inputBox.BorderSizePixel = 0
-		inputBox.Font = Enum.Font.Gotham
-		inputBox.TextSize = 13
-		inputBox.TextColor3 = pal3.Text
+		inputBox.Font = Enum.Font.GothamMedium
+		inputBox.TextSize = 14
+		inputBox.TextColor3 = pal3.TextBright
 		inputBox.PlaceholderText = o.Placeholder or "Enter text..."
 		inputBox.PlaceholderColor3 = pal3.TextMuted
 		inputBox.Text = o.Default or ""
 		inputBox.ClearTextOnFocus = false
 		inputBox.Parent = f
-		corner(inputBox, 8)
-		stroke(inputBox, pal3.Border, 1)
+		corner(inputBox, 10)
+	
+		-- Subtle border (default state)
+		local borderStroke = Instance.new("UIStroke")
+		borderStroke.Color = pal3.Border
+		borderStroke.Thickness = 1
+		borderStroke.Transparency = 0.6
+		borderStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		borderStroke.Parent = inputBox
+	
+		-- Gradient underline (glows on focus)
+		local underline = Instance.new("Frame")
+		underline.AnchorPoint = Vector2.new(0.5, 1)
+		underline.Position = UDim2.new(0.5, 0, 1, 0)
+		underline.Size = UDim2.new(0, 0, 0, 3)
+		underline.BackgroundColor3 = pal3.Accent
+		underline.BorderSizePixel = 0
+		underline.ZIndex = 5
+		underline.Parent = inputBox
+		corner(underline, 2)
+	
+		-- Gradient on underline
+		local underlineGradient = Instance.new("UIGradient")
+		underlineGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal3.Primary),
+			ColorSequenceKeypoint.new(0.5, pal3.Accent),
+			ColorSequenceKeypoint.new(1, pal3.Secondary),
+		}
+		underlineGradient.Rotation = 0
+		underlineGradient.Parent = underline
 	
 		local currentValue = inputBox.Text
+		local isFocused = false
 	
+		-- Focus: Glow and expand underline
+		inputBox.Focused:Connect(function()
+			isFocused = true
+	
+			-- Background brightens
+			Animator:Tween(inputBox, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+	
+			-- Border glows
+			Animator:Tween(borderStroke, {
+				Color = pal3.Accent,
+				Thickness = 2,
+				Transparency = 0.3
+			}, Animator.Spring.Snappy)
+	
+			-- Underline expands from center
+			Animator:Tween(underline, {Size = UDim2.new(1, 0, 0, 3)}, Animator.Spring.Spring)
+	
+			-- Label brightens
+			Animator:Tween(lbl, {TextColor3 = pal3.TextBright}, Animator.Spring.Lightning)
+	
+			-- Add shimmer effect
+			Animator:Shimmer(inputBox, Theme)
+		end)
+	
+		-- Blur: Restore
 		inputBox.FocusLost:Connect(function(enterPressed)
+			isFocused = false
 			currentValue = inputBox.Text
+	
+			-- Background dims
+			Animator:Tween(inputBox, {BackgroundTransparency = 0.3}, Animator.Spring.Snappy)
+	
+			-- Border restores
+			Animator:Tween(borderStroke, {
+				Color = pal3.Border,
+				Thickness = 1,
+				Transparency = 0.6
+			}, Animator.Spring.Snappy)
+	
+			-- Underline collapses
+			Animator:Tween(underline, {Size = UDim2.new(0, 0, 0, 3)}, Animator.Spring.Glide)
+	
+			-- Label restores
+			Animator:Tween(lbl, {TextColor3 = pal3.Text}, Animator.Spring.Snappy)
+	
 			if o.OnChanged then
 				task.spawn(o.OnChanged, currentValue, enterPressed)
 			end
-			if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on focus lost
-		end)
-	
-		inputBox.Focused:Connect(function()
-			Animator:Tween(inputBox, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
-		end)
-	
-		inputBox.FocusLost:Connect(function()
-			Animator:Tween(inputBox, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
+			if o.Flag then RvrseUI:_autoSave() end
 		end)
 	
 		table.insert(RvrseUI._lockListeners, function()
@@ -3058,33 +3612,42 @@ do
 		local pal3 = dependencies.pal3
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
+		local Theme = dependencies.Theme
 	
-		local f = card(44)
+		local f = card(48) -- Taller for modern look
 	
-		local defaultColor = o.Default or Color3.fromRGB(255, 255, 255)
+		local defaultColor = o.Default or pal3.Accent
 		local currentColor = defaultColor
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
-		lbl.Size = UDim2.new(1, -80, 1, 0)
-		lbl.Font = Enum.Font.GothamMedium
-		lbl.TextSize = 14
+		lbl.Size = UDim2.new(1, -90, 1, 0)
+		lbl.Font = Enum.Font.GothamBold
+		lbl.TextSize = 15
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
 		lbl.TextColor3 = pal3.Text
 		lbl.Text = o.Text or "Color"
 		lbl.Parent = f
 	
+		-- Circular preview button (modern design)
 		local preview = Instance.new("TextButton")
 		preview.AnchorPoint = Vector2.new(1, 0.5)
-		preview.Position = UDim2.new(1, 0, 0.5, 0)
-		preview.Size = UDim2.new(0, 64, 0, 32)
+		preview.Position = UDim2.new(1, -6, 0.5, 0)
+		preview.Size = UDim2.new(0, 40, 0, 40) -- Circular
 		preview.BackgroundColor3 = currentColor
 		preview.BorderSizePixel = 0
 		preview.Text = ""
 		preview.AutoButtonColor = false
 		preview.Parent = f
-		corner(preview, 8)
-		stroke(preview, pal3.Border, 2)
+		corner(preview, 20) -- Full circle
+	
+		-- Glowing stroke
+		local previewStroke = Instance.new("UIStroke")
+		previewStroke.Color = pal3.Border
+		previewStroke.Thickness = 2
+		previewStroke.Transparency = 0.4
+		previewStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		previewStroke.Parent = preview
 	
 		-- Simple color cycling demo (you can implement full color picker UI)
 		local colors = {
@@ -3103,19 +3666,48 @@ do
 			if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 			colorIdx = (colorIdx % #colors) + 1
 			currentColor = colors[colorIdx]
-			preview.BackgroundColor3 = currentColor
+	
+			-- Smooth color transition
+			Animator:Tween(preview, {BackgroundColor3 = currentColor}, Animator.Spring.Snappy)
+	
+			-- Pulse effect
+			Animator:Pulse(preview, 1.15, Animator.Spring.Bounce)
+	
+			-- Border flashes the new color
+			Animator:Tween(previewStroke, {
+				Color = currentColor,
+				Thickness = 3
+			}, Animator.Spring.Lightning)
+	
+			task.delay(0.2, function()
+				Animator:Tween(previewStroke, {
+					Color = pal3.Border,
+					Thickness = 2
+				}, Animator.Spring.Glide)
+			end)
+	
 			if o.OnChanged then
 				task.spawn(o.OnChanged, currentColor)
 			end
-			if o.Flag then RvrseUI:_autoSave() end  -- Auto-save on change
+			if o.Flag then RvrseUI:_autoSave() end
 		end)
 	
 		preview.MouseEnter:Connect(function()
-			Animator:Tween(preview, {BackgroundTransparency = 0.2}, Animator.Spring.Fast)
+			-- Glow on hover
+			Animator:Tween(previewStroke, {
+				Thickness = 3,
+				Transparency = 0.2
+			}, Animator.Spring.Snappy)
+	
+			Animator:Glow(preview, 0.4, 0.5, Theme)
 		end)
 	
 		preview.MouseLeave:Connect(function()
-			Animator:Tween(preview, {BackgroundTransparency = 0}, Animator.Spring.Fast)
+			-- Restore
+			Animator:Tween(previewStroke, {
+				Thickness = 2,
+				Transparency = 0.4
+			}, Animator.Spring.Snappy)
 		end)
 	
 		table.insert(RvrseUI._lockListeners, function()
@@ -3162,16 +3754,18 @@ do
 		local pal3 = dependencies.pal3
 		local RvrseUI = dependencies.RvrseUI
 	
-		local f = card(32)
+		local f = card(36) -- Slightly taller
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
-		lbl.Size = UDim2.new(1, 0, 1, 0)
+		lbl.Size = UDim2.new(1, -8, 1, 0)
+		lbl.Position = UDim2.new(0, 4, 0, 0)
 		lbl.Font = Enum.Font.GothamMedium
 		lbl.TextSize = 14
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
-		lbl.TextColor3 = pal3.Text
+		lbl.TextColor3 = pal3.TextSub -- Subtle color for labels
 		lbl.Text = o.Text or "Label"
+		lbl.TextWrapped = true
 		lbl.Parent = f
 	
 		local labelAPI = {
@@ -3487,26 +4081,29 @@ do
 		end
 		local pal2 = currentPalette()
 	
-		-- Tab button with icon support (Lucide, Roblox asset ID, or emoji)
+		-- Icon-only tab button (modern vertical rail design)
 		local tabBtn = Instance.new("TextButton")
 		tabBtn.AutoButtonColor = false
 		tabBtn.BackgroundColor3 = pal2.Card
-		tabBtn.BackgroundTransparency = 0
+		tabBtn.BackgroundTransparency = 0.3
 		tabBtn.BorderSizePixel = 0
-		tabBtn.Size = UDim2.new(1, -16, 0, 48)
+		tabBtn.Size = UDim2.new(1, -16, 0, 56) -- Square-ish icon button
 		tabBtn.Font = Enum.Font.GothamMedium
-		tabBtn.TextSize = 14
+		tabBtn.TextSize = 24
 		tabBtn.TextColor3 = pal2.TextSub
-		tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+		tabBtn.Text = ""
 		tabBtn.Parent = tabBar
-		corner(tabBtn, 10)
+		corner(tabBtn, 12)
 	
-		local padding = Instance.new("UIPadding")
-		padding.PaddingLeft = UDim.new(0, 16)
-		padding.PaddingRight = UDim.new(0, 12)
-		padding.Parent = tabBtn
+		-- Subtle border
+		local tabStroke = Instance.new("UIStroke")
+		tabStroke.Color = pal2.Border
+		tabStroke.Thickness = 1
+		tabStroke.Transparency = 0.6
+		tabStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tabStroke.Parent = tabBtn
 	
-		-- Handle icon display
+		-- Handle icon display (icon-only design)
 		local tabIcon = nil
 		local tabText = t.Title or "Tab"
 	
@@ -3514,38 +4111,51 @@ do
 			local iconAsset, iconType = Icons:Resolve(t.Icon)
 	
 			if iconType == "image" then
-				-- Create image icon
+				-- Create centered image icon
 				tabIcon = Instance.new("ImageLabel")
 				tabIcon.BackgroundTransparency = 1
 				tabIcon.Image = iconAsset
-				tabIcon.Size = UDim2.new(0, 16, 0, 16)
-				tabIcon.Position = UDim2.new(0, 0, 0.5, -8)
+				tabIcon.Size = UDim2.new(0, 28, 0, 28)
+				tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
 				tabIcon.ImageColor3 = pal2.TextSub
 				tabIcon.Parent = tabBtn
-	
-				-- Increase padding to account for icon width
-				padding.PaddingLeft = UDim.new(0, 44)
-				tabBtn.Text = tabText
-				tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 			elseif iconType == "text" then
-				-- Use emoji/text icon inline
-				tabBtn.Text = iconAsset .. "  " .. tabText
-				tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+				-- Use emoji/text icon centered
+				tabBtn.Text = iconAsset
+				tabBtn.TextSize = 24
 			end
 		else
-			tabBtn.Text = tabText
-			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+			-- Fallback: use first letter of tab name
+			local firstLetter = string.sub(tabText, 1, 1):upper()
+			tabBtn.Text = firstLetter
+			tabBtn.Font = Enum.Font.GothamBold
+			tabBtn.TextSize = 20
 		end
 	
+		-- Gradient overlay on active tab
+		local tabGradient = Instance.new("UIGradient")
+		tabGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal2.Primary),
+			ColorSequenceKeypoint.new(0.5, pal2.Accent),
+			ColorSequenceKeypoint.new(1, pal2.Secondary),
+		}
+		tabGradient.Rotation = 45
+		tabGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(1, 1),
+		}
+		tabGradient.Parent = tabBtn
+	
+		-- Side indicator (glowing accent line)
 		local tabIndicator = Instance.new("Frame")
 		tabIndicator.BackgroundColor3 = pal2.Accent
 		tabIndicator.BorderSizePixel = 0
 		tabIndicator.AnchorPoint = Vector2.new(0, 0.5)
 		tabIndicator.Position = UDim2.new(0, -6, 0.5, 0)
-		tabIndicator.Size = UDim2.new(0, 3, 0, 0)
+		tabIndicator.Size = UDim2.new(0, 4, 0, 0)
 		tabIndicator.Visible = false
 		tabIndicator.Parent = tabBtn
-		corner(tabIndicator, 3)
+		corner(tabIndicator, 2)
 	
 		-- Tab page (scrollable)
 		local page = Instance.new("ScrollingFrame")
@@ -3574,11 +4184,30 @@ do
 			local pal = currentPalette()
 			tabData.btn:SetAttribute("Active", false)
 			tabData.page.Visible = false
-			tabData.btn.BackgroundColor3 = pal.Card
+			tabData.btn.BackgroundTransparency = 0.3
 			tabData.btn.TextColor3 = pal.TextSub
 			if tabData.icon then
 				tabData.icon.ImageColor3 = pal.TextSub
 			end
+	
+			-- Hide gradient
+			if tabData.gradient then
+				Animator:Tween(tabData.gradient, {
+					Transparency = NumberSequence.new{
+						NumberSequenceKeypoint.new(0, 1),
+						NumberSequenceKeypoint.new(1, 1),
+					}
+				}, Animator.Spring.Snappy)
+			end
+	
+			-- Restore border
+			if tabData.stroke then
+				Animator:Tween(tabData.stroke, {
+					Thickness = 1,
+					Transparency = 0.6
+				}, Animator.Spring.Snappy)
+			end
+	
 			tabData.indicator.Visible = false
 		end
 	
@@ -3590,32 +4219,58 @@ do
 			end
 			page.Visible = true
 			tabBtn:SetAttribute("Active", true)
-			tabBtn.BackgroundColor3 = pal.Active
-			tabBtn.TextColor3 = pal.Text
+			tabBtn.BackgroundTransparency = 0.1
+			tabBtn.TextColor3 = pal.TextBright
 			if tabIcon then
-				tabIcon.ImageColor3 = pal.Text
+				tabIcon.ImageColor3 = pal.Accent
 			end
+	
+			-- Show gradient
+			Animator:Tween(tabGradient, {
+				Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.5),
+					NumberSequenceKeypoint.new(1, 0.5),
+				}
+			}, Animator.Spring.Snappy)
+	
+			-- Glow border
+			Animator:Tween(tabStroke, {
+				Color = pal.Accent,
+				Thickness = 2,
+				Transparency = 0.3
+			}, Animator.Spring.Snappy)
+	
+			-- Indicator expands
 			tabIndicator.Visible = true
-			tabIndicator.Size = UDim2.new(0, 3, 0, 0)
-			Animator:Tween(tabIndicator, {Size = UDim2.new(0, 3, 1, -12)}, Animator.Spring.Snappy)
+			tabIndicator.Size = UDim2.new(0, 4, 0, 0)
+			Animator:Tween(tabIndicator, {Size = UDim2.new(0, 4, 1, -12)}, Animator.Spring.Spring)
 			dependencies.activePage = page  -- Update active page reference
 		end
 	
 		tabBtn.MouseButton1Click:Connect(activateTab)
 		tabBtn.MouseEnter:Connect(function()
 			if page.Visible == false then
-				local pal = currentPalette()
-				Animator:Tween(tabBtn, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
+				-- Brighten background and border on hover
+				Animator:Tween(tabBtn, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+				Animator:Tween(tabStroke, {Transparency = 0.4}, Animator.Spring.Lightning)
 			end
 		end)
 		tabBtn.MouseLeave:Connect(function()
 			if page.Visible == false then
-				local pal = currentPalette()
-				Animator:Tween(tabBtn, {BackgroundColor3 = pal.Card}, Animator.Spring.Fast)
+				-- Restore inactive state
+				Animator:Tween(tabBtn, {BackgroundTransparency = 0.3}, Animator.Spring.Snappy)
+				Animator:Tween(tabStroke, {Transparency = 0.6}, Animator.Spring.Snappy)
 			end
 		end)
 	
-		table.insert(tabs, {btn = tabBtn, page = page, indicator = tabIndicator, icon = tabIcon})
+		table.insert(tabs, {
+			btn = tabBtn,
+			page = page,
+			indicator = tabIndicator,
+			icon = tabIcon,
+			gradient = tabGradient,
+			stroke = tabStroke
+		})
 	
 		-- Activate first tab automatically
 		if #tabs == 1 then
@@ -3624,7 +4279,7 @@ do
 	
 		local TabAPI = {}
 	
-		-- Tab SetIcon Method
+		-- Tab SetIcon Method (icon-only design)
 		function TabAPI:SetIcon(newIcon)
 			if not newIcon then return end
 	
@@ -3638,23 +4293,19 @@ do
 			end
 	
 			if iconType == "image" then
-				-- Create new image icon
+				-- Create centered image icon
 				tabIcon = Instance.new("ImageLabel")
 				tabIcon.BackgroundTransparency = 1
 				tabIcon.Image = iconAsset
-				tabIcon.Size = UDim2.new(0, 16, 0, 16)
-				tabIcon.Position = UDim2.new(0, 0, 0.5, -8)
+				tabIcon.Size = UDim2.new(0, 28, 0, 28)
+				tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
 				tabIcon.ImageColor3 = pal.TextSub
 				tabIcon.Parent = tabBtn
-	
-				padding.PaddingLeft = UDim.new(0, 44)
-				tabBtn.Text = tabText
-				tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+				tabBtn.Text = ""
 			elseif iconType == "text" then
-				-- Use emoji/text icon inline
-				padding.PaddingLeft = UDim.new(0, 16)
-				tabBtn.Text = iconAsset .. "  " .. tabText
-				tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+				-- Use emoji/text icon centered
+				tabBtn.Text = iconAsset
+				tabBtn.TextSize = 24
 			end
 	
 			-- Update the tabs table reference
@@ -3897,17 +4548,65 @@ do
 		root.ZIndex = 100
 		root.Parent = windowHost
 		UIHelpers.corner(root, 16)
-		UIHelpers.stroke(root, pal.Border, 1.5)
 	
-		-- Header bar
+		-- Animated gradient border around entire window
+		local windowBorder = Instance.new("UIStroke")
+		windowBorder.Name = "WindowBorder"
+		windowBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		windowBorder.Thickness = 2
+		windowBorder.Transparency = 0.3
+		windowBorder.Parent = root
+	
+		local windowBorderGradient = Instance.new("UIGradient")
+		windowBorderGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal.Primary),
+			ColorSequenceKeypoint.new(0.5, pal.Accent),
+			ColorSequenceKeypoint.new(1, pal.Secondary),
+		}
+		windowBorderGradient.Rotation = 0
+		windowBorderGradient.Parent = windowBorder
+	
+		-- Animate border gradient rotation
+		task.spawn(function()
+			while windowBorder and windowBorder.Parent do
+				for rotation = 0, 360, 2 do
+					if not windowBorder or not windowBorder.Parent then break end
+					windowBorderGradient.Rotation = rotation
+					task.wait(0.05)
+				end
+			end
+		end)
+	
+		-- Header bar with vibrant gradient
 		local header = Instance.new("Frame")
 		header.Size = UDim2.new(1, 0, 0, 52)
 		header.BackgroundColor3 = pal.Elevated
-		header.BackgroundTransparency = 0
+		header.BackgroundTransparency = 0.2
 		header.BorderSizePixel = 0
 		header.Parent = root
 		UIHelpers.corner(header, 16)
-		UIHelpers.stroke(header, pal.Border, 1)
+	
+		-- Gradient overlay on header
+		local headerGradient = Instance.new("UIGradient")
+		headerGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal.Primary),
+			ColorSequenceKeypoint.new(0.5, pal.Accent),
+			ColorSequenceKeypoint.new(1, pal.Secondary),
+		}
+		headerGradient.Rotation = 90
+		headerGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.7),
+			NumberSequenceKeypoint.new(1, 0.7),
+		}
+		headerGradient.Parent = header
+	
+		-- Header border
+		local headerStroke = Instance.new("UIStroke")
+		headerStroke.Color = pal.BorderGlow
+		headerStroke.Thickness = 1
+		headerStroke.Transparency = 0.5
+		headerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		headerStroke.Parent = header
 	
 		local headerDivider = Instance.new("Frame")
 		headerDivider.BackgroundColor3 = pal.Divider
@@ -4344,26 +5043,47 @@ do
 			end
 		end)
 	
-		-- Side tab rail
-		local railWidth = 176
+		-- Sleek vertical icon-only tab rail
+		local railWidth = 80 -- Narrower for icon-only design
 		local tabBar = Instance.new("ScrollingFrame")
 		tabBar.Name = "TabRail"
 		tabBar.BackgroundColor3 = pal.Card
-		tabBar.BackgroundTransparency = 0
+		tabBar.BackgroundTransparency = 0.2
 		tabBar.BorderSizePixel = 0
 		tabBar.Position = UDim2.new(0, 0, 0, 0)
 		tabBar.Size = UDim2.new(0, railWidth, 1, 0)
 		tabBar.CanvasSize = UDim2.new(0, 0, 0, 0)
 		tabBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		tabBar.ScrollBarThickness = 4
+		tabBar.ScrollBarThickness = 3
 		tabBar.ScrollBarImageColor3 = pal.Border
-		tabBar.ScrollBarImageTransparency = 0.4
+		tabBar.ScrollBarImageTransparency = 0.5
 		tabBar.ScrollingDirection = Enum.ScrollingDirection.Y
 		tabBar.ElasticBehavior = Enum.ElasticBehavior.Never
 		tabBar.ClipsDescendants = true
 		tabBar.Parent = content
 		UIHelpers.corner(tabBar, 12)
-		UIHelpers.stroke(tabBar, pal.Border, 1)
+	
+		-- Subtle gradient on tab rail
+		local tabRailGradient = Instance.new("UIGradient")
+		tabRailGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal.Primary),
+			ColorSequenceKeypoint.new(0.5, pal.Accent),
+			ColorSequenceKeypoint.new(1, pal.Secondary),
+		}
+		tabRailGradient.Rotation = 90
+		tabRailGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.9),
+			NumberSequenceKeypoint.new(1, 0.9),
+		}
+		tabRailGradient.Parent = tabBar
+	
+		-- Border stroke
+		local tabRailStroke = Instance.new("UIStroke")
+		tabRailStroke.Color = pal.BorderGlow
+		tabRailStroke.Thickness = 1
+		tabRailStroke.Transparency = 0.6
+		tabRailStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tabRailStroke.Parent = tabBar
 	
 		local tabPadding = Instance.new("UIPadding")
 		tabPadding.PaddingTop = UDim.new(0, 12)

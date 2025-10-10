@@ -214,17 +214,65 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.ZIndex = 100
 	root.Parent = windowHost
 	UIHelpers.corner(root, 16)
-	UIHelpers.stroke(root, pal.Border, 1.5)
 
-	-- Header bar
+	-- Animated gradient border around entire window
+	local windowBorder = Instance.new("UIStroke")
+	windowBorder.Name = "WindowBorder"
+	windowBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	windowBorder.Thickness = 2
+	windowBorder.Transparency = 0.3
+	windowBorder.Parent = root
+
+	local windowBorderGradient = Instance.new("UIGradient")
+	windowBorderGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal.Primary),
+		ColorSequenceKeypoint.new(0.5, pal.Accent),
+		ColorSequenceKeypoint.new(1, pal.Secondary),
+	}
+	windowBorderGradient.Rotation = 0
+	windowBorderGradient.Parent = windowBorder
+
+	-- Animate border gradient rotation
+	task.spawn(function()
+		while windowBorder and windowBorder.Parent do
+			for rotation = 0, 360, 2 do
+				if not windowBorder or not windowBorder.Parent then break end
+				windowBorderGradient.Rotation = rotation
+				task.wait(0.05)
+			end
+		end
+	end)
+
+	-- Header bar with vibrant gradient
 	local header = Instance.new("Frame")
 	header.Size = UDim2.new(1, 0, 0, 52)
 	header.BackgroundColor3 = pal.Elevated
-	header.BackgroundTransparency = 0
+	header.BackgroundTransparency = 0.2
 	header.BorderSizePixel = 0
 	header.Parent = root
 	UIHelpers.corner(header, 16)
-	UIHelpers.stroke(header, pal.Border, 1)
+
+	-- Gradient overlay on header
+	local headerGradient = Instance.new("UIGradient")
+	headerGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal.Primary),
+		ColorSequenceKeypoint.new(0.5, pal.Accent),
+		ColorSequenceKeypoint.new(1, pal.Secondary),
+	}
+	headerGradient.Rotation = 90
+	headerGradient.Transparency = NumberSequence.new{
+		NumberSequenceKeypoint.new(0, 0.7),
+		NumberSequenceKeypoint.new(1, 0.7),
+	}
+	headerGradient.Parent = header
+
+	-- Header border
+	local headerStroke = Instance.new("UIStroke")
+	headerStroke.Color = pal.BorderGlow
+	headerStroke.Thickness = 1
+	headerStroke.Transparency = 0.5
+	headerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	headerStroke.Parent = header
 
 	local headerDivider = Instance.new("Frame")
 	headerDivider.BackgroundColor3 = pal.Divider
@@ -661,26 +709,47 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end)
 
-	-- Side tab rail
-	local railWidth = 176
+	-- Sleek vertical icon-only tab rail
+	local railWidth = 80 -- Narrower for icon-only design
 	local tabBar = Instance.new("ScrollingFrame")
 	tabBar.Name = "TabRail"
 	tabBar.BackgroundColor3 = pal.Card
-	tabBar.BackgroundTransparency = 0
+	tabBar.BackgroundTransparency = 0.2
 	tabBar.BorderSizePixel = 0
 	tabBar.Position = UDim2.new(0, 0, 0, 0)
 	tabBar.Size = UDim2.new(0, railWidth, 1, 0)
 	tabBar.CanvasSize = UDim2.new(0, 0, 0, 0)
 	tabBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	tabBar.ScrollBarThickness = 4
+	tabBar.ScrollBarThickness = 3
 	tabBar.ScrollBarImageColor3 = pal.Border
-	tabBar.ScrollBarImageTransparency = 0.4
+	tabBar.ScrollBarImageTransparency = 0.5
 	tabBar.ScrollingDirection = Enum.ScrollingDirection.Y
 	tabBar.ElasticBehavior = Enum.ElasticBehavior.Never
 	tabBar.ClipsDescendants = true
 	tabBar.Parent = content
 	UIHelpers.corner(tabBar, 12)
-	UIHelpers.stroke(tabBar, pal.Border, 1)
+
+	-- Subtle gradient on tab rail
+	local tabRailGradient = Instance.new("UIGradient")
+	tabRailGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal.Primary),
+		ColorSequenceKeypoint.new(0.5, pal.Accent),
+		ColorSequenceKeypoint.new(1, pal.Secondary),
+	}
+	tabRailGradient.Rotation = 90
+	tabRailGradient.Transparency = NumberSequence.new{
+		NumberSequenceKeypoint.new(0, 0.9),
+		NumberSequenceKeypoint.new(1, 0.9),
+	}
+	tabRailGradient.Parent = tabBar
+
+	-- Border stroke
+	local tabRailStroke = Instance.new("UIStroke")
+	tabRailStroke.Color = pal.BorderGlow
+	tabRailStroke.Thickness = 1
+	tabRailStroke.Transparency = 0.6
+	tabRailStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	tabRailStroke.Parent = tabBar
 
 	local tabPadding = Instance.new("UIPadding")
 	tabPadding.PaddingTop = UDim.new(0, 12)

@@ -1,6 +1,6 @@
--- Label Element Module
--- Part of RvrseUI v2.13.0 Modular Architecture
--- Extracted from RvrseUI.lua (lines 3525-3557)
+-- Label Element Module v4.0
+-- Clean label with optional gradient text
+-- Minimal redesign for RvrseUI v4.0
 
 local Label = {}
 
@@ -12,16 +12,18 @@ function Label.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local RvrseUI = dependencies.RvrseUI
 
-	local f = card(32)
+	local f = card(36) -- Slightly taller
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
-	lbl.Size = UDim2.new(1, 0, 1, 0)
+	lbl.Size = UDim2.new(1, -8, 1, 0)
+	lbl.Position = UDim2.new(0, 4, 0, 0)
 	lbl.Font = Enum.Font.GothamMedium
 	lbl.TextSize = 14
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.TextColor3 = pal3.Text
+	lbl.TextColor3 = pal3.TextSub -- Subtle color for labels
 	lbl.Text = o.Text or "Label"
+	lbl.TextWrapped = true
 	lbl.Parent = f
 
 	local labelAPI = {

@@ -1,6 +1,6 @@
--- Slider Element Module
--- Part of RvrseUI v2.13.0 Modular Architecture
--- Extracted from RvrseUI.lua (lines 3355-3522)
+-- Slider Element Module v4.0
+-- Gradient-filled slider with glowing thumb
+-- Complete redesign for RvrseUI v4.0
 
 local Slider = {}
 
@@ -16,71 +16,93 @@ function Slider.Create(o, dependencies)
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
 	local UIS = dependencies.UIS
+	local Theme = dependencies.Theme
 
 	local minVal = o.Min or 0
 	local maxVal = o.Max or 100
 	local step = o.Step or 1
 	local value = o.Default or minVal
 
-	local f = card(56)
+	local f = card(64) -- Taller for modern layout
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
-	lbl.Size = UDim2.new(1, 0, 0, 20)
-	lbl.Font = Enum.Font.GothamMedium
-	lbl.TextSize = 14
+	lbl.Size = UDim2.new(1, -60, 0, 22)
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextSize = 15
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
-	lbl.Text = (o.Text or "Slider") .. ": " .. value
+	lbl.Text = (o.Text or "Slider")
 	lbl.Parent = f
 
-	-- Track (taller for better hit area)
+	-- Value display (right-aligned)
+	local valueLbl = Instance.new("TextLabel")
+	valueLbl.BackgroundTransparency = 1
+	valueLbl.AnchorPoint = Vector2.new(1, 0)
+	valueLbl.Position = UDim2.new(1, -6, 0, 0)
+	valueLbl.Size = UDim2.new(0, 50, 0, 22)
+	valueLbl.Font = Enum.Font.GothamBold
+	valueLbl.TextSize = 14
+	valueLbl.TextXAlignment = Enum.TextXAlignment.Right
+	valueLbl.TextColor3 = pal3.Accent
+	valueLbl.Text = tostring(value)
+	valueLbl.Parent = f
+
+	-- Track (thicker for better interaction)
 	local track = Instance.new("Frame")
-	track.Position = UDim2.new(0, 0, 0, 28)
-	track.Size = UDim2.new(1, 0, 0, 8)  -- Increased from 6 to 8 for better feel
-	track.BackgroundColor3 = pal3.Border
+	track.Position = UDim2.new(0, 0, 0, 32)
+	track.Size = UDim2.new(1, 0, 0, 10)
+	track.BackgroundColor3 = pal3.Card
 	track.BorderSizePixel = 0
 	track.Parent = f
-	corner(track, 4)
+	corner(track, 5)
 
-	-- Fill with animated gradient
+	-- Track border glow
+	local trackStroke = Instance.new("UIStroke")
+	trackStroke.Color = pal3.BorderGlow
+	trackStroke.Thickness = 1
+	trackStroke.Transparency = 0.7
+	trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	trackStroke.Parent = track
+
+	-- Vibrant gradient fill
 	local fill = Instance.new("Frame")
 	fill.Size = UDim2.new((value - minVal) / (maxVal - minVal), 0, 1, 0)
 	fill.BackgroundColor3 = pal3.Accent
 	fill.BorderSizePixel = 0
+	fill.ZIndex = 2
 	fill.Parent = track
-	corner(fill, 4)
-	gradient(fill, 90, {pal3.Accent, pal3.AccentHover})
+	corner(fill, 5)
+
+	-- Multi-color gradient on fill
+	local fillGradient = Instance.new("UIGradient")
+	fillGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal3.Primary),
+		ColorSequenceKeypoint.new(0.5, pal3.Accent),
+		ColorSequenceKeypoint.new(1, pal3.Secondary),
+	}
+	fillGradient.Rotation = 0 -- Horizontal gradient
+	fillGradient.Parent = fill
 
 	-- Premium thumb with glow
 	local thumb = Instance.new("Frame")
 	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
 	thumb.Position = UDim2.new((value - minVal) / (maxVal - minVal), 0, 0.5, 0)
-	thumb.Size = UDim2.new(0, 18, 0, 18)  -- Slightly larger default (was 16)
+	thumb.Size = UDim2.new(0, 22, 0, 22) -- Larger for modern look
 	thumb.BackgroundColor3 = Color3.new(1, 1, 1)
 	thumb.BorderSizePixel = 0
-	thumb.ZIndex = 3
+	thumb.ZIndex = 4
 	thumb.Parent = track
-	corner(thumb, 9)
-	shadow(thumb, 0.4, 4)  -- Enhanced shadow
+	corner(thumb, 11)
+	shadow(thumb, 0.5, 5) -- Enhanced shadow
 
-	-- Accent glow ring (hidden by default)
-	local glowRing = Instance.new("Frame")
-	glowRing.AnchorPoint = Vector2.new(0.5, 0.5)
-	glowRing.Position = UDim2.new(0.5, 0, 0.5, 0)
-	glowRing.Size = UDim2.new(0, 18, 0, 18)  -- Same as thumb
-	glowRing.BackgroundTransparency = 1
-	glowRing.BorderSizePixel = 0
-	glowRing.ZIndex = 2
-	glowRing.Parent = thumb
-
+	-- Glowing stroke around thumb
 	local glowStroke = Instance.new("UIStroke")
 	glowStroke.Color = pal3.Accent
 	glowStroke.Thickness = 0
-	glowStroke.Transparency = 0.3
+	glowStroke.Transparency = 0.2
 	glowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	glowStroke.Parent = glowRing
-	corner(glowRing, 12)
+	glowStroke.Parent = thumb
 
 	local dragging = false
 	local hovering = false
@@ -90,46 +112,65 @@ function Slider.Create(o, dependencies)
 		value = math.round((minVal + relativeX * (maxVal - minVal)) / step) * step
 		value = math.clamp(value, minVal, maxVal)
 
-		lbl.Text = (o.Text or "Slider") .. ": " .. value
+		valueLbl.Text = tostring(value)
 
-		-- Buttery smooth animations
-		Animator:Tween(fill, {Size = UDim2.new(relativeX, 0, 1, 0)}, Animator.Spring.Smooth)
-		Animator:Tween(thumb, {Position = UDim2.new(relativeX, 0, 0.5, 0)}, Animator.Spring.Snappy)
+		-- Ultra-smooth animations
+		Animator:Tween(fill, {Size = UDim2.new(relativeX, 0, 1, 0)}, Animator.Spring.Butter)
+		Animator:Tween(thumb, {Position = UDim2.new(relativeX, 0, 0.5, 0)}, Animator.Spring.Glide)
 
 		if o.OnChanged then task.spawn(o.OnChanged, value) end
 		if o.Flag then RvrseUI:_autoSave() end
 	end
 
-	-- Hover effects
+	-- Enhanced hover effects
 	track.MouseEnter:Connect(function()
 		if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 		hovering = true
-		-- Subtle hover: thumb grows slightly
-		Animator:Tween(thumb, {Size = UDim2.new(0, 20, 0, 20)}, Animator.Spring.Fast)
-		Animator:Tween(glowRing, {Size = UDim2.new(0, 20, 0, 20)}, Animator.Spring.Fast)
+
+		-- Thumb grows
+		Animator:Tween(thumb, {Size = UDim2.new(0, 24, 0, 24)}, Animator.Spring.Snappy)
+
+		-- Subtle glow appears
+		Animator:Tween(glowStroke, {Thickness = 2}, Animator.Spring.Snappy)
+
+		-- Track border brightens
+		Animator:Tween(trackStroke, {Transparency = 0.4}, Animator.Spring.Lightning)
 	end)
 
 	track.MouseLeave:Connect(function()
-		if dragging then return end  -- Don't shrink if dragging
+		if dragging then return end
 		hovering = false
-		-- Return to normal size
-		Animator:Tween(thumb, {Size = UDim2.new(0, 18, 0, 18)}, Animator.Spring.Fast)
-		Animator:Tween(glowRing, {Size = UDim2.new(0, 18, 0, 18)}, Animator.Spring.Fast)
-		Animator:Tween(glowStroke, {Thickness = 0}, Animator.Spring.Fast)
+
+		-- Thumb shrinks
+		Animator:Tween(thumb, {Size = UDim2.new(0, 22, 0, 22)}, Animator.Spring.Bounce)
+
+		-- Glow fades
+		Animator:Tween(glowStroke, {Thickness = 0}, Animator.Spring.Snappy)
+
+		-- Track restores
+		Animator:Tween(trackStroke, {Transparency = 0.7}, Animator.Spring.Snappy)
 	end)
 
-	-- Dragging: GROW and GLOW
+	-- Dragging: GROW, GLOW, and vibrant feedback
 	track.InputBegan:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 			dragging = true
 
-			-- GROW: Thumb expands on grab
-			Animator:Tween(thumb, {Size = UDim2.new(0, 24, 0, 24)}, Animator.Spring.Snappy)
-			Animator:Tween(glowRing, {Size = UDim2.new(0, 24, 0, 24)}, Animator.Spring.Snappy)
+			-- GROW: Thumb expands dramatically
+			Animator:Tween(thumb, {Size = UDim2.new(0, 28, 0, 28)}, Animator.Spring.Pop)
 
-			-- GLOW: Accent ring appears
-			Animator:Tween(glowStroke, {Thickness = 3}, Animator.Spring.Smooth)
+			-- GLOW: Strong accent ring
+			Animator:Tween(glowStroke, {Thickness = 4}, Animator.Spring.Snappy)
+
+			-- Track glows brighter
+			Animator:Tween(trackStroke, {
+				Thickness = 2,
+				Transparency = 0.2
+			}, Animator.Spring.Lightning)
+
+			-- Value label pulses
+			Animator:Pulse(valueLbl, 1.1, Animator.Spring.Lightning)
 
 			update(io.Position)
 		end
@@ -139,13 +180,19 @@ function Slider.Create(o, dependencies)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			dragging = false
 
-			-- SHRINK: Return to hover size if still hovering, else normal
-			local targetSize = hovering and 20 or 18
+			-- SHRINK: Return to hover or normal size with bounce
+			local targetSize = hovering and 24 or 22
 			Animator:Tween(thumb, {Size = UDim2.new(0, targetSize, 0, targetSize)}, Animator.Spring.Bounce)
-			Animator:Tween(glowRing, {Size = UDim2.new(0, targetSize, 0, targetSize)}, Animator.Spring.Bounce)
 
-			-- GLOW FADE: Ring disappears
-			Animator:Tween(glowStroke, {Thickness = hovering and 1 or 0}, Animator.Spring.Fast)
+			-- GLOW: Fade to hover or off
+			local targetThickness = hovering and 2 or 0
+			Animator:Tween(glowStroke, {Thickness = targetThickness}, Animator.Spring.Glide)
+
+			-- Track restores
+			Animator:Tween(trackStroke, {
+				Thickness = 1,
+				Transparency = hovering and 0.4 or 0.7
+			}, Animator.Spring.Snappy)
 		end
 	end)
 

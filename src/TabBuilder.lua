@@ -36,26 +36,29 @@ function TabBuilder.CreateTab(t, dependencies)
 	end
 	local pal2 = currentPalette()
 
-	-- Tab button with icon support (Lucide, Roblox asset ID, or emoji)
+	-- Icon-only tab button (modern vertical rail design)
 	local tabBtn = Instance.new("TextButton")
 	tabBtn.AutoButtonColor = false
 	tabBtn.BackgroundColor3 = pal2.Card
-	tabBtn.BackgroundTransparency = 0
+	tabBtn.BackgroundTransparency = 0.3
 	tabBtn.BorderSizePixel = 0
-	tabBtn.Size = UDim2.new(1, -16, 0, 48)
+	tabBtn.Size = UDim2.new(1, -16, 0, 56) -- Square-ish icon button
 	tabBtn.Font = Enum.Font.GothamMedium
-	tabBtn.TextSize = 14
+	tabBtn.TextSize = 24
 	tabBtn.TextColor3 = pal2.TextSub
-	tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+	tabBtn.Text = ""
 	tabBtn.Parent = tabBar
-	corner(tabBtn, 10)
+	corner(tabBtn, 12)
 
-	local padding = Instance.new("UIPadding")
-	padding.PaddingLeft = UDim.new(0, 16)
-	padding.PaddingRight = UDim.new(0, 12)
-	padding.Parent = tabBtn
+	-- Subtle border
+	local tabStroke = Instance.new("UIStroke")
+	tabStroke.Color = pal2.Border
+	tabStroke.Thickness = 1
+	tabStroke.Transparency = 0.6
+	tabStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	tabStroke.Parent = tabBtn
 
-	-- Handle icon display
+	-- Handle icon display (icon-only design)
 	local tabIcon = nil
 	local tabText = t.Title or "Tab"
 
@@ -63,38 +66,51 @@ function TabBuilder.CreateTab(t, dependencies)
 		local iconAsset, iconType = Icons:Resolve(t.Icon)
 
 		if iconType == "image" then
-			-- Create image icon
+			-- Create centered image icon
 			tabIcon = Instance.new("ImageLabel")
 			tabIcon.BackgroundTransparency = 1
 			tabIcon.Image = iconAsset
-			tabIcon.Size = UDim2.new(0, 16, 0, 16)
-			tabIcon.Position = UDim2.new(0, 0, 0.5, -8)
+			tabIcon.Size = UDim2.new(0, 28, 0, 28)
+			tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
 			tabIcon.ImageColor3 = pal2.TextSub
 			tabIcon.Parent = tabBtn
-
-			-- Increase padding to account for icon width
-			padding.PaddingLeft = UDim.new(0, 44)
-			tabBtn.Text = tabText
-			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 		elseif iconType == "text" then
-			-- Use emoji/text icon inline
-			tabBtn.Text = iconAsset .. "  " .. tabText
-			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+			-- Use emoji/text icon centered
+			tabBtn.Text = iconAsset
+			tabBtn.TextSize = 24
 		end
 	else
-		tabBtn.Text = tabText
-		tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+		-- Fallback: use first letter of tab name
+		local firstLetter = string.sub(tabText, 1, 1):upper()
+		tabBtn.Text = firstLetter
+		tabBtn.Font = Enum.Font.GothamBold
+		tabBtn.TextSize = 20
 	end
 
+	-- Gradient overlay on active tab
+	local tabGradient = Instance.new("UIGradient")
+	tabGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal2.Primary),
+		ColorSequenceKeypoint.new(0.5, pal2.Accent),
+		ColorSequenceKeypoint.new(1, pal2.Secondary),
+	}
+	tabGradient.Rotation = 45
+	tabGradient.Transparency = NumberSequence.new{
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	}
+	tabGradient.Parent = tabBtn
+
+	-- Side indicator (glowing accent line)
 	local tabIndicator = Instance.new("Frame")
 	tabIndicator.BackgroundColor3 = pal2.Accent
 	tabIndicator.BorderSizePixel = 0
 	tabIndicator.AnchorPoint = Vector2.new(0, 0.5)
 	tabIndicator.Position = UDim2.new(0, -6, 0.5, 0)
-	tabIndicator.Size = UDim2.new(0, 3, 0, 0)
+	tabIndicator.Size = UDim2.new(0, 4, 0, 0)
 	tabIndicator.Visible = false
 	tabIndicator.Parent = tabBtn
-	corner(tabIndicator, 3)
+	corner(tabIndicator, 2)
 
 	-- Tab page (scrollable)
 	local page = Instance.new("ScrollingFrame")
@@ -123,11 +139,30 @@ function TabBuilder.CreateTab(t, dependencies)
 		local pal = currentPalette()
 		tabData.btn:SetAttribute("Active", false)
 		tabData.page.Visible = false
-		tabData.btn.BackgroundColor3 = pal.Card
+		tabData.btn.BackgroundTransparency = 0.3
 		tabData.btn.TextColor3 = pal.TextSub
 		if tabData.icon then
 			tabData.icon.ImageColor3 = pal.TextSub
 		end
+
+		-- Hide gradient
+		if tabData.gradient then
+			Animator:Tween(tabData.gradient, {
+				Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 1),
+					NumberSequenceKeypoint.new(1, 1),
+				}
+			}, Animator.Spring.Snappy)
+		end
+
+		-- Restore border
+		if tabData.stroke then
+			Animator:Tween(tabData.stroke, {
+				Thickness = 1,
+				Transparency = 0.6
+			}, Animator.Spring.Snappy)
+		end
+
 		tabData.indicator.Visible = false
 	end
 
@@ -139,32 +174,58 @@ function TabBuilder.CreateTab(t, dependencies)
 		end
 		page.Visible = true
 		tabBtn:SetAttribute("Active", true)
-		tabBtn.BackgroundColor3 = pal.Active
-		tabBtn.TextColor3 = pal.Text
+		tabBtn.BackgroundTransparency = 0.1
+		tabBtn.TextColor3 = pal.TextBright
 		if tabIcon then
-			tabIcon.ImageColor3 = pal.Text
+			tabIcon.ImageColor3 = pal.Accent
 		end
+
+		-- Show gradient
+		Animator:Tween(tabGradient, {
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.5),
+				NumberSequenceKeypoint.new(1, 0.5),
+			}
+		}, Animator.Spring.Snappy)
+
+		-- Glow border
+		Animator:Tween(tabStroke, {
+			Color = pal.Accent,
+			Thickness = 2,
+			Transparency = 0.3
+		}, Animator.Spring.Snappy)
+
+		-- Indicator expands
 		tabIndicator.Visible = true
-		tabIndicator.Size = UDim2.new(0, 3, 0, 0)
-		Animator:Tween(tabIndicator, {Size = UDim2.new(0, 3, 1, -12)}, Animator.Spring.Snappy)
+		tabIndicator.Size = UDim2.new(0, 4, 0, 0)
+		Animator:Tween(tabIndicator, {Size = UDim2.new(0, 4, 1, -12)}, Animator.Spring.Spring)
 		dependencies.activePage = page  -- Update active page reference
 	end
 
 	tabBtn.MouseButton1Click:Connect(activateTab)
 	tabBtn.MouseEnter:Connect(function()
 		if page.Visible == false then
-			local pal = currentPalette()
-			Animator:Tween(tabBtn, {BackgroundColor3 = pal.Hover}, Animator.Spring.Fast)
+			-- Brighten background and border on hover
+			Animator:Tween(tabBtn, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+			Animator:Tween(tabStroke, {Transparency = 0.4}, Animator.Spring.Lightning)
 		end
 	end)
 	tabBtn.MouseLeave:Connect(function()
 		if page.Visible == false then
-			local pal = currentPalette()
-			Animator:Tween(tabBtn, {BackgroundColor3 = pal.Card}, Animator.Spring.Fast)
+			-- Restore inactive state
+			Animator:Tween(tabBtn, {BackgroundTransparency = 0.3}, Animator.Spring.Snappy)
+			Animator:Tween(tabStroke, {Transparency = 0.6}, Animator.Spring.Snappy)
 		end
 	end)
 
-	table.insert(tabs, {btn = tabBtn, page = page, indicator = tabIndicator, icon = tabIcon})
+	table.insert(tabs, {
+		btn = tabBtn,
+		page = page,
+		indicator = tabIndicator,
+		icon = tabIcon,
+		gradient = tabGradient,
+		stroke = tabStroke
+	})
 
 	-- Activate first tab automatically
 	if #tabs == 1 then
@@ -173,7 +234,7 @@ function TabBuilder.CreateTab(t, dependencies)
 
 	local TabAPI = {}
 
-	-- Tab SetIcon Method
+	-- Tab SetIcon Method (icon-only design)
 	function TabAPI:SetIcon(newIcon)
 		if not newIcon then return end
 
@@ -187,23 +248,19 @@ function TabBuilder.CreateTab(t, dependencies)
 		end
 
 		if iconType == "image" then
-			-- Create new image icon
+			-- Create centered image icon
 			tabIcon = Instance.new("ImageLabel")
 			tabIcon.BackgroundTransparency = 1
 			tabIcon.Image = iconAsset
-			tabIcon.Size = UDim2.new(0, 16, 0, 16)
-			tabIcon.Position = UDim2.new(0, 0, 0.5, -8)
+			tabIcon.Size = UDim2.new(0, 28, 0, 28)
+			tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
 			tabIcon.ImageColor3 = pal.TextSub
 			tabIcon.Parent = tabBtn
-
-			padding.PaddingLeft = UDim.new(0, 44)
-			tabBtn.Text = tabText
-			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+			tabBtn.Text = ""
 		elseif iconType == "text" then
-			-- Use emoji/text icon inline
-			padding.PaddingLeft = UDim.new(0, 16)
-			tabBtn.Text = iconAsset .. "  " .. tabText
-			tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+			-- Use emoji/text icon centered
+			tabBtn.Text = iconAsset
+			tabBtn.TextSize = 24
 		end
 
 		-- Update the tabs table reference

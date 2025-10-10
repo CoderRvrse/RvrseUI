@@ -1,4 +1,8 @@
-# RvrseUI – Maintainer Notes (v3.0.4)
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+# RvrseUI – Maintainer Notes (v4.0.0)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -13,11 +17,31 @@ RvrseUI/
 ├── src/                      # ✅ SOURCE OF TRUTH - Edit these files
 │   ├── Version.lua           # Version metadata
 │   ├── Debug.lua             # Debug logging system
+│   ├── Obfuscation.lua       # Name obfuscation for anti-detection
 │   ├── Theme.lua             # Dark/Light palettes
 │   ├── Animator.lua          # Spring animations
-│   ├── WindowBuilder.lua     # Main window construction
+│   ├── State.lua             # Global state management
 │   ├── Config.lua            # Persistence system
-│   └── Elements/             # All 12 UI elements
+│   ├── Icons.lua             # Icon library
+│   ├── UIHelpers.lua         # UI utility functions
+│   ├── Notifications.lua     # Toast notification system
+│   ├── Hotkeys.lua           # Global hotkey management
+│   ├── WindowManager.lua     # Multi-window coordination
+│   ├── Overlay.lua           # Overlay layer management (dropdowns, blockers)
+│   ├── WindowBuilder.lua     # Main window construction
+│   ├── TabBuilder.lua        # Tab construction
+│   ├── SectionBuilder.lua    # Section construction
+│   └── Elements/             # All 10 UI elements
+│       ├── Button.lua
+│       ├── Toggle.lua
+│       ├── Dropdown.lua
+│       ├── Slider.lua
+│       ├── Keybind.lua
+│       ├── TextBox.lua
+│       ├── ColorPicker.lua
+│       ├── Label.lua
+│       ├── Paragraph.lua
+│       └── Divider.lua
 ├── init.lua                  # ✅ Modular entry point (bootstrap logic)
 ├── build.js                  # ✅ Node build script
 ├── build.lua                 # ✅ Lua fallback build script
@@ -47,14 +71,25 @@ RvrseUI/
 
 **`build.js` / `build.lua` perform these steps:**
 
-1. **Read all modules** from `src/` in dependency order
+1. **Read all modules** from `src/` in dependency order (25 modules total)
 2. **Strip module headers** (comment lines starting with `--`)
 3. **Convert local declarations to globals**: `local Module = {}` → `Module = {}`
 4. **Remove shadowing declarations**: Any `local RvrseUI` that would conflict
 5. **Remove return statements**: `return ModuleName` at end of files
-6. **Wrap in scoping blocks**: Each module in `do...end` (optional, not currently used)
-7. **Inject RvrseUI public API**: 200+ lines from `init.lua` embedded at end
-8. **Add return statement**: `return RvrseUI` so `loadstring()` works
+6. **Wrap in scoping blocks**: Each module wrapped in `do...end` block with indentation
+7. **Initialize modules**: Bootstrap logic from `init.lua` (services, overlay, notifications)
+8. **Inject RvrseUI public API**: 200+ lines from `init.lua` embedded at end
+9. **Add return statement**: `return RvrseUI` so `loadstring()` works
+
+**Exact module compilation order:**
+```
+Foundation: Version → Debug → Obfuscation
+Data: Icons → Theme
+Systems: Animator → State → UIHelpers
+Services: Config → WindowManager → Hotkeys → Notifications
+Elements: Button → Toggle → Dropdown → Slider → Keybind → TextBox → ColorPicker → Label → Paragraph → Divider
+Builders: SectionBuilder → TabBuilder → WindowBuilder
+```
 
 ### Critical Build Rules
 
@@ -175,7 +210,7 @@ When releasing a new version, update ALL these files:
 local VERSION = "v3.0.4"
 
 # 3. CLAUDE.md (header)
-# RvrseUI – Maintainer Notes (v3.0.4)
+# RvrseUI – Maintainer Notes (v4.0.0)
 
 # 4. src/Version.lua
 Version.Data = {
@@ -226,17 +261,28 @@ git push origin main
 - Debug logging throughout: `Debug.printf("[DRAG] ...")` and `Debug.printf("[CHIP DRAG] ...")`
 - If you change the host container, update inset logic in `WindowBuilder` accordingly
 
-### Overlay Layer & Dropdowns
-- `init.lua` provisions `RvrseUI_Overlay`; reuse it for any future popovers so stacking order stays predictable.
+### Overlay Layer & Dropdowns (`src/Overlay.lua`)
+- Dedicated `Overlay` module manages the overlay layer, initialized in both `init.lua` and the monolith bootstrap.
+- `Overlay:Initialize()` creates `RvrseUI_Overlay` Frame with `ZIndex = 20000` on a separate ScreenGui.
+- `Overlay:GetLayer()` returns the overlay Frame for dropdown/popup parenting.
 - Dropdown element default is `Overlay = true`; set `Overlay = false` for legacy inline menus.
 - Overlay mode requires the blocker to close menus—preserve `ensureBlocker()` and `setOpen(false)` patterns when extending.
-- When adding new overlay elements, clamp to `OverlayLayer.ZIndex` ≥ 200 to keep them above the base window.
+- The overlay layer is kept transparent and hidden when idle; dropdowns show/hide it as needed.
+- When adding new overlay elements, use `deps.OverlayLayer` (from WindowBuilder) to ensure consistent z-ordering.
 
 ### Monolith Build Pipeline
-- `build.js` / `build.lua` now wrap each module in a `do ... end` scope before concatenation and immediately execute the same bootstrap logic as `init.lua`. This pre-creates the default ScreenGui (`DEFAULT_HOST`), overlay frame, notifications, hotkeys, and window manager so `RvrseUI.lua` is safe to run standalone.
-- Any edits in `src/` or `init.lua` must be followed by `node build.js` (or `lua build.lua` where available) to keep the monolith aligned. Never patch `RvrseUI.lua` directly.
-- The compiled file caches `_DEFAULT_HOST` / `_DEFAULT_OVERLAY`. If a consumer destroys the ScreenGui manually, `RvrseUI:CreateWindow` will recreate it and reinitialise notifications on demand—retain that guard when touching the builder.
-- Version bumps require updating `VERSION.json`, refreshing the README badge, and rerunning the build so the header comment reflects the new timestamp.
+- `build.js` / `build.lua` wrap each module in a `do ... end` scope with tab indentation before concatenation.
+- Bootstrap logic from `init.lua` is embedded into the monolith (lines 138-232 of build scripts):
+  - Initializes all modules in dependency order
+  - Creates `DEFAULT_HOST` ScreenGui (DisplayOrder = 999)
+  - Creates `DEFAULT_OVERLAY` Frame (ZIndex = 20000) via inline code (Overlay module not used in bootstrap)
+  - Initializes Notifications, Hotkeys, WindowManager
+  - Sets up Elements table with all 10 element types
+- The compiled `RvrseUI.lua` is standalone: safe to `loadstring()` without external dependencies.
+- Any edits in `src/` or `init.lua` must be followed by `node build.js` (or `lua build.lua`) to keep the monolith aligned.
+- **NEVER patch `RvrseUI.lua` directly** - it will be overwritten on next build.
+- The compiled file caches `DEFAULT_HOST` / `DEFAULT_OVERLAY`. If destroyed manually, `RvrseUI:CreateWindow` recreates them (lines 293-300 of build scripts).
+- Version bumps require updating `VERSION.json`, README badge, CLAUDE.md header, and rerunning build for timestamp update.
 
 ### Hotkey Pipeline
 - `Hotkeys:Initialize` immediately wires `InputBegan` and prevents double hookups. Ensure any future hotkey changes toggle `_initialized` carefully.
@@ -244,6 +290,31 @@ git push origin main
 ### Debug & Version Helpers
 - `Debug.printf` is relied on throughout `WindowBuilder`; keep it exported when refactoring the debug module.
 - `Version` exposes fields via metatable—always update `Version.Data` rather than reassigning properties directly.
+
+### Dependency Injection Pattern
+- **All builders use dependency injection** via `Initialize(deps)` method.
+- The `deps` table is assembled in `init.lua` (lines 126-152) and contains:
+  - Modules: Theme, Animator, State, Config, UIHelpers, Icons, etc.
+  - Services: UserInputService, GuiService, RunService, TweenService, HttpService
+  - Builders: TabBuilder, SectionBuilder, WindowBuilder
+  - Elements: Table of all 10 element constructors
+  - OverlayLayer: Reference to overlay Frame
+- **In the monolith**, deps is constructed inline in `RvrseUI:CreateWindow()` (build scripts lines 247-269).
+- **NEVER use global lookups** in modules - always accept dependencies via Initialize or function parameters.
+- When adding new modules, follow the pattern:
+  ```lua
+  local Module = {}
+  local deps
+
+  function Module:Initialize(dependencies)
+      deps = dependencies
+  end
+
+  function Module:DoSomething()
+      -- Use deps.Theme, deps.Animator, etc.
+      deps.Theme:Switch("Dark")
+  end
+  ```
 
 ---
 
@@ -339,7 +410,57 @@ If you're an AI (like Claude or GPT) working on this project:
 - **User Documentation:** `README.md`
 - **Version History:** `VERSION.json` (changelog section)
 - **Archived Tests:** `docs/__archive/2025-10-09/TEST_ALL_FEATURES.lua`
+- **GitHub Repository:** https://github.com/CoderRvrse/RvrseUI
 - **GitHub Issues:** https://github.com/CoderRvrse/RvrseUI/issues
+
+## 🛠️ Common Development Commands
+
+### Building the Monolith
+```bash
+# Build with Node.js (preferred)
+node build.js
+
+# Build with Lua (fallback)
+lua build.lua
+```
+
+### Testing
+```bash
+# Test in Roblox Studio
+# 1. Load init.lua as a ModuleScript under ReplicatedStorage
+# 2. Require it from a LocalScript
+# 3. Verify all features work
+
+# Test compiled monolith
+# 1. Copy RvrseUI.lua content
+# 2. Use loadstring(game:HttpGet(...))() in Roblox
+# 3. Verify all features work
+```
+
+### Version Management
+```bash
+# Update version across all files (manual process)
+# 1. Edit VERSION.json (version.patch, version.full, version.build, version.hash)
+# 2. Edit README.md (badge and example code)
+# 3. Edit CLAUDE.md (header)
+# 4. Edit src/Version.lua (Version.Data table)
+# 5. Edit build.js and build.lua (header comments)
+# 6. Run: node build.js
+# 7. Commit all changes together
+```
+
+### Git Workflow
+```bash
+# Standard workflow
+git add src/ModuleName.lua RvrseUI.lua  # Always commit source + compiled together
+git commit -m "feat: description"
+git push origin main
+
+# Version release workflow
+git add VERSION.json README.md CLAUDE.md src/Version.lua build.js build.lua RvrseUI.lua
+git commit -m "chore: bump version to v3.0.X"
+git push origin main
+```
 
 ---
 
@@ -351,3 +472,18 @@ If you're an AI (like Claude or GPT) working on this project:
 > **Test thoroughly before pushing to main.**
 
 **Last Updated:** 2025-10-10 (v3.0.4 - Cursor-Locked Drag Release)
+
+---
+
+## 📊 Module Statistics
+
+- **Total Modules:** 25 (not 26 - documentation error in older versions)
+  - Foundation: 3 (Version, Debug, Obfuscation)
+  - Data: 2 (Icons, Theme)
+  - Systems: 3 (Animator, State, UIHelpers)
+  - Services: 5 (Config, WindowManager, Hotkeys, Notifications, Overlay)
+  - Elements: 10 (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider)
+  - Builders: 3 (SectionBuilder, TabBuilder, WindowBuilder)
+- **Element Count:** 10 UI elements (not 12 - documentation referenced future elements)
+- **Total Lines (compiled):** ~5,500 lines in RvrseUI.lua
+- **File Size:** ~166 KB (RvrseUI.lua monolith)
