@@ -79,6 +79,47 @@ local function traceFsSupport(tag)
 	))
 end
 
+local function trim(str)
+	return (str:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function normalizeProfileName(name)
+	if not name then return nil end
+	local trimmed = trim(tostring(name))
+	if trimmed == "" then return nil end
+	trimmed = trimmed:gsub("[\\/:*?\"<>|]", "_")
+	trimmed = trimmed:gsub("%.json$", "")
+	return trimmed
+end
+
+local function ensureFolderExists(folder)
+	if not folder or folder == "" then
+		return
+	end
+	if fsSupports("isfolder") then
+		local existsOk, existsOrErr = fsCall("isfolder", folder)
+		if existsOk and not existsOrErr and fsSupports("makefolder") then
+			fsCall("makefolder", folder)
+		end
+	end
+end
+
+local function contains(list, value)
+	for _, v in ipairs(list) do
+		if v == value then
+			return true
+		end
+	end
+	return false
+end
+
+local function resolveFullPath(folder, fileName)
+	if folder and folder ~= "" then
+		return folder .. "/" .. fileName
+	end
+	return fileName
+end
+
 -- ============================================
 -- INITIALIZATION
 -- ============================================
@@ -488,12 +529,16 @@ function Config:LoadConfigByName(configName, context)
 		return false, "Config name required"
 	end
 
-	-- Temporarily set the config file name
+	local profileName = normalizeProfileName(configName)
+	if not profileName then
+		return false, "Config name required"
+	end
+
 	local originalFileName = self.ConfigurationFileName
 	local originalFolderName = self.ConfigurationFolderName
 
-	self.ConfigurationFileName = configName .. ".json"
-	self.ConfigurationFolderName = "RvrseUI/Configs"
+	self.ConfigurationFileName = profileName .. ".json"
+	self.ConfigurationFolderName = originalFolderName or "RvrseUI/Configs"
 
 	local success, message = self:LoadConfiguration(context or self._lastContext)
 
@@ -513,12 +558,18 @@ function Config:SaveConfigAs(configName, context)
 		return false, "Config name required"
 	end
 
-	-- Temporarily set the config file name
+	local profileName = normalizeProfileName(configName)
+	if not profileName then
+		return false, "Config name required"
+	end
+
 	local originalFileName = self.ConfigurationFileName
 	local originalFolderName = self.ConfigurationFolderName
 
-	self.ConfigurationFileName = configName .. ".json"
-	self.ConfigurationFolderName = "RvrseUI/Configs"
+	self.ConfigurationFileName = profileName .. ".json"
+	self.ConfigurationFolderName = originalFolderName or "RvrseUI/Configs"
+
+	ensureFolderExists(self.ConfigurationFolderName)
 
 	local success, message = self:SaveConfiguration(context or self._lastContext)
 
@@ -537,5 +588,119 @@ function Config:SaveConfigAs(configName, context)
 	return success, message
 end
 
-return Config
+-- ============================================
+-- LIST PROFILES
+-- ============================================
 
+function Config:ListProfiles()
+	local profiles = {}
+	local warning = nil
+
+	if not self.ConfigurationFolderName or self.ConfigurationFolderName == "" then
+		if self.ConfigurationFileName then
+			table.insert(profiles, self.ConfigurationFileName)
+		end
+		return profiles
+	end
+
+	if not fsSupports("listfiles") then
+		warning = "Executor does not expose listfiles"
+		if self.ConfigurationFileName then
+			table.insert(profiles, self.ConfigurationFileName)
+		end
+		return profiles, warning
+	end
+
+	ensureFolderExists(self.ConfigurationFolderName)
+	local listOk, entries = fsCall("listfiles", self.ConfigurationFolderName)
+	if listOk and type(entries) == "table" then
+		for _, raw in ipairs(entries) do
+			local name = raw:match("([^/\\]+)$")
+			if name and name:sub(-5) == ".json" then
+				table.insert(profiles, name)
+			end
+		end
+	else
+		warning = entries
+	end
+
+	if self.ConfigurationFileName and not contains(profiles, self.ConfigurationFileName) then
+		table.insert(profiles, self.ConfigurationFileName)
+	end
+
+	table.sort(profiles)
+	return profiles, warning
+end
+
+-- ============================================
+-- SET ACTIVE PROFILE
+-- ============================================
+
+function Config:SetConfigProfile(context, profileName)
+	local normalized = normalizeProfileName(profileName)
+	if not normalized then
+		return false, "Profile name required"
+	end
+
+	local folder = self.ConfigurationFolderName or "RvrseUI/Configs"
+	ensureFolderExists(folder)
+
+	self.ConfigurationSaving = true
+	self.ConfigurationFolderName = folder
+	self.ConfigurationFileName = normalized .. ".json"
+
+	if context then
+		self._lastContext = context
+		context.ConfigurationSaving = true
+		context.ConfigurationFolderName = folder
+		context.ConfigurationFileName = self.ConfigurationFileName
+		context.AutoSaveEnabled = self.AutoSaveEnabled
+	end
+
+	self:SaveLastConfig(
+		resolveFullPath(folder, self.ConfigurationFileName),
+		Theme and Theme.Current or "Dark"
+	)
+
+	return true, self.ConfigurationFileName
+end
+
+-- ============================================
+-- DELETE PROFILE
+-- ============================================
+
+function Config:DeleteProfile(profileName)
+	local normalized = normalizeProfileName(profileName)
+	if not normalized then
+		return false, "Profile name required"
+	end
+
+	local fileName = normalized .. ".json"
+	local folder = self.ConfigurationFolderName
+	local fullPath = resolveFullPath(folder, fileName)
+
+	if not (fsSupports("isfile") and fsSupports("delfile")) then
+		return false, "Executor does not expose isfile/delfile"
+	end
+
+	local existsOk, existsOrErr = fsCall("isfile", fullPath)
+	if not existsOk then
+		return false, existsOrErr
+	end
+	if not existsOrErr then
+		return false, "Profile not found"
+	end
+
+	local deleteOk, deleteErr = fsCall("delfile", fullPath)
+	if not deleteOk then
+		return false, deleteErr
+	end
+
+	if self.ConfigurationFileName == fileName then
+		self.ConfigurationFileName = nil
+	end
+
+	return true, "Profile deleted"
+end
+
+return Config

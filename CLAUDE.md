@@ -5,6 +5,7 @@
 - Theme cache (`_savedTheme`) is synced back to the active window; do not strip this hand-off.  
 - Boolean `ConfigurationSaving = true` reuses the last profile by splitting `folder/file.json`; keep this parsing intact.  
 - `ConfigurationSaving.AutoSave = false` disables background writes; keep `_autoSave` guard in sync if you extend persistence.
+- Profiles tab auto-injects when configuration saving is enabled; expose toggles via `ConfigurationManager = false` if a consumer wants a bare UI.
 - When touching persistence code, verify the executor supports `writefile/readfile/isfile` and rerun a full save → load cycle with all 12 elements.
 
 ## Minimize Chip Alignment

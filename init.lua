@@ -223,6 +223,14 @@ function RvrseUI:LoadConfiguration()
 	return Config:LoadConfiguration(self)
 end
 
+function RvrseUI:SaveConfigAs(profileName)
+	return Config:SaveConfigAs(profileName, self)
+end
+
+function RvrseUI:LoadConfigByName(profileName)
+	return Config:LoadConfigByName(profileName, self)
+end
+
 function RvrseUI:_autoSave()
     if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
 		task.defer(function()

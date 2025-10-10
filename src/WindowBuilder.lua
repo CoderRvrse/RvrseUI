@@ -1106,22 +1106,250 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	-- CreateTab uses TabBuilder module
-		function WindowAPI:CreateTab(t)
-			return TabBuilder.CreateTab(t, {
-				Theme = Theme,
-				UIHelpers = UIHelpers,
-				Animator = Animator,
-				Icons = Icons,
-				SectionBuilder = SectionBuilder,
-				tabBar = tabBar,
-				body = body,
-				tabs = tabs,
-				activePage = activePage,
-				RvrseUI = RvrseUI,
-				Elements = Elements,
-				UIS = UIS
-			})
-		end
+	function WindowAPI:CreateTab(t)
+		return TabBuilder.CreateTab(t, {
+			Theme = Theme,
+			UIHelpers = UIHelpers,
+			Animator = Animator,
+			Icons = Icons,
+			SectionBuilder = SectionBuilder,
+			tabBar = tabBar,
+			body = body,
+			tabs = tabs,
+			activePage = activePage,
+			RvrseUI = RvrseUI,
+			Elements = Elements,
+			UIS = UIS
+		})
+	end
+
+	if RvrseUI.ConfigurationSaving and cfg.ConfigurationManager ~= false then
+		task.defer(function()
+			local ok, err = pcall(function()
+				local managerOptions = typeof(cfg.ConfigurationManager) == "table" and cfg.ConfigurationManager or {}
+				local tabTitle = managerOptions.TabName or "Profiles"
+				local tabIcon = managerOptions.Icon or "folder"
+				local sectionTitle = managerOptions.SectionTitle or "Configuration Profiles"
+				local profilePlaceholder = managerOptions.NewProfilePlaceholder or "my_profile"
+
+				local function safeNotify(title, message, kind)
+					local notifyPayload = {
+						Title = title or "Profiles",
+						Message = message or "",
+						Duration = 3,
+						Type = kind or "info"
+					}
+					local okNotify = pcall(function()
+						return RvrseUI:Notify(notifyPayload)
+					end)
+					if not okNotify then
+						print("[RvrseUI]", notifyPayload.Title .. ":", notifyPayload.Message)
+					end
+				end
+
+				local function trim(str)
+					return (str:gsub("^%s+", ""):gsub("%s+$", ""))
+				end
+
+				local function containsValue(list, value)
+					for _, item in ipairs(list) do
+						if item == value then
+							return true
+						end
+					end
+					return false
+				end
+
+				local profilesTab = WindowAPI:CreateTab({
+					Title = tabTitle,
+					Icon = tabIcon
+				})
+				local profileSection = profilesTab:CreateSection(sectionTitle)
+
+				local folderLabel = profileSection:CreateLabel({
+					Text = "Folder: " .. (RvrseUI.ConfigurationFolderName or "(workspace)")
+				})
+
+				local activeLabel = profileSection:CreateLabel({
+					Text = "Active Profile: " .. (RvrseUI.ConfigurationFileName or "none")
+				})
+
+				local selectedProfile = RvrseUI.ConfigurationFileName
+
+				local profilesDropdown
+
+				local function updateLabels(profileName)
+					folderLabel:Set("Folder: " .. (RvrseUI.ConfigurationFolderName or "(workspace)"))
+					activeLabel:Set("Active Profile: " .. (profileName or "none"))
+				end
+
+				local function gatherProfiles()
+					local list, warning = RvrseUI:ListProfiles()
+					list = list or {}
+					local activeFile = RvrseUI.ConfigurationFileName
+					if activeFile and activeFile ~= "" and not containsValue(list, activeFile) then
+						table.insert(list, activeFile)
+					end
+					table.sort(list)
+					return list, warning
+				end
+
+				local function applyProfile(profileName, opts)
+					opts = opts or {}
+					if not profileName or profileName == "" then
+						safeNotify("Profiles", "No profile selected", "warning")
+						return false
+					end
+					local base = profileName:gsub("%.json$", "")
+					local setOk, setMsg = RvrseUI:SetConfigProfile(base)
+					if not setOk then
+						safeNotify("Profiles", tostring(setMsg), "error")
+						return false
+					end
+					local loadOk, loadMsg = RvrseUI:LoadConfigByName(base)
+					if loadOk then
+						selectedProfile = profileName
+						updateLabels(profileName)
+						if not opts.muteNotify then
+							safeNotify("Profiles", "Loaded " .. profileName, "success")
+						end
+						return true
+					else
+						safeNotify("Profiles", "Load failed: " .. tostring(loadMsg), "error")
+						return false
+					end
+				end
+
+				profilesDropdown = profileSection:CreateDropdown({
+					Text = "Profiles",
+					Values = {},
+					OnChanged = function(value)
+						if not value or value == "" then return end
+						if value == selectedProfile then
+							updateLabels(value)
+							return
+						end
+						applyProfile(value)
+					end
+				})
+
+				local newProfileName = ""
+				local nameInput = profileSection:CreateTextBox({
+					Text = "New Profile",
+					Placeholder = profilePlaceholder,
+					OnChanged = function(value)
+						newProfileName = trim(value or "")
+					end
+				})
+
+				local function refreshProfiles(target)
+					local list, warning = gatherProfiles()
+					profilesDropdown:Refresh(list)
+					if warning and managerOptions.SuppressWarnings ~= true then
+						safeNotify("Profiles", tostring(warning), "warning")
+					end
+					local resolveTarget = target or selectedProfile or list[1]
+					if resolveTarget then
+						selectedProfile = resolveTarget
+						profilesDropdown:Set(resolveTarget)
+						updateLabels(resolveTarget)
+					else
+						selectedProfile = nil
+						updateLabels(nil)
+					end
+				end
+
+				profileSection:CreateButton({
+					Text = "🔄 Refresh Profiles",
+					Callback = function()
+						refreshProfiles(selectedProfile)
+						safeNotify("Profiles", "Profile list refreshed", "info")
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "💾 Save Current",
+					Callback = function()
+						local okSave, saveMsg = RvrseUI:SaveConfiguration()
+						if okSave then
+							local active = RvrseUI.ConfigurationFileName or selectedProfile
+							safeNotify("Profiles", "Saved to " .. tostring(active or "config"), "success")
+							refreshProfiles(active)
+						else
+							safeNotify("Profiles", "Save failed: " .. tostring(saveMsg), "error")
+						end
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "📁 Save As",
+					Callback = function()
+						local trimmed = trim(newProfileName)
+						if trimmed == "" then
+							safeNotify("Profiles", "Enter a profile name first", "warning")
+							return
+						end
+						local okSaveAs, saveAsMsg = RvrseUI:SaveConfigAs(trimmed)
+						if okSaveAs then
+							local fileName = trimmed:gsub("%.json$", "") .. ".json"
+							safeNotify("Profiles", "Saved " .. fileName, "success")
+							refreshProfiles(fileName)
+							if managerOptions.ClearNameAfterSave ~= false then
+								newProfileName = ""
+								nameInput:Set("")
+							end
+						else
+							safeNotify("Profiles", "Save As failed: " .. tostring(saveAsMsg), "error")
+						end
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "↻ Load Selected",
+					Callback = function()
+						if not selectedProfile then
+							safeNotify("Profiles", "No profile selected", "warning")
+							return
+						end
+						applyProfile(selectedProfile, {muteNotify = false})
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "🗑️ Delete Profile",
+					Callback = function()
+						if not selectedProfile then
+							safeNotify("Profiles", "No profile selected", "warning")
+							return
+						end
+						local base = selectedProfile:gsub("%.json$", "")
+						local okDelete, deleteMsg = RvrseUI:DeleteProfile(base)
+						if okDelete then
+							safeNotify("Profiles", "Deleted " .. selectedProfile, "warning")
+							selectedProfile = nil
+							refreshProfiles()
+						else
+							safeNotify("Profiles", "Delete failed: " .. tostring(deleteMsg), "error")
+						end
+					end
+				})
+
+				profileSection:CreateToggle({
+					Text = "Auto Save",
+					State = RvrseUI:IsAutoSaveEnabled(),
+					OnChanged = function(state)
+						RvrseUI:SetAutoSaveEnabled(state)
+						safeNotify("Profiles", state and "Auto save enabled" or "Auto save disabled", state and "info" or "warning")
+					end
+				})
+
+				refreshProfiles(selectedProfile)
+			end)
+			if not ok then
+				warn("[RvrseUI] Config manager initialization failed:", err)
+			end
+		end)
+	end
 
 	-- Welcome notifications
 	if not cfg.DisableBuildWarnings then

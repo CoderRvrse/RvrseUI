@@ -47,7 +47,8 @@
         "💾 Added configurable auto-save toggle so manual loads can restore snapshots without immediate overwrites.",
         "🧷 Guarded minimization chip drag against inset/viewport drift for precise cursor alignment.",
         "🎛️ Hardened hotkey listeners to avoid duplicate bindings and keep destroy/toggle keys reliable.",
-        "📚 Documented maintainer rules for persistence and new AutoSave option across README/CLAUDE notes."
+        "📚 Documented maintainer rules for persistence and new AutoSave option across README/CLAUDE notes.",
+        "📂 Injected an in-app Profiles tab for listing, saving, loading, and deleting configuration files."
       ]
     },
     "3.0.2": {

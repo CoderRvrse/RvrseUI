@@ -19,6 +19,7 @@ v3.0.3 finishes the persistence hardening: you can now disable auto-save when yo
 - Adjusted minimize controller token drag logic to respect GUI insets and camera viewport for accurate mouse alignment.
 - Prevented repeated hotkey bindings and ensured Escape/toggle keys stay reliable after rebuilds.
 - Documented maintenance rules for the persistence pipeline in README and CLAUDE notes.
+- Injected an in-app Profiles tab (customisable via `ConfigurationManager`) to list, switch, save, and delete configs without leaving the UI.
 
 ---
 

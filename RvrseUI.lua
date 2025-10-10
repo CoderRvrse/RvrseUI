@@ -875,6 +875,47 @@ local function traceFsSupport(tag)
 	))
 end
 
+local function trim(str)
+	return (str:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function normalizeProfileName(name)
+	if not name then return nil end
+	local trimmed = trim(tostring(name))
+	if trimmed == "" then return nil end
+	trimmed = trimmed:gsub("[\\/:*?\"<>|]", "_")
+	trimmed = trimmed:gsub("%.json$", "")
+	return trimmed
+end
+
+local function ensureFolderExists(folder)
+	if not folder or folder == "" then
+		return
+	end
+	if fsSupports("isfolder") then
+		local existsOk, existsOrErr = fsCall("isfolder", folder)
+		if existsOk and not existsOrErr and fsSupports("makefolder") then
+			fsCall("makefolder", folder)
+		end
+	end
+end
+
+local function contains(list, value)
+	for _, v in ipairs(list) do
+		if v == value then
+			return true
+		end
+	end
+	return false
+end
+
+local function resolveFullPath(folder, fileName)
+	if folder and folder ~= "" then
+		return folder .. "/" .. fileName
+	end
+	return fileName
+end
+
 -- ============================================
 -- INITIALIZATION
 -- ============================================
@@ -1279,21 +1320,24 @@ end
 -- LOAD CONFIGURATION BY NAME
 -- ============================================
 
-	function Config:LoadConfigByName(configName, context)
-		if not configName or configName == "" then
-			return false, "Config name required"
-		end
+function Config:LoadConfigByName(configName, context)
+	if not configName or configName == "" then
+		return false, "Config name required"
+	end
 
-	-- Temporarily set the config file name
+	local profileName = normalizeProfileName(configName)
+	if not profileName then
+		return false, "Config name required"
+	end
+
 	local originalFileName = self.ConfigurationFileName
 	local originalFolderName = self.ConfigurationFolderName
 
-	self.ConfigurationFileName = configName .. ".json"
-	self.ConfigurationFolderName = "RvrseUI/Configs"
+	self.ConfigurationFileName = profileName .. ".json"
+	self.ConfigurationFolderName = originalFolderName or "RvrseUI/Configs"
 
-		local success, message = self:LoadConfiguration(context or self._lastContext)
+	local success, message = self:LoadConfiguration(context or self._lastContext)
 
-	-- Restore original config names
 	self.ConfigurationFileName = originalFileName
 	self.ConfigurationFolderName = originalFolderName
 
@@ -1304,33 +1348,140 @@ end
 -- SAVE CONFIGURATION AS
 -- ============================================
 
-	function Config:SaveConfigAs(configName, context)
-		if not configName or configName == "" then
-			return false, "Config name required"
-		end
+function Config:SaveConfigAs(configName, context)
+	if not configName or configName == "" then
+		return false, "Config name required"
+	end
 
-	-- Temporarily set the config file name
+	local profileName = normalizeProfileName(configName)
+	if not profileName then
+		return false, "Config name required"
+	end
+
 	local originalFileName = self.ConfigurationFileName
 	local originalFolderName = self.ConfigurationFolderName
 
-	self.ConfigurationFileName = configName .. ".json"
-	self.ConfigurationFolderName = "RvrseUI/Configs"
+	self.ConfigurationFileName = profileName .. ".json"
+	self.ConfigurationFolderName = originalFolderName or "RvrseUI/Configs"
 
-		local success, message = self:SaveConfiguration(context or self._lastContext)
+	ensureFolderExists(self.ConfigurationFolderName)
+
+	local success, message = self:SaveConfiguration(context or self._lastContext)
 
 	if success then
-		-- Save this as the last used config
 		self:SaveLastConfig(
 			self.ConfigurationFolderName .. "/" .. self.ConfigurationFileName,
 			Theme and Theme.Current or "Dark"
 		)
 	end
 
-	-- Restore original config names
 	self.ConfigurationFileName = originalFileName
 	self.ConfigurationFolderName = originalFolderName
 
 	return success, message
+end
+
+function Config:ListProfiles()
+	local profiles = {}
+	local warning = nil
+
+	if not self.ConfigurationFolderName or self.ConfigurationFolderName == "" then
+		if self.ConfigurationFileName then
+			table.insert(profiles, self.ConfigurationFileName)
+		end
+		return profiles
+	end
+
+	if not fsSupports("listfiles") then
+		warning = "Executor does not expose listfiles"
+		if self.ConfigurationFileName then
+			table.insert(profiles, self.ConfigurationFileName)
+		end
+		return profiles, warning
+	end
+
+	ensureFolderExists(self.ConfigurationFolderName)
+	local listOk, entries = fsCall("listfiles", self.ConfigurationFolderName)
+	if listOk and type(entries) == "table" then
+		for _, raw in ipairs(entries) do
+			local name = raw:match("([^/\\]+)$")
+			if name and name:sub(-5) == ".json" then
+				table.insert(profiles, name)
+			end
+		end
+	else
+		warning = entries
+	end
+
+	if self.ConfigurationFileName and not contains(profiles, self.ConfigurationFileName) then
+		table.insert(profiles, self.ConfigurationFileName)
+	end
+
+	table.sort(profiles)
+	return profiles, warning
+end
+
+function Config:SetConfigProfile(context, profileName)
+	local normalized = normalizeProfileName(profileName)
+	if not normalized then
+		return false, "Profile name required"
+	end
+
+	local folder = self.ConfigurationFolderName or "RvrseUI/Configs"
+	ensureFolderExists(folder)
+
+	self.ConfigurationSaving = true
+	self.ConfigurationFolderName = folder
+	self.ConfigurationFileName = normalized .. ".json"
+
+	if context then
+		self._lastContext = context
+		context.ConfigurationSaving = true
+		context.ConfigurationFolderName = folder
+		context.ConfigurationFileName = self.ConfigurationFileName
+		context.AutoSaveEnabled = self.AutoSaveEnabled
+	end
+
+	self:SaveLastConfig(
+		resolveFullPath(folder, self.ConfigurationFileName),
+		Theme and Theme.Current or "Dark"
+	)
+
+	return true, self.ConfigurationFileName
+end
+
+function Config:DeleteProfile(profileName)
+	local normalized = normalizeProfileName(profileName)
+	if not normalized then
+		return false, "Profile name required"
+	end
+
+	local fileName = normalized .. ".json"
+	local folder = self.ConfigurationFolderName
+	local fullPath = resolveFullPath(folder, fileName)
+
+	if not (fsSupports("isfile") and fsSupports("delfile")) then
+		return false, "Executor does not expose isfile/delfile"
+	end
+
+	local existsOk, existsOrErr = fsCall("isfile", fullPath)
+	if not existsOk then
+		return false, existsOrErr
+	end
+	if not existsOrErr then
+		return false, "Profile not found"
+	end
+
+	local deleteOk, deleteErr = fsCall("delfile", fullPath)
+	if not deleteOk then
+		return false, deleteErr
+	end
+
+	if self.ConfigurationFileName == fileName then
+		self.ConfigurationFileName = nil
+	end
+
+	return true, "Profile deleted"
 end
 
 return Config
@@ -4548,21 +4699,249 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	-- CreateTab uses TabBuilder module
 		function WindowAPI:CreateTab(t)
-			return TabBuilder.CreateTab(t, {
-				Theme = Theme,
-				UIHelpers = UIHelpers,
-				Animator = Animator,
-				Icons = Icons,
-				SectionBuilder = SectionBuilder,
-				tabBar = tabBar,
-				body = body,
-				tabs = tabs,
-				activePage = activePage,
-				RvrseUI = RvrseUI,
-				Elements = Elements,
-				UIS = UIS
-			})
-		end
+		return TabBuilder.CreateTab(t, {
+			Theme = Theme,
+			UIHelpers = UIHelpers,
+			Animator = Animator,
+			Icons = Icons,
+			SectionBuilder = SectionBuilder,
+			tabBar = tabBar,
+			body = body,
+			tabs = tabs,
+			activePage = activePage,
+			RvrseUI = RvrseUI,
+			Elements = Elements,
+			UIS = UIS
+		})
+	end
+
+	if RvrseUI.ConfigurationSaving and cfg.ConfigurationManager ~= false then
+		task.defer(function()
+			local ok, err = pcall(function()
+				local managerOptions = typeof(cfg.ConfigurationManager) == "table" and cfg.ConfigurationManager or {}
+				local tabTitle = managerOptions.TabName or "Profiles"
+				local tabIcon = managerOptions.Icon or "folder"
+				local sectionTitle = managerOptions.SectionTitle or "Configuration Profiles"
+				local profilePlaceholder = managerOptions.NewProfilePlaceholder or "my_profile"
+
+				local function safeNotify(title, message, kind)
+					local notifyPayload = {
+						Title = title or "Profiles",
+						Message = message or "",
+						Duration = 3,
+						Type = kind or "info"
+					}
+					local okNotify = pcall(function()
+						return RvrseUI:Notify(notifyPayload)
+					end)
+					if not okNotify then
+						print("[RvrseUI]", notifyPayload.Title .. ":", notifyPayload.Message)
+					end
+				end
+
+				local function trim(str)
+					return (str:gsub("^%s+", ""):gsub("%s+$", ""))
+				end
+
+				local function containsValue(list, value)
+					for _, item in ipairs(list) do
+						if item == value then
+							return true
+						end
+					end
+					return false
+				end
+
+				local profilesTab = WindowAPI:CreateTab({
+					Title = tabTitle,
+					Icon = tabIcon
+				})
+				local profileSection = profilesTab:CreateSection(sectionTitle)
+
+				local folderLabel = profileSection:CreateLabel({
+					Text = "Folder: " .. (RvrseUI.ConfigurationFolderName or "(workspace)")
+				})
+
+				local activeLabel = profileSection:CreateLabel({
+					Text = "Active Profile: " .. (RvrseUI.ConfigurationFileName or "none")
+				})
+
+				local selectedProfile = RvrseUI.ConfigurationFileName
+
+				local profilesDropdown
+
+				local function updateLabels(profileName)
+					folderLabel:Set("Folder: " .. (RvrseUI.ConfigurationFolderName or "(workspace)"))
+					activeLabel:Set("Active Profile: " .. (profileName or "none"))
+				end
+
+				local function gatherProfiles()
+					local list, warning = RvrseUI:ListProfiles()
+					list = list or {}
+					local activeFile = RvrseUI.ConfigurationFileName
+					if activeFile and activeFile ~= "" and not containsValue(list, activeFile) then
+						table.insert(list, activeFile)
+					end
+					table.sort(list)
+					return list, warning
+				end
+
+				local function applyProfile(profileName, opts)
+					opts = opts or {}
+					if not profileName or profileName == "" then
+						safeNotify("Profiles", "No profile selected", "warning")
+						return false
+					end
+					local base = profileName:gsub("%.json$", "")
+					local setOk, setMsg = RvrseUI:SetConfigProfile(base)
+					if not setOk then
+						safeNotify("Profiles", tostring(setMsg), "error")
+						return false
+					end
+					local loadOk, loadMsg = RvrseUI:LoadConfigByName(base)
+					if loadOk then
+						selectedProfile = profileName
+						updateLabels(profileName)
+						if not opts.muteNotify then
+							safeNotify("Profiles", "Loaded " .. profileName, "success")
+						end
+						return true
+					else
+						safeNotify("Profiles", "Load failed: " .. tostring(loadMsg), "error")
+						return false
+					end
+				end
+
+				profilesDropdown = profileSection:CreateDropdown({
+					Text = "Profiles",
+					Values = {},
+					OnChanged = function(value)
+						if not value or value == "" then return end
+						if value == selectedProfile then
+							updateLabels(value)
+							return
+						end
+						applyProfile(value)
+					end
+				})
+
+				local newProfileName = ""
+				local nameInput = profileSection:CreateTextBox({
+					Text = "New Profile",
+					Placeholder = profilePlaceholder,
+					OnChanged = function(value)
+						newProfileName = trim(value or "")
+					end
+				})
+
+				local function refreshProfiles(target)
+					local list, warning = gatherProfiles()
+					profilesDropdown:Refresh(list)
+					if warning and managerOptions.SuppressWarnings ~= true then
+						safeNotify("Profiles", tostring(warning), "warning")
+					end
+					local resolveTarget = target or selectedProfile or list[1]
+					if resolveTarget then
+						selectedProfile = resolveTarget
+						profilesDropdown:Set(resolveTarget)
+						updateLabels(resolveTarget)
+					else
+						selectedProfile = nil
+						updateLabels(nil)
+					end
+				end
+
+				profileSection:CreateButton({
+					Text = "🔄 Refresh Profiles",
+					Callback = function()
+						refreshProfiles(selectedProfile)
+						safeNotify("Profiles", "Profile list refreshed", "info")
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "💾 Save Current",
+					Callback = function()
+						local okSave, saveMsg = RvrseUI:SaveConfiguration()
+						if okSave then
+							local active = RvrseUI.ConfigurationFileName or selectedProfile
+							safeNotify("Profiles", "Saved to " .. tostring(active or "config"), "success")
+							refreshProfiles(active)
+						else
+							safeNotify("Profiles", "Save failed: " .. tostring(saveMsg), "error")
+						end
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "📁 Save As",
+					Callback = function()
+						local trimmed = trim(newProfileName)
+						if trimmed == "" then
+							safeNotify("Profiles", "Enter a profile name first", "warning")
+							return
+						end
+						local okSaveAs, saveAsMsg = RvrseUI:SaveConfigAs(trimmed)
+						if okSaveAs then
+							local fileName = trimmed:gsub("%.json$", "") .. ".json"
+							safeNotify("Profiles", "Saved " .. fileName, "success")
+							refreshProfiles(fileName)
+							if managerOptions.ClearNameAfterSave ~= false then
+								newProfileName = ""
+								nameInput:Set("")
+							end
+						else
+							safeNotify("Profiles", "Save As failed: " .. tostring(saveAsMsg), "error")
+						end
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "↻ Load Selected",
+					Callback = function()
+						if not selectedProfile then
+							safeNotify("Profiles", "No profile selected", "warning")
+							return
+						end
+						applyProfile(selectedProfile, {muteNotify = false})
+					end
+				})
+
+				profileSection:CreateButton({
+					Text = "🗑️ Delete Profile",
+					Callback = function()
+						if not selectedProfile then
+							safeNotify("Profiles", "No profile selected", "warning")
+							return
+						end
+						local base = selectedProfile:gsub("%.json$", "")
+						local okDelete, deleteMsg = RvrseUI:DeleteProfile(base)
+						if okDelete then
+							safeNotify("Profiles", "Deleted " .. selectedProfile, "warning")
+							selectedProfile = nil
+							refreshProfiles()
+						else
+							safeNotify("Profiles", "Delete failed: " .. tostring(deleteMsg), "error")
+						end
+					end
+				})
+
+				profileSection:CreateToggle({
+					Text = "Auto Save",
+					State = RvrseUI:IsAutoSaveEnabled(),
+					OnChanged = function(state)
+						RvrseUI:SetAutoSaveEnabled(state)
+						safeNotify("Profiles", state and "Auto save enabled" or "Auto save disabled", state and "info" or "warning")
+					end
+				})
+
+				refreshProfiles(selectedProfile)
+			end)
+			if not ok then
+				warn("[RvrseUI] Config manager initialization failed:", err)
+			end
+		end)
+	end
 
 	-- Welcome notifications
 	if not cfg.DisableBuildWarnings then
@@ -4863,13 +5242,21 @@ function RvrseUI:ToggleVisibility()
 end
 
 -- Configuration Management
-function RvrseUI:SaveConfiguration()
-	return Config:SaveConfiguration(self)
-end
+	function RvrseUI:SaveConfiguration()
+		return Config:SaveConfiguration(self)
+	end
 
-function RvrseUI:LoadConfiguration()
-	return Config:LoadConfiguration(self)
-end
+	function RvrseUI:LoadConfiguration()
+		return Config:LoadConfiguration(self)
+	end
+
+	function RvrseUI:SaveConfigAs(profileName)
+		return Config:SaveConfigAs(profileName, self)
+	end
+
+	function RvrseUI:LoadConfigByName(profileName)
+		return Config:LoadConfigByName(profileName, self)
+	end
 
 	function RvrseUI:_autoSave()
 		if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
@@ -4883,13 +5270,13 @@ function RvrseUI:GetLastConfig()
 	return Config:GetLastConfig()
 end
 
-function RvrseUI:SetConfigProfile(profileName)
-	return Config:SetConfigProfile(self, profileName)
-end
+	function RvrseUI:SetConfigProfile(profileName)
+		return Config:SetConfigProfile(self, profileName)
+	end
 
-function RvrseUI:ListProfiles()
-	return Config:ListProfiles()
-end
+	function RvrseUI:ListProfiles()
+		return Config:ListProfiles()
+	end
 
 	function RvrseUI:DeleteProfile(profileName)
 		return Config:DeleteProfile(profileName)

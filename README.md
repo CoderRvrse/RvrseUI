@@ -83,6 +83,7 @@ Window:Show()
 | `EscapeKey` | string/Enum | `Enum.KeyCode.Backspace` | Key that destroys the UI. |
 | `ConfigurationSaving` | bool/string/table | `false` | `true` auto-saves last profile, string creates named profile, or table `{ Enabled = true, FileName = "name.json", FolderName = "Folder" }`. |
 | `AutoSave` | bool (table only) | `true` | Include inside `ConfigurationSaving` table to disable background writes: `{ Enabled = true, FileName = "Config.json", AutoSave = false }`. |
+| `ConfigurationManager` | bool/table | `true` | Controls the auto-injected Profiles tab. Set to `false` to disable, or provide `{ TabName = "Profiles", Icon = "folder" }` to customize. |
 | `Container` | string/Instance | `nil` | Target ScreenGui parent (`"PlayerGui"`, `"CoreGui"`, etc. or Instance). |
 | `DisplayOrder` | number | `100000` | Display order applied when `Container` is overridden. |
 | `ShowText` | string | `"RvrseUI"` | Label shown on the mobile chip. |
@@ -95,6 +96,7 @@ Window:Show()
 - v3.0.3 routes save/load through the active window context so every flagged element persists; avoid modifying `src/Config.lua` unless you replicate this behaviour.
 - Set `ConfigurationSaving.AutoSave = false` if you want to manually save without overwriting your last profile on every flag change.
 - Call `RvrseUI:SetAutoSaveEnabled(false)` at runtime to pause auto-save temporarily.
+- With configuration saving enabled, a "Profiles" tab is injected automatically. Use it to switch, create, delete, and reload configs without leaving the UI.
 - Call `Window:Show()` after building tabs/sections so saved settings apply before the UI becomes visible.
 
 ### Example Config Table
