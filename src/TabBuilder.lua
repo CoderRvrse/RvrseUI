@@ -145,14 +145,12 @@ function TabBuilder.CreateTab(t, dependencies)
 			tabData.icon.ImageColor3 = pal.TextSub
 		end
 
-		-- Hide gradient
+		-- Hide gradient (cannot tween NumberSequence, set directly)
 		if tabData.gradient then
-			Animator:Tween(tabData.gradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 1),
-					NumberSequenceKeypoint.new(1, 1),
-				}
-			}, Animator.Spring.Snappy)
+			tabData.gradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(1, 1),
+			}
 		end
 
 		-- Restore border
@@ -180,13 +178,11 @@ function TabBuilder.CreateTab(t, dependencies)
 			tabIcon.ImageColor3 = pal.Accent
 		end
 
-		-- Show gradient
-		Animator:Tween(tabGradient, {
-			Transparency = NumberSequence.new{
-				NumberSequenceKeypoint.new(0, 0.5),
-				NumberSequenceKeypoint.new(1, 0.5),
-			}
-		}, Animator.Spring.Snappy)
+		-- Show gradient (cannot tween NumberSequence, set directly)
+		tabGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.5),
+			NumberSequenceKeypoint.new(1, 0.5),
+		}
 
 		-- Glow border
 		Animator:Tween(tabStroke, {

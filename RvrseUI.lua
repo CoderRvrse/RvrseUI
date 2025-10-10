@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-10T22:10:02.269Z
+-- Compiled from modular architecture on 2025-10-10T22:19:09.969Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -4190,14 +4190,12 @@ do
 				tabData.icon.ImageColor3 = pal.TextSub
 			end
 	
-			-- Hide gradient
+			-- Hide gradient (cannot tween NumberSequence, set directly)
 			if tabData.gradient then
-				Animator:Tween(tabData.gradient, {
-					Transparency = NumberSequence.new{
-						NumberSequenceKeypoint.new(0, 1),
-						NumberSequenceKeypoint.new(1, 1),
-					}
-				}, Animator.Spring.Snappy)
+				tabData.gradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 1),
+					NumberSequenceKeypoint.new(1, 1),
+				}
 			end
 	
 			-- Restore border
@@ -4225,13 +4223,11 @@ do
 				tabIcon.ImageColor3 = pal.Accent
 			end
 	
-			-- Show gradient
-			Animator:Tween(tabGradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 0.5),
-					NumberSequenceKeypoint.new(1, 0.5),
-				}
-			}, Animator.Spring.Snappy)
+			-- Show gradient (cannot tween NumberSequence, set directly)
+			tabGradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.5),
+				NumberSequenceKeypoint.new(1, 0.5),
+			}
 	
 			-- Glow border
 			Animator:Tween(tabStroke, {
@@ -6283,6 +6279,7 @@ DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
 DEFAULT_OVERLAY.BackgroundTransparency = 1
 DEFAULT_OVERLAY.BorderSizePixel = 0
 DEFAULT_OVERLAY.ClipsDescendants = false
+DEFAULT_OVERLAY.Visible = false
 DEFAULT_OVERLAY.ZIndex = 20000
 DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
 DEFAULT_OVERLAY.Parent = DEFAULT_HOST
@@ -6370,6 +6367,7 @@ function RvrseUI:CreateWindow(cfg)
 		DEFAULT_OVERLAY.BackgroundTransparency = 1
 		DEFAULT_OVERLAY.BorderSizePixel = 0
 		DEFAULT_OVERLAY.ClipsDescendants = false
+		DEFAULT_OVERLAY.Visible = false
 		DEFAULT_OVERLAY.ZIndex = 20000
 		DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
 		DEFAULT_OVERLAY.Parent = DEFAULT_HOST

@@ -195,6 +195,7 @@ DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
 DEFAULT_OVERLAY.BackgroundTransparency = 1
 DEFAULT_OVERLAY.BorderSizePixel = 0
 DEFAULT_OVERLAY.ClipsDescendants = false
+DEFAULT_OVERLAY.Visible = false
 DEFAULT_OVERLAY.ZIndex = 20000
 DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
 DEFAULT_OVERLAY.Parent = DEFAULT_HOST
@@ -286,6 +287,7 @@ function RvrseUI:CreateWindow(cfg)
 		DEFAULT_OVERLAY.BackgroundTransparency = 1
 		DEFAULT_OVERLAY.BorderSizePixel = 0
 		DEFAULT_OVERLAY.ClipsDescendants = false
+		DEFAULT_OVERLAY.Visible = false
 		DEFAULT_OVERLAY.ZIndex = 20000
 		DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
 		DEFAULT_OVERLAY.Parent = DEFAULT_HOST
