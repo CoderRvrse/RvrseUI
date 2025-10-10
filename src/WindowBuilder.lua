@@ -304,30 +304,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return Vector2.new(inset.X, inset.Y)
 	end
 
-	local function setDebugLabel(key, text)
-		if Debug:IsEnabled() then
-			Debug.printf("[TELEMETRY][%s] %s", key, text)
-		end
-	end
-
-	local function hideDebugLabel(key)
-		local label = debugLabels[key]
-		if label then
-			label.Visible = false
-		end
-
-		if debugOverlay then
-			local anyVisible = false
-			for _, entry in pairs(debugLabels) do
-				if entry.Visible then
-					anyVisible = true
-					break
-				end
-			end
-			debugOverlay.Visible = anyVisible
-		end
-	end
-
 	-- Finish drag and save final position
 	local function finishDrag()
 		if not dragging then
@@ -338,7 +314,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		activeDragInput = nil
 		dragPointerOffset = nil
 		headerLastPointer = nil
-		hideDebugLabel("HeaderDrag")
 
 		-- Save absolute position for restoration
 		RvrseUI._lastWindowPosition = {
@@ -442,7 +417,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				pointerDelta.X, pointerDelta.Y,
 				distance
 			)
-			setDebugLabel("HeaderDrag", string.format("Header Δ %.2f | pointer(%.0f, %.0f)", distance, pointerPosition.X, pointerPosition.Y))
 		end
 	end)
 
@@ -1150,7 +1124,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				chipCenterOffset = nil
 				chipInitialPointer = nil
 				chipLastPointer = nil
-				hideDebugLabel("ChipDrag")
 
 				-- Save final position
 				RvrseUI._controllerChipPosition = {
@@ -1262,7 +1235,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				pointerDelta.X, pointerDelta.Y,
 				distance
 			)
-			setDebugLabel("ChipDrag", string.format("Chip Δ %.2f | pointer(%.0f, %.0f)", distance, pointer.X, pointer.Y))
 		end
 	end)
 

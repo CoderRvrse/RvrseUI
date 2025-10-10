@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T15:43:56.431Z
+-- Compiled from modular architecture on 2025-10-10T15:56:16.919Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3923,30 +3923,6 @@ do
 			return Vector2.new(inset.X, inset.Y)
 		end
 	
-		local function setDebugLabel(key, text)
-			if Debug:IsEnabled() then
-				Debug.printf("[TELEMETRY][%s] %s", key, text)
-			end
-		end
-	
-		local function hideDebugLabel(key)
-			local label = debugLabels[key]
-			if label then
-				label.Visible = false
-			end
-	
-			if debugOverlay then
-				local anyVisible = false
-				for _, entry in pairs(debugLabels) do
-					if entry.Visible then
-						anyVisible = true
-						break
-					end
-				end
-				debugOverlay.Visible = anyVisible
-			end
-		end
-	
 		-- Finish drag and save final position
 		local function finishDrag()
 			if not dragging then
@@ -3957,7 +3933,6 @@ do
 			activeDragInput = nil
 			dragPointerOffset = nil
 			headerLastPointer = nil
-			hideDebugLabel("HeaderDrag")
 	
 			-- Save absolute position for restoration
 			RvrseUI._lastWindowPosition = {
@@ -4061,7 +4036,6 @@ do
 					pointerDelta.X, pointerDelta.Y,
 					distance
 				)
-				setDebugLabel("HeaderDrag", string.format("Header Δ %.2f | pointer(%.0f, %.0f)", distance, pointerPosition.X, pointerPosition.Y))
 			end
 		end)
 	
@@ -4769,7 +4743,6 @@ do
 					chipCenterOffset = nil
 					chipInitialPointer = nil
 					chipLastPointer = nil
-					hideDebugLabel("ChipDrag")
 	
 					-- Save final position
 					RvrseUI._controllerChipPosition = {
@@ -4881,7 +4854,6 @@ do
 					pointerDelta.X, pointerDelta.Y,
 					distance
 				)
-				setDebugLabel("ChipDrag", string.format("Chip Δ %.2f | pointer(%.0f, %.0f)", distance, pointer.X, pointer.Y))
 			end
 		end)
 	
