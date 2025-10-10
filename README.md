@@ -2,7 +2,7 @@
 
 Modern Roblox UI toolkit built in Luau with modular architecture, persistent themes, and a polished desktop/mobile experience.
 
-![Version](https://img.shields.io/badge/version-3.0.3-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-3.0.3-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Status](https://img.shields.io/badge/status-active-success)
 
 ---
 
@@ -66,6 +66,8 @@ Window:Show()
 - **Lock & Flag Systems**: `State.Locks` keeps related controls in sync while `RvrseUI.Flags` exposes live element handles.
 - **Hotkey Management**: Global toggle/destroy keys with runtime rebinding and minimize awareness.
 - **Notification Stack**: Priority toasts rendered above the UI via the `Notifications` module.
+- **Profiles Command Center**: Built-in "Profiles" tab for refreshing, loading, saving, cloning, deleting configs, and toggling auto-save.
+- **Overlay System**: Dedicated overlay layer keeps dropdowns, popovers, and blockers above content with optional inline mode.
 - **Modular Build**: 26 focused modules compiled into `RvrseUI.lua` for `loadstring` usage.
 
 ---
@@ -96,7 +98,7 @@ Window:Show()
 - v3.0.3 routes save/load through the active window context so every flagged element persists; avoid modifying `src/Config.lua` unless you replicate this behaviour.
 - Set `ConfigurationSaving.AutoSave = false` if you want to manually save without overwriting your last profile on every flag change.
 - Call `RvrseUI:SetAutoSaveEnabled(false)` at runtime to pause auto-save temporarily.
-- With configuration saving enabled, a "Profiles" tab is injected automatically. Use it to switch, create, delete, and reload configs without leaving the UI.
+- Tune the injected "Profiles" tab via `ConfigurationManager = { TabName = "Profiles", Icon = "folder", DropdownPlaceholder = "Select profile" }` or set it to `false` to provide your own UI.
 - Call `Window:Show()` after building tabs/sections so saved settings apply before the UI becomes visible.
 
 ### Example Config Table
@@ -118,6 +120,21 @@ local profile = {
 }
 local Window = RvrseUI:CreateWindow(profile)
 ```
+
+---
+
+## Profiles & Snapshot Workflow
+
+When `ConfigurationSaving` is enabled the UI injects a "Profiles" tab that keeps configurations in sync with disk:
+
+- **Refresh** – Re-scans the profiles folder on command and whenever the dropdown opens, so external changes appear immediately.
+- **Load Selected** – Executes `SetConfigProfile` + `LoadConfigByName` for the chosen entry and reapplies all flags/theme.
+- **Save Current** – Persists the active profile (`ConfigurationFileName`) using the live element state.
+- **Save As** – Writes a new profile name, refreshes the list, and optionally clears the input field.
+- **Delete Profile** – Removes the selected profile and clears the active selection if it was in use.
+- **Auto Save Toggle** – Mirrors `RvrseUI:SetAutoSaveEnabled` for quick snapshot freezes.
+
+Set `ConfigurationManager = false` to supply your own controls, or override labels/icons via `ConfigurationManager = { TabName = "Profiles", Icon = "folder", DropdownPlaceholder = "Select profile" }`.
 
 ---
 
@@ -154,11 +171,13 @@ PlayerSection:CreateDropdown({
     Text = "Gamemode",
     Values = {"Story", "Arcade", "Challenge"},
     Default = "Story",
+    Overlay = true, -- default; set to false for inline expansion
     OnChanged = function(mode)
         print("Mode set to", mode)
     end,
     Flag = "SelectedMode"
 })
+-- overlay dropdowns reparent into the global overlay layer and close when clicking the blocker
 
 PlayerSection:CreateKeybind({
     Text = "Dash Key",
