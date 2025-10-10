@@ -122,6 +122,206 @@ for (const moduleCode of compiledModules) {
 	finalCode += moduleCode + '\n';
 }
 
+// Add RvrseUI API wrapper (extracted from init.lua lines 162-350)
+const rvrseUIAPI = `
+-- ============================================
+-- MAIN RVRSEUI TABLE & PUBLIC API
+-- ============================================
+
+RvrseUI.Version = Version
+RvrseUI.NotificationsEnabled = true
+RvrseUI.Flags = {}
+RvrseUI.Store = State
+RvrseUI.UI = Hotkeys
+
+-- Internal state
+RvrseUI._windows = {}
+RvrseUI._lockListeners = {}
+RvrseUI._themeListeners = {}
+RvrseUI._savedTheme = nil
+RvrseUI._lastWindowPosition = nil
+RvrseUI._controllerChipPosition = nil
+
+-- Configuration settings
+RvrseUI.ConfigurationSaving = false
+RvrseUI.ConfigurationFileName = nil
+RvrseUI.ConfigurationFolderName = nil
+RvrseUI.AutoSaveEnabled = true
+
+-- Create Window (main entry point)
+function RvrseUI:CreateWindow(cfg)
+	local deps = {
+		Theme = Theme,
+		Animator = Animator,
+		State = State,
+		Config = Config,
+		UIHelpers = UIHelpers,
+		Icons = Icons,
+		TabBuilder = TabBuilder,
+		SectionBuilder = SectionBuilder,
+		WindowManager = WindowManager,
+		Notifications = Notifications,
+		Debug = Debug,
+		Obfuscation = Obfuscation,
+		Hotkeys = Hotkeys,
+		Version = Version,
+		Elements = Elements,
+		OverlayLayer = nil,
+		UIS = UIS,
+		GuiService = GuiService,
+		RS = RS,
+		PlayerGui = PlayerGui,
+		HttpService = game:GetService("HttpService")
+	}
+
+	TabBuilder:Initialize(deps)
+	SectionBuilder:Initialize(deps)
+	WindowBuilder:Initialize(deps)
+
+	local host = PlayerGui:FindFirstChild(Obfuscation.getObfuscatedName("gui"))
+	if not host then
+		host = Instance.new("ScreenGui")
+		host.Name = Obfuscation.getObfuscatedName("gui")
+		host.ResetOnSpawn = false
+		host.IgnoreGuiInset = true
+		host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		host.DisplayOrder = 999
+		host.Parent = PlayerGui
+	end
+
+	return WindowBuilder:CreateWindow(self, cfg, host)
+end
+
+-- Notifications
+function RvrseUI:Notify(options)
+	if not self.NotificationsEnabled then return end
+	return Notifications:Notify(options)
+end
+
+-- Destroy all UI
+function RvrseUI:Destroy()
+	for _, window in ipairs(self._windows) do
+		if window.Destroy then window:Destroy() end
+	end
+	if self.UI._toggleTargets then table.clear(self.UI._toggleTargets) end
+	if self._lockListeners then table.clear(self._lockListeners) end
+	if self._themeListeners then table.clear(self._themeListeners) end
+	print("[RvrseUI] All interfaces destroyed")
+end
+
+-- Toggle UI visibility
+function RvrseUI:ToggleVisibility()
+	self.UI:ToggleAllWindows()
+end
+
+-- Configuration Management
+function RvrseUI:SaveConfiguration()
+	return Config:SaveConfiguration(self)
+end
+
+function RvrseUI:LoadConfiguration()
+	return Config:LoadConfiguration(self)
+end
+
+function RvrseUI:SaveConfigAs(profileName)
+	return Config:SaveConfigAs(profileName, self)
+end
+
+function RvrseUI:LoadConfigByName(profileName)
+	return Config:LoadConfigByName(profileName, self)
+end
+
+function RvrseUI:_autoSave()
+	if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
+		task.defer(function() self:SaveConfiguration() end)
+	end
+end
+
+function RvrseUI:GetLastConfig()
+	return Config:GetLastConfig()
+end
+
+function RvrseUI:SetConfigProfile(profileName)
+	return Config:SetConfigProfile(self, profileName)
+end
+
+function RvrseUI:ListProfiles()
+	return Config:ListProfiles()
+end
+
+function RvrseUI:DeleteProfile(profileName)
+	return Config:DeleteProfile(profileName)
+end
+
+function RvrseUI:SetAutoSaveEnabled(enabled)
+	local state = Config:SetAutoSave(enabled)
+	self.AutoSaveEnabled = state
+	return state
+end
+
+function RvrseUI:IsAutoSaveEnabled()
+	return self.AutoSaveEnabled
+end
+
+-- Version Information
+function RvrseUI:GetVersionInfo()
+	return {
+		Full = Version.Full,
+		Major = Version.Major,
+		Minor = Version.Minor,
+		Patch = Version.Patch,
+		Build = Version.Build,
+		Hash = Version.Hash,
+		Channel = Version.Channel
+	}
+end
+
+function RvrseUI:GetVersionString()
+	return Version.Full
+end
+
+-- Theme Management
+function RvrseUI:SetTheme(themeName)
+	Theme:Switch(themeName)
+	if self.ConfigurationSaving then self:_autoSave() end
+end
+
+function RvrseUI:GetTheme()
+	return Theme.Current
+end
+
+-- Debug Methods
+function RvrseUI:EnableDebug(enabled)
+	Debug.enabled = enabled
+end
+
+function RvrseUI:IsDebugEnabled()
+	return Debug.enabled
+end
+
+-- Window Management
+function RvrseUI:GetWindows()
+	return self._windows
+end
+
+function RvrseUI:MinimizeAll()
+	for _, window in ipairs(self._windows) do
+		if window.Minimize then window:Minimize() end
+	end
+end
+
+function RvrseUI:RestoreAll()
+	for _, window in ipairs(self._windows) do
+		if window.Restore then window:Restore() end
+	end
+end
+
+-- Provide notifications module with RvrseUI context
+Notifications:SetContext(RvrseUI)
+`;
+
+finalCode += rvrseUIAPI;
+
 // Add final return statement
 finalCode += '\n-- Return the framework\nreturn RvrseUI\n';
 
