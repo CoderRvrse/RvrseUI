@@ -276,6 +276,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	local dragging, activeDragInput
 	local dragPointerOffset
+	local debugOverlay, debugLabels = nil, {}
 	local hostScreenGui = typeof(windowHost) == "Instance"
 		and windowHost:IsA("ScreenGui")
 		and windowHost
@@ -299,6 +300,98 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return Vector2.new(inset.X, inset.Y)
 	end
 
+	-- Lazily create on-screen debug labels when debug mode is enabled
+	local function getDebugOverlay()
+		if not Debug:IsEnabled() then
+			return nil
+		end
+
+		if not hostScreenGui or not hostScreenGui.Parent then
+			return nil
+		end
+
+		if debugOverlay and debugOverlay.Parent then
+			return debugOverlay
+		end
+
+		debugOverlay = hostScreenGui:FindFirstChild("_DragDebugOverlay")
+		if not debugOverlay then
+			debugOverlay = Instance.new("Frame")
+			debugOverlay.Name = "_DragDebugOverlay"
+			debugOverlay.BackgroundTransparency = 0.4
+			debugOverlay.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+			debugOverlay.BorderSizePixel = 0
+			debugOverlay.Size = UDim2.new(0, 360, 0, 60)
+			debugOverlay.Position = UDim2.new(0, 12, 0, 12)
+			debugOverlay.ZIndex = 999999
+			debugOverlay.Visible = true
+			debugOverlay.Parent = hostScreenGui
+
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = debugOverlay
+
+			local list = Instance.new("UIListLayout")
+			list.Padding = UDim.new(0, 4)
+			list.FillDirection = Enum.FillDirection.Vertical
+			list.SortOrder = Enum.SortOrder.LayoutOrder
+			list.Parent = debugOverlay
+
+			local padding = Instance.new("UIPadding")
+			padding.PaddingTop = UDim.new(0, 8)
+			padding.PaddingBottom = UDim.new(0, 8)
+			padding.PaddingLeft = UDim.new(0, 10)
+			padding.PaddingRight = UDim.new(0, 10)
+			padding.Parent = debugOverlay
+		end
+
+		return debugOverlay
+	end
+
+	local function setDebugLabel(key, text)
+		local overlay = getDebugOverlay()
+		if not overlay then
+			return
+		end
+
+		local label = debugLabels[key]
+		if not label or not label.Parent then
+			label = Instance.new("TextLabel")
+			label.BackgroundTransparency = 1
+			label.BorderSizePixel = 0
+			label.Size = UDim2.new(1, 0, 0, 18)
+			label.Font = Enum.Font.Code
+			label.TextSize = 14
+			label.TextColor3 = Color3.fromRGB(120, 220, 255)
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Name = key
+			label.Parent = overlay
+			debugLabels[key] = label
+		end
+
+		label.Visible = true
+		label.Text = text
+		overlay.Visible = true
+	end
+
+	local function hideDebugLabel(key)
+		local label = debugLabels[key]
+		if label then
+			label.Visible = false
+		end
+
+		if debugOverlay then
+			local anyVisible = false
+			for _, entry in pairs(debugLabels) do
+				if entry.Visible then
+					anyVisible = true
+					break
+				end
+			end
+			debugOverlay.Visible = anyVisible
+		end
+	end
+
 	-- Finish drag and save final position
 	local function finishDrag()
 		if not dragging then
@@ -308,6 +401,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		dragging = false
 		activeDragInput = nil
 		dragPointerOffset = nil
+		hideDebugLabel("HeaderDrag")
 
 		-- Save absolute position for restoration
 		RvrseUI._lastWindowPosition = {
@@ -394,6 +488,19 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			math.floor(finalX + 0.5),
 			math.floor(finalY + 0.5)
 		)
+
+		if Debug:IsEnabled() then
+			local gluePoint = Vector2.new(targetTopLeftX + dragPointerOffset.X, targetTopLeftY + dragPointerOffset.Y)
+			local pointerDelta = pointerPosition - gluePoint
+			local distance = pointerDelta.Magnitude
+			Debug.printf("[DRAG][Header] pointer=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
+				pointerPosition.X, pointerPosition.Y,
+				gluePoint.X, gluePoint.Y,
+				pointerDelta.X, pointerDelta.Y,
+				distance
+			)
+			setDebugLabel("HeaderDrag", string.format("Header Δ %.2f | pointer(%.0f, %.0f)", distance, pointerPosition.X, pointerPosition.Y))
+		end
 	end)
 
 	-- Global input end handler (in case release happens outside header)
@@ -1092,16 +1199,17 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- End chip drag and save position
 	controllerChip.InputEnded:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-				if chipDragging and io == chipActiveDragInput then
-					chipDragging = false
-					chipActiveDragInput = nil
-					chipCenterOffset = nil
-					chipInitialPointer = nil
+			if chipDragging and io == chipActiveDragInput then
+				chipDragging = false
+				chipActiveDragInput = nil
+				chipCenterOffset = nil
+				chipInitialPointer = nil
+				hideDebugLabel("ChipDrag")
 
-					-- Save final position
-					RvrseUI._controllerChipPosition = {
-						XScale = controllerChip.Position.X.Scale,
-						XOffset = controllerChip.Position.X.Offset,
+				-- Save final position
+				RvrseUI._controllerChipPosition = {
+					XScale = controllerChip.Position.X.Scale,
+					XOffset = controllerChip.Position.X.Offset,
 					YScale = controllerChip.Position.Y.Scale,
 					YOffset = controllerChip.Position.Y.Offset
 				}
@@ -1194,6 +1302,19 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			math.floor(finalCenterX + 0.5),
 			math.floor(finalCenterY + 0.5)
 		)
+
+		if Debug:IsEnabled() then
+			local gluePoint = Vector2.new(targetCenterX + chipCenterOffset.X, targetCenterY + chipCenterOffset.Y)
+			local pointerDelta = pointer - gluePoint
+			local distance = pointerDelta.Magnitude
+			Debug.printf("[DRAG][Chip] pointer=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
+				pointer.X, pointer.Y,
+				gluePoint.X, gluePoint.Y,
+				pointerDelta.X, pointerDelta.Y,
+				distance
+			)
+			setDebugLabel("ChipDrag", string.format("Chip Δ %.2f | pointer(%.0f, %.0f)", distance, pointer.X, pointer.Y))
+		end
 	end)
 
 	if RvrseUI._controllerChipPosition then
