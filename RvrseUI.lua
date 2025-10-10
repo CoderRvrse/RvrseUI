@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-10T21:42:58.295Z
+-- Compiled from modular architecture on 2025-10-10T21:47:59.040Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -89,7 +89,7 @@ do
 	
 	Debug = {}
 	
-	Debug.Enabled = true  -- Global debug toggle
+	Debug.Enabled = false  -- Global debug toggle (disabled by default for production)
 	Debug.enabled = Debug.Enabled  -- Back-compat alias for legacy references
 	
 	function Debug:SetEnabled(state)
@@ -5232,7 +5232,9 @@ do
 					Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 					task.wait(0.2)
 				end
-				splash.Visible = false
+				-- Destroy splash completely to prevent blocking
+				splash:Destroy()
+				splash = nil
 				splashHidden = true
 			end
 	

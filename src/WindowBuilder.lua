@@ -898,7 +898,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 				task.wait(0.2)
 			end
-			splash.Visible = false
+			-- Destroy splash completely to prevent blocking
+			splash:Destroy()
+			splash = nil
 			splashHidden = true
 		end
 

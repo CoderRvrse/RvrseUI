@@ -6,7 +6,7 @@
 
 local Debug = {}
 
-Debug.Enabled = true  -- Global debug toggle
+Debug.Enabled = false  -- Global debug toggle (disabled by default for production)
 Debug.enabled = Debug.Enabled  -- Back-compat alias for legacy references
 
 function Debug:SetEnabled(state)
