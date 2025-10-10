@@ -2,7 +2,7 @@
 
 Modern Roblox UI toolkit built in Luau with modular architecture, persistent themes, and a polished desktop/mobile experience.
 
-![Version](https://img.shields.io/badge/version-3.0.3-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Status](https://img.shields.io/badge/status-active-success)
+![Version](https://img.shields.io/badge/version-3.0.4-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Status](https://img.shields.io/badge/status-active-success)
 
 ---
 
@@ -15,7 +15,7 @@ Modern Roblox UI toolkit built in Luau with modular architecture, persistent the
 
 ### Install
 ```lua
-local VERSION = "v3.0.3"
+local VERSION = "v3.0.4"
 local SOURCE = string.format(
     "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua",
     VERSION

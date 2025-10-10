@@ -2,17 +2,17 @@
   "version": {
     "major": 3,
     "minor": 0,
-    "patch": 3,
-    "full": "3.0.3",
-    "build": "20251011",
-    "hash": "N8P4Q6R2",
+    "patch": 4,
+    "full": "3.0.4",
+    "build": "20251010",
+    "hash": "K7M3P9X1",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-11",
-    "name": "Configuration Persistence Hotfix",
-    "codename": "Aurora",
-    "notes": "Adds configurable auto-save, stabilizes minimized drag alignment, and keeps hotkeys reliable across rebuilds."
+    "date": "2025-10-10",
+    "name": "Advanced Cursor-Locked Drag",
+    "codename": "Precision",
+    "notes": "Completely redesigned drag system ensures cursor stays perfectly glued to grab point on both window header and minimized chip."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,19 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "3.0.4": {
+      "date": "2025-10-10",
+      "hash": "K7M3P9X1",
+      "changes": [
+        "🎯 Redesigned window header drag to cache exact grab offset and maintain cursor lock throughout drag operations.",
+        "🎮 Upgraded controller chip drag with grab-point preservation using AnchorPoint-optimized positioning.",
+        "📐 Added sub-pixel precision rounding (math.floor + 0.5) to both drag systems for smooth movement.",
+        "🔍 Implemented consistent UI-space coordinate calculations with proper GUI inset handling for all host types.",
+        "🖱️ Unified touch and mouse input support with active input tracking to prevent cross-contamination.",
+        "🐛 Fixed drag offset drift issues that caused cursor to slip away from initial grab point.",
+        "📝 Added debug logging for drag offset caching and position tracking when debug mode enabled."
+      ]
+    },
     "3.0.3": {
       "date": "2025-10-11",
       "hash": "N8P4Q6R2",

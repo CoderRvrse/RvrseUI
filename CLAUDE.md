@@ -1,4 +1,4 @@
-# RvrseUI – Maintainer Notes (v3.0.3)
+# RvrseUI – Maintainer Notes (v3.0.4)
 
 ## Configuration Persistence Lockdown
 - Save/load now routes through the live `RvrseUI` context (`src/Config.lua`) so every flagged element serializes correctly.  

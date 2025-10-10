@@ -1,20 +1,34 @@
--- RvrseUI v3.0.3 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10
--- Source: https://github.com/CoderRvrse/RvrseUI
+-- RvrseUI v3.0.4 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-10-10T12:08:05.701Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
 -- Extras: Notify system, Theme switcher, LockGroup system, Drag-to-move, Auto-scaling
--- Architecture: 26 modules compiled into single file for loadstring() usage
 
--- 💡 For modular version (development), use: require(script.init)
--- 💡 For single-file version (production), use: loadstring(game:HttpGet(...))()
+-- 🏗️ ARCHITECTURE: This file is compiled from 26 modular files
+-- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
+-- For modular version, use: require(script.init) instead of this file
 
--- ============================================
--- Version Module (Inlined)
--- ============================================
-local Version = (function()
-local Version = {}
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
+local CoreGui = game:GetService("CoreGui")
+
+local LP = Players.LocalPlayer
+local PlayerGui = LP:WaitForChild("PlayerGui")
+local Mouse = LP:GetMouse()
+
+local RvrseUI = {}
+
+
+-- ========================
+-- Version Module
+-- ========================
+
+
 
 Version.Data = {
 	Major = 3,
@@ -63,14 +77,12 @@ setmetatable(Version, {
 	end
 })
 
-	return Version
-end)()
 
--- ============================================
--- Debug Module (Inlined)
--- ============================================
-local Debug = (function()
-local Debug = {}
+-- ========================
+-- Debug Module
+-- ========================
+
+
 
 Debug.Enabled = true  -- Global debug toggle
 
@@ -98,14 +110,12 @@ function Debug.printf(fmt, ...)
 	Debug:Print(fmt, ...)
 end
 
-	return Debug
-end)()
 
--- ============================================
--- Obfuscation Module (Inlined)
--- ============================================
-local Obfuscation = (function()
-local Obfuscation = {}
+-- ========================
+-- Obfuscation Module
+-- ========================
+
+
 
 Obfuscation._seed = tick() * math.random(1, 999999)  -- Unique seed per session
 Obfuscation._cache = {}  -- Cache generated names to avoid duplicates
@@ -192,14 +202,12 @@ function Obfuscation.getObfuscatedNames()
 	return Obfuscation:GenerateSet()
 end
 
-	return Obfuscation
-end)()
 
--- ============================================
--- Icons Module (Inlined)
--- ============================================
-local Icons = (function()
-local Icons = {}
+-- ========================
+-- Icons Module
+-- ========================
+
+
 
 Icons.UnicodeIcons = {
 	-- Navigation & UI
@@ -420,14 +428,12 @@ function Icons.resolveIcon(icon)
 	return Icons:Resolve(icon)
 end
 
-	return Icons
-end)()
 
--- ============================================
--- Theme Module (Inlined)
--- ============================================
-local Theme = (function()
-local Theme = {}
+-- ========================
+-- Theme Module
+-- ========================
+
+
 
 Theme.Palettes = {
 	Dark = {
@@ -534,16 +540,14 @@ function Theme:Initialize()
 	-- Palettes are defined at module load time
 end
 
-	return Theme
-end)()
 
--- ============================================
--- Animator Module (Inlined)
--- ============================================
-local Animator = (function()
+-- ========================
+-- Animator Module
+-- ========================
+
 local TweenService = game:GetService("TweenService")
 
-local Animator = {}
+
 
 Animator.Spring = {
 	Smooth = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -592,14 +596,12 @@ function Animator:Initialize(tweenService)
 	-- Spring presets are defined at module load time
 end
 
-	return Animator
-end)()
 
--- ============================================
--- State Module (Inlined)
--- ============================================
-local State = (function()
-local State = {}
+-- ========================
+-- State Module
+-- ========================
+
+
 
 State.Flags = {}
 
@@ -650,16 +652,14 @@ function State:Initialize()
 	-- Flags and Locks are defined at module load time
 end
 
-	return State
-end)()
 
--- ============================================
--- UIHelpers Module (Inlined)
--- ============================================
-local UIHelpers = (function()
+-- ========================
+-- UIHelpers Module
+-- ========================
+
 local TweenService = game:GetService("TweenService")
 
-local UIHelpers = {}
+
 
 function UIHelpers.coerceKeycode(k)
 	if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
@@ -788,14 +788,12 @@ function UIHelpers:Initialize(deps)
 	-- Helper functions are self-contained and don't need initialization
 end
 
-	return UIHelpers
-end)()
 
--- ============================================
--- Config Module (Inlined)
--- ============================================
-local Config = (function()
-local Config = {}
+-- ========================
+-- Config Module
+-- ========================
+
+
 
 local State = nil
 local Theme = nil
@@ -1441,20 +1439,18 @@ function Config:DeleteProfile(profileName)
 	return true, "Profile deleted"
 end
 
-	return Config
-end)()
 
--- ============================================
--- WindowManager Module (Inlined)
--- ============================================
-local WindowManager = (function()
+-- ========================
+-- WindowManager Module
+-- ========================
+
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
 local LP = Players.LocalPlayer
 local PlayerGui = LP:WaitForChild("PlayerGui")
 
-local WindowManager = {}
+
 
 function WindowManager:Init(obfuscatedNames)
 	self._host = nil
@@ -1562,16 +1558,14 @@ function WindowManager:Initialize()
 	-- _host and _windows will be set when CreateHost is called
 end
 
-	return WindowManager
-end)()
 
--- ============================================
--- Hotkeys Module (Inlined)
--- ============================================
-local Hotkeys = (function()
+-- ========================
+-- Hotkeys Module
+-- ========================
+
 local UIS = game:GetService("UserInputService")
 
-local Hotkeys = {}
+
 Hotkeys.UI = {
 	_toggleTargets = {},
 	_windowData = {},
@@ -1719,14 +1713,12 @@ function Hotkeys:Initialize(deps)
 	self:Init()
 end
 
-	return Hotkeys
-end)()
 
--- ============================================
--- Notifications Module (Inlined)
--- ============================================
-local Notifications = (function()
-local Notifications = {}
+-- ========================
+-- Notifications Module
+-- ========================
+
+
 
 local corner, stroke
 
@@ -1916,14 +1908,12 @@ function Notifications:SetContext(rvrseUI)
 	RvrseUI = rvrseUI
 end
 
-	return Notifications
-end)()
 
--- ============================================
--- Button Module (Inlined)
--- ============================================
-local Button = (function()
-local Button = {}
+-- ========================
+-- Button Module
+-- ========================
+
+
 
 function Button.Create(o, dependencies)
 	o = o or {}
@@ -1987,14 +1977,12 @@ function Button.Create(o, dependencies)
 	return buttonAPI
 end
 
-	return Button
-end)()
 
--- ============================================
--- Toggle Module (Inlined)
--- ============================================
-local Toggle = (function()
-local Toggle = {}
+-- ========================
+-- Toggle Module
+-- ========================
+
+
 
 function Toggle.Create(o, dependencies)
 	o = o or {}
@@ -2094,14 +2082,12 @@ function Toggle.Create(o, dependencies)
 	return toggleAPI
 end
 
-	return Toggle
-end)()
 
--- ============================================
--- Dropdown Module (Inlined)
--- ============================================
-local Dropdown = (function()
-local Dropdown = {}
+-- ========================
+-- Dropdown Module
+-- ========================
+
+
 
 function Dropdown.Create(o, dependencies)
 	o = o or {}
@@ -2564,14 +2550,12 @@ function Dropdown.Create(o, dependencies)
 	return dropdownAPI
 end
 
-	return Dropdown
-end)()
 
--- ============================================
--- Slider Module (Inlined)
--- ============================================
-local Slider = (function()
-local Slider = {}
+-- ========================
+-- Slider Module
+-- ========================
+
+
 
 function Slider.Create(o, dependencies)
 	o = o or {}
@@ -2753,14 +2737,12 @@ function Slider.Create(o, dependencies)
 	return sliderAPI
 end
 
-	return Slider
-end)()
 
--- ============================================
--- Keybind Module (Inlined)
--- ============================================
-local Keybind = (function()
-local Keybind = {}
+-- ========================
+-- Keybind Module
+-- ========================
+
+
 
 function Keybind.Create(o, dependencies)
 	o = o or {}
@@ -2877,14 +2859,12 @@ function Keybind.Create(o, dependencies)
 	return keybindAPI
 end
 
-	return Keybind
-end)()
 
--- ============================================
--- TextBox Module (Inlined)
--- ============================================
-local TextBox = (function()
-local TextBox = {}
+-- ========================
+-- TextBox Module
+-- ========================
+
+
 
 function TextBox.Create(o, dependencies)
 	o = o or {}
@@ -2971,14 +2951,12 @@ function TextBox.Create(o, dependencies)
 	return textboxAPI
 end
 
-	return TextBox
-end)()
 
--- ============================================
--- ColorPicker Module (Inlined)
--- ============================================
-local ColorPicker = (function()
-local ColorPicker = {}
+-- ========================
+-- ColorPicker Module
+-- ========================
+
+
 
 function ColorPicker.Create(o, dependencies)
 	o = o or {}
@@ -3076,14 +3054,12 @@ function ColorPicker.Create(o, dependencies)
 	return colorpickerAPI
 end
 
-	return ColorPicker
-end)()
 
--- ============================================
--- Label Module (Inlined)
--- ============================================
-local Label = (function()
-local Label = {}
+-- ========================
+-- Label Module
+-- ========================
+
+
 
 function Label.Create(o, dependencies)
 	o = o or {}
@@ -3125,14 +3101,12 @@ function Label.Create(o, dependencies)
 	return labelAPI
 end
 
-	return Label
-end)()
 
--- ============================================
--- Paragraph Module (Inlined)
--- ============================================
-local Paragraph = (function()
-local Paragraph = {}
+-- ========================
+-- Paragraph Module
+-- ========================
+
+
 
 function Paragraph.Create(o, dependencies)
 	o = o or {}
@@ -3183,14 +3157,12 @@ function Paragraph.Create(o, dependencies)
 	return paragraphAPI
 end
 
-	return Paragraph
-end)()
 
--- ============================================
--- Divider Module (Inlined)
--- ============================================
-local Divider = (function()
-local Divider = {}
+-- ========================
+-- Divider Module
+-- ========================
+
+
 
 function Divider.Create(o, dependencies)
 	o = o or {}
@@ -3219,14 +3191,12 @@ function Divider.Create(o, dependencies)
 	}
 end
 
-	return Divider
-end)()
 
--- ============================================
--- SectionBuilder Module (Inlined)
--- ============================================
-local SectionBuilder = (function()
-local SectionBuilder = {}
+-- ========================
+-- SectionBuilder Module
+-- ========================
+
+
 
 function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local Theme = dependencies.Theme
@@ -3305,7 +3275,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		return c
 	end
 
-	local SectionAPI = {}
+	
 
 	-- Prepare element dependencies
 	local function getElementDeps()
@@ -3385,14 +3355,12 @@ function SectionBuilder:Initialize(deps)
 	-- No initialization state needed
 end
 
-	return SectionBuilder
-end)()
 
--- ============================================
--- TabBuilder Module (Inlined)
--- ============================================
-local TabBuilder = (function()
-local TabBuilder = {}
+-- ========================
+-- TabBuilder Module
+-- ========================
+
+
 
 function TabBuilder.CreateTab(t, dependencies)
 	t = t or {}
@@ -3512,7 +3480,7 @@ function TabBuilder.CreateTab(t, dependencies)
 		activateTab()
 	end
 
-	local TabAPI = {}
+	
 
 	-- Tab SetIcon Method
 	function TabAPI:SetIcon(newIcon)
@@ -3566,14 +3534,12 @@ function TabBuilder:Initialize(deps)
 	-- No initialization state needed
 end
 
-	return TabBuilder
-end)()
 
--- ============================================
--- WindowBuilder Module (Inlined)
--- ============================================
-local WindowBuilder = (function()
-local WindowBuilder = {}
+-- ========================
+-- WindowBuilder Module
+-- ========================
+
+
 
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, Notifications
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
@@ -3834,45 +3800,62 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	headerDivider.Size = UDim2.new(1, -24, 0, 1)
 	headerDivider.Parent = header
 
-	-- Drag to move
+	-- ═══════════════════════════════════════════════════════════════
+	-- ADVANCED CURSOR-LOCKED DRAG SYSTEM - Window Header
+	-- ═══════════════════════════════════════════════════════════════
+	-- Ensures the cursor stays perfectly glued to the exact grab point
+	-- during the entire drag operation. Handles GUI inset, touch, and
+	-- mouse input with sub-pixel precision.
+	-- ═══════════════════════════════════════════════════════════════
+
 	local dragging, activeDragInput, dragOffset
 	local hostScreenGui = typeof(windowHost) == "Instance"
 		and windowHost:IsA("ScreenGui")
 		and windowHost
 	local hostIgnoresInset = hostScreenGui and windowHost.IgnoreGuiInset == true
 
-	local function pointerPositionFromInput(inputObject)
+	-- Get raw pointer position in screen space (accounting for touch vs mouse)
+	local function getRawPointerPosition(inputObject)
 		if inputObject.UserInputType == Enum.UserInputType.Touch then
 			return Vector2.new(inputObject.Position.X, inputObject.Position.Y)
 		end
-
 		return UIS:GetMouseLocation()
 	end
 
-	local function guiInsetOffset()
+	-- Get GUI inset offset vector
+	local function getGuiInset()
 		local inset = GuiService:GetGuiInset()
 		return Vector2.new(inset.X, inset.Y)
 	end
 
-	local function pointerInUiSpace(inputObject)
-		local pointer = pointerPositionFromInput(inputObject)
-		return pointer - guiInsetOffset()
+	-- Convert screen-space pointer to UI coordinate space
+	local function pointerToUISpace(inputObject)
+		local rawPointer = getRawPointerPosition(inputObject)
+		local inset = getGuiInset()
+		return rawPointer - inset
 	end
 
-	local function rootTopLeftInUiSpace()
+	-- Get the root window's top-left position in UI space
+	local function getWindowTopLeftInUISpace()
 		local absPos = root.AbsolutePosition
+		-- If host doesn't ignore inset, we need to subtract it
 		if hostScreenGui and not hostIgnoresInset then
-			absPos -= guiInsetOffset()
+			absPos = absPos - getGuiInset()
 		end
 		return absPos
 	end
 
-	local function cacheDragOffset(inputObject)
-		local pointer = pointerInUiSpace(inputObject)
-		local startAbsPos = rootTopLeftInUiSpace()
-		dragOffset = pointer - startAbsPos
+	-- Cache the EXACT offset from pointer to window top-left at grab time
+	-- This is the "glue point" that will be maintained throughout the drag
+	local function cacheGrabOffset(inputObject)
+		local pointerInUI = pointerToUISpace(inputObject)
+		local windowTopLeft = getWindowTopLeftInUISpace()
+		dragOffset = pointerInUI - windowTopLeft
+
+		Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragOffset.X, dragOffset.Y)
 	end
 
+	-- Finish drag and save final position
 	local function finishDrag()
 		if not dragging then
 			return
@@ -3882,33 +3865,42 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		activeDragInput = nil
 		dragOffset = nil
 
+		-- Save absolute position for restoration
 		RvrseUI._lastWindowPosition = {
 			XScale = 0,
 			XOffset = root.AbsolutePosition.X,
 			YScale = 0,
 			YOffset = root.AbsolutePosition.Y
 		}
+
+		Debug.printf("[DRAG] Finished - saved position: X=%d, Y=%d",
+			root.AbsolutePosition.X, root.AbsolutePosition.Y)
 	end
 
+	-- Start dragging when header is clicked
 	header.InputBegan:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			activeDragInput = io
-			cacheDragOffset(io)
+			cacheGrabOffset(io)
+			Debug.printf("[DRAG] Started - input type: %s", tostring(io.UserInputType))
 		end
 	end)
 
+	-- End drag when released on header
 	header.InputEnded:Connect(function(io)
 		if io == activeDragInput then
 			finishDrag()
 		end
 	end)
 
+	-- Main drag update loop - maintains cursor lock
 	UIS.InputChanged:Connect(function(io)
 		if not dragging then
 			return
 		end
 
+		-- Check if this is our active drag input
 		local isMouseDrag = io.UserInputType == Enum.UserInputType.MouseMovement
 			and activeDragInput
 			and activeDragInput.UserInputType == Enum.UserInputType.MouseButton1
@@ -3918,20 +3910,24 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			return
 		end
 
+		-- Safety: recache offset if somehow lost
 		if not dragOffset then
-			cacheDragOffset(activeDragInput or io)
+			cacheGrabOffset(activeDragInput or io)
 		end
 
-		local pointer = pointerInUiSpace(io)
-		local targetX = pointer.X - dragOffset.X
-		local targetY = pointer.Y - dragOffset.Y
+		-- Calculate target position: pointer - cached offset = new top-left
+		local pointerInUI = pointerToUISpace(io)
+		local targetX = pointerInUI.X - dragOffset.X
+		local targetY = pointerInUI.Y - dragOffset.Y
 
+		-- Get screen bounds for clamping
 		local screenSize = workspace.CurrentCamera.ViewportSize
-		local inset = guiInsetOffset()
+		local inset = getGuiInset()
 		local windowWidth = root.AbsoluteSize.X
 		local windowHeight = root.AbsoluteSize.Y
 		local headerHeight = 52
 
+		-- Clamp to keep window mostly on screen
 		local minX = -(windowWidth - 100)
 		local maxX = (screenSize.X - inset.X) - 100
 		local minY = 0
@@ -3940,17 +3936,21 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		targetX = math.clamp(targetX, minX, maxX)
 		targetY = math.clamp(targetY, minY, maxY)
 
+		-- If host doesn't ignore inset, we need to ADD inset back to final position
+		-- because AbsolutePosition is in screen space
 		local finalX = targetX
 		local finalY = targetY
 
 		if hostScreenGui and not hostIgnoresInset then
-			finalX += inset.X
-			finalY += inset.Y
+			finalX = finalX + inset.X
+			finalY = finalY + inset.Y
 		end
 
-		root.Position = UDim2.fromOffset(finalX, finalY)
+		-- Apply position - cursor is now perfectly locked to grab point
+		root.Position = UDim2.fromOffset(math.floor(finalX + 0.5), math.floor(finalY + 0.5))
 	end)
 
+	-- Global input end handler (in case release happens outside header)
 	UIS.InputEnded:Connect(function(io)
 		if io == activeDragInput then
 			finishDrag()
@@ -4591,8 +4591,21 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
 
-	local chipDragging, chipWasDragged, chipDragThreshold
+	-- ═══════════════════════════════════════════════════════════════
+	-- ADVANCED CURSOR-LOCKED DRAG SYSTEM - Controller Chip
+	-- ═══════════════════════════════════════════════════════════════
+	-- Ensures the cursor stays perfectly glued to the exact grab point
+	-- on the chip. Uses AnchorPoint (0.5, 0.5) so chip rotates around
+	-- center, and maintains sub-pixel precision during drag.
+	-- ═══════════════════════════════════════════════════════════════
 
+	local chipDragging = false
+	local chipWasDragged = false
+	local chipDragThreshold = false
+	local chipDragOffset = nil  -- Offset from pointer to chip center at grab time
+	local chipActiveDragInput = nil
+
+	-- Restore window on click (only if not dragged)
 	controllerChip.MouseButton1Click:Connect(function()
 		if not chipWasDragged then
 			restoreWindow()
@@ -4600,6 +4613,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		chipWasDragged = false
 	end)
 
+	-- Hover effects
 	controllerChip.MouseEnter:Connect(function()
 		Animator:Tween(controllerChip, {
 			Size = UDim2.new(0, 60, 0, 60)
@@ -4612,57 +4626,111 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		}, Animator.Spring.Fast)
 	end)
 
+	-- Start chip drag
 	controllerChip.InputBegan:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			chipDragging = true
 			chipWasDragged = false
 			chipDragThreshold = false
+			chipActiveDragInput = io
+			chipDragOffset = nil  -- Will be calculated on first movement
+
+			Debug.printf("[CHIP DRAG] Started - input type: %s", tostring(io.UserInputType))
 		end
 	end)
 
+	-- End chip drag and save position
 	controllerChip.InputEnded:Connect(function(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-			if chipDragging then
+			if chipDragging and io == chipActiveDragInput then
 				chipDragging = false
+				chipActiveDragInput = nil
+				chipDragOffset = nil
+
+				-- Save final position
 				RvrseUI._controllerChipPosition = {
 					XScale = controllerChip.Position.X.Scale,
 					XOffset = controllerChip.Position.X.Offset,
 					YScale = controllerChip.Position.Y.Scale,
 					YOffset = controllerChip.Position.Y.Offset
 				}
+
+				Debug.printf("[CHIP DRAG] Finished - saved position: X=%d, Y=%d",
+					controllerChip.AbsolutePosition.X, controllerChip.AbsolutePosition.Y)
 			end
 		end
 	end)
 
+	-- Main chip drag update loop - maintains cursor lock
 	UIS.InputChanged:Connect(function(io)
-		if chipDragging and controllerChip.Visible and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-			local mouseLocation = UIS:GetMouseLocation()
-			local guiInset = GuiService:GetGuiInset()
-			local mousePos = Vector2.new(
-				mouseLocation.X - guiInset.X,
-				mouseLocation.Y - guiInset.Y
-			)
+		if not chipDragging or not controllerChip.Visible then
+			return
+		end
 
-			if not chipDragThreshold then
-				local halfSize = controllerChip.AbsoluteSize.X / 2
-				local chipCenter = controllerChip.AbsolutePosition + Vector2.new(halfSize, halfSize)
-				if (mousePos - chipCenter).Magnitude > 5 then
-					chipDragThreshold = true
-					chipWasDragged = true
-				end
-			end
+		-- Check if this is our active drag input
+		local isMouseDrag = io.UserInputType == Enum.UserInputType.MouseMovement
+			and chipActiveDragInput
+			and chipActiveDragInput.UserInputType == Enum.UserInputType.MouseButton1
+		local isTouchDrag = io == chipActiveDragInput
 
-			if chipDragThreshold then
-				local chipSize = controllerChip.AbsoluteSize.X
-				local halfSize = chipSize / 2
-				local screenSize = workspace.CurrentCamera.ViewportSize
+		if not isMouseDrag and not isTouchDrag then
+			return
+		end
 
-				local newX = math.clamp(mousePos.X, halfSize, screenSize.X - halfSize)
-				local newY = math.clamp(mousePos.Y, halfSize, screenSize.Y - halfSize)
+		-- Get current pointer position in UI space
+		local mouseLocation = UIS:GetMouseLocation()
+		local guiInset = GuiService:GetGuiInset()
+		local pointerInUI = Vector2.new(
+			mouseLocation.X - guiInset.X,
+			mouseLocation.Y - guiInset.Y
+		)
 
-				controllerChip.Position = UDim2.fromOffset(newX, newY)
+		-- Calculate chip center in UI space
+		-- AnchorPoint is (0.5, 0.5) so AbsolutePosition IS the center
+		local chipCenterInUI = controllerChip.AbsolutePosition - Vector2.new(guiInset.X, guiInset.Y)
+
+		-- On first move, cache the exact offset from pointer to chip center
+		if not chipDragOffset then
+			chipDragOffset = pointerInUI - chipCenterInUI
+			Debug.printf("[CHIP DRAG] Cached grab offset: X=%.2f, Y=%.2f", chipDragOffset.X, chipDragOffset.Y)
+		end
+
+		-- Check if we've moved enough to activate dragging (prevents accidental drags)
+		if not chipDragThreshold then
+			local dragDistance = (pointerInUI - chipCenterInUI).Magnitude
+			if dragDistance > 5 then
+				chipDragThreshold = true
+				chipWasDragged = true
+				Debug.printf("[CHIP DRAG] Threshold exceeded - drag activated")
+			else
+				return  -- Don't move yet
 			end
 		end
+
+		-- Calculate target position: pointer - cached offset = new center
+		local targetCenterX = pointerInUI.X - chipDragOffset.X
+		local targetCenterY = pointerInUI.Y - chipDragOffset.Y
+
+		-- Get screen bounds and chip size for clamping
+		local currentScreenSize = workspace.CurrentCamera.ViewportSize
+		local chipSize = controllerChip.AbsoluteSize.X
+		local halfSize = chipSize / 2
+
+		-- Clamp to keep chip fully on screen
+		local minX = halfSize
+		local maxX = currentScreenSize.X - halfSize
+		local minY = halfSize
+		local maxY = currentScreenSize.Y - halfSize
+
+		targetCenterX = math.clamp(targetCenterX, minX, maxX)
+		targetCenterY = math.clamp(targetCenterY, minY, maxY)
+
+		-- Apply position - cursor is now perfectly locked to grab point
+		-- Since AnchorPoint is (0.5, 0.5), Position.Offset IS the center
+		controllerChip.Position = UDim2.fromOffset(
+			math.floor(targetCenterX + 0.5),
+			math.floor(targetCenterY + 0.5)
+		)
 	end)
 
 	if RvrseUI._controllerChipPosition then
@@ -4688,7 +4756,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local activePage
 	local tabs = {}
 
-	local WindowAPI = {}
+	
 	function WindowAPI:SetTitle(t) title.Text = t or name end
 	function WindowAPI:Show() setHidden(false) end
 	function WindowAPI:Hide() setHidden(true) end
@@ -5130,353 +5198,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	return WindowAPI
 end
 
-	return WindowBuilder
-end)()
 
--- init.lua
--- Main entry point for RvrseUI modular architecture
--- This file aggregates all modules and exposes the public API
-
--- ============================================
--- ROBLOX SERVICES
--- ============================================
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local GuiService = game:GetService("GuiService")
-local HttpService = game:GetService("HttpService")
-
-local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
--- (module inlined above)
-
-local Elements = {
-	Button = Button,
-	Toggle = Toggle,
-	Dropdown = Dropdown,
-	Slider = Slider,
-	Keybind = Keybind,
-	TextBox = TextBox,
-	ColorPicker = ColorPicker,
-	Label = Label,
-	Paragraph = Paragraph,
-	Divider = Divider
-}
-
--- ============================================
--- INITIALIZE MODULES
--- ============================================
-
--- Initialize Obfuscation first (generates names on init)
-Obfuscation:Initialize()
-
--- Initialize Theme
-Theme:Initialize()
-
--- Initialize Animator with TweenService
-Animator:Initialize(TweenService)
-
--- Initialize State
-State:Initialize()
-
--- Prepare lightweight logger for configuration module
-local function configLogger(...)
-	if Debug and Debug.Print then
-		Debug:Print(...)
-	else
-		print("[RvrseUI]", ...)
-	end
-end
-
--- Initialize configuration module with required dependencies
-Config:Init({
-	State = State,
-	Theme = Theme,
-	dprintf = configLogger
-})
-
--- Initialize UIHelpers with services
-UIHelpers:Initialize({
-	Animator = Animator,
-	Theme = Theme,
-	Icons = Icons,
-	PlayerGui = PlayerGui
-})
-
--- Initialize Icons
-Icons:Initialize()
-
--- Create host ScreenGui for notifications and windows
-local host = Instance.new("ScreenGui")
-host.Name = Obfuscation.getObfuscatedName("gui")
-host.ResetOnSpawn = false
-host.IgnoreGuiInset = true
-host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-host.DisplayOrder = 999
-host.Parent = PlayerGui
-
-local overlayLayer = Instance.new("Frame")
-overlayLayer.Name = "RvrseUI_Overlay"
-overlayLayer.BackgroundTransparency = 1
-overlayLayer.BorderSizePixel = 0
-overlayLayer.ClipsDescendants = false
-overlayLayer.ZIndex = 20000
-overlayLayer.Size = UDim2.new(1, 0, 1, 0)
-overlayLayer.Parent = host
-
--- Initialize Notifications with host
-Notifications:Initialize({
-	host = host,
-	Theme = Theme,
-	Animator = Animator,
-	UIHelpers = UIHelpers
-})
-
--- Initialize Hotkeys with services
-Hotkeys:Initialize({
-	UIS = UserInputService
-})
-
--- Initialize WindowManager
-WindowManager:Initialize()
-
--- Prepare dependency injection object
-local deps = {
-	Theme = Theme,
-	Animator = Animator,
-	State = State,
-	Config = Config,
-	UIHelpers = UIHelpers,
-	Icons = Icons,
-	TabBuilder = TabBuilder,
-	SectionBuilder = SectionBuilder,
-	WindowManager = WindowManager,
-	Notifications = Notifications,
-	Debug = Debug,
-	Obfuscation = Obfuscation,
-	Hotkeys = Hotkeys,
-	Version = Version,
-	Elements = Elements,
-	OverlayLayer = overlayLayer,
-
-	-- Services
-	UIS = UserInputService,
-	GuiService = GuiService,
-	RS = RunService,
-	PlayerGui = PlayerGui,
-	HttpService = HttpService,
-	TweenService = TweenService
-}
-
--- Initialize builders with dependencies
-TabBuilder:Initialize(deps)
-SectionBuilder:Initialize(deps)
-WindowBuilder:Initialize(deps)
-
--- ============================================
--- MAIN RVRSEUI TABLE
--- ============================================
-local RvrseUI = {}
-
--- Version information
-RvrseUI.Version = Version
-
--- Public state
-RvrseUI.NotificationsEnabled = true
-RvrseUI.Flags = {}
-RvrseUI.Store = State
-RvrseUI.UI = Hotkeys
-
--- Internal state
-RvrseUI._windows = {}
-RvrseUI._lockListeners = {}
-RvrseUI._themeListeners = {}
-RvrseUI._savedTheme = nil
-RvrseUI._lastWindowPosition = nil
-RvrseUI._controllerChipPosition = nil
-RvrseUI._obfuscatedNames = Obfuscation.getObfuscatedNames()
-
--- Configuration settings
-RvrseUI.ConfigurationSaving = false
-RvrseUI.ConfigurationFileName = nil
-RvrseUI.ConfigurationFolderName = nil
-RvrseUI.AutoSaveEnabled = true
-
--- ============================================
--- PUBLIC API METHODS
--- ============================================
-
--- Create Window (main entry point)
-function RvrseUI:CreateWindow(cfg)
-	return WindowBuilder:CreateWindow(self, cfg, host)
-end
-
--- Notifications
-function RvrseUI:Notify(options)
-	if not self.NotificationsEnabled then return end
-	return Notifications:Notify(options)
-end
-
--- Destroy all UI
-function RvrseUI:Destroy()
-	if host and host.Parent then
-		host:Destroy()
-	end
-
-	if self.UI._toggleTargets then
-		table.clear(self.UI._toggleTargets)
-	end
-	if self._lockListeners then
-		table.clear(self._lockListeners)
-	end
-	if self._themeListeners then
-		table.clear(self._themeListeners)
-	end
-
-	print("[RvrseUI] All interfaces destroyed")
-end
-
--- Toggle UI visibility
-function RvrseUI:ToggleVisibility()
-	self.UI:ToggleAllWindows()
-end
-
--- Configuration Management
-function RvrseUI:SaveConfiguration()
-	return Config:SaveConfiguration(self)
-end
-
-function RvrseUI:LoadConfiguration()
-	return Config:LoadConfiguration(self)
-end
-
-function RvrseUI:SaveConfigAs(profileName)
-	return Config:SaveConfigAs(profileName, self)
-end
-
-function RvrseUI:LoadConfigByName(profileName)
-	return Config:LoadConfigByName(profileName, self)
-end
-
-function RvrseUI:_autoSave()
-    if self.ConfigurationSaving and Config.AutoSaveEnabled and self.AutoSaveEnabled then
-		task.defer(function()
-			self:SaveConfiguration()
-		end)
-	end
-end
-
-function RvrseUI:GetLastConfig()
-	return Config:GetLastConfig()
-end
-
-function RvrseUI:SetConfigProfile(profileName)
-	return Config:SetConfigProfile(self, profileName)
-end
-
-function RvrseUI:ListProfiles()
-	return Config:ListProfiles()
-end
-
-function RvrseUI:DeleteProfile(profileName)
-	return Config:DeleteProfile(profileName)
-end
-
-function RvrseUI:SetAutoSaveEnabled(enabled)
-    local state = Config:SetAutoSave(enabled)
-    self.AutoSaveEnabled = state
-    return state
-end
-
-function RvrseUI:IsAutoSaveEnabled()
-    return self.AutoSaveEnabled
-end
-
--- Provide notifications module with RvrseUI context for toggle checks
-Notifications:SetContext(RvrseUI)
-
--- Version Information
-function RvrseUI:GetVersionInfo()
-	return {
-		Full = Version.Full,
-		Major = Version.Major,
-		Minor = Version.Minor,
-		Patch = Version.Patch,
-		Build = Version.Build,
-		Hash = Version.Hash,
-		Channel = Version.Channel
-	}
-end
-
-function RvrseUI:GetVersionString()
-	return Version.Full
-end
-
--- Theme Management
-function RvrseUI:SetTheme(themeName)
-	Theme:Switch(themeName)
-	if self.ConfigurationSaving then
-		self:_autoSave()
-	end
-end
-
-function RvrseUI:GetTheme()
-	return Theme.Current
-end
-
--- Debug Methods
-function RvrseUI:EnableDebug(enabled)
-	Debug.enabled = enabled
-end
-
-function RvrseUI:IsDebugEnabled()
-	return Debug.enabled
-end
-
--- Window Management
-function RvrseUI:GetWindows()
-	return self._windows
-end
-
-function RvrseUI:MinimizeAll()
-	for _, window in ipairs(self._windows) do
-		if window.Minimize then
-			window:Minimize()
-		end
-	end
-end
-
-function RvrseUI:RestoreAll()
-	for _, window in ipairs(self._windows) do
-		if window.Restore then
-			window:Restore()
-		end
-	end
-end
-
--- ============================================
--- INITIALIZATION COMPLETE
--- ============================================
-
-print("[RvrseUI] ✅ Modular architecture loaded successfully")
-print("[RvrseUI] 📦 Version:", Version.Full)
-print("[RvrseUI] 🔨 Build:", Version.Build)
-print("[RvrseUI] 🔑 Hash:", Version.Hash)
-print("[RvrseUI] 📡 Channel:", Version.Channel)
-
+-- Return the framework
 return RvrseUI
