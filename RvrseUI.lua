@@ -3835,52 +3835,98 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	headerDivider.Parent = header
 
 	-- Drag to move
-	local dragging, dragStart, startAbsPos
-	header.InputBegan:Connect(function(io)
-		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = io.Position
-			startAbsPos = root.AbsolutePosition
-		end
-	end)
-	header.InputEnded:Connect(function(io)
-		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-			if dragging then
-				dragging = false
-				RvrseUI._lastWindowPosition = {
-					XScale = 0,
-					XOffset = root.AbsolutePosition.X,
-					YScale = 0,
-					YOffset = root.AbsolutePosition.Y
-				}
-			end
-		end
-	end)
+	local dragging, activeDragInput, dragOffset
 	local hostIgnoresInset = typeof(windowHost) == "Instance"
 		and windowHost:IsA("ScreenGui")
 		and windowHost.IgnoreGuiInset == true
 
+	local function pointerPositionFromInput(inputObject)
+		if inputObject.UserInputType == Enum.UserInputType.Touch then
+			return Vector2.new(inputObject.Position.X, inputObject.Position.Y)
+		end
+
+		return UIS:GetMouseLocation()
+	end
+
+	local function cacheDragOffset(inputObject)
+		local pointer = pointerPositionFromInput(inputObject)
+		local startAbsPos = root.AbsolutePosition
+		dragOffset = pointer - startAbsPos
+	end
+
+	local function finishDrag()
+		if not dragging then
+			return
+		end
+
+		dragging = false
+		activeDragInput = nil
+		dragOffset = nil
+
+		RvrseUI._lastWindowPosition = {
+			XScale = 0,
+			XOffset = root.AbsolutePosition.X,
+			YScale = 0,
+			YOffset = root.AbsolutePosition.Y
+		}
+	end
+
+	header.InputBegan:Connect(function(io)
+		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			activeDragInput = io
+			cacheDragOffset(io)
+		end
+	end)
+
+	header.InputEnded:Connect(function(io)
+		if io == activeDragInput then
+			finishDrag()
+		end
+	end)
+
 	UIS.InputChanged:Connect(function(io)
-		if dragging and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
-			local delta = io.Position - dragStart
-			local newX = startAbsPos.X + delta.X
-			local newY = startAbsPos.Y + delta.Y
+		if not dragging then
+			return
+		end
 
-			local screenSize = workspace.CurrentCamera.ViewportSize
-			local guiInset = hostIgnoresInset and Vector2.new(0, 0) or GuiService:GetGuiInset()
-			local windowWidth = root.AbsoluteSize.X
-			local windowHeight = root.AbsoluteSize.Y
-			local headerHeight = 52
+		local isMouseDrag = io.UserInputType == Enum.UserInputType.MouseMovement
+			and activeDragInput
+			and activeDragInput.UserInputType == Enum.UserInputType.MouseButton1
+		local isTouchDrag = io == activeDragInput
 
-			local minX = -(windowWidth - 100)
-			local maxX = screenSize.X - 100
-			local minY = guiInset.Y
-			local maxY = screenSize.Y - headerHeight
+		if not isMouseDrag and not isTouchDrag then
+			return
+		end
 
-			newX = math.clamp(newX, minX, maxX)
-			newY = math.clamp(newY, minY, maxY)
+		if not dragOffset then
+			cacheDragOffset(activeDragInput or io)
+		end
 
-			root.Position = UDim2.fromOffset(newX, newY)
+		local pointer = pointerPositionFromInput(io)
+		local targetX = pointer.X - dragOffset.X
+		local targetY = pointer.Y - dragOffset.Y
+
+		local screenSize = workspace.CurrentCamera.ViewportSize
+		local guiInset = hostIgnoresInset and Vector2.new(0, 0) or GuiService:GetGuiInset()
+		local windowWidth = root.AbsoluteSize.X
+		local windowHeight = root.AbsoluteSize.Y
+		local headerHeight = 52
+
+		local minX = -(windowWidth - 100)
+		local maxX = screenSize.X - 100
+		local minY = guiInset.Y
+		local maxY = screenSize.Y - headerHeight
+
+		targetX = math.clamp(targetX, minX, maxX)
+		targetY = math.clamp(targetY, minY, maxY)
+
+		root.Position = UDim2.fromOffset(targetX, targetY)
+	end)
+
+	UIS.InputEnded:Connect(function(io)
+		if io == activeDragInput then
+			finishDrag()
 		end
 	end)
 
