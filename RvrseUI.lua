@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T13:30:47.076Z
+-- Compiled from modular architecture on 2025-10-10T14:12:57.013Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3909,6 +3909,10 @@ do
 	
 		-- Get GUI inset offset vector
 		local function getGuiInset()
+			if hostScreenGui and hostIgnoresInset then
+				return Vector2.new(0, 0)
+			end
+	
 			local inset = GuiService:GetGuiInset()
 			return Vector2.new(inset.X, inset.Y)
 		end
@@ -3923,11 +3927,7 @@ do
 		-- Get the root window's top-left position in UI space
 		local function getWindowTopLeftInUISpace()
 			local absPos = root.AbsolutePosition
-			-- If host doesn't ignore inset, we need to subtract it
-			if hostScreenGui and not hostIgnoresInset then
-				absPos = absPos - getGuiInset()
-			end
-			return absPos
+			return absPos - getGuiInset()
 		end
 	
 		-- Cache the EXACT offset from pointer to window top-left at grab time
@@ -4006,7 +4006,8 @@ do
 			local targetY = pointerInUI.Y - dragOffset.Y
 	
 			-- Get screen bounds for clamping
-			local screenSize = workspace.CurrentCamera.ViewportSize
+			local currentCamera = workspace.CurrentCamera
+			local screenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
 			local inset = getGuiInset()
 			local windowWidth = root.AbsoluteSize.X
 			local windowHeight = root.AbsoluteSize.Y
@@ -4023,13 +4024,8 @@ do
 	
 			-- If host doesn't ignore inset, we need to ADD inset back to final position
 			-- because AbsolutePosition is in screen space
-			local finalX = targetX
-			local finalY = targetY
-	
-			if hostScreenGui and not hostIgnoresInset then
-				finalX = finalX + inset.X
-				finalY = finalY + inset.Y
-			end
+			local finalX = targetX + inset.X
+			local finalY = targetY + inset.Y
 	
 			-- Apply position - cursor is now perfectly locked to grab point
 			root.Position = UDim2.fromOffset(math.floor(finalX + 0.5), math.floor(finalY + 0.5))
@@ -4765,16 +4761,13 @@ do
 			end
 	
 			-- Get current pointer position in UI space
-			local mouseLocation = UIS:GetMouseLocation()
-			local guiInset = GuiService:GetGuiInset()
-			local pointerInUI = Vector2.new(
-				mouseLocation.X - guiInset.X,
-				mouseLocation.Y - guiInset.Y
-			)
+			local pointerRaw = getRawPointerPosition(io)
+			local inset = getGuiInset()
+			local pointerInUI = pointerRaw - inset
 	
 			-- Calculate chip center in UI space
 			-- AnchorPoint is (0.5, 0.5) so AbsolutePosition IS the center
-			local chipCenterInUI = controllerChip.AbsolutePosition - Vector2.new(guiInset.X, guiInset.Y)
+			local chipCenterInUI = controllerChip.AbsolutePosition - inset
 	
 			-- On first move, cache the exact offset from pointer to chip center
 			if not chipDragOffset then
@@ -4799,7 +4792,8 @@ do
 			local targetCenterY = pointerInUI.Y - chipDragOffset.Y
 	
 			-- Get screen bounds and chip size for clamping
-			local currentScreenSize = workspace.CurrentCamera.ViewportSize
+			local currentCamera = workspace.CurrentCamera
+			local currentScreenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
 			local chipSize = controllerChip.AbsoluteSize.X
 			local halfSize = chipSize / 2
 	
