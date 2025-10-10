@@ -5035,16 +5035,16 @@ local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 -- (module inlined above)
 
 local Elements = {
-	Button = require(script.src.Elements.Button),
-	Toggle = require(script.src.Elements.Toggle),
-	Dropdown = require(script.src.Elements.Dropdown),
-	Slider = require(script.src.Elements.Slider),
-	Keybind = require(script.src.Elements.Keybind),
-	TextBox = require(script.src.Elements.TextBox),
-	ColorPicker = require(script.src.Elements.ColorPicker),
-	Label = require(script.src.Elements.Label),
-	Paragraph = require(script.src.Elements.Paragraph),
-	Divider = require(script.src.Elements.Divider)
+	Button = Button,
+	Toggle = Toggle,
+	Dropdown = Dropdown,
+	Slider = Slider,
+	Keybind = Keybind,
+	TextBox = TextBox,
+	ColorPicker = ColorPicker,
+	Label = Label,
+	Paragraph = Paragraph,
+	Divider = Divider
 }
 
 -- ============================================

@@ -104,6 +104,24 @@ console.log('\n🔧 Assembling final file...');
 initContent = initContent.replace(/local \w+ = require\(script\.src\.\w+\)/g, '-- (module inlined above)');
 initContent = initContent.replace(/local \w+ = require\(script\.src\.Elements\.\w+\)/g, '-- (module inlined above)');
 
+const elementNames = [
+  'Button',
+  'Toggle',
+  'Dropdown',
+  'Slider',
+  'Keybind',
+  'TextBox',
+  'ColorPicker',
+  'Label',
+  'Paragraph',
+  'Divider'
+];
+
+elementNames.forEach(name => {
+  const regex = new RegExp(`require\\(script\\.src\\.Elements\\.${name}\\)`, 'g');
+  initContent = initContent.replace(regex, name);
+});
+
 // Remove the import section header since modules are now inline
 initContent = initContent.replace(/-- ============================================\n-- IMPORT ALL MODULES\n-- ============================================\n/g, '');
 
