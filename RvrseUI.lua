@@ -3552,7 +3552,7 @@ end
 
 WindowBuilder = {}
 
-local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
+local Theme, Animator, State, Config, UIHelpers, Icons, WindowManager, NotificationsService
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer
 
 local UIS, GuiService, RS, PlayerGui, HttpService
