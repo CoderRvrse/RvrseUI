@@ -1,5 +1,5 @@
 -- RvrseUI v3.0.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-10T16:24:28.618Z
+-- Compiled from modular architecture on 2025-10-10T16:39:00.024Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3717,6 +3717,30 @@ do
 		end
 		overlayLayer.BackgroundTransparency = 1
 		overlayLayer.BackgroundColor3 = Color3.new(0, 0, 0)
+		overlayLayer.Visible = false
+	
+		local function syncOverlayVisibility()
+			if not overlayLayer then
+				return
+			end
+			local hasVisibleChild = false
+			for _, child in ipairs(overlayLayer:GetChildren()) do
+				if child.Visible then
+					hasVisibleChild = true
+					break
+				end
+			end
+			overlayLayer.Visible = hasVisibleChild
+		end
+	
+		overlayLayer.ChildAdded:Connect(function(child)
+			child:GetPropertyChangedSignal("Visible"):Connect(syncOverlayVisibility)
+			syncOverlayVisibility()
+		end)
+	
+		overlayLayer.ChildRemoved:Connect(function()
+			task.defer(syncOverlayVisibility)
+		end)
 	
 		Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 	
@@ -4500,6 +4524,9 @@ do
 			end
 	
 			root.Visible = true
+			task.defer(function()
+				snapshotLayout("post-show")
+			end)
 			print("[RvrseUI] ✨ UI visible - all settings applied")
 		end
 	

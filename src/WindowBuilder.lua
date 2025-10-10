@@ -59,6 +59,30 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 	overlayLayer.BackgroundTransparency = 1
 	overlayLayer.BackgroundColor3 = Color3.new(0, 0, 0)
+	overlayLayer.Visible = false
+
+	local function syncOverlayVisibility()
+		if not overlayLayer then
+			return
+		end
+		local hasVisibleChild = false
+		for _, child in ipairs(overlayLayer:GetChildren()) do
+			if child.Visible then
+				hasVisibleChild = true
+				break
+			end
+		end
+		overlayLayer.Visible = hasVisibleChild
+	end
+
+	overlayLayer.ChildAdded:Connect(function(child)
+		child:GetPropertyChangedSignal("Visible"):Connect(syncOverlayVisibility)
+		syncOverlayVisibility()
+	end)
+
+	overlayLayer.ChildRemoved:Connect(function()
+		task.defer(syncOverlayVisibility)
+	end)
 
 	Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 
@@ -842,6 +866,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		root.Visible = true
+		task.defer(function()
+			snapshotLayout("post-show")
+		end)
 		print("[RvrseUI] ✨ UI visible - all settings applied")
 	end
 
