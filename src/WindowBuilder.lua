@@ -768,6 +768,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	-- Splash screen
 	local splash
+	local splashHidden = false
 	splash = Instance.new("Frame")
 	splash.BackgroundColor3 = pal.Elevated
 	splash.BorderSizePixel = 0
@@ -824,9 +825,12 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	local hideSplashAndShowRoot = function()
 		if splash and splash.Parent then
-			Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
-			task.wait(0.2)
+			if not splashHidden then
+				Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
+				task.wait(0.2)
+			end
 			splash.Visible = false
+			splashHidden = true
 		end
 
 		root.Visible = true
@@ -1333,7 +1337,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	local WindowAPI = {}
 	function WindowAPI:SetTitle(t) title.Text = t or name end
-	function WindowAPI:Show() setHidden(false) end
 	function WindowAPI:Hide() setHidden(true) end
 
 	function WindowAPI:SetIcon(newIcon)
@@ -1396,21 +1399,30 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		WindowAPI:Destroy()
 	end
 
-	function WindowAPI:Show()
-		task.delay(0.9, function()
-			if RvrseUI.ConfigurationSaving and RvrseUI.ConfigurationFileName then
-				print("[RvrseUI] 📂 Loading configuration (after elements created)...")
-				local success, message = RvrseUI:LoadConfiguration()
-				if success then
-					print("[RvrseUI] ✅ Configuration loaded successfully")
-				else
-					print("[RvrseUI] ⚠️ Config load warning:", message)
-				end
-				task.wait(0.1)
-			end
+	local firstShowCompleted = false
 
+	function WindowAPI:Show()
+		setHidden(false)
+
+		if not firstShowCompleted then
+			firstShowCompleted = true
 			hideSplashAndShowRoot()
-		end)
+
+			task.defer(function()
+				if RvrseUI.ConfigurationSaving and RvrseUI.ConfigurationFileName then
+					print("[RvrseUI] 📂 Loading configuration (after elements created)...")
+					local success, message = RvrseUI:LoadConfiguration()
+					if success then
+						print("[RvrseUI] ✅ Configuration loaded successfully")
+					else
+						print("[RvrseUI] ⚠️ Config load warning:", message)
+					end
+					task.wait(0.1)
+				end
+			end)
+		else
+			hideSplashAndShowRoot()
+		end
 	end
 
 	-- CreateTab uses TabBuilder module
@@ -1796,6 +1808,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	task.defer(syncPillFromTheme)
 
 	table.insert(RvrseUI._windows, WindowAPI)
+
+	task.defer(function()
+		WindowAPI:Show()
+	end)
 
 	return WindowAPI
 end
