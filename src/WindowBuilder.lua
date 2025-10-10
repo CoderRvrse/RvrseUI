@@ -1146,9 +1146,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local inset = getGuiInset()
 		local pointerInUI = pointerRaw - inset
 
-		-- Calculate chip center in UI space
-		-- AnchorPoint is (0.5, 0.5) so AbsolutePosition IS the center
-		local chipCenterInUI = controllerChip.AbsolutePosition - inset
+		-- Calculate chip center in UI space (AbsolutePosition is top-left, so include AnchorPoint)
+		local chipTopLeft = controllerChip.AbsolutePosition
+		local chipSize = controllerChip.AbsoluteSize
+		local chipAnchor = controllerChip.AnchorPoint
+		local chipCenterInUI = Vector2.new(
+			chipTopLeft.X + (chipSize.X * chipAnchor.X),
+			chipTopLeft.Y + (chipSize.Y * chipAnchor.Y)
+		) - inset
 
 		-- On first move, cache the exact offset from pointer to chip center
 		if not chipDragOffset then
@@ -1175,14 +1180,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		-- Get screen bounds and chip size for clamping
 		local currentCamera = workspace.CurrentCamera
 		local currentScreenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
-		local chipSize = controllerChip.AbsoluteSize.X
-		local halfSize = chipSize / 2
+		local chipWidth = controllerChip.AbsoluteSize.X
+		local chipHeight = controllerChip.AbsoluteSize.Y
+		local halfWidth = chipWidth / 2
+		local halfHeight = chipHeight / 2
 
 		-- Clamp to keep chip fully on screen
-		local minX = halfSize
-		local maxX = currentScreenSize.X - halfSize
-		local minY = halfSize
-		local maxY = currentScreenSize.Y - halfSize
+		local minX = halfWidth
+		local maxX = currentScreenSize.X - halfWidth
+		local minY = halfHeight
+		local maxY = currentScreenSize.Y - halfHeight
 
 		targetCenterX = math.clamp(targetCenterX, minX, maxX)
 		targetCenterY = math.clamp(targetCenterY, minY, maxY)
