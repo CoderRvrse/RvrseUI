@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T04:36:41.624Z
+-- Compiled from modular architecture on 2025-10-11T04:49:12.617Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2642,10 +2642,10 @@ do
 			table.insert(values, v)
 		end
 	
-		local maxHeight = o.MaxHeight or 200  -- Increased from 160 to show more items
-		local itemHeight = 36  -- Increased from 32 for better readability
+		local maxHeight = o.MaxHeight or 240  -- Increased to 240 for better visibility
+		local itemHeight = 40  -- Increased to 40 for better touch targets
 		local placeholder = o.PlaceholderText or "Select"
-		local useOverlay = OverlayLayer ~= nil and o.Overlay ~= false
+		local useOverlay = true  -- Always use overlay for better visibility (was: OverlayLayer ~= nil and o.Overlay ~= false)
 	
 		-- Base card
 		local f = card(48)
@@ -2754,10 +2754,7 @@ do
 		end
 	
 		local function showOverlayBlocker()
-			if not useOverlay then
-				return
-			end
-	
+			-- Always show overlay blocker for dropdown
 			if OverlayService then
 				overlayBlocker = OverlayService:ShowBlocker({ Transparency = 0.45 })
 				if overlayBlockerConnection then
@@ -2766,7 +2763,7 @@ do
 				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(function()
 					setOpen(false)
 				end)
-			else
+			elseif OverlayLayer then
 				if not overlayBlocker or not overlayBlocker.Parent then
 					overlayBlocker = Instance.new("TextButton")
 					overlayBlocker.Name = "DropdownOverlayBlocker"
@@ -2862,10 +2859,13 @@ do
 			end
 	
 			table.clear(optionButtons)
-			-- Calculate with spacing between items
-			local totalItemHeight = #values * (itemHeight + 4)
-			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemHeight)
-			dropdownHeight = math.min(totalItemHeight + 16, maxHeight)  -- Add 16 for padding
+			-- Calculate proper height: items + spacing + padding
+			local spacingPerItem = 4  -- From UIListLayout.Padding
+			local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
+			local paddingTotal = 8 + 8  -- Top + Bottom padding (4+4 each side, doubled for Frame + Scroll)
+	
+			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)  -- Add 8 for scroll padding
+			dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
 	
 			if #values == 0 then
 				idx = 0
@@ -2879,12 +2879,12 @@ do
 			for i, value in ipairs(values) do
 				local optionBtn = Instance.new("TextButton")
 				optionBtn.Name = "Option_" .. i
-				optionBtn.Size = UDim2.new(1, -8, 0, 32)  -- Increased from 28 to 32 for better spacing
+				optionBtn.Size = UDim2.new(1, -8, 0, 36)  -- Match itemHeight (40 - 4 for padding)
 				optionBtn.BackgroundColor3 = i == idx and pal3.Accent or pal3.Card
 				optionBtn.BackgroundTransparency = i == idx and 0.8 or 0
 				optionBtn.BorderSizePixel = 0
-				optionBtn.Font = Enum.Font.Gotham
-				optionBtn.TextSize = 13  -- Increased from 12 to 13 for readability
+				optionBtn.Font = Enum.Font.GothamMedium  -- Changed to Medium for better readability
+				optionBtn.TextSize = 14  -- Increased from 13 to 14 for clarity
 				optionBtn.TextColor3 = i == idx and pal3.Accent or pal3.Text
 				optionBtn.Text = tostring(value)
 				optionBtn.AutoButtonColor = false
@@ -2947,30 +2947,28 @@ do
 					o.OnOpen()
 				end
 	
-				-- Calculate dropdown height with padding (4px top + 4px bottom + 8px padding)
-				local totalItemHeight = #values * (itemHeight + 4)  -- itemHeight + spacing
-				dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemHeight)
-				dropdownHeight = math.min(totalItemHeight + 16, maxHeight)  -- Add 16 for padding
+				-- Calculate proper dropdown height
+				local spacingPerItem = 4
+				local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
+				local paddingTotal = 8 + 8
+	
+				dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)
+				dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
 	
 				-- Ensure minimum height if there are items
 				if #values > 0 then
-					dropdownHeight = math.max(dropdownHeight, itemHeight + 24)  -- At least 1 item visible
+					dropdownHeight = math.max(dropdownHeight, itemHeight + paddingTotal)
 				end
 	
-				if useOverlay then
-					showOverlayBlocker()
-					local width = repositionOverlay()
-					dropdownList.Size = UDim2.new(0, width, 0, 0)
-				else
-					collapseInline()
-					dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
-				end
+				-- Always use overlay mode for proper visibility
+				showOverlayBlocker()
+				local width = repositionOverlay()
+				dropdownList.Size = UDim2.new(0, width, 0, 0)
 	
 				dropdownList.Visible = true
-				local targetWidth = useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
+				local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
 	
-				-- Smooth expand animation with slight delay for visibility
-				task.wait(0.02)  -- Small delay to ensure visibility before animating
+				-- Smooth expand animation
 				Animator:Tween(dropdownList, {
 					Size = UDim2.new(0, targetWidth, 0, dropdownHeight)
 				}, Animator.Spring.Snappy)
