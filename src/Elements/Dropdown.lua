@@ -31,7 +31,8 @@ function Dropdown.Create(o, dependencies)
 	local maxHeight = o.MaxHeight or 240  -- Increased to 240 for better visibility
 	local itemHeight = 40  -- Increased to 40 for better touch targets
 	local placeholder = o.PlaceholderText or "Select"
-	local useOverlay = true  -- Always use overlay for better visibility (was: OverlayLayer ~= nil and o.Overlay ~= false)
+	local useOverlay = OverlayLayer ~= nil and o.Overlay ~= false
+	local DROPDOWN_BASE_Z = 3000
 
 	-- Base card
 	local f = card(48)
@@ -142,7 +143,10 @@ function Dropdown.Create(o, dependencies)
 	local function showOverlayBlocker()
 		-- Always show overlay blocker for dropdown
 		if OverlayService then
-			overlayBlocker = OverlayService:ShowBlocker({ Transparency = 0.45 })
+			overlayBlocker = OverlayService:ShowBlocker({
+				Transparency = 0.45,
+				ZIndex = DROPDOWN_BASE_Z - 2,
+			})
 			if overlayBlockerConnection then
 				overlayBlockerConnection:Disconnect()
 			end
@@ -159,7 +163,7 @@ function Dropdown.Create(o, dependencies)
 				overlayBlocker.BackgroundTransparency = 0.55
 				overlayBlocker.BorderSizePixel = 0
 				overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
-				overlayBlocker.ZIndex = 900
+				overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 				overlayBlocker.Visible = false
 				overlayBlocker.Parent = OverlayLayer
 				overlayBlocker.MouseButton1Click:Connect(function()
@@ -169,6 +173,7 @@ function Dropdown.Create(o, dependencies)
 			overlayBlocker.Visible = true
 			overlayBlocker.Active = true
 			overlayBlocker.Modal = true
+			overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 		end
 
 		blockerActive = true
@@ -218,8 +223,8 @@ function Dropdown.Create(o, dependencies)
 
 	local function collapseInline()
 		dropdownList.Parent = inlineParent
-		dropdownList.ZIndex = 100
-		dropdownScroll.ZIndex = 101
+		dropdownList.ZIndex = DROPDOWN_BASE_Z
+		dropdownScroll.ZIndex = DROPDOWN_BASE_Z + 1
 		dropdownList.Position = UDim2.new(1, -(inlineWidth + 6), 0.5, 40)
 		dropdownList.Size = UDim2.new(0, inlineWidth, 0, dropdownList.Size.Y.Offset)
 	end
@@ -227,59 +232,50 @@ function Dropdown.Create(o, dependencies)
 	local function applyOverlayZIndex()
 		local overlayBaseZ = OverlayLayer and OverlayLayer.ZIndex or 0
 		local blockerZ = overlayBlocker and overlayBlocker.ZIndex or overlayBaseZ
-		local dropdownZ = math.max(overlayBaseZ + 1, blockerZ + 1, 200)
+		local dropdownZ = math.max(overlayBaseZ + 2, blockerZ + 1, DROPDOWN_BASE_Z)
 		dropdownList.ZIndex = dropdownZ
 		dropdownScroll.ZIndex = dropdownZ + 1
 	end
 
-	local function repositionOverlay(width)
+	local function positionDropdown(width, height)
+		height = height or dropdownHeight
 		width = width or math.max(btn.AbsoluteSize.X, inlineWidth)
-		dropdownList.Parent = OverlayLayer
-		applyOverlayZIndex()
 
-		local absPos = btn.AbsolutePosition
-		local btnWidth = btn.AbsoluteSize.X
-		local btnHeight = btn.AbsoluteSize.Y
+		if useOverlay and OverlayLayer then
+			dropdownList.Parent = OverlayLayer
+			applyOverlayZIndex()
 
-		-- Get OverlayLayer's absolute position offset (e.g. Y=-58 from GuiInset)
-		local overlayOffset = OverlayLayer.AbsolutePosition
-		print("[DROPDOWN] 📍 OverlayLayer at:", overlayOffset)
+			local overlayOffset = OverlayLayer.AbsolutePosition
+			local buttonPos = btn.AbsolutePosition
+			local buttonSize = btn.AbsoluteSize
+			local screenSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
 
-		-- Calculate position RELATIVE to OverlayLayer parent
-		-- Subtract overlay offset to get correct relative coordinates
-		local dropdownX = absPos.X - overlayOffset.X + btnWidth - width  -- Right-align
-		local dropdownY = absPos.Y - overlayOffset.Y + btnHeight + 4      -- Below button
+			local dropdownX = buttonPos.X - overlayOffset.X + buttonSize.X - width
+			local dropdownY = buttonPos.Y - overlayOffset.Y + buttonSize.Y + 4
 
-		print("[DROPDOWN] 📺 Button absolute:", absPos)
-		print("[DROPDOWN] 📍 Dropdown relative to overlay: X =", dropdownX, "Y =", dropdownY)
+			local minX = -overlayOffset.X + 4
+			local maxX = screenSize.X - width - overlayOffset.X - 4
+			local minY = -overlayOffset.Y + buttonSize.Y
+			local maxY = screenSize.Y - height - overlayOffset.Y - 4
 
-		-- Calculate absolute screen position for clamping
-		local absoluteX = dropdownX + overlayOffset.X
-		local absoluteY = dropdownY + overlayOffset.Y
+			dropdownX = math.clamp(dropdownX, minX, math.max(minX, maxX))
+			dropdownY = math.clamp(dropdownY, minY, math.max(minY, maxY))
 
-		-- Clamp to screen bounds
-		local screenSize = workspace.CurrentCamera.ViewportSize
-		if absoluteX < 0 then
-			dropdownX = -overlayOffset.X
-		end
-		if absoluteX + width > screenSize.X then
-			dropdownX = screenSize.X - width - 10 - overlayOffset.X
-			print("[DROPDOWN] ⚠️ Clamped X to", dropdownX)
+			dropdownList.Position = UDim2.fromOffset(dropdownX, dropdownY)
+		else
+			dropdownList.Parent = inlineParent
+			dropdownList.ZIndex = DROPDOWN_BASE_Z
+			dropdownScroll.ZIndex = DROPDOWN_BASE_Z + 1
+			dropdownList.Position = UDim2.new(1, -(width + 6), 0.5, 40)
 		end
 
-		dropdownList.Position = UDim2.fromOffset(dropdownX, dropdownY)
-		dropdownList.Size = UDim2.new(0, width, 0, dropdownList.Size.Y.Offset)
-
-		print("[DROPDOWN] ✅ Set relative position: X =", dropdownX, "Y =", dropdownY)
-		print("[DROPDOWN] ✅ Absolute on screen:", dropdownList.AbsolutePosition)
+		dropdownList.Size = UDim2.new(0, width, 0, height)
 		return width
 	end
 
 	local setOpen -- forward declaration
 
 	local function rebuildOptions()
-		print("[DROPDOWN] 🔨 rebuildOptions() called")
-		print("[DROPDOWN] 🔨 Current values count:", #values)
 
 		for _, child in ipairs(dropdownScroll:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -293,12 +289,10 @@ function Dropdown.Create(o, dependencies)
 		local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
 		local paddingTotal = 8 + 8  -- Top + Bottom padding (4+4 each side, doubled for Frame + Scroll)
 
-		print("[DROPDOWN] 🔨 Calculated totalItemsHeight:", totalItemsHeight)
 
 		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)  -- Add 8 for scroll padding
 		dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
 
-		print("[DROPDOWN] 🔨 Set dropdownHeight to:", dropdownHeight)
 
 		if #values == 0 then
 			idx = 0
@@ -362,27 +356,20 @@ function Dropdown.Create(o, dependencies)
 
 	function setOpen(state)
 		if locked() then
-			print("[DROPDOWN] ❌ Locked, cannot open")
 			return
 		end
 
 		if state == dropdownOpen then
 			if state and useOverlay then
-				repositionOverlay(math.max(btn.AbsoluteSize.X, inlineWidth, 150))
+				positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, 150), dropdownHeight)
 			end
-			print("[DROPDOWN] ⚠️ Already in state:", state)
 			return
 		end
 
 		dropdownOpen = state
 		arrow.Text = dropdownOpen and "▲" or "▼"
-		print("[DROPDOWN] 🔄 State changed to:", dropdownOpen and "OPEN ✅" or "CLOSED ❌")
 
 		if dropdownOpen then
-			print("[DROPDOWN] ====== OPENING DROPDOWN ======")
-			print("[DROPDOWN] 📊 Number of values:", #values)
-			print("[DROPDOWN] 📝 Values:", table.concat(values, ", "))
-
 			if o.OnOpen then
 				o.OnOpen()
 			end
@@ -392,105 +379,56 @@ function Dropdown.Create(o, dependencies)
 			local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
 			local paddingTotal = 8 + 8
 
-			print("[DROPDOWN] 📏 itemHeight:", itemHeight)
-			print("[DROPDOWN] 📏 totalItemsHeight:", totalItemsHeight)
-			print("[DROPDOWN] 📏 paddingTotal:", paddingTotal)
-
 			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)
 			dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
 
-			print("[DROPDOWN] 📏 Calculated dropdownHeight:", dropdownHeight)
-			print("[DROPDOWN] 📏 maxHeight:", maxHeight)
-
 			-- Ensure minimum height if there are items
 			if #values > 0 then
-				local oldHeight = dropdownHeight
 				dropdownHeight = math.max(dropdownHeight, itemHeight + paddingTotal)
-				print("[DROPDOWN] 📏 After minimum check:", oldHeight, "→", dropdownHeight)
 			end
 
-			-- Always use overlay mode for proper visibility
-			print("[DROPDOWN] 🎭 Showing overlay blocker...")
-			showOverlayBlocker()
+			if useOverlay then
+				showOverlayBlocker()
+			end
 
 			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
-			print("[DROPDOWN] 🎯 Target size: Width =", targetWidth, "Height =", dropdownHeight)
-
-			print("[DROPDOWN] 📍 Repositioning overlay...")
-			local width = repositionOverlay(targetWidth)
-			print("[DROPDOWN] 📍 Overlay width:", width)
-			print("[DROPDOWN] 📍 Button AbsolutePosition:", btn.AbsolutePosition)
-			print("[DROPDOWN] 📍 Button AbsoluteSize:", btn.AbsoluteSize)
-
-			dropdownList.Size = UDim2.new(0, targetWidth, 0, 0)
-			print("[DROPDOWN] 📐 Set initial size: Width =", targetWidth, "Height = 0")
+			positionDropdown(targetWidth, dropdownHeight)
 
 			dropdownList.Visible = true
-			print("[DROPDOWN] 👁️ Set dropdownList.Visible = true")
-			print("[DROPDOWN] 📍 dropdownList.Position:", dropdownList.Position)
-			print("[DROPDOWN] 🎨 dropdownList.BackgroundTransparency:", dropdownList.BackgroundTransparency)
-			print("[DROPDOWN] 📊 dropdownList.ZIndex:", dropdownList.ZIndex)
-
-			-- Smooth expand animation
-			print("[DROPDOWN] 🎬 Starting expand animation...")
-			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, targetWidth, 0, dropdownHeight)
-			}, Animator.Spring.Snappy)
-			print("[DROPDOWN] ✅ Animation started!")
-			print("[DROPDOWN] ==============================")
+			dropdownScroll.CanvasPosition = Vector2.new(0, 0)
 		else
 			local targetWidth = useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
-			Animator:Tween(dropdownList, {
-				Size = UDim2.new(0, targetWidth, 0, 0)
-			}, Animator.Spring.Fast)
-
-			task.delay(0.15, function()
-				if dropdownList then
-					dropdownList.Visible = false
-					collapseInline()
-					dropdownList.Size = UDim2.new(0, inlineWidth, 0, 0)
-					if useOverlay then
-						hideOverlayBlocker(false)
-					end
-					if o.OnClose then
-						o.OnClose()
-					end
-				end
-			end)
+			dropdownList.Visible = false
+			dropdownList.Size = UDim2.new(0, targetWidth, 0, 0)
+			collapseInline()
+			hideOverlayBlocker(false)
+			if o.OnClose then
+				o.OnClose()
+			end
 		end
 	end
 
 	-- Toggle dropdown on button click
 	btn.MouseButton1Click:Connect(function()
-		print("[DROPDOWN] 🖱️ Button clicked! Current state:", dropdownOpen and "OPEN" or "CLOSED")
-
 		-- Refresh dropdown values before opening (for dynamic config lists)
 		if not dropdownOpen then
-			print("[DROPDOWN] 🔄 Dropdown is closed, checking for refresh...")
-
 			-- If a refresh callback is provided, use it to get new values
 			if o.OnRefresh then
-				print("[DROPDOWN] 🔄 OnRefresh callback found, calling it...")
 				local newValues = o.OnRefresh()
 				if newValues and type(newValues) == "table" then
-					print("[DROPDOWN] ✅ Got new values from OnRefresh:", #newValues, "items")
 					values = {}
 					for _, val in ipairs(newValues) do
 						table.insert(values, val)
 					end
 					rebuildOptions()
 				else
-					print("[DROPDOWN] ⚠️ OnRefresh returned invalid data:", type(newValues))
+					warn("[Dropdown] OnRefresh returned invalid data: " .. tostring(type(newValues)))
 				end
 			elseif o.RefreshOnOpen then
-				print("[DROPDOWN] 🔄 RefreshOnOpen flag set, rebuilding...")
 				rebuildOptions()
-			else
-				print("[DROPDOWN] ℹ️ No refresh needed, using existing values")
 			end
 		end
 
-		print("[DROPDOWN] 🎬 Calling setOpen with:", not dropdownOpen)
 		setOpen(not dropdownOpen)
 	end)
 
@@ -590,10 +528,7 @@ function Dropdown.Create(o, dependencies)
 			rebuildOptions()
 			visual()
 			if dropdownOpen then
-				if useOverlay then
-					repositionOverlay()
-				end
-				dropdownList.Size = UDim2.new(0, useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth, 0, dropdownHeight)
+				positionDropdown(nil, dropdownHeight)
 			end
 		end,
 
