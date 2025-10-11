@@ -234,19 +234,31 @@ function Dropdown.Create(o, dependencies)
 		local btnWidth = btn.AbsoluteSize.X
 		local btnHeight = btn.AbsoluteSize.Y
 
+		-- Account for GuiInset (mobile notch, etc)
+		local guiInset = game:GetService("GuiService"):GetGuiInset()
+		print("[DROPDOWN] 📱 GuiInset:", guiInset)
+
 		-- Position dropdown to align with RIGHT edge of button and appear BELOW it
 		local dropdownX = absPos.X + btnWidth - width  -- Right-align with button
 		local dropdownY = absPos.Y + btnHeight + 4      -- Below button with 4px gap
 
 		-- Clamp to screen bounds
 		local screenSize = workspace.CurrentCamera.ViewportSize
+		print("[DROPDOWN] 📺 Screen size:", screenSize)
+		print("[DROPDOWN] 📍 Before clamp: X =", dropdownX, "Y =", dropdownY)
+
 		if dropdownX < 0 then dropdownX = 0 end
-		if dropdownX + width > screenSize.X then dropdownX = screenSize.X - width end
+		if dropdownX + width > screenSize.X then
+			dropdownX = screenSize.X - width - 10  -- 10px margin from edge
+			print("[DROPDOWN] ⚠️ Clamped X to fit screen")
+		end
 
 		dropdownList.Position = UDim2.fromOffset(dropdownX, dropdownY)
 		dropdownList.Size = UDim2.new(0, width, 0, dropdownList.Size.Y.Offset)
 
-		print("[DROPDOWN] 📍 Clamped position: X =", dropdownX, "Y =", dropdownY)
+		print("[DROPDOWN] 📍 Final position: X =", dropdownX, "Y =", dropdownY)
+		print("[DROPDOWN] 📍 dropdownList.AbsolutePosition after set:", dropdownList.AbsolutePosition)
+		print("[DROPDOWN] 📍 OverlayLayer.AbsolutePosition:", OverlayLayer.AbsolutePosition)
 		return width
 	end
 
