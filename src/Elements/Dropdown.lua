@@ -221,10 +221,17 @@ function Dropdown.Create(o, dependencies)
 		end
 	end
 
+	local function updateOptionZIndices(base)
+		for _, optionBtn in ipairs(optionButtons) do
+			optionBtn.ZIndex = base
+		end
+	end
+
 	local function collapseInline()
 		dropdownList.Parent = inlineParent
 		dropdownList.ZIndex = DROPDOWN_BASE_Z
 		dropdownScroll.ZIndex = DROPDOWN_BASE_Z + 1
+		updateOptionZIndices(dropdownScroll.ZIndex + 1)
 		dropdownList.Position = UDim2.new(1, -(inlineWidth + 6), 0.5, 40)
 		dropdownList.Size = UDim2.new(0, inlineWidth, 0, dropdownList.Size.Y.Offset)
 	end
@@ -235,6 +242,7 @@ function Dropdown.Create(o, dependencies)
 		local dropdownZ = math.max(overlayBaseZ + 2, blockerZ + 1, DROPDOWN_BASE_Z)
 		dropdownList.ZIndex = dropdownZ
 		dropdownScroll.ZIndex = dropdownZ + 1
+		updateOptionZIndices(dropdownScroll.ZIndex + 1)
 	end
 
 	local function positionDropdown(width, height)
@@ -266,6 +274,7 @@ function Dropdown.Create(o, dependencies)
 			dropdownList.Parent = inlineParent
 			dropdownList.ZIndex = DROPDOWN_BASE_Z
 			dropdownScroll.ZIndex = DROPDOWN_BASE_Z + 1
+			updateOptionZIndices(dropdownScroll.ZIndex + 1)
 			dropdownList.Position = UDim2.new(1, -(width + 6), 0.5, 40)
 		end
 
@@ -316,7 +325,7 @@ function Dropdown.Create(o, dependencies)
 			optionBtn.Text = tostring(value)
 			optionBtn.AutoButtonColor = false
 			optionBtn.LayoutOrder = i
-			optionBtn.ZIndex = 102
+			optionBtn.ZIndex = dropdownScroll.ZIndex + 1
 			optionBtn.Parent = dropdownScroll
 			corner(optionBtn, 6)
 

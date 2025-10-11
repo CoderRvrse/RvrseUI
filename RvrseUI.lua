@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T15:04:47.855Z
+-- Compiled from modular architecture on 2025-10-11T15:18:05.094Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2835,10 +2835,17 @@ do
 			end
 		end
 	
+		local function updateOptionZIndices(base)
+			for _, optionBtn in ipairs(optionButtons) do
+				optionBtn.ZIndex = base
+			end
+		end
+	
 		local function collapseInline()
 			dropdownList.Parent = inlineParent
 			dropdownList.ZIndex = DROPDOWN_BASE_Z
 			dropdownScroll.ZIndex = DROPDOWN_BASE_Z + 1
+			updateOptionZIndices(dropdownScroll.ZIndex + 1)
 			dropdownList.Position = UDim2.new(1, -(inlineWidth + 6), 0.5, 40)
 			dropdownList.Size = UDim2.new(0, inlineWidth, 0, dropdownList.Size.Y.Offset)
 		end
@@ -2849,6 +2856,7 @@ do
 			local dropdownZ = math.max(overlayBaseZ + 2, blockerZ + 1, DROPDOWN_BASE_Z)
 			dropdownList.ZIndex = dropdownZ
 			dropdownScroll.ZIndex = dropdownZ + 1
+			updateOptionZIndices(dropdownScroll.ZIndex + 1)
 		end
 	
 		local function positionDropdown(width, height)
@@ -2880,6 +2888,7 @@ do
 				dropdownList.Parent = inlineParent
 				dropdownList.ZIndex = DROPDOWN_BASE_Z
 				dropdownScroll.ZIndex = DROPDOWN_BASE_Z + 1
+				updateOptionZIndices(dropdownScroll.ZIndex + 1)
 				dropdownList.Position = UDim2.new(1, -(width + 6), 0.5, 40)
 			end
 	
@@ -2930,7 +2939,7 @@ do
 				optionBtn.Text = tostring(value)
 				optionBtn.AutoButtonColor = false
 				optionBtn.LayoutOrder = i
-				optionBtn.ZIndex = 102
+				optionBtn.ZIndex = dropdownScroll.ZIndex + 1
 				optionBtn.Parent = dropdownScroll
 				corner(optionBtn, 6)
 	
