@@ -86,13 +86,11 @@ function Button.Create(o, dependencies)
 	btn.MouseEnter:Connect(function()
 		isHovering = true
 
-		-- Brighten gradient
-		Animator:Tween(gradient, {
-			Transparency = NumberSequence.new{
-				NumberSequenceKeypoint.new(0, 0.4),
-				NumberSequenceKeypoint.new(1, 0.4),
-			}
-		}, Animator.Spring.Lightning)
+		-- Brighten gradient (set directly - can't tween NumberSequence)
+		gradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.4),
+			NumberSequenceKeypoint.new(1, 0.4),
+		}
 
 		-- Glow the border
 		Animator:Tween(stroke, {
@@ -110,13 +108,11 @@ function Button.Create(o, dependencies)
 	btn.MouseLeave:Connect(function()
 		isHovering = false
 
-		-- Restore gradient
-		Animator:Tween(gradient, {
-			Transparency = NumberSequence.new{
-				NumberSequenceKeypoint.new(0, 0.7),
-				NumberSequenceKeypoint.new(1, 0.7),
-			}
-		}, Animator.Spring.Snappy)
+		-- Restore gradient (set directly - can't tween NumberSequence)
+		gradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.7),
+			NumberSequenceKeypoint.new(1, 0.7),
+		}
 
 		-- Restore border
 		Animator:Tween(stroke, {

@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T00:29:46.667Z
+-- Compiled from modular architecture on 2025-10-11T01:04:52.492Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2189,13 +2189,11 @@ do
 		btn.MouseEnter:Connect(function()
 			isHovering = true
 	
-			-- Brighten gradient
-			Animator:Tween(gradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 0.4),
-					NumberSequenceKeypoint.new(1, 0.4),
-				}
-			}, Animator.Spring.Lightning)
+			-- Brighten gradient (set directly - can't tween NumberSequence)
+			gradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.4),
+				NumberSequenceKeypoint.new(1, 0.4),
+			}
 	
 			-- Glow the border
 			Animator:Tween(stroke, {
@@ -2213,13 +2211,11 @@ do
 		btn.MouseLeave:Connect(function()
 			isHovering = false
 	
-			-- Restore gradient
-			Animator:Tween(gradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 0.7),
-					NumberSequenceKeypoint.new(1, 0.7),
-				}
-			}, Animator.Spring.Snappy)
+			-- Restore gradient (set directly - can't tween NumberSequence)
+			gradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.7),
+				NumberSequenceKeypoint.new(1, 0.7),
+			}
 	
 			-- Restore border
 			Animator:Tween(stroke, {
@@ -3319,13 +3315,11 @@ do
 			capturing = true
 			btn.Text = "⌨️ Press any key..."
 	
-			-- Activate gradient background
-			Animator:Tween(btnGradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 0.5),
-					NumberSequenceKeypoint.new(1, 0.5),
-				}
-			}, Animator.Spring.Snappy)
+			-- Activate gradient background (set directly - can't tween NumberSequence)
+			btnGradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.5),
+				NumberSequenceKeypoint.new(1, 0.5),
+			}
 	
 			-- Glow border
 			Animator:Tween(btnStroke, {
@@ -3348,13 +3342,11 @@ do
 				currentKey = io.KeyCode
 				btn.Text = io.KeyCode.Name
 	
-				-- Deactivate gradient
-				Animator:Tween(btnGradient, {
-					Transparency = NumberSequence.new{
-						NumberSequenceKeypoint.new(0, 1),
-						NumberSequenceKeypoint.new(1, 1),
-					}
-				}, Animator.Spring.Glide)
+				-- Deactivate gradient (set directly - can't tween NumberSequence)
+				btnGradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 1),
+					NumberSequenceKeypoint.new(1, 1),
+				}
 	
 				-- Restore border
 				Animator:Tween(btnStroke, {

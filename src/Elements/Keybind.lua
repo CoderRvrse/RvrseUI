@@ -75,13 +75,11 @@ function Keybind.Create(o, dependencies)
 		capturing = true
 		btn.Text = "⌨️ Press any key..."
 
-		-- Activate gradient background
-		Animator:Tween(btnGradient, {
-			Transparency = NumberSequence.new{
-				NumberSequenceKeypoint.new(0, 0.5),
-				NumberSequenceKeypoint.new(1, 0.5),
-			}
-		}, Animator.Spring.Snappy)
+		-- Activate gradient background (set directly - can't tween NumberSequence)
+		btnGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.5),
+			NumberSequenceKeypoint.new(1, 0.5),
+		}
 
 		-- Glow border
 		Animator:Tween(btnStroke, {
@@ -104,13 +102,11 @@ function Keybind.Create(o, dependencies)
 			currentKey = io.KeyCode
 			btn.Text = io.KeyCode.Name
 
-			-- Deactivate gradient
-			Animator:Tween(btnGradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 1),
-					NumberSequenceKeypoint.new(1, 1),
-				}
-			}, Animator.Spring.Glide)
+			-- Deactivate gradient (set directly - can't tween NumberSequence)
+			btnGradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(1, 1),
+			}
 
 			-- Restore border
 			Animator:Tween(btnStroke, {
