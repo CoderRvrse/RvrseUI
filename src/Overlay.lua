@@ -28,6 +28,22 @@ function Overlay:Initialize(opts)
 	local playerGui = opts.PlayerGui
 	assert(playerGui, "[Overlay] PlayerGui is required")
 
+	local function resolveDisplayOrder()
+		if opts.DisplayOrder then
+			return opts.DisplayOrder
+		end
+
+		local maxOrder = 0
+		for _, gui in ipairs(playerGui:GetChildren()) do
+			if gui:IsA("ScreenGui") then
+				maxOrder = math.max(maxOrder, gui.DisplayOrder)
+			end
+		end
+		return maxOrder + 1
+	end
+
+	local desiredDisplayOrder = resolveDisplayOrder()
+
 	local popovers = playerGui:FindFirstChild("RvrseUI_Popovers")
 	if not popovers then
 		popovers = Instance.new("ScreenGui")
@@ -35,8 +51,10 @@ function Overlay:Initialize(opts)
 		popovers.ResetOnSpawn = false
 		popovers.IgnoreGuiInset = true
 		popovers.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		popovers.DisplayOrder = opts.DisplayOrder or 110
+		popovers.DisplayOrder = desiredDisplayOrder
 		popovers.Parent = playerGui
+	else
+		popovers.DisplayOrder = math.max(popovers.DisplayOrder, desiredDisplayOrder)
 	end
 	self.Gui = popovers
 
