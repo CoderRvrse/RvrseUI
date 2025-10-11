@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T15:35:30.047Z
+-- Compiled from modular architecture on 2025-10-11T15:57:11.188Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2629,11 +2629,11 @@ do
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
 		local UIS = dependencies.UIS
-		local OverlayLayer = dependencies.OverlayLayer
+		local baseOverlayLayer = dependencies.OverlayLayer
 		local OverlayService = dependencies.Overlay
 	
-		if OverlayService and not OverlayLayer then
-			OverlayLayer = OverlayService:GetLayer()
+		if OverlayService and not baseOverlayLayer then
+			baseOverlayLayer = OverlayService:GetLayer()
 		end
 	
 		-- Settings
@@ -2645,8 +2645,82 @@ do
 		local maxHeight = o.MaxHeight or 240  -- Increased to 240 for better visibility
 		local itemHeight = 40  -- Increased to 40 for better touch targets
 		local placeholder = o.PlaceholderText or "Select"
-		local useOverlay = OverlayLayer ~= nil and o.Overlay ~= false
 		local DROPDOWN_BASE_Z = 3000
+		local fallbackOverlayLayer
+		local fallbackOverlayGui
+	
+		local function currentOverlayLayer()
+			if baseOverlayLayer and baseOverlayLayer.Parent then
+				return baseOverlayLayer
+			end
+			if fallbackOverlayLayer and fallbackOverlayLayer.Parent then
+				return fallbackOverlayLayer
+			end
+			return nil
+		end
+	
+		local function resolveOverlayLayer()
+			if o.Overlay == false then
+				return nil
+			end
+	
+			local layer = currentOverlayLayer()
+			if layer then
+				return layer
+			end
+	
+			local player
+			local ok, result = pcall(function()
+				return game:GetService("Players").LocalPlayer
+			end)
+			if ok then
+				player = result
+			end
+			if not player then
+				return nil
+			end
+	
+			local playerGui = player:FindFirstChildOfClass("PlayerGui")
+			if not playerGui then
+				local okWait, gui = pcall(function()
+					return player:WaitForChild("PlayerGui", 1)
+				end)
+				if okWait then
+					playerGui = gui
+				end
+			end
+	
+			if not playerGui then
+				return nil
+			end
+	
+			local hostGui = fallbackOverlayGui
+			if not hostGui or not hostGui.Parent then
+				hostGui = Instance.new("ScreenGui")
+				hostGui.Name = "RvrseUI_DropdownHost"
+				hostGui.ResetOnSpawn = false
+				hostGui.IgnoreGuiInset = true
+				hostGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+				hostGui.DisplayOrder = 2000000
+				hostGui.Parent = playerGui
+				fallbackOverlayGui = hostGui
+			end
+	
+			local layerFrame = fallbackOverlayLayer
+			if not layerFrame or not layerFrame.Parent then
+				layerFrame = Instance.new("Frame")
+				layerFrame.Name = "DropdownLayer"
+				layerFrame.BackgroundTransparency = 1
+				layerFrame.BorderSizePixel = 0
+				layerFrame.ClipsDescendants = false
+				layerFrame.Size = UDim2.new(1, 0, 1, 0)
+				layerFrame.ZIndex = DROPDOWN_BASE_Z - 10
+				layerFrame.Parent = hostGui
+				fallbackOverlayLayer = layerFrame
+			end
+	
+			return layerFrame
+		end
 	
 		-- Base card
 		local f = card(48)
@@ -2767,7 +2841,12 @@ do
 				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(function()
 					setOpen(false)
 				end)
-			elseif OverlayLayer then
+			else
+				local layer = resolveOverlayLayer()
+				if not layer then
+					return
+				end
+	
 				if not overlayBlocker or not overlayBlocker.Parent then
 					overlayBlocker = Instance.new("TextButton")
 					overlayBlocker.Name = "DropdownOverlayBlocker"
@@ -2779,10 +2858,12 @@ do
 					overlayBlocker.Size = UDim2.new(1, 0, 1, 0)
 					overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 					overlayBlocker.Visible = false
-					overlayBlocker.Parent = OverlayLayer
+					overlayBlocker.Parent = layer
 					overlayBlocker.MouseButton1Click:Connect(function()
 						setOpen(false)
 					end)
+				elseif overlayBlocker.Parent ~= layer then
+					overlayBlocker.Parent = layer
 				end
 				overlayBlocker.Visible = true
 				overlayBlocker.Active = true
@@ -2850,8 +2931,9 @@ do
 			dropdownList.Size = UDim2.new(0, inlineWidth, 0, dropdownList.Size.Y.Offset)
 		end
 	
-		local function applyOverlayZIndex()
-			local overlayBaseZ = OverlayLayer and OverlayLayer.ZIndex or 0
+		local function applyOverlayZIndex(layer)
+			layer = layer or currentOverlayLayer()
+			local overlayBaseZ = layer and layer.ZIndex or 0
 			local blockerZ = overlayBlocker and overlayBlocker.ZIndex or overlayBaseZ
 			local dropdownZ = math.max(overlayBaseZ + 2, blockerZ + 1, DROPDOWN_BASE_Z)
 			dropdownList.ZIndex = dropdownZ
@@ -2859,15 +2941,17 @@ do
 			updateOptionZIndices(dropdownScroll.ZIndex + 1)
 		end
 	
-		local function positionDropdown(width, height)
+		local function positionDropdown(width, height, skipCreate)
 			height = height or dropdownHeight
 			width = width or math.max(btn.AbsoluteSize.X, inlineWidth)
 	
-			if useOverlay and OverlayLayer then
-				dropdownList.Parent = OverlayLayer
-				applyOverlayZIndex()
+			local layer = skipCreate and currentOverlayLayer() or resolveOverlayLayer()
 	
-				local overlayOffset = OverlayLayer.AbsolutePosition
+			if layer then
+				dropdownList.Parent = layer
+				applyOverlayZIndex(layer)
+	
+				local overlayOffset = layer.AbsolutePosition
 				local buttonPos = btn.AbsolutePosition
 				local buttonSize = btn.AbsoluteSize
 				local screenSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
@@ -2983,8 +3067,8 @@ do
 			end
 	
 			if state == dropdownOpen then
-				if state and useOverlay then
-					positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, 150), dropdownHeight)
+				if state then
+					positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, 150), dropdownHeight, true)
 				end
 				return
 			end
@@ -3010,9 +3094,7 @@ do
 					dropdownHeight = math.max(dropdownHeight, itemHeight + paddingTotal)
 				end
 	
-				if useOverlay then
-					showOverlayBlocker()
-				end
+				showOverlayBlocker()
 	
 				local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
 				positionDropdown(targetWidth, dropdownHeight)
@@ -3020,7 +3102,8 @@ do
 				dropdownList.Visible = true
 				dropdownScroll.CanvasPosition = Vector2.new(0, 0)
 			else
-				local targetWidth = useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
+				local layer = currentOverlayLayer()
+				local targetWidth = layer and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
 				dropdownList.Visible = false
 				dropdownList.Size = UDim2.new(0, targetWidth, 0, 0)
 				collapseInline()
@@ -3059,7 +3142,7 @@ do
 		UIS.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				if not dropdownOpen then return end
-				if useOverlay then return end
+				if currentOverlayLayer() then return end
 	
 				task.wait(0.05)
 				if not btn:IsDescendantOf(game) then
