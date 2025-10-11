@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T20:42:59.052Z
+-- Compiled from modular architecture on 2025-10-11T20:56:59.477Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -5254,6 +5254,10 @@ do
 		content.Position = UDim2.new(0, 0, 0, header.Size.Y.Offset)
 		content.Size = UDim2.new(1, 0, 1, -header.Size.Y.Offset)
 		content.Parent = root
+		content.ClipsDescendants = false
+	
+		local defaultRootClip = root.ClipsDescendants
+		local defaultContentClip = content.ClipsDescendants
 	
 		-- ═══════════════════════════════════════════════════════════════
 		-- ADVANCED CURSOR-LOCKED DRAG SYSTEM - Window Header
@@ -6068,12 +6072,27 @@ do
 	
 		local isMinimized = false
 	
+		-- Prevent content from spilling outside the window shell while the minimize/restore
+		-- animation runs (the Profiles tab previously leaked the body frame when shrinking).
+		local function applyMinimizeClipping()
+			root.ClipsDescendants = true
+			content.ClipsDescendants = true
+		end
+	
+		local function restoreDefaultClipping()
+			if not isMinimized then
+				root.ClipsDescendants = defaultRootClip
+				content.ClipsDescendants = defaultContentClip
+			end
+		end
+	
 		local function minimizeWindow()
 			if isMinimized then return end
 			isMinimized = true
 			if Overlay then
 				Overlay:HideBlocker(true)
 			end
+			applyMinimizeClipping()
 			Animator:Ripple(minimizeBtn, 16, 12)
 			snapshotLayout("pre-minimize")
 	
@@ -6122,6 +6141,7 @@ do
 		local function restoreWindow()
 			if not isMinimized then return end
 			isMinimized = false
+			applyMinimizeClipping()
 			Animator:Ripple(controllerChip, 25, 25)
 	
 			local screenSize = workspace.CurrentCamera.ViewportSize
@@ -6172,6 +6192,8 @@ do
 			task.defer(function()
 				snapshotLayout("post-restore")
 			end)
+	
+			task.delay(0.65, restoreDefaultClipping)
 		end
 	
 		minimizeBtn.MouseButton1Click:Connect(minimizeWindow)

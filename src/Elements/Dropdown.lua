@@ -1,5 +1,6 @@
 -- Dropdown Element Module
--- Provides in-flow or overlay dropdown with dynamic data refresh support
+-- Provides in-flow or overlay dropdown with dynamic data refresh support.
+-- NOTE: SectionBuilder now treats this as experimental; call sites must pass `UseModernDropdown = true`.
 
 local Dropdown = {}
 

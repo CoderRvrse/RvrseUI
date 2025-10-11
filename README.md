@@ -1,10 +1,15 @@
 # RvrseUI
 
-Modern Roblox UI toolkit built in Luau with modular architecture, persistent themes, and a polished desktop/mobile experience.
+Production-ready Roblox UI toolkit built in Luau with modular architecture, persistent themes, and a polished desktop/mobile experience.
 
-![Version](https://img.shields.io/badge/version-4.0.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Status](https://img.shields.io/badge/status-active-success)
+![Version](https://img.shields.io/badge/version-4.0.0-blue) ![Channel](https://img.shields.io/badge/channel-Stable-purple) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
+
+## Stability Snapshot · October&nbsp;2025
+- Window minimization now enforces clipping, so the Profiles tab no longer spills its body frame while shrinking.
+- All sections default to the restored inline `DropdownLegacy` renderer; the experimental overlay path requires `UseModernDropdown = true`.
+- Profiles command center validated end-to-end for listing, saving, loading, deleting, and auto-save toggles with live logging.
 
 ## Quick Start
 
@@ -67,8 +72,16 @@ Window:Show()
 - **Hotkey Management**: Global toggle/destroy keys with runtime rebinding and minimize awareness.
 - **Notification Stack**: Priority toasts rendered above the UI via the `Notifications` module.
 - **Profiles Command Center**: Built-in "Profiles" tab for refreshing, loading, saving, cloning, deleting configs, and toggling auto-save.
-- **Overlay System**: Dedicated overlay layer keeps dropdowns, popovers, and blockers above content with optional inline mode.
+- **Dropdown / Overlay System**: Inline `DropdownLegacy` renderer is the default for stability; opt into the overlay path with `UseModernDropdown` when a blocking layer is required.
 - **Modular Build**: 26 focused modules compiled into `RvrseUI.lua` for `loadstring` usage.
+
+---
+
+## Dropdown Implementation Policy
+- `SectionBuilder:CreateDropdown` always routes to `DropdownLegacy` unless you explicitly pass `UseModernDropdown = true`.
+- The overlay-based renderer remains available for future work, but treat it as experimental and guard new usages behind reviews.
+- Do not edit either dropdown module without coordinating with maintainers; the current legacy configuration is the verified production path.
+- The Profiles tab confirms the inline renderer works with refresh callbacks, profile counts, and blocker-free animations across tabs.
 
 ---
 
@@ -264,6 +277,7 @@ LockSection:CreateSlider({
 ## Development Notes
 - `src/` contains the authoritative modules (`Theme`, `Animator`, `WindowBuilder`, element factories, etc.) that power both the modular loader (`init.lua`) and the bundled monolith.
 - `init.lua` is still the source of truth for wiring services, configuration, overlay creation, and notification setup. The monolith now embeds the same bootstrap so both entry-points initialise identically.
+- `WindowBuilder` enforces temporary clipping during minimize/restore to keep tab bodies from escaping the frame—do not remove this guard without validating the shrink animation.
 - `RvrseUI.lua` is generated; never hand-edit it. After touching any file in `src/` (or `init.lua`), run `node build.js` to rebuild the bundle. A Lua fallback (`lua build.lua`) exists for environments without Node.
 - The build scripts now scope every module in a `do ... end` block and hydrate shared singletons (`DEFAULT_HOST`, overlay frame, notifications, hotkeys) before exposing the public API, preventing cross-module leakage.
 - Keep `VERSION.json`, `README.md`, and `CLAUDE.md` consistent with each release; the push guard expects the version badge and metadata to match.
