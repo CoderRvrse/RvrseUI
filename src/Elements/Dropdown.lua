@@ -364,6 +364,22 @@ function Dropdown.Create(o, dependencies)
 
 	-- Toggle dropdown on button click
 	btn.MouseButton1Click:Connect(function()
+		-- Refresh dropdown values before opening (for dynamic config lists)
+		if not dropdownOpen then
+			-- If a refresh callback is provided, use it to get new values
+			if o.OnRefresh then
+				local newValues = o.OnRefresh()
+				if newValues and type(newValues) == "table" then
+					values = {}
+					for _, val in ipairs(newValues) do
+						table.insert(values, val)
+					end
+					rebuildOptions()
+				end
+			elseif o.RefreshOnOpen then
+				rebuildOptions()
+			end
+		end
 		setOpen(not dropdownOpen)
 	end)
 

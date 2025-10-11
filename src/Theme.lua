@@ -70,6 +70,70 @@ Theme.Palettes = {
 		GradientStart = Color3.fromRGB(138, 43, 226),  -- Purple
 		GradientMid = Color3.fromRGB(236, 72, 153),    -- Pink
 		GradientEnd = Color3.fromRGB(0, 229, 255),     -- Cyan
+	},
+
+	Light = {
+		-- ☀️ LIGHT MODE - Clean, modern, high contrast
+		Bg = Color3.fromRGB(248, 250, 252),         -- Light window background
+		Glass = Color3.fromRGB(241, 245, 249),      -- Light glass effect
+		Card = Color3.fromRGB(255, 255, 255),       -- White cards
+		Elevated = Color3.fromRGB(248, 250, 252),   -- Elevated surfaces
+		Surface = Color3.fromRGB(255, 255, 255),    -- White surface
+
+		-- 🌈 Vibrant gradient accents - Same as dark but adjusted
+		Primary = Color3.fromRGB(138, 43, 226),     -- Electric purple
+		PrimaryGlow = Color3.fromRGB(168, 85, 247), -- Purple glow
+		Secondary = Color3.fromRGB(0, 191, 255),    -- Deep sky blue
+		SecondaryGlow = Color3.fromRGB(34, 211, 238), -- Cyan glow
+
+		-- 🎯 Main accent - Vibrant magenta/pink
+		Accent = Color3.fromRGB(236, 72, 153),      -- Hot pink
+		AccentHover = Color3.fromRGB(219, 39, 119), -- Darker pink on hover
+		AccentActive = Color3.fromRGB(190, 24, 93), -- Even darker when active
+		AccentGlow = Color3.fromRGB(251, 113, 133), -- Pink glow
+
+		-- ✨ Text hierarchy - Dark text on light background
+		Text = Color3.fromRGB(15, 23, 42),          -- Very dark gray (almost black)
+		TextBright = Color3.fromRGB(0, 0, 0),       -- Pure black for emphasis
+		TextSub = Color3.fromRGB(51, 65, 85),       -- Medium gray for secondary
+		TextMuted = Color3.fromRGB(100, 116, 139),  -- Light gray for tertiary
+		TextDim = Color3.fromRGB(148, 163, 184),    -- Very light gray for hints
+
+		-- 🎨 Status colors - Vibrant and eye-catching
+		Success = Color3.fromRGB(34, 197, 94),      -- Vibrant green
+		SuccessGlow = Color3.fromRGB(74, 222, 128), -- Green glow
+		Warning = Color3.fromRGB(251, 146, 60),     -- Vibrant orange
+		WarningGlow = Color3.fromRGB(253, 186, 116),-- Orange glow
+		Error = Color3.fromRGB(239, 68, 68),        -- Bright red
+		ErrorGlow = Color3.fromRGB(248, 113, 113),  -- Red glow
+		Info = Color3.fromRGB(59, 130, 246),        -- Blue
+		InfoGlow = Color3.fromRGB(96, 165, 250),    -- Blue glow
+
+		-- 🔲 Borders & dividers - Subtle with neon accents
+		Border = Color3.fromRGB(226, 232, 240),     -- Light border
+		BorderBright = Color3.fromRGB(203, 213, 225), -- Slightly darker border
+		BorderGlow = Color3.fromRGB(138, 43, 226),  -- Glowing purple border
+		Divider = Color3.fromRGB(241, 245, 249),    -- Very light divider
+		DividerBright = Color3.fromRGB(226, 232, 240), -- Visible divider
+
+		-- 🎮 Interactive states - Smooth and responsive
+		Hover = Color3.fromRGB(241, 245, 249),      -- Light hover overlay
+		HoverBright = Color3.fromRGB(226, 232, 240),-- Darker hover
+		Active = Color3.fromRGB(226, 232, 240),     -- Active/pressed state
+		Selected = Color3.fromRGB(219, 234, 254),   -- Selected state (light blue)
+		Disabled = Color3.fromRGB(203, 213, 225),   -- Disabled gray
+		DisabledText = Color3.fromRGB(148, 163, 184),-- Disabled text
+
+		-- 🌟 Special effects
+		Glow = Color3.fromRGB(168, 85, 247),        -- Purple glow effect
+		Shadow = Color3.fromRGB(0, 0, 0),           -- Shadow color
+		Shimmer = Color3.fromRGB(255, 255, 255),    -- Shimmer highlight
+		Overlay = Color3.fromRGB(15, 23, 42),       -- Dark overlay for modals
+
+		-- 🎭 Gradient stops for advanced effects
+		GradientStart = Color3.fromRGB(138, 43, 226),  -- Purple
+		GradientMid = Color3.fromRGB(236, 72, 153),    -- Pink
+		GradientEnd = Color3.fromRGB(0, 191, 255),     -- Sky blue
 	}
 }
 
