@@ -28,8 +28,8 @@ function Dropdown.Create(o, dependencies)
 		table.insert(values, v)
 	end
 
-	local maxHeight = o.MaxHeight or 160
-	local itemHeight = 32
+	local maxHeight = o.MaxHeight or 200  -- Increased from 160 to show more items
+	local itemHeight = 36  -- Increased from 32 for better readability
 	local placeholder = o.PlaceholderText or "Select"
 	local useOverlay = OverlayLayer ~= nil and o.Overlay ~= false
 
@@ -105,8 +105,16 @@ function Dropdown.Create(o, dependencies)
 	local dropdownLayout = Instance.new("UIListLayout")
 	dropdownLayout.FillDirection = Enum.FillDirection.Vertical
 	dropdownLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	dropdownLayout.Padding = UDim.new(0, 2)
+	dropdownLayout.Padding = UDim.new(0, 4)  -- Increased from 2 to 4 for better spacing
 	dropdownLayout.Parent = dropdownScroll
+
+	-- Add padding inside dropdown scroll
+	local dropdownPadding = Instance.new("UIPadding")
+	dropdownPadding.PaddingTop = UDim.new(0, 4)
+	dropdownPadding.PaddingBottom = UDim.new(0, 4)
+	dropdownPadding.PaddingLeft = UDim.new(0, 4)
+	dropdownPadding.PaddingRight = UDim.new(0, 4)
+	dropdownPadding.Parent = dropdownScroll
 
 	local inlineParent = dropdownList.Parent
 	local inlineWidth = btn.Size.X.Offset
@@ -240,8 +248,10 @@ function Dropdown.Create(o, dependencies)
 		end
 
 		table.clear(optionButtons)
-		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
-		dropdownHeight = math.min(#values * itemHeight, maxHeight)
+		-- Calculate with spacing between items
+		local totalItemHeight = #values * (itemHeight + 4)
+		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemHeight)
+		dropdownHeight = math.min(totalItemHeight + 16, maxHeight)  -- Add 16 for padding
 
 		if #values == 0 then
 			idx = 0
@@ -255,12 +265,12 @@ function Dropdown.Create(o, dependencies)
 		for i, value in ipairs(values) do
 			local optionBtn = Instance.new("TextButton")
 			optionBtn.Name = "Option_" .. i
-			optionBtn.Size = UDim2.new(1, -8, 0, 28)
+			optionBtn.Size = UDim2.new(1, -8, 0, 32)  -- Increased from 28 to 32 for better spacing
 			optionBtn.BackgroundColor3 = i == idx and pal3.Accent or pal3.Card
 			optionBtn.BackgroundTransparency = i == idx and 0.8 or 0
 			optionBtn.BorderSizePixel = 0
 			optionBtn.Font = Enum.Font.Gotham
-			optionBtn.TextSize = 12
+			optionBtn.TextSize = 13  -- Increased from 12 to 13 for readability
 			optionBtn.TextColor3 = i == idx and pal3.Accent or pal3.Text
 			optionBtn.Text = tostring(value)
 			optionBtn.AutoButtonColor = false
@@ -323,8 +333,15 @@ function Dropdown.Create(o, dependencies)
 				o.OnOpen()
 			end
 
-			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, #values * itemHeight)
-			dropdownHeight = math.min(#values * itemHeight, maxHeight)
+			-- Calculate dropdown height with padding (4px top + 4px bottom + 8px padding)
+			local totalItemHeight = #values * (itemHeight + 4)  -- itemHeight + spacing
+			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemHeight)
+			dropdownHeight = math.min(totalItemHeight + 16, maxHeight)  -- Add 16 for padding
+
+			-- Ensure minimum height if there are items
+			if #values > 0 then
+				dropdownHeight = math.max(dropdownHeight, itemHeight + 24)  -- At least 1 item visible
+			end
 
 			if useOverlay then
 				showOverlayBlocker()
@@ -337,6 +354,9 @@ function Dropdown.Create(o, dependencies)
 
 			dropdownList.Visible = true
 			local targetWidth = useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
+
+			-- Smooth expand animation with slight delay for visibility
+			task.wait(0.02)  -- Small delay to ensure visibility before animating
 			Animator:Tween(dropdownList, {
 				Size = UDim2.new(0, targetWidth, 0, dropdownHeight)
 			}, Animator.Spring.Snappy)
