@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T05:07:53.925Z
+-- Compiled from modular architecture on 2025-10-11T12:07:16.963Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2843,9 +2843,24 @@ do
 			dropdownList.Parent = OverlayLayer
 			dropdownList.ZIndex = 200
 			dropdownScroll.ZIndex = 201
+	
 			local absPos = btn.AbsolutePosition
-			dropdownList.Position = UDim2.fromOffset(absPos.X, absPos.Y + btn.AbsoluteSize.Y + 6)
+			local btnWidth = btn.AbsoluteSize.X
+			local btnHeight = btn.AbsoluteSize.Y
+	
+			-- Position dropdown to align with RIGHT edge of button and appear BELOW it
+			local dropdownX = absPos.X + btnWidth - width  -- Right-align with button
+			local dropdownY = absPos.Y + btnHeight + 4      -- Below button with 4px gap
+	
+			-- Clamp to screen bounds
+			local screenSize = workspace.CurrentCamera.ViewportSize
+			if dropdownX < 0 then dropdownX = 0 end
+			if dropdownX + width > screenSize.X then dropdownX = screenSize.X - width end
+	
+			dropdownList.Position = UDim2.fromOffset(dropdownX, dropdownY)
 			dropdownList.Size = UDim2.new(0, width, 0, dropdownList.Size.Y.Offset)
+	
+			print("[DROPDOWN] 📍 Clamped position: X =", dropdownX, "Y =", dropdownY)
 			return width
 		end
 	
