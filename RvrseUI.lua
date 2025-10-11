@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T19:39:59.024Z
+-- Compiled from modular architecture on 2025-10-11T19:52:49.542Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -6146,6 +6146,7 @@ do
 						opts = opts or {}
 						local list, warning = gatherProfiles()
 						lastProfileList = list
+						print(string.format("[Profiles] refresh count=%d", #list))
 						profilesDropdown:Refresh(list)
 						if warning and not opts.suppressWarning and managerOptions.SuppressWarnings ~= true then
 							safeNotify("Profiles", tostring(warning), "warning")

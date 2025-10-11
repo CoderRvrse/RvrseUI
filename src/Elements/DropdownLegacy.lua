@@ -264,7 +264,10 @@ dropdownList.Size = UDim2.new(0, dropdownWidth, 0, 0)
 		dropdownList.Visible = true
 		dropdownList.ZIndex = 100
 
+		print(string.format("[DropdownLegacy] opening '%s' with %d options", o.Text or "Dropdown", #values))
+
 		if #values == 0 then
+			print("[DropdownLegacy] no options available, skipping expand")
 			dropdownOpen = false
 			arrow.Text = "▼"
 			dropdownList.Visible = false

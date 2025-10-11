@@ -1566,9 +1566,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					opts = opts or {}
 					local list, warning = gatherProfiles()
 					lastProfileList = list
-					if Debug and Debug.printf then
-						Debug.printf("[Profiles] refresh count=%d", #list)
-					end
+					print(string.format("[Profiles] refresh count=%d", #list))
 					profilesDropdown:Refresh(list)
 					if warning and not opts.suppressWarning and managerOptions.SuppressWarnings ~= true then
 						safeNotify("Profiles", tostring(warning), "warning")
