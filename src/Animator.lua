@@ -125,7 +125,15 @@ function Animator:Pulse(obj, scale, info)
 	info = info or self.Spring.Bounce
 
 	local originalSize = obj.Size
-	self:Tween(obj, {Size = originalSize * scale}, info)
+	-- Properly scale UDim2 by multiplying each component
+	local scaledSize = UDim2.new(
+		originalSize.X.Scale * scale,
+		originalSize.X.Offset * scale,
+		originalSize.Y.Scale * scale,
+		originalSize.Y.Offset * scale
+	)
+
+	self:Tween(obj, {Size = scaledSize}, info)
 
 	task.delay(info.Time, function()
 		self:Tween(obj, {Size = originalSize}, info)

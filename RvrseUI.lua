@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T01:04:52.492Z
+-- Compiled from modular architecture on 2025-10-11T01:12:37.714Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -693,7 +693,15 @@ do
 		info = info or self.Spring.Bounce
 	
 		local originalSize = obj.Size
-		self:Tween(obj, {Size = originalSize * scale}, info)
+		-- Properly scale UDim2 by multiplying each component
+		local scaledSize = UDim2.new(
+			originalSize.X.Scale * scale,
+			originalSize.X.Offset * scale,
+			originalSize.Y.Scale * scale,
+			originalSize.Y.Offset * scale
+		)
+	
+		self:Tween(obj, {Size = scaledSize}, info)
 	
 		task.delay(info.Time, function()
 			self:Tween(obj, {Size = originalSize}, info)
@@ -5186,12 +5194,16 @@ do
 		local hideSplashAndShowRoot = function()
 			if splash and splash.Parent then
 				if not splashHidden then
-					Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
-					task.wait(0.2)
+					pcall(function()
+						Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
+						task.wait(0.2)
+					end)
 				end
 				-- Destroy splash completely to prevent blocking
-				splash:Destroy()
-				splash = nil
+				if splash then
+					pcall(function() splash:Destroy() end)
+					splash = nil
+				end
 				splashHidden = true
 			end
 	

@@ -868,12 +868,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local hideSplashAndShowRoot = function()
 		if splash and splash.Parent then
 			if not splashHidden then
-				Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
-				task.wait(0.2)
+				pcall(function()
+					Animator:Tween(splash, {BackgroundTransparency = 1}, Animator.Spring.Fast)
+					task.wait(0.2)
+				end)
 			end
 			-- Destroy splash completely to prevent blocking
-			splash:Destroy()
-			splash = nil
+			if splash then
+				pcall(function() splash:Destroy() end)
+				splash = nil
+			end
 			splashHidden = true
 		end
 
