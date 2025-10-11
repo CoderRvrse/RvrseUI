@@ -57,6 +57,72 @@ function Overlay:Initialize(opts)
 		popovers.DisplayOrder = math.max(popovers.DisplayOrder, desiredDisplayOrder)
 	end
 	self.Gui = popovers
+	self._displayOrderConnections = self._displayOrderConnections or {}
+
+	local displayOrderConnections = self._displayOrderConnections
+
+	local function disconnectGui(gui)
+		local bundle = displayOrderConnections[gui]
+		if bundle then
+			if bundle.orderChanged then
+				bundle.orderChanged:Disconnect()
+			end
+			if bundle.ancestryChanged then
+				bundle.ancestryChanged:Disconnect()
+			end
+			displayOrderConnections[gui] = nil
+		end
+	end
+
+	local function updateDisplayOrder()
+		local highest = opts.DisplayOrder or 0
+		for _, gui in ipairs(playerGui:GetChildren()) do
+			if gui:IsA("ScreenGui") and gui ~= popovers then
+				highest = math.max(highest, gui.DisplayOrder)
+			end
+		end
+		popovers.DisplayOrder = math.max(highest + 1, popovers.DisplayOrder, opts.DisplayOrder or 0)
+	end
+
+	local function watchGui(gui)
+		if not gui:IsA("ScreenGui") or gui == popovers then
+			return
+		end
+		if displayOrderConnections[gui] then
+			return
+		end
+
+		local orderConn = gui:GetPropertyChangedSignal("DisplayOrder"):Connect(function()
+			updateDisplayOrder()
+		end)
+		local ancestryConn = gui.AncestryChanged:Connect(function(_, parent)
+			if parent ~= playerGui then
+				disconnectGui(gui)
+				task.defer(updateDisplayOrder)
+			end
+		end)
+
+		displayOrderConnections[gui] = {
+			orderChanged = orderConn,
+			ancestryChanged = ancestryConn,
+		}
+	end
+
+	for _, gui in ipairs(playerGui:GetChildren()) do
+		watchGui(gui)
+	end
+
+	playerGui.ChildAdded:Connect(function(child)
+		watchGui(child)
+		task.defer(updateDisplayOrder)
+	end)
+
+	playerGui.ChildRemoved:Connect(function(child)
+		disconnectGui(child)
+		task.defer(updateDisplayOrder)
+	end)
+
+	updateDisplayOrder()
 
 	local blocker = popovers:FindFirstChild("OverlayBlocker")
 	if blocker and not blocker:IsA("TextButton") then

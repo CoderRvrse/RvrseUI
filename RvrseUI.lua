@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T15:27:00.249Z
+-- Compiled from modular architecture on 2025-10-11T15:35:30.047Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -4330,7 +4330,6 @@ do
 		page.ScrollBarImageColor3 = pal2.Border
 		page.CanvasSize = UDim2.new(0, 0, 0, 0)
 		page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		page.ClipsDescendants = false
 		page.Visible = false
 		page.Parent = body
 	
