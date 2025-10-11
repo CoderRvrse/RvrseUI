@@ -45,12 +45,14 @@ Theme.Palettes = {
 		Info = Color3.fromRGB(96, 165, 250),        -- Sky blue
 		InfoGlow = Color3.fromRGB(147, 197, 253),   -- Blue glow
 
-		-- 🔲 Borders & dividers - Subtle with neon accents
-		Border = Color3.fromRGB(51, 65, 85),        -- Visible border
-		BorderBright = Color3.fromRGB(71, 85, 105), -- Brighter border
-		BorderGlow = Color3.fromRGB(138, 43, 226),  -- Glowing purple border
-		Divider = Color3.fromRGB(30, 41, 59),       -- Subtle divider
-		DividerBright = Color3.fromRGB(51, 65, 85), -- Visible divider
+		-- 🔲 Borders & dividers - ENHANCED for crisp visibility
+		Border = Color3.fromRGB(71, 85, 105),       -- Primary border (increased from 51,65,85)
+		BorderBright = Color3.fromRGB(100, 116, 139), -- Bright border (increased contrast)
+		BorderGlow = Color3.fromRGB(168, 85, 247),  -- Neon purple glow (brighter)
+		Divider = Color3.fromRGB(51, 65, 85),       -- Divider line (increased from 30,41,59)
+		DividerBright = Color3.fromRGB(71, 85, 105), -- Bright divider (more visible)
+		GlossTop = Color3.fromRGB(255, 255, 255),   -- Gloss highlight top
+		GlossBottom = Color3.fromRGB(120, 120, 160), -- Gloss subtle bottom
 
 		-- 🎮 Interactive states - Smooth and responsive
 		Hover = Color3.fromRGB(30, 30, 50),         -- Hover overlay
@@ -109,12 +111,14 @@ Theme.Palettes = {
 		Info = Color3.fromRGB(59, 130, 246),        -- Blue
 		InfoGlow = Color3.fromRGB(96, 165, 250),    -- Blue glow
 
-		-- 🔲 Borders & dividers - Subtle with neon accents
-		Border = Color3.fromRGB(226, 232, 240),     -- Light border
-		BorderBright = Color3.fromRGB(203, 213, 225), -- Slightly darker border
-		BorderGlow = Color3.fromRGB(138, 43, 226),  -- Glowing purple border
-		Divider = Color3.fromRGB(241, 245, 249),    -- Very light divider
-		DividerBright = Color3.fromRGB(226, 232, 240), -- Visible divider
+		-- 🔲 Borders & dividers - ENHANCED for crisp visibility
+		Border = Color3.fromRGB(203, 213, 225),     -- Primary border (darker for contrast)
+		BorderBright = Color3.fromRGB(148, 163, 184), -- Bright border (more visible)
+		BorderGlow = Color3.fromRGB(168, 85, 247),  -- Neon purple glow (brighter)
+		Divider = Color3.fromRGB(226, 232, 240),    -- Divider line (darker from 241,245,249)
+		DividerBright = Color3.fromRGB(203, 213, 225), -- Bright divider (more contrast)
+		GlossTop = Color3.fromRGB(255, 255, 255),   -- Gloss highlight top
+		GlossBottom = Color3.fromRGB(241, 245, 249), -- Gloss subtle bottom
 
 		-- 🎮 Interactive states - Smooth and responsive
 		Hover = Color3.fromRGB(241, 245, 249),      -- Light hover overlay

@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T04:23:31.813Z
+-- Compiled from modular architecture on 2025-10-11T04:36:41.624Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -498,12 +498,14 @@ do
 			Info = Color3.fromRGB(96, 165, 250),        -- Sky blue
 			InfoGlow = Color3.fromRGB(147, 197, 253),   -- Blue glow
 	
-			-- 🔲 Borders & dividers - Subtle with neon accents
-			Border = Color3.fromRGB(51, 65, 85),        -- Visible border
-			BorderBright = Color3.fromRGB(71, 85, 105), -- Brighter border
-			BorderGlow = Color3.fromRGB(138, 43, 226),  -- Glowing purple border
-			Divider = Color3.fromRGB(30, 41, 59),       -- Subtle divider
-			DividerBright = Color3.fromRGB(51, 65, 85), -- Visible divider
+			-- 🔲 Borders & dividers - ENHANCED for crisp visibility
+			Border = Color3.fromRGB(71, 85, 105),       -- Primary border (increased from 51,65,85)
+			BorderBright = Color3.fromRGB(100, 116, 139), -- Bright border (increased contrast)
+			BorderGlow = Color3.fromRGB(168, 85, 247),  -- Neon purple glow (brighter)
+			Divider = Color3.fromRGB(51, 65, 85),       -- Divider line (increased from 30,41,59)
+			DividerBright = Color3.fromRGB(71, 85, 105), -- Bright divider (more visible)
+			GlossTop = Color3.fromRGB(255, 255, 255),   -- Gloss highlight top
+			GlossBottom = Color3.fromRGB(120, 120, 160), -- Gloss subtle bottom
 	
 			-- 🎮 Interactive states - Smooth and responsive
 			Hover = Color3.fromRGB(30, 30, 50),         -- Hover overlay
@@ -562,12 +564,14 @@ do
 			Info = Color3.fromRGB(59, 130, 246),        -- Blue
 			InfoGlow = Color3.fromRGB(96, 165, 250),    -- Blue glow
 	
-			-- 🔲 Borders & dividers - Subtle with neon accents
-			Border = Color3.fromRGB(226, 232, 240),     -- Light border
-			BorderBright = Color3.fromRGB(203, 213, 225), -- Slightly darker border
-			BorderGlow = Color3.fromRGB(138, 43, 226),  -- Glowing purple border
-			Divider = Color3.fromRGB(241, 245, 249),    -- Very light divider
-			DividerBright = Color3.fromRGB(226, 232, 240), -- Visible divider
+			-- 🔲 Borders & dividers - ENHANCED for crisp visibility
+			Border = Color3.fromRGB(203, 213, 225),     -- Primary border (darker for contrast)
+			BorderBright = Color3.fromRGB(148, 163, 184), -- Bright border (more visible)
+			BorderGlow = Color3.fromRGB(168, 85, 247),  -- Neon purple glow (brighter)
+			Divider = Color3.fromRGB(226, 232, 240),    -- Divider line (darker from 241,245,249)
+			DividerBright = Color3.fromRGB(203, 213, 225), -- Bright divider (more contrast)
+			GlossTop = Color3.fromRGB(255, 255, 255),   -- Gloss highlight top
+			GlossBottom = Color3.fromRGB(241, 245, 249), -- Gloss subtle bottom
 	
 			-- 🎮 Interactive states - Smooth and responsive
 			Hover = Color3.fromRGB(241, 245, 249),      -- Light hover overlay
@@ -935,7 +939,7 @@ do
 		else
 			s.Color = Color3.fromRGB(45, 45, 55)  -- Fallback default
 		end
-		s.Thickness = thickness or 1
+		s.Thickness = thickness or 1.5  -- Increased from 1 to 1.5 for crispness
 		s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		s.Parent = inst
 		return s
@@ -1029,6 +1033,34 @@ do
 		glowTween:Play()
 	
 		return glow
+	end
+	
+	function UIHelpers.addGloss(inst, Theme)
+		local pal = Theme and Theme:Get() or {}
+	
+		-- Vertical gloss gradient overlay
+		local gloss = Instance.new("Frame")
+		gloss.Name = "Gloss"
+		gloss.BackgroundTransparency = 1
+		gloss.BorderSizePixel = 0
+		gloss.Size = UDim2.new(1, 0, 0.5, 0)  -- Top half of panel
+		gloss.Position = UDim2.new(0, 0, 0, 0)
+		gloss.ZIndex = inst.ZIndex + 1
+		gloss.Parent = inst
+	
+		local glossGradient = Instance.new("UIGradient")
+		glossGradient.Rotation = 90  -- Vertical
+		glossGradient.Transparency = NumberSequence.new{
+			NumberSequenceKeypoint.new(0, 0.92),  -- Subtle highlight at top
+			NumberSequenceKeypoint.new(1, 1)      -- Fade to transparent
+		}
+		glossGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, pal.GlossTop or Color3.fromRGB(255, 255, 255)),
+			ColorSequenceKeypoint.new(1, pal.GlossBottom or Color3.fromRGB(120, 120, 160))
+		}
+		glossGradient.Parent = gloss
+	
+		return gloss
 	end
 	
 	function UIHelpers:Initialize(deps)
@@ -4642,13 +4674,14 @@ do
 		UIHelpers.corner(root, 16)
 		UIHelpers.stroke(root, pal.Accent, 2)
 	
-		-- Header bar
+		-- Header bar with gloss effect
 		local header = Instance.new("Frame")
 		header.Size = UDim2.new(1, 0, 0, 52)
 		header.BackgroundColor3 = pal.Card
 		header.BackgroundTransparency = 0
 		header.BorderSizePixel = 0
 		header.Parent = root
+		UIHelpers.addGloss(header, Theme)
 		UIHelpers.corner(header, 16)
 	
 		-- Gradient overlay on header

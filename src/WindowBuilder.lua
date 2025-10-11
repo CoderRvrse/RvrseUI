@@ -216,13 +216,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Accent, 2)
 
-	-- Header bar
+	-- Header bar with gloss effect
 	local header = Instance.new("Frame")
 	header.Size = UDim2.new(1, 0, 0, 52)
 	header.BackgroundColor3 = pal.Card
 	header.BackgroundTransparency = 0
 	header.BorderSizePixel = 0
 	header.Parent = root
+	UIHelpers.addGloss(header, Theme)
 	UIHelpers.corner(header, 16)
 
 	-- Gradient overlay on header

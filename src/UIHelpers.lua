@@ -37,7 +37,7 @@ function UIHelpers.stroke(inst, color, thickness, Theme)
 	else
 		s.Color = Color3.fromRGB(45, 45, 55)  -- Fallback default
 	end
-	s.Thickness = thickness or 1
+	s.Thickness = thickness or 1.5  -- Increased from 1 to 1.5 for crispness
 	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	s.Parent = inst
 	return s
@@ -136,6 +136,35 @@ function UIHelpers.addGlow(inst, color, intensity)
 	glowTween:Play()
 
 	return glow
+end
+
+-- Add glass/gloss effect to cards and panels
+function UIHelpers.addGloss(inst, Theme)
+	local pal = Theme and Theme:Get() or {}
+
+	-- Vertical gloss gradient overlay
+	local gloss = Instance.new("Frame")
+	gloss.Name = "Gloss"
+	gloss.BackgroundTransparency = 1
+	gloss.BorderSizePixel = 0
+	gloss.Size = UDim2.new(1, 0, 0.5, 0)  -- Top half of panel
+	gloss.Position = UDim2.new(0, 0, 0, 0)
+	gloss.ZIndex = inst.ZIndex + 1
+	gloss.Parent = inst
+
+	local glossGradient = Instance.new("UIGradient")
+	glossGradient.Rotation = 90  -- Vertical
+	glossGradient.Transparency = NumberSequence.new{
+		NumberSequenceKeypoint.new(0, 0.92),  -- Subtle highlight at top
+		NumberSequenceKeypoint.new(1, 1)      -- Fade to transparent
+	}
+	glossGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, pal.GlossTop or Color3.fromRGB(255, 255, 255)),
+		ColorSequenceKeypoint.new(1, pal.GlossBottom or Color3.fromRGB(120, 120, 160))
+	}
+	glossGradient.Parent = gloss
+
+	return gloss
 end
 
 -- Initialize method (called by init.lua)
