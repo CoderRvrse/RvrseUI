@@ -1170,7 +1170,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		Animator:Tween(root, {
 			Size = targetSize,
 			Position = targetPos,
-			BackgroundTransparency = 0,
+			BackgroundTransparency = 1,  -- KEEP TRANSPARENT!
 			Rotation = 0
 		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 

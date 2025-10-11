@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T00:06:25.923Z
+-- Compiled from modular architecture on 2025-10-11T00:13:19.763Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -5500,7 +5500,7 @@ do
 			Animator:Tween(root, {
 				Size = targetSize,
 				Position = targetPos,
-				BackgroundTransparency = 0,
+				BackgroundTransparency = 1,  -- KEEP TRANSPARENT!
 				Rotation = 0
 			}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 	
