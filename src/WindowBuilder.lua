@@ -207,7 +207,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local centerY = (screenSize.Y - baseHeight) / 2
 	root.Position = UDim2.fromOffset(centerX, centerY)
 	root.BackgroundColor3 = pal.Bg
-	root.BackgroundTransparency = 0
+	root.BackgroundTransparency = 1  -- TRANSPARENT - let children show through
 	root.BorderSizePixel = 0
 	root.Visible = false
 	root.ClipsDescendants = false

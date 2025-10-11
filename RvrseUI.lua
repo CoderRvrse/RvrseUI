@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T00:00:37.622Z
+-- Compiled from modular architecture on 2025-10-11T00:06:25.923Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -4537,7 +4537,7 @@ do
 		local centerY = (screenSize.Y - baseHeight) / 2
 		root.Position = UDim2.fromOffset(centerX, centerY)
 		root.BackgroundColor3 = pal.Bg
-		root.BackgroundTransparency = 0
+		root.BackgroundTransparency = 1  -- TRANSPARENT - let children show through
 		root.BorderSizePixel = 0
 		root.Visible = false
 		root.ClipsDescendants = false
