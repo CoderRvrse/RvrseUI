@@ -22,6 +22,11 @@ function Slider.Create(o, dependencies)
 	local maxVal = o.Max or 100
 	local step = o.Step or 1
 	local value = o.Default or minVal
+	local range = maxVal - minVal
+	if range == 0 then
+		range = 1
+	end
+	local baseLabelText = o.Text or "Slider"
 
 	local f = card(64) -- Taller for modern layout
 
@@ -32,7 +37,7 @@ function Slider.Create(o, dependencies)
 	lbl.TextSize = 15
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
-	lbl.Text = (o.Text or "Slider")
+	lbl.Text = string.format("%s: %s", baseLabelText, tostring(value))
 	lbl.Parent = f
 
 	-- Value display (right-aligned)
@@ -67,7 +72,8 @@ function Slider.Create(o, dependencies)
 
 	-- Vibrant gradient fill
 	local fill = Instance.new("Frame")
-	fill.Size = UDim2.new((value - minVal) / (maxVal - minVal), 0, 1, 0)
+	local initialRatio = range > 0 and ((value - minVal) / range) or 0
+	fill.Size = UDim2.new(initialRatio, 0, 1, 0)
 	fill.BackgroundColor3 = pal3.Accent
 	fill.BorderSizePixel = 0
 	fill.ZIndex = 2
@@ -87,7 +93,7 @@ function Slider.Create(o, dependencies)
 	-- Premium thumb with glow
 	local thumb = Instance.new("Frame")
 	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
-	thumb.Position = UDim2.new((value - minVal) / (maxVal - minVal), 0, 0.5, 0)
+	thumb.Position = UDim2.new(initialRatio, 0, 0.5, 0)
 	thumb.Size = UDim2.new(0, 22, 0, 22) -- Larger for modern look
 	thumb.BackgroundColor3 = Color3.new(1, 1, 1)
 	thumb.BorderSizePixel = 0
@@ -107,16 +113,21 @@ function Slider.Create(o, dependencies)
 	local dragging = false
 	local hovering = false
 
+	local function updateLabelText(newValue)
+		lbl.Text = string.format("%s: %s", baseLabelText, tostring(newValue))
+		valueLbl.Text = tostring(newValue)
+	end
+
 	local function update(inputPos)
 		local relativeX = math.clamp((inputPos.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
-		value = math.round((minVal + relativeX * (maxVal - minVal)) / step) * step
+		value = math.round((minVal + relativeX * range) / step) * step
 		value = math.clamp(value, minVal, maxVal)
-
-		valueLbl.Text = tostring(value)
+		local snappedRatio = range > 0 and ((value - minVal) / range) or 0
+		updateLabelText(value)
 
 		-- Ultra-smooth animations
-		Animator:Tween(fill, {Size = UDim2.new(relativeX, 0, 1, 0)}, Animator.Spring.Butter)
-		Animator:Tween(thumb, {Position = UDim2.new(relativeX, 0, 0.5, 0)}, Animator.Spring.Glide)
+		Animator:Tween(fill, {Size = UDim2.new(snappedRatio, 0, 1, 0)}, Animator.Spring.Butter)
+		Animator:Tween(thumb, {Position = UDim2.new(snappedRatio, 0, 0.5, 0)}, Animator.Spring.Glide)
 
 		if o.OnChanged then task.spawn(o.OnChanged, value) end
 		if o.Flag then RvrseUI:_autoSave() end
@@ -209,13 +220,22 @@ function Slider.Create(o, dependencies)
 		fill.BackgroundTransparency = locked and 0.5 or 0
 	end)
 
-	local sliderAPI = {
+	local sliderAPI
+
+	local function setValueDirect(newValue)
+		value = math.clamp(newValue, minVal, maxVal)
+		local relativeX = range > 0 and ((value - minVal) / range) or 0
+		updateLabelText(value)
+		fill.Size = UDim2.new(relativeX, 0, 1, 0)
+		thumb.Position = UDim2.new(relativeX, 0, 0.5, 0)
+		if sliderAPI then
+			sliderAPI.CurrentValue = value
+		end
+	end
+
+	sliderAPI = {
 		Set = function(_, v)
-			value = math.clamp(v, minVal, maxVal)
-			local relativeX = (value - minVal) / (maxVal - minVal)
-			lbl.Text = (o.Text or "Slider") .. ": " .. value
-			fill.Size = UDim2.new(relativeX, 0, 1, 0)
-			thumb.Position = UDim2.new(relativeX, 0, 0.5, 0)
+			setValueDirect(v)
 		end,
 		Get = function() return value end,
 		SetVisible = function(_, visible)
