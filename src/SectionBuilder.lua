@@ -122,12 +122,14 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		return Elements.Toggle.Create(o, getElementDeps())
 	end
 
-	function SectionAPI:CreateDropdown(o)
-		o = o or {}
-		if o.UseLegacyDropdown then
+		function SectionAPI:CreateDropdown(o)
+			o = o or {}
+			-- Default to the legacy inline dropdown; the overlay-based version caused clipping/z-order regressions.
+			-- Opt back into the modern behaviour only by setting `UseModernDropdown = true` on the element config.
+			if o.UseModernDropdown then
+				return Elements.Dropdown.Create(o, getElementDeps())
+			end
 			return Elements.DropdownLegacy.Create(o, getElementDeps())
-		end
-		return Elements.Dropdown.Create(o, getElementDeps())
 	end
 
 	function SectionAPI:CreateKeybind(o)

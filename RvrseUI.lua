@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T20:15:09.595Z
+-- Compiled from modular architecture on 2025-10-11T20:42:59.052Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -4656,12 +4656,14 @@ do
 			return Elements.Toggle.Create(o, getElementDeps())
 		end
 	
-		function SectionAPI:CreateDropdown(o)
-			o = o or {}
-			if o.UseLegacyDropdown then
+			function SectionAPI:CreateDropdown(o)
+				o = o or {}
+				-- Default to the legacy inline dropdown; the overlay-based version caused clipping/z-order regressions.
+				-- Opt back into the modern behaviour only by setting `UseModernDropdown = true` on the element config.
+				if o.UseModernDropdown then
+					return Elements.Dropdown.Create(o, getElementDeps())
+				end
 				return Elements.DropdownLegacy.Create(o, getElementDeps())
-			end
-			return Elements.Dropdown.Create(o, getElementDeps())
 		end
 	
 		function SectionAPI:CreateKeybind(o)
