@@ -122,6 +122,7 @@ function TabBuilder.CreateTab(t, dependencies)
 	page.ScrollBarImageColor3 = pal2.Border
 	page.CanvasSize = UDim2.new(0, 0, 0, 0)
 	page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	page.ClipsDescendants = false
 	page.Visible = false
 	page.Parent = body
 
