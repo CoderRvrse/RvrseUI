@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T00:13:19.763Z
+-- Compiled from modular architecture on 2025-10-11T00:29:46.667Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2461,28 +2461,24 @@ do
 			if lockedNow() then return end
 			isHovering = true
 	
-			-- Brighten on hover
+			-- Brighten on hover (set directly - can't tween NumberSequence)
 			if not state then
-				Animator:Tween(trackGradient, {
-					Transparency = NumberSequence.new{
-						NumberSequenceKeypoint.new(0, 0.8),
-						NumberSequenceKeypoint.new(1, 0.8),
-					}
-				}, Animator.Spring.Lightning)
+				trackGradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.8),
+					NumberSequenceKeypoint.new(1, 0.8),
+				}
 			end
 		end)
 	
 		shell.MouseLeave:Connect(function()
 			isHovering = false
 	
-			-- Restore transparency
+			-- Restore transparency (set directly - can't tween NumberSequence)
 			if not state then
-				Animator:Tween(trackGradient, {
-					Transparency = NumberSequence.new{
-						NumberSequenceKeypoint.new(0, 0.9),
-						NumberSequenceKeypoint.new(1, 0.9),
-					}
-				}, Animator.Spring.Snappy)
+				trackGradient.Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.9),
+					NumberSequenceKeypoint.new(1, 0.9),
+				}
 			end
 		end)
 	
@@ -5017,7 +5013,7 @@ do
 		local tabBar = Instance.new("ScrollingFrame")
 		tabBar.Name = "TabRail"
 		tabBar.BackgroundColor3 = pal.Card
-		tabBar.BackgroundTransparency = 0.2
+		tabBar.BackgroundTransparency = 0.05
 		tabBar.BorderSizePixel = 0
 		tabBar.Position = UDim2.new(0, 0, 0, 0)
 		tabBar.Size = UDim2.new(0, railWidth, 1, 0)
@@ -5072,7 +5068,7 @@ do
 		-- Body container
 		local body = Instance.new("Frame")
 		body.BackgroundColor3 = pal.Elevated
-		body.BackgroundTransparency = 0
+		body.BackgroundTransparency = 0.1
 		body.BorderSizePixel = 0
 		body.Position = UDim2.new(0, railWidth + 16, 0, 16)
 		body.Size = UDim2.new(1, -(railWidth + 28), 1, -32)

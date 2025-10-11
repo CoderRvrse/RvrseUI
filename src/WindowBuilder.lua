@@ -687,7 +687,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local tabBar = Instance.new("ScrollingFrame")
 	tabBar.Name = "TabRail"
 	tabBar.BackgroundColor3 = pal.Card
-	tabBar.BackgroundTransparency = 0.2
+	tabBar.BackgroundTransparency = 0.05
 	tabBar.BorderSizePixel = 0
 	tabBar.Position = UDim2.new(0, 0, 0, 0)
 	tabBar.Size = UDim2.new(0, railWidth, 1, 0)
@@ -742,7 +742,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Body container
 	local body = Instance.new("Frame")
 	body.BackgroundColor3 = pal.Elevated
-	body.BackgroundTransparency = 0
+	body.BackgroundTransparency = 0.1
 	body.BorderSizePixel = 0
 	body.Position = UDim2.new(0, railWidth + 16, 0, 16)
 	body.Size = UDim2.new(1, -(railWidth + 28), 1, -32)

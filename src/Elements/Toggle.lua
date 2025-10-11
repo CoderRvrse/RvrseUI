@@ -168,28 +168,24 @@ function Toggle.Create(o, dependencies)
 		if lockedNow() then return end
 		isHovering = true
 
-		-- Brighten on hover
+		-- Brighten on hover (set directly - can't tween NumberSequence)
 		if not state then
-			Animator:Tween(trackGradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 0.8),
-					NumberSequenceKeypoint.new(1, 0.8),
-				}
-			}, Animator.Spring.Lightning)
+			trackGradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.8),
+				NumberSequenceKeypoint.new(1, 0.8),
+			}
 		end
 	end)
 
 	shell.MouseLeave:Connect(function()
 		isHovering = false
 
-		-- Restore transparency
+		-- Restore transparency (set directly - can't tween NumberSequence)
 		if not state then
-			Animator:Tween(trackGradient, {
-				Transparency = NumberSequence.new{
-					NumberSequenceKeypoint.new(0, 0.9),
-					NumberSequenceKeypoint.new(1, 0.9),
-				}
-			}, Animator.Spring.Snappy)
+			trackGradient.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.9),
+				NumberSequenceKeypoint.new(1, 0.9),
+			}
 		end
 	end)
 
