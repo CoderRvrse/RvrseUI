@@ -224,11 +224,18 @@ function Dropdown.Create(o, dependencies)
 		dropdownList.Size = UDim2.new(0, inlineWidth, 0, dropdownList.Size.Y.Offset)
 	end
 
+	local function applyOverlayZIndex()
+		local overlayBaseZ = OverlayLayer and OverlayLayer.ZIndex or 0
+		local blockerZ = overlayBlocker and overlayBlocker.ZIndex or overlayBaseZ
+		local dropdownZ = math.max(overlayBaseZ + 1, blockerZ + 1, 200)
+		dropdownList.ZIndex = dropdownZ
+		dropdownScroll.ZIndex = dropdownZ + 1
+	end
+
 	local function repositionOverlay(width)
 		width = width or math.max(btn.AbsoluteSize.X, inlineWidth)
 		dropdownList.Parent = OverlayLayer
-		dropdownList.ZIndex = 200
-		dropdownScroll.ZIndex = 201
+		applyOverlayZIndex()
 
 		local absPos = btn.AbsolutePosition
 		local btnWidth = btn.AbsoluteSize.X
@@ -361,7 +368,7 @@ function Dropdown.Create(o, dependencies)
 
 		if state == dropdownOpen then
 			if state and useOverlay then
-				repositionOverlay()
+				repositionOverlay(math.max(btn.AbsoluteSize.X, inlineWidth, 150))
 			end
 			print("[DROPDOWN] ⚠️ Already in state:", state)
 			return
@@ -406,23 +413,23 @@ function Dropdown.Create(o, dependencies)
 			print("[DROPDOWN] 🎭 Showing overlay blocker...")
 			showOverlayBlocker()
 
+			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
+			print("[DROPDOWN] 🎯 Target size: Width =", targetWidth, "Height =", dropdownHeight)
+
 			print("[DROPDOWN] 📍 Repositioning overlay...")
-			local width = repositionOverlay()
+			local width = repositionOverlay(targetWidth)
 			print("[DROPDOWN] 📍 Overlay width:", width)
 			print("[DROPDOWN] 📍 Button AbsolutePosition:", btn.AbsolutePosition)
 			print("[DROPDOWN] 📍 Button AbsoluteSize:", btn.AbsoluteSize)
 
-			dropdownList.Size = UDim2.new(0, width, 0, 0)
-			print("[DROPDOWN] 📐 Set initial size: Width =", width, "Height = 0")
+			dropdownList.Size = UDim2.new(0, targetWidth, 0, 0)
+			print("[DROPDOWN] 📐 Set initial size: Width =", targetWidth, "Height = 0")
 
 			dropdownList.Visible = true
 			print("[DROPDOWN] 👁️ Set dropdownList.Visible = true")
 			print("[DROPDOWN] 📍 dropdownList.Position:", dropdownList.Position)
 			print("[DROPDOWN] 🎨 dropdownList.BackgroundTransparency:", dropdownList.BackgroundTransparency)
 			print("[DROPDOWN] 📊 dropdownList.ZIndex:", dropdownList.ZIndex)
-
-			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
-			print("[DROPDOWN] 🎯 Target size: Width =", targetWidth, "Height =", dropdownHeight)
 
 			-- Smooth expand animation
 			print("[DROPDOWN] 🎬 Starting expand animation...")
