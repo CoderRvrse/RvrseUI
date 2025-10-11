@@ -238,6 +238,9 @@ function Dropdown.Create(o, dependencies)
 	local setOpen -- forward declaration
 
 	local function rebuildOptions()
+		print("[DROPDOWN] 🔨 rebuildOptions() called")
+		print("[DROPDOWN] 🔨 Current values count:", #values)
+
 		for _, child in ipairs(dropdownScroll:GetChildren()) do
 			if child:IsA("TextButton") then
 				child:Destroy()
@@ -250,8 +253,12 @@ function Dropdown.Create(o, dependencies)
 		local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
 		local paddingTotal = 8 + 8  -- Top + Bottom padding (4+4 each side, doubled for Frame + Scroll)
 
+		print("[DROPDOWN] 🔨 Calculated totalItemsHeight:", totalItemsHeight)
+
 		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)  -- Add 8 for scroll padding
 		dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
+
+		print("[DROPDOWN] 🔨 Set dropdownHeight to:", dropdownHeight)
 
 		if #values == 0 then
 			idx = 0
@@ -315,6 +322,7 @@ function Dropdown.Create(o, dependencies)
 
 	function setOpen(state)
 		if locked() then
+			print("[DROPDOWN] ❌ Locked, cannot open")
 			return
 		end
 
@@ -322,13 +330,19 @@ function Dropdown.Create(o, dependencies)
 			if state and useOverlay then
 				repositionOverlay()
 			end
+			print("[DROPDOWN] ⚠️ Already in state:", state)
 			return
 		end
 
 		dropdownOpen = state
 		arrow.Text = dropdownOpen and "▲" or "▼"
+		print("[DROPDOWN] 🔄 State changed to:", dropdownOpen and "OPEN ✅" or "CLOSED ❌")
 
 		if dropdownOpen then
+			print("[DROPDOWN] ====== OPENING DROPDOWN ======")
+			print("[DROPDOWN] 📊 Number of values:", #values)
+			print("[DROPDOWN] 📝 Values:", table.concat(values, ", "))
+
 			if o.OnOpen then
 				o.OnOpen()
 			end
@@ -338,26 +352,52 @@ function Dropdown.Create(o, dependencies)
 			local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
 			local paddingTotal = 8 + 8
 
+			print("[DROPDOWN] 📏 itemHeight:", itemHeight)
+			print("[DROPDOWN] 📏 totalItemsHeight:", totalItemsHeight)
+			print("[DROPDOWN] 📏 paddingTotal:", paddingTotal)
+
 			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)
 			dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
 
+			print("[DROPDOWN] 📏 Calculated dropdownHeight:", dropdownHeight)
+			print("[DROPDOWN] 📏 maxHeight:", maxHeight)
+
 			-- Ensure minimum height if there are items
 			if #values > 0 then
+				local oldHeight = dropdownHeight
 				dropdownHeight = math.max(dropdownHeight, itemHeight + paddingTotal)
+				print("[DROPDOWN] 📏 After minimum check:", oldHeight, "→", dropdownHeight)
 			end
 
 			-- Always use overlay mode for proper visibility
+			print("[DROPDOWN] 🎭 Showing overlay blocker...")
 			showOverlayBlocker()
+
+			print("[DROPDOWN] 📍 Repositioning overlay...")
 			local width = repositionOverlay()
+			print("[DROPDOWN] 📍 Overlay width:", width)
+			print("[DROPDOWN] 📍 Button AbsolutePosition:", btn.AbsolutePosition)
+			print("[DROPDOWN] 📍 Button AbsoluteSize:", btn.AbsoluteSize)
+
 			dropdownList.Size = UDim2.new(0, width, 0, 0)
+			print("[DROPDOWN] 📐 Set initial size: Width =", width, "Height = 0")
 
 			dropdownList.Visible = true
+			print("[DROPDOWN] 👁️ Set dropdownList.Visible = true")
+			print("[DROPDOWN] 📍 dropdownList.Position:", dropdownList.Position)
+			print("[DROPDOWN] 🎨 dropdownList.BackgroundTransparency:", dropdownList.BackgroundTransparency)
+			print("[DROPDOWN] 📊 dropdownList.ZIndex:", dropdownList.ZIndex)
+
 			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
+			print("[DROPDOWN] 🎯 Target size: Width =", targetWidth, "Height =", dropdownHeight)
 
 			-- Smooth expand animation
+			print("[DROPDOWN] 🎬 Starting expand animation...")
 			Animator:Tween(dropdownList, {
 				Size = UDim2.new(0, targetWidth, 0, dropdownHeight)
 			}, Animator.Spring.Snappy)
+			print("[DROPDOWN] ✅ Animation started!")
+			print("[DROPDOWN] ==============================")
 		else
 			local targetWidth = useOverlay and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
 			Animator:Tween(dropdownList, {
@@ -382,22 +422,35 @@ function Dropdown.Create(o, dependencies)
 
 	-- Toggle dropdown on button click
 	btn.MouseButton1Click:Connect(function()
+		print("[DROPDOWN] 🖱️ Button clicked! Current state:", dropdownOpen and "OPEN" or "CLOSED")
+
 		-- Refresh dropdown values before opening (for dynamic config lists)
 		if not dropdownOpen then
+			print("[DROPDOWN] 🔄 Dropdown is closed, checking for refresh...")
+
 			-- If a refresh callback is provided, use it to get new values
 			if o.OnRefresh then
+				print("[DROPDOWN] 🔄 OnRefresh callback found, calling it...")
 				local newValues = o.OnRefresh()
 				if newValues and type(newValues) == "table" then
+					print("[DROPDOWN] ✅ Got new values from OnRefresh:", #newValues, "items")
 					values = {}
 					for _, val in ipairs(newValues) do
 						table.insert(values, val)
 					end
 					rebuildOptions()
+				else
+					print("[DROPDOWN] ⚠️ OnRefresh returned invalid data:", type(newValues))
 				end
 			elseif o.RefreshOnOpen then
+				print("[DROPDOWN] 🔄 RefreshOnOpen flag set, rebuilding...")
 				rebuildOptions()
+			else
+				print("[DROPDOWN] ℹ️ No refresh needed, using existing values")
 			end
 		end
+
+		print("[DROPDOWN] 🎬 Calling setOpen with:", not dropdownOpen)
 		setOpen(not dropdownOpen)
 	end)
 
