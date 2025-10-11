@@ -1815,12 +1815,19 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		body.BackgroundColor3 = newPal.Elevated
 		UIHelpers.stroke(body, newPal.Border, 1)
 
-		splash.BackgroundColor3 = newPal.Elevated
-		loadingBar.BackgroundColor3 = newPal.Border
-		loadingFill.BackgroundColor3 = newPal.Accent
-		local loadingGradient = loadingFill:FindFirstChildOfClass("UIGradient")
-		if loadingGradient then
-			loadingGradient.Color = ColorSequence.new(newPal.Accent, newPal.AccentHover)
+		-- Update splash screen elements only if they still exist (destroyed after init)
+		if splash and splash.Parent then
+			splash.BackgroundColor3 = newPal.Elevated
+		end
+		if loadingBar and loadingBar.Parent then
+			loadingBar.BackgroundColor3 = newPal.Border
+		end
+		if loadingFill and loadingFill.Parent then
+			loadingFill.BackgroundColor3 = newPal.Accent
+			local loadingGradient = loadingFill:FindFirstChildOfClass("UIGradient")
+			if loadingGradient then
+				loadingGradient.Color = ColorSequence.new(newPal.Accent, newPal.AccentHover)
+			end
 		end
 
 		for _, tabData in ipairs(tabs) do

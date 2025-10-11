@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T01:12:37.714Z
+-- Compiled from modular architecture on 2025-10-11T04:06:06.291Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -6141,12 +6141,19 @@ do
 			body.BackgroundColor3 = newPal.Elevated
 			UIHelpers.stroke(body, newPal.Border, 1)
 	
-			splash.BackgroundColor3 = newPal.Elevated
-			loadingBar.BackgroundColor3 = newPal.Border
-			loadingFill.BackgroundColor3 = newPal.Accent
-			local loadingGradient = loadingFill:FindFirstChildOfClass("UIGradient")
-			if loadingGradient then
-				loadingGradient.Color = ColorSequence.new(newPal.Accent, newPal.AccentHover)
+			-- Update splash screen elements only if they still exist (destroyed after init)
+			if splash and splash.Parent then
+				splash.BackgroundColor3 = newPal.Elevated
+			end
+			if loadingBar and loadingBar.Parent then
+				loadingBar.BackgroundColor3 = newPal.Border
+			end
+			if loadingFill and loadingFill.Parent then
+				loadingFill.BackgroundColor3 = newPal.Accent
+				local loadingGradient = loadingFill:FindFirstChildOfClass("UIGradient")
+				if loadingGradient then
+					loadingGradient.Color = ColorSequence.new(newPal.Accent, newPal.AccentHover)
+				end
 			end
 	
 			for _, tabData in ipairs(tabs) do
