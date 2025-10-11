@@ -123,6 +123,10 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	end
 
 	function SectionAPI:CreateDropdown(o)
+		o = o or {}
+		if o.UseLegacyDropdown then
+			return Elements.DropdownLegacy.Create(o, getElementDeps())
+		end
 		return Elements.Dropdown.Create(o, getElementDeps())
 	end
 

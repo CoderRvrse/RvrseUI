@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-11T15:57:11.188Z
+-- Compiled from modular architecture on 2025-10-11T19:39:59.024Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -4249,6 +4249,10 @@ do
 		end
 	
 		function SectionAPI:CreateDropdown(o)
+			o = o or {}
+			if o.UseLegacyDropdown then
+				return Elements.DropdownLegacy.Create(o, getElementDeps())
+			end
 			return Elements.Dropdown.Create(o, getElementDeps())
 		end
 	
@@ -6201,7 +6205,8 @@ do
 						Text = "Profiles",
 						Values = {},
 						PlaceholderText = dropdownPlaceholder,
-						Overlay = true,
+						Overlay = false,
+						UseLegacyDropdown = true,
 						OnOpen = function()
 							refreshProfiles(selectedProfile, {suppressWarning = true})
 						end,

@@ -44,7 +44,8 @@ local Elements = {
 	ColorPicker = require(script.src.Elements.ColorPicker),
 	Label = require(script.src.Elements.Label),
 	Paragraph = require(script.src.Elements.Paragraph),
-	Divider = require(script.src.Elements.Divider)
+	Divider = require(script.src.Elements.Divider),
+	DropdownLegacy = require(script.src.Elements.DropdownLegacy)
 }
 
 -- ============================================
