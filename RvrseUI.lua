@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-10T23:54:43.621Z
+-- Compiled from modular architecture on 2025-10-11T00:00:37.622Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -462,12 +462,12 @@ do
 	
 	Theme.Palettes = {
 		Dark = {
-			-- 🌌 MAXIMUM BRIGHTNESS - Visibility Priority
-			Bg = Color3.fromRGB(35, 35, 50),            -- Main background (BRIGHT)
-			Glass = Color3.fromRGB(45, 45, 65),         -- Translucent glass effect
-			Card = Color3.fromRGB(55, 55, 80),          -- Card surfaces (sections, elements)
-			Elevated = Color3.fromRGB(70, 70, 100),     -- Body container (VERY BRIGHT)
-			Surface = Color3.fromRGB(50, 50, 75),       -- Standard surface
+			-- 🌌 ULTRA HIGH VISIBILITY (Red debug test confirmed UI renders!)
+			Bg = Color3.fromRGB(50, 50, 70),            -- Window background
+			Glass = Color3.fromRGB(60, 60, 85),         -- Glass effect
+			Card = Color3.fromRGB(70, 70, 100),         -- Tab rail, header
+			Elevated = Color3.fromRGB(85, 85, 120),     -- Body container (main content area)
+			Surface = Color3.fromRGB(65, 65, 95),       -- Standard surface
 	
 			-- 🌈 Vibrant gradient accents - Electric Purple to Cyan
 			Primary = Color3.fromRGB(138, 43, 226),     -- Electric purple (BlueViolet)
@@ -4536,7 +4536,7 @@ do
 		local centerX = (screenSize.X - baseWidth) / 2
 		local centerY = (screenSize.Y - baseHeight) / 2
 		root.Position = UDim2.fromOffset(centerX, centerY)
-		root.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- BRIGHT RED to debug
+		root.BackgroundColor3 = pal.Bg
 		root.BackgroundTransparency = 0
 		root.BorderSizePixel = 0
 		root.Visible = false
@@ -4544,12 +4544,12 @@ do
 		root.ZIndex = 100
 		root.Parent = windowHost
 		UIHelpers.corner(root, 16)
-		UIHelpers.stroke(root, Color3.fromRGB(0, 255, 0), 5)  -- THICK GREEN BORDER
+		UIHelpers.stroke(root, pal.Accent, 2)
 	
-		-- Header bar with vibrant gradient
+		-- Header bar
 		local header = Instance.new("Frame")
 		header.Size = UDim2.new(1, 0, 0, 52)
-		header.BackgroundColor3 = Color3.fromRGB(0, 255, 0)  -- BRIGHT GREEN header
+		header.BackgroundColor3 = pal.Card
 		header.BackgroundTransparency = 0
 		header.BorderSizePixel = 0
 		header.Parent = root
@@ -5071,14 +5071,14 @@ do
 	
 		-- Body container
 		local body = Instance.new("Frame")
-		body.BackgroundColor3 = Color3.fromRGB(0, 0, 255)  -- BRIGHT BLUE body
+		body.BackgroundColor3 = pal.Elevated
 		body.BackgroundTransparency = 0
 		body.BorderSizePixel = 0
 		body.Position = UDim2.new(0, railWidth + 16, 0, 16)
 		body.Size = UDim2.new(1, -(railWidth + 28), 1, -32)
 		body.Parent = content
 		UIHelpers.corner(body, 16)
-		UIHelpers.stroke(body, Color3.fromRGB(255, 255, 0), 5)  -- THICK YELLOW BORDER
+		UIHelpers.stroke(body, pal.Border, 1)
 	
 		local bodyPadding = Instance.new("UIPadding")
 		bodyPadding.PaddingTop = UDim.new(0, 20)

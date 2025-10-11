@@ -9,12 +9,12 @@ local Theme = {}
 -- 🎨 REVOLUTIONARY COLOR PALETTE - Cyberpunk Neon meets Modern Minimalism
 Theme.Palettes = {
 	Dark = {
-		-- 🌌 MAXIMUM BRIGHTNESS - Visibility Priority
-		Bg = Color3.fromRGB(35, 35, 50),            -- Main background (BRIGHT)
-		Glass = Color3.fromRGB(45, 45, 65),         -- Translucent glass effect
-		Card = Color3.fromRGB(55, 55, 80),          -- Card surfaces (sections, elements)
-		Elevated = Color3.fromRGB(70, 70, 100),     -- Body container (VERY BRIGHT)
-		Surface = Color3.fromRGB(50, 50, 75),       -- Standard surface
+		-- 🌌 ULTRA HIGH VISIBILITY (Red debug test confirmed UI renders!)
+		Bg = Color3.fromRGB(50, 50, 70),            -- Window background
+		Glass = Color3.fromRGB(60, 60, 85),         -- Glass effect
+		Card = Color3.fromRGB(70, 70, 100),         -- Tab rail, header
+		Elevated = Color3.fromRGB(85, 85, 120),     -- Body container (main content area)
+		Surface = Color3.fromRGB(65, 65, 95),       -- Standard surface
 
 		-- 🌈 Vibrant gradient accents - Electric Purple to Cyan
 		Primary = Color3.fromRGB(138, 43, 226),     -- Electric purple (BlueViolet)
