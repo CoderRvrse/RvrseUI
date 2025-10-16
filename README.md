@@ -1,309 +1,1035 @@
-# RvrseUI
+# RvrseUI v4.0.0
 
-Production-ready Roblox UI toolkit built in Luau with modular architecture, persistent themes, and a polished desktop/mobile experience.
+**Modern, Production-Ready Roblox UI Library** with RGB/HSV ColorPicker, Multi-Select Dropdowns, and 100% Rayfield API Compatibility
 
-![Version](https://img.shields.io/badge/version-4.0.0-blue) ![Channel](https://img.shields.io/badge/channel-Stable-purple) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-4.0.0-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-228KB-orange)
 
 ---
 
-## Stability Snapshot · October&nbsp;2025
-- Window minimization now enforces clipping, so the Profiles tab no longer spills its body frame while shrinking.
-- All sections default to the restored inline `DropdownLegacy` renderer; the experimental overlay path requires `UseModernDropdown = true`.
-- Profiles command center validated end-to-end for listing, saving, loading, deleting, and auto-save toggles with live logging.
+## 🚀 Quick Start (30 Seconds)
 
-## Quick Start
-
-### Requirements
-- Roblox experience with client-side (LocalScript) execution.
-- Luau runtime (Roblox 2024+) with `HttpGet` enabled when loading from GitHub.
-- Optional: executor with `writefile`/`readfile` for configuration persistence.
-
-### Install
 ```lua
-local VERSION = "v4.0.0"
-local SOURCE = string.format(
-    "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua",
-    VERSION
-)
-local chunk, err = loadstring(game:HttpGet(SOURCE, true))
-if not chunk then error(err, 0) end
-local RvrseUI = chunk()
-```
+-- Load RvrseUI
+local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
 
-### Minimal Window Example
-```lua
+-- Create window
 local Window = RvrseUI:CreateWindow({
-    Name = "RvrseUI Demo",
+    Name = "My Hub",
     Theme = "Dark",
     ToggleUIKeybind = "K",
-    ConfigurationSaving = true,
-    LoadingTitle = "Demo Hub",
-    LoadingSubtitle = "Initializing"
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MyHub",
+        FileName = "Config.json"
+    }
 })
 
-local MainTab = Window:CreateTab({ Title = "Main", Icon = "home" })
+-- Create a tab
+local Tab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
+local Section = Tab:CreateSection("Player")
+
+-- Add a slider that SAVES automatically
+Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    Flag = "WalkSpeed",  -- 🔑 This makes it save/load automatically!
+    OnChanged = function(speed)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+    end
+})
+
+-- CRITICAL: Call Window:Show() LAST!
+Window:Show()  -- This loads saved config THEN shows UI
+```
+
+**🎯 Try it now in your executor!**
+
+---
+
+## 📋 Table of Contents
+
+1. [What's New in v4.0](#-whats-new-in-v40)
+2. [Features](#-features)
+3. [Installation](#-installation)
+4. [Configuration System (IMPORTANT!)](#-configuration-system-the-most-important-section)
+5. [All Elements Guide](#-all-elements-complete-guide)
+6. [Advanced Features](#-advanced-features)
+7. [API Reference](#-api-reference)
+8. [Troubleshooting](#-troubleshooting)
+9. [Examples](#-examples)
+
+---
+
+## ✨ What's New in v4.0
+
+### Phase 2 Features (Latest!)
+- **🎨 Advanced ColorPicker** - Full RGB/HSV sliders + Hex input
+- **📋 Dropdown Multi-Select** - Checkboxes, SelectAll/ClearAll methods
+- **🔄 100% Rayfield API Compatible** - Migrate from Rayfield with zero changes!
+
+### Critical Bug Fixes
+- **✅ Fixed Flag System** - Now uses `RvrseUI.Flags` (not `Window.Flags`)
+- **✅ Fixed Config Loading** - Values now restore correctly on startup
+- **✅ Fixed Dropdown Pre-selection** - `CurrentOption` now works perfectly
+
+### What Makes RvrseUI Different
+- ✅ **Actually works** - Configs save and load correctly
+- ✅ **Clear documentation** - No confusing references
+- ✅ **Production tested** - Used in real hubs
+- ✅ **Rayfield compatible** - Drop-in replacement
+
+---
+
+## 🎯 Features
+
+### UI Elements (10 Total)
+- **Button** - Click actions with ripple effects
+- **Toggle** - On/off switches with lock groups
+- **Slider** - Numeric values with live preview
+- **Dropdown** - Single OR multi-select lists
+- **ColorPicker** - RGB/HSV/Hex OR simple presets
+- **Keybind** - Capture keyboard inputs
+- **TextBox** - Text input fields
+- **Label** - Static text
+- **Paragraph** - Multi-line text blocks
+- **Divider** - Visual separators
+
+### System Features
+- **✅ Configuration Persistence** - Auto-save/load with profiles
+- **✅ Theme System** - Dark/Light modes with smooth transitions
+- **✅ Notification System** - Toast messages with priorities
+- **✅ Hotkey Manager** - Global toggle/destroy keys
+- **✅ Lock Groups** - Master/slave control relationships
+- **✅ Spring Animations** - Smooth, physics-based motion
+- **✅ Mobile Support** - Responsive design + controller chip
+- **✅ Flag System** - Direct element value access
+
+---
+
+## 📦 Installation
+
+### Method 1: Direct Load (Recommended)
+```lua
+local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+```
+
+### Method 2: Version-Specific
+```lua
+local version = "v4.0.0"
+local url = string.format("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua", version)
+local RvrseUI = loadstring(game:HttpGet(url))()
+```
+
+### Method 3: Local Module (Roblox Studio)
+1. Copy `RvrseUI.lua` content
+2. Create ModuleScript in ReplicatedStorage
+3. Paste content and name it "RvrseUI"
+4. Require it: `local RvrseUI = require(game.ReplicatedStorage.RvrseUI)`
+
+---
+
+## 🔧 Configuration System (THE MOST IMPORTANT SECTION!)
+
+### ⚠️ CRITICAL: Understanding the Flag System
+
+**The #1 confusion point:** How do saves/loads work?
+
+**Answer: Use the `Flag` parameter!**
+
+```lua
+-- ❌ WRONG - This won't save
+Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    OnChanged = function(speed)
+        -- Value changes here, but never saves
+    end
+})
+
+-- ✅ CORRECT - This saves automatically
+Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    Flag = "WalkSpeed",  -- 🔑 ADD THIS!
+    OnChanged = function(speed)
+        -- Value changes AND saves automatically
+    end
+})
+```
+
+### How Flags Work (Read This Carefully!)
+
+1. **Without `Flag`**: Element works, but value is never saved
+2. **With `Flag`**: Element value auto-saves when changed
+3. **Access saved value**: `RvrseUI.Flags["WalkSpeed"]:Get()`
+4. **Set value programmatically**: `RvrseUI.Flags["WalkSpeed"]:Set(50)`
+
+### Complete Configuration Example
+
+```lua
+local Window = RvrseUI:CreateWindow({
+    -- 📌 BASIC SETTINGS
+    Name = "My Hub",                    -- Window title
+    Icon = "🎮",                        -- Window icon (emoji or asset ID)
+    Theme = "Dark",                     -- "Dark" or "Light"
+
+    -- 📌 HOTKEYS
+    ToggleUIKeybind = "K",              -- Press K to toggle UI
+    EscapeKey = Enum.KeyCode.Backspace, -- Press Backspace to destroy UI
+
+    -- 📌 CONFIGURATION PERSISTENCE (CRITICAL!)
+    ConfigurationSaving = {
+        Enabled = true,                 -- Turn on save/load
+        FolderName = "MyHub",          -- Creates: workspace/MyHub/
+        FileName = "Config.json",       -- File: MyHub/Config.json
+        AutoSave = true                 -- Auto-save on every change (optional)
+    },
+
+    -- 📌 PROFILES TAB (OPTIONAL)
+    ConfigurationManager = {
+        Enabled = true,                 -- Show "Profiles" tab
+        TabName = "Profiles",          -- Tab name
+        Icon = "📁"                    -- Tab icon
+    },
+
+    -- 📌 LOADING SCREEN
+    LoadingTitle = "My Hub",
+    LoadingSubtitle = "Loading features...",
+
+    -- 📌 ADVANCED (OPTIONAL)
+    DisableBuildWarnings = false,      -- Hide startup notification
+    Container = "PlayerGui",            -- Where to place UI
+    DisplayOrder = 100000               -- Z-index
+})
+```
+
+### Configuration Save Locations
+
+**Where are configs saved?**
+- Synapse X: `workspace/`
+- Script-Ware: `workspace/`
+- Krnl: `workspace/`
+- Other executors: Check your executor's `writefile` directory
+
+**File structure:**
+```
+workspace/
+└── MyHub/              ← FolderName
+    ├── Config.json     ← FileName (default profile)
+    ├── Profile1.json   ← Saved profile
+    └── Profile2.json   ← Another profile
+```
+
+### Manual Save/Load
+
+```lua
+-- Save current configuration
+local success, message = RvrseUI:SaveConfiguration()
+if success then
+    print("✅ Config saved:", message)
+else
+    print("❌ Save failed:", message)
+end
+
+-- Load configuration
+local success, message = RvrseUI:LoadConfiguration()
+if success then
+    print("✅ Config loaded:", message)
+else
+    print("❌ Load failed:", message)
+end
+
+-- Toggle auto-save
+RvrseUI:SetAutoSaveEnabled(false)  -- Pause auto-save
+RvrseUI:SetAutoSaveEnabled(true)   -- Resume auto-save
+```
+
+---
+
+## 📚 All Elements (Complete Guide)
+
+### 1. Button
+
+**What it does:** Clickable button that triggers a callback
+
+```lua
+local myButton = Section:CreateButton({
+    Text = "Click Me",                  -- Button label
+    Callback = function()
+        print("Button clicked!")
+    end
+})
+
+-- API Methods
+myButton:Set("New Text")               -- Change button text
+```
+
+**Use case:** Actions that don't need state (teleport, reset character, etc.)
+
+---
+
+### 2. Toggle
+
+**What it does:** On/Off switch with state persistence
+
+```lua
+local myToggle = Section:CreateToggle({
+    Text = "Enable Flight",
+    State = false,                     -- Initial state (default: false)
+    Flag = "FlightEnabled",            -- 🔑 Saves automatically!
+    OnChanged = function(enabled)
+        if enabled then
+            print("Flight ON")
+        else
+            print("Flight OFF")
+        end
+    end
+})
+
+-- API Methods
+myToggle:Set(true, silent)             -- Set state (silent = don't trigger callback)
+local state = myToggle:Get()           -- Get current state
+```
+
+**Use case:** Features that can be on or off (ESP, flight, speed hacks)
+
+#### Advanced: Lock Groups (Master/Slave Controls)
+
+```lua
+-- Master toggle that locks children when ON
+Section:CreateToggle({
+    Text = "🎯 Auto Farm (MASTER)",
+    State = false,
+    LockGroup = "AutoFarm",            -- Creates lock group
+    Flag = "AutoFarmMaster"
+})
+
+-- Child toggle that gets disabled when master is ON
+Section:CreateToggle({
+    Text = "Farm Coins",
+    State = false,
+    RespectLock = "AutoFarm",          -- Respects the lock group
+    Flag = "FarmCoins"
+})
+
+-- When "Auto Farm (MASTER)" is ON:
+-- → "Farm Coins" becomes disabled (grayed out)
+-- → Prevents conflicting settings
+```
+
+---
+
+### 3. Slider
+
+**What it does:** Numeric value selector with visual feedback
+
+```lua
+local mySlider = Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,                          -- Minimum value
+    Max = 100,                         -- Maximum value
+    Step = 2,                          -- Increment (optional, default: 1)
+    Default = 16,                      -- Starting value
+    Suffix = " studs/s",              -- Text after value (optional)
+    Flag = "WalkSpeed",                -- 🔑 Saves automatically!
+    OnChanged = function(value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+    end
+})
+
+-- API Methods
+mySlider:Set(50)                       -- Set value
+mySlider:SetRange(0, 200, 10)         -- Change min/max/step
+mySlider:SetSuffix(" mph")            -- Change suffix
+local value = mySlider:Get()          -- Get current value
+```
+
+**Use case:** Any numeric setting (speed, jump power, FOV, brightness)
+
+---
+
+### 4. Dropdown (NEW: Multi-Select!)
+
+**What it does:** List of options (single OR multiple selection)
+
+#### Single-Select (Standard)
+```lua
+local myDropdown = Section:CreateDropdown({
+    Text = "Select Weapon",
+    Values = {"Sword", "Bow", "Staff", "Axe"},     -- Options
+    -- OR use Rayfield syntax:
+    Options = {"Sword", "Bow", "Staff", "Axe"},    -- Same thing!
+
+    CurrentOption = {"Sword"},                      -- Pre-select (optional)
+    MultiSelect = false,                            -- Single-select mode
+    Flag = "SelectedWeapon",                        -- 🔑 Saves automatically!
+    OnChanged = function(value)
+        print("Weapon:", value)  -- Returns single value
+    end
+})
+
+-- API Methods
+myDropdown:Set("Bow")                              -- Change selection
+myDropdown:Refresh({"New", "Options", "List"})     -- Update options
+local weapon = myDropdown:Get()                    -- Get selected value
+print(myDropdown.CurrentOption[1])                 -- Rayfield compatibility
+```
+
+#### Multi-Select (Phase 2 Feature!)
+```lua
+local multiDropdown = Section:CreateDropdown({
+    Text = "Select Game Modes",
+    Options = {"TDM", "CTF", "KotH", "FFA"},       -- Options
+    CurrentOption = {"TDM", "FFA"},                 -- Pre-select multiple!
+    MultipleOptions = true,                         -- Multi-select mode
+    Flag = "GameModes",                             -- 🔑 Saves as array!
+    OnChanged = function(selected)
+        -- selected is an ARRAY: {"TDM", "FFA", "KotH"}
+        print("Selected:", table.concat(selected, ", "))
+    end
+})
+
+-- API Methods
+multiDropdown:Set({"TDM", "CTF"})                 -- Set multiple
+multiDropdown:SelectAll()                          -- Select all options
+multiDropdown:ClearAll()                           -- Clear all selections
+local selected = multiDropdown:Get()               -- Returns array
+print(#selected, "modes selected")                 -- Count selections
+```
+
+**Use case:**
+- Single-select: Weapon, difficulty, game mode
+- Multi-select: Select multiple features to enable
+
+---
+
+### 5. ColorPicker (NEW: RGB/HSV/Hex!)
+
+**What it does:** Color selector with advanced controls
+
+#### Simple Mode (8 Preset Colors)
+```lua
+local simpleColor = Section:CreateColorPicker({
+    Text = "Theme Color",
+    Default = Color3.fromRGB(255, 0, 0),           -- Red
+    Advanced = false,                               -- Simple mode
+    Flag = "ThemeColor",                            -- 🔑 Saves automatically!
+    OnChanged = function(color)
+        print("Color:", color)
+    end
+})
+```
+
+#### Advanced Mode (RGB/HSV/Hex Sliders)
+```lua
+local advancedColor = Section:CreateColorPicker({
+    Text = "Custom Color",
+    Default = Color3.fromRGB(88, 101, 242),        -- Discord Blurple
+    Advanced = true,                                -- Advanced mode (default)
+    Flag = "CustomColor",                           -- 🔑 Saves automatically!
+    OnChanged = function(color)
+        -- Update UI elements
+        game.StarterGui.ScreenGui.Frame.BackgroundColor3 = color
+    end
+})
+
+-- Advanced mode includes:
+-- • RGB sliders (0-255)
+-- • HSV sliders (H: 0-360, S/V: 0-100%)
+-- • Hex input (#RRGGBB)
+-- • Live preview circle
+-- • All modes stay in sync!
+```
+
+**API Methods:**
+```lua
+advancedColor:Set(Color3.fromRGB(255, 0, 255))    -- Set color
+local color = advancedColor:Get()                  -- Get current color
+```
+
+**Use case:** Theme customization, ESP colors, UI tinting
+
+---
+
+### 6. Keybind
+
+**What it does:** Captures keyboard input for hotkeys
+
+```lua
+local myKeybind = Section:CreateKeybind({
+    Text = "Dash Key",
+    Default = Enum.KeyCode.Q,                      -- Default key
+    Flag = "DashKey",                               -- 🔑 Saves automatically!
+    OnChanged = function(key)
+        print("Dash key changed to:", key.Name)
+    end,
+
+    -- Special flags (optional):
+    IsUIToggle = true,    -- Makes this control UI toggle key
+    IsUIEscape = true     -- Makes this control UI destroy key
+})
+
+-- API Methods
+myKeybind:Set(Enum.KeyCode.E)                     -- Change key
+local key = myKeybind:Get()                        -- Get current key
+```
+
+**Use case:** Rebindable hotkeys for features
+
+---
+
+### 7. TextBox
+
+**What it does:** Single-line text input
+
+```lua
+local myTextBox = Section:CreateTextBox({
+    Text = "Player Name",
+    PlaceholderText = "Enter name...",             -- Hint text
+    Default = "Guest",                              -- Starting value
+    Flag = "PlayerName",                            -- 🔑 Saves automatically!
+    OnChanged = function(text)
+        print("Text changed:", text)
+    end,
+    OnEnter = function(text)
+        print("Enter pressed:", text)
+    end
+})
+
+-- API Methods
+myTextBox:Set("NewValue")                          -- Set text
+local text = myTextBox:Get()                       -- Get current text
+```
+
+**Use case:** Username input, custom messages, search fields
+
+---
+
+### 8. Label
+
+**What it does:** Static text display
+
+```lua
+local myLabel = Section:CreateLabel({
+    Text = "Status: Ready"
+})
+
+-- API Methods
+myLabel:Set("Status: Active")                      -- Update text
+```
+
+**Use case:** Status messages, instructions, headers
+
+---
+
+### 9. Paragraph
+
+**What it does:** Multi-line text block
+
+```lua
+Section:CreateParagraph({
+    Text = "Welcome to My Hub!\n\nFeatures:\n• Auto Farm\n• ESP\n• Speed Hack"
+})
+```
+
+**Use case:** Descriptions, changelogs, instructions
+
+---
+
+### 10. Divider
+
+**What it does:** Visual separator between elements
+
+```lua
+Section:CreateDivider()
+```
+
+**Use case:** Organize sections visually
+
+---
+
+## 🔥 Advanced Features
+
+### Lock Groups (Master/Slave Controls)
+
+**Problem:** Some settings conflict with each other
+**Solution:** Lock groups automatically disable conflicting options
+
+```lua
+-- Scenario: Auto Farm should disable manual farming options
+
+-- Master toggle
+Section:CreateToggle({
+    Text = "🎯 Auto Farm (Master)",
+    LockGroup = "AutoFarm",           -- Creates the lock
+    Flag = "AutoFarmMaster"
+})
+
+-- These get disabled when master is ON:
+Section:CreateToggle({
+    Text = "Manual Farm Coins",
+    RespectLock = "AutoFarm",        -- Obeys the lock
+    Flag = "ManualCoins"
+})
+
+Section:CreateSlider({
+    Text = "Farm Speed",
+    Min = 1,
+    Max = 10,
+    RespectLock = "AutoFarm",        -- Slider also obeys lock!
+    Flag = "FarmSpeed"
+})
+```
+
+**When master is ON:**
+- All child controls become disabled (grayed out)
+- Prevents users from creating conflicting settings
+- Automatically re-enables when master turns OFF
+
+---
+
+### Notification System
+
+```lua
+-- Basic notification
+RvrseUI:Notify({
+    Title = "Success!",
+    Message = "Action completed",
+    Duration = 3,                    -- Seconds (optional, default: 4)
+    Type = "success"                 -- "success", "info", "warn", "error"
+})
+
+-- With priority
+RvrseUI:Notify({
+    Title = "CRITICAL ERROR",
+    Message = "Something went wrong!",
+    Type = "error",
+    Priority = "critical",           -- "critical", "high", "normal", "low"
+    Duration = 10
+})
+```
+
+**Types:**
+- `success` - Green, checkmark icon
+- `info` - Blue, info icon
+- `warn` - Yellow, warning icon
+- `error` - Red, error icon
+
+**Priorities:**
+- `critical` - Shows immediately, stays longest
+- `high` - Shows above normal
+- `normal` - Default
+- `low` - Shows below others
+
+---
+
+### Theme System
+
+```lua
+-- Switch theme
+RvrseUI:SetTheme("Light")          -- "Dark" or "Light"
+
+-- Theme auto-saves if ConfigurationSaving is enabled!
+```
+
+---
+
+### Flag System (Direct Access)
+
+**Access any element's value directly:**
+
+```lua
+-- Get value from any flagged element
+local speed = RvrseUI.Flags["WalkSpeed"]:Get()
+
+-- Set value programmatically
+RvrseUI.Flags["WalkSpeed"]:Set(50)
+
+-- Check if flag exists
+if RvrseUI.Flags["WalkSpeed"] then
+    print("Walk speed element exists!")
+end
+
+-- IMPORTANT: Use RvrseUI.Flags, NOT Window.Flags!
+-- Window.Flags doesn't exist and will cause errors!
+```
+
+---
+
+## 📖 API Reference
+
+### Window API
+
+```lua
+local Window = RvrseUI:CreateWindow(config)
+
+-- Methods
+Window:CreateTab({ Title = "Main", Icon = "⚙" })
+Window:Show()                        -- CRITICAL: Call this LAST!
+Window:SetTitle("New Title")
+Window:SetIcon("🎮")
+Window:Destroy()
+```
+
+### Tab API
+
+```lua
+local Tab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
+
+-- Methods
+Tab:CreateSection("Section Name")
+Tab:SetIcon("🔧")
+```
+
+### Section API
+
+```lua
+local Section = Tab:CreateSection("Player Features")
+
+-- Element Factories
+Section:CreateButton(config)
+Section:CreateToggle(config)
+Section:CreateSlider(config)
+Section:CreateDropdown(config)
+Section:CreateColorPicker(config)
+Section:CreateKeybind(config)
+Section:CreateTextBox(config)
+Section:CreateLabel(config)
+Section:CreateParagraph(config)
+Section:CreateDivider()
+
+-- Methods
+Section:SetVisible(true/false)
+Section:Update("New Section Title")
+```
+
+### Global API
+
+```lua
+RvrseUI:Notify(config)                -- Show notification
+RvrseUI:SaveConfiguration()           -- Manual save
+RvrseUI:LoadConfiguration()           -- Manual load
+RvrseUI:SetTheme("Dark"/"Light")     -- Switch theme
+RvrseUI:SetAutoSaveEnabled(bool)     -- Toggle auto-save
+RvrseUI:EnableDebug(true)            -- Enable debug logging
+RvrseUI:GetVersionInfo()             -- Get version info
+RvrseUI.Flags                        -- Access all flagged elements
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### "My settings aren't saving!"
+
+**Problem:** Values reset when you reload
+**Solution:** Add `Flag` parameter to your elements!
+
+```lua
+-- ❌ NO FLAG = NO SAVE
+Section:CreateSlider({
+    Text = "Speed",
+    Min = 16,
+    Max = 100
+})
+
+-- ✅ FLAG = AUTO-SAVE
+Section:CreateSlider({
+    Text = "Speed",
+    Min = 16,
+    Max = 100,
+    Flag = "WalkSpeed"  -- ADD THIS!
+})
+```
+
+### "attempt to index nil with 'Flags'"
+
+**Problem:** Using `Window.Flags` instead of `RvrseUI.Flags`
+**Solution:** Change all references:
+
+```lua
+-- ❌ WRONG
+if Window.Flags then
+    local speed = Window.Flags["WalkSpeed"]:Get()
+end
+
+-- ✅ CORRECT
+if RvrseUI.Flags then
+    local speed = RvrseUI.Flags["WalkSpeed"]:Get()
+end
+```
+
+### "Config loaded but values didn't restore"
+
+**Problem:** Not calling `Window:Show()` after creating elements
+**Solution:** Always call `Window:Show()` LAST!
+
+```lua
+-- Create window
+local Window = RvrseUI:CreateWindow(config)
+
+-- Create all tabs, sections, elements...
+local Tab = Window:CreateTab(...)
+local Section = Tab:CreateSection(...)
+Section:CreateSlider(...)
+
+-- ✅ CRITICAL: Call Show() LAST!
+Window:Show()  -- This loads config THEN shows UI
+```
+
+### "Dropdown multi-select not working"
+
+**Problem:** Using wrong parameter names
+**Solution:** Use `MultipleOptions` or `MultiSelect`:
+
+```lua
+-- ✅ Rayfield syntax
+CreateDropdown({
+    Options = {...},
+    MultipleOptions = true  -- Rayfield API
+})
+
+-- ✅ RvrseUI syntax
+CreateDropdown({
+    Values = {...},
+    MultiSelect = true      -- RvrseUI API
+})
+```
+
+### "ColorPicker panel not showing"
+
+**Problem:** `Advanced = false` or not set
+**Solution:** Set `Advanced = true`:
+
+```lua
+Section:CreateColorPicker({
+    Text = "Color",
+    Advanced = true,  -- Enables RGB/HSV/Hex panel
+    Default = Color3.fromRGB(255, 0, 0)
+})
+```
+
+### "UI not visible after calling Show()"
+
+**Problem:** ScreenGui parent issue
+**Solution:** Check Container setting:
+
+```lua
+RvrseUI:CreateWindow({
+    Name = "Test",
+    Container = "PlayerGui",  -- Try "CoreGui" if PlayerGui fails
+    DisplayOrder = 999999    -- Higher z-index
+})
+```
+
+---
+
+## 💡 Examples
+
+### Complete Hub Example
+
+```lua
+-- Load RvrseUI
+local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+
+-- Create window
+local Window = RvrseUI:CreateWindow({
+    Name = "My Game Hub",
+    Icon = "🎮",
+    Theme = "Dark",
+    ToggleUIKeybind = "K",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MyGameHub",
+        FileName = "Config.json"
+    },
+    LoadingTitle = "My Game Hub",
+    LoadingSubtitle = "Loading features..."
+})
+
+-- Main Tab
+local MainTab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
 local PlayerSection = MainTab:CreateSection("Player")
 
+-- Walk Speed with save
 PlayerSection:CreateSlider({
     Text = "Walk Speed",
     Min = 16,
     Max = 100,
-    Step = 2,
     Default = 16,
-    OnChanged = function(value)
-        local character = game.Players.LocalPlayer.Character
-        if character and character:FindFirstChildOfClass("Humanoid") then
-            character.Humanoid.WalkSpeed = value
-        end
-    end,
-    Flag = "WalkSpeed"
+    Flag = "WalkSpeed",
+    OnChanged = function(speed)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+    end
 })
 
-Window:Show()
-```
+-- Jump Power with save
+PlayerSection:CreateSlider({
+    Text = "Jump Power",
+    Min = 50,
+    Max = 200,
+    Default = 50,
+    Flag = "JumpPower",
+    OnChanged = function(power)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = power
+    end
+})
 
----
-
-## Feature Highlights
-- **Glassmorphism + Spring Animations**: Consistent palette and motion courtesy of `Theme` and `Animator` modules.
-- **Responsive Layout**: Automatically sizes for desktop, tablet, and mobile and ships with a controller chip when minimized.
-- **Config Persistence**: Named profiles, automatic auto-save, and manual `SaveConfiguration` / `LoadConfiguration` helpers.
-- **Lock & Flag Systems**: `State.Locks` keeps related controls in sync while `RvrseUI.Flags` exposes live element handles.
-- **Hotkey Management**: Global toggle/destroy keys with runtime rebinding and minimize awareness.
-- **Notification Stack**: Priority toasts rendered above the UI via the `Notifications` module.
-- **Profiles Command Center**: Built-in "Profiles" tab for refreshing, loading, saving, cloning, deleting configs, and toggling auto-save.
-- **Dropdown / Overlay System**: Inline `DropdownLegacy` renderer is the default for stability; opt into the overlay path with `UseModernDropdown` when a blocking layer is required.
-- **Modular Build**: 26 focused modules compiled into `RvrseUI.lua` for `loadstring` usage.
-
----
-
-## Dropdown Implementation Policy
-- `SectionBuilder:CreateDropdown` always routes to `DropdownLegacy` unless you explicitly pass `UseModernDropdown = true`.
-- The overlay-based renderer remains available for future work, but treat it as experimental and guard new usages behind reviews.
-- Do not edit either dropdown module without coordinating with maintainers; the current legacy configuration is the verified production path.
-- The Profiles tab confirms the inline renderer works with refresh callbacks, profile counts, and blocker-free animations across tabs.
-
----
-
-## Configuration Reference
-
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `Name` | string | `"RvrseUI"` | Window title and profile identifier. |
-| `Icon` | string | `nil` | Icon name or asset id for window badge. |
-| `LoadingTitle` | string | `Name` | Title text for splash card. |
-| `LoadingSubtitle` | string | `"Loading..."` | Subtitle under splash title. |
-| `Theme` | string | `"Dark"` | Initial palette (`"Dark"` or `"Light"`). Saved theme overrides on next launch. |
-| `ToggleUIKeybind` | string/Enum | `"K"` | Key that toggles the interface. |
-| `EscapeKey` | string/Enum | `Enum.KeyCode.Backspace` | Key that destroys the UI. |
-| `ConfigurationSaving` | bool/string/table | `false` | `true` auto-saves last profile, string creates named profile, or table `{ Enabled = true, FileName = "name.json", FolderName = "Folder" }`. |
-| `AutoSave` | bool (table only) | `true` | Include inside `ConfigurationSaving` table to disable background writes: `{ Enabled = true, FileName = "Config.json", AutoSave = false }`. |
-| `ConfigurationManager` | bool/table | `true` | Controls the auto-injected Profiles tab. Set to `false` to disable, or provide `{ TabName = "Profiles", Icon = "folder" }` to customize. |
-| `Container` | string/Instance | `nil` | Target ScreenGui parent (`"PlayerGui"`, `"CoreGui"`, etc. or Instance). |
-| `DisplayOrder` | number | `100000` | Display order applied when `Container` is overridden. |
-| `ShowText` | string | `"RvrseUI"` | Label shown on the mobile chip. |
-| `DisableBuildWarnings` | boolean | `false` | Suppresses startup success notification. |
-| `DisableRvrseUIPrompts` | boolean | `false` | Suppresses hotkey reminder toast. |
-
-### Configuration Tips
-- When `ConfigurationSaving` is truthy, element `Flag` values and dirty theme selections are written to JSON using executor `writefile` support.
-- Use `RvrseUI:SaveConfiguration()` and `RvrseUI:LoadConfiguration()` to manage profiles manually.
-- v3.0.3 routes save/load through the active window context so every flagged element persists; avoid modifying `src/Config.lua` unless you replicate this behaviour.
-- Set `ConfigurationSaving.AutoSave = false` if you want to manually save without overwriting your last profile on every flag change.
-- Call `RvrseUI:SetAutoSaveEnabled(false)` at runtime to pause auto-save temporarily.
-- Tune the injected "Profiles" tab via `ConfigurationManager = { TabName = "Profiles", Icon = "folder", DropdownPlaceholder = "Select profile" }` or set it to `false` to provide your own UI.
-- Call `Window:Show()` after building tabs/sections so saved settings apply before the UI becomes visible.
-
-### Example Config Table
-```lua
-local profile = {
-    Name = "Utility Hub",
-    Theme = "Light",
-    ToggleUIKeybind = Enum.KeyCode.LeftControl,
-    EscapeKey = Enum.KeyCode.Backspace,
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "RvrseUI/Profiles",
-        FileName = "utility.json",
-        AutoSave = false -- Optional: disable background writes
-    },
-    DisableBuildWarnings = true,
-    LoadingTitle = "Utility Hub",
-    LoadingSubtitle = "Applying saved tweaks"
-}
-local Window = RvrseUI:CreateWindow(profile)
-```
-
----
-
-## Profiles & Snapshot Workflow
-
-When `ConfigurationSaving` is enabled the UI injects a "Profiles" tab that keeps configurations in sync with disk:
-
-- **Refresh** – Re-scans the profiles folder on command and whenever the dropdown opens, so external changes appear immediately.
-- **Load Selected** – Executes `SetConfigProfile` + `LoadConfigByName` for the chosen entry and reapplies all flags/theme.
-- **Save Current** – Persists the active profile (`ConfigurationFileName`) using the live element state.
-- **Save As** – Writes a new profile name, refreshes the list, and optionally clears the input field.
-- **Delete Profile** – Removes the selected profile and clears the active selection if it was in use.
-- **Auto Save Toggle** – Mirrors `RvrseUI:SetAutoSaveEnabled` for quick snapshot freezes.
-
-Set `ConfigurationManager = false` to supply your own controls, or override labels/icons via `ConfigurationManager = { TabName = "Profiles", Icon = "folder", DropdownPlaceholder = "Select profile" }`.
-
----
-
-## Element Catalog
-
-| Element | Factory | Notes |
-| --- | --- | --- |
-| Button | `Section:CreateButton` | Ripple feedback, optional callback. |
-| Toggle | `Section:CreateToggle` | Supports `LockGroup` and `RespectLock` for gating child controls. |
-| Dropdown | `Section:CreateDropdown` | Scrollable list with optional default and callback. |
-| Slider | `Section:CreateSlider` | Numeric slider with min/max/step and smooth tweening. |
-| Keybind | `Section:CreateKeybind` | Captures keycodes, integrates with config saving via `Flag`. |
-| TextBox | `Section:CreateTextBox` | Single-line input with optional placeholder and enter detection. |
-| ColorPicker | `Section:CreateColorPicker` | Simple color cycle preview with callback and `Flag`. |
-| Label | `Section:CreateLabel` | Static copy for status lines. |
-| Paragraph | `Section:CreateParagraph` | Multi-line description block. |
-| Divider | `Section:CreateDivider` | Spacing component. |
-| Section | `Tab:CreateSection` | Groups elements, exposes `Update` and `SetVisible`. |
-| Tab | `Window:CreateTab` | Adds tab button + scrollable page with icon support. |
-
-### Element Usage Snippets
-```lua
+-- Infinite Jump toggle
 PlayerSection:CreateToggle({
-    Text = "Enable Flight",
+    Text = "Infinite Jump",
     State = false,
-    LockGroup = "Flight",
-    OnChanged = function(active)
-        print("Flight toggled", active)
-    end,
-    Flag = "FlightEnabled"
+    Flag = "InfiniteJump",
+    OnChanged = function(enabled)
+        -- Implementation here
+        if enabled then
+            RvrseUI:Notify({
+                Title = "Infinite Jump",
+                Message = "Enabled!",
+                Type = "success"
+            })
+        end
+    end
 })
 
-PlayerSection:CreateDropdown({
-    Text = "Gamemode",
-    Values = {"Story", "Arcade", "Challenge"},
-    Default = "Story",
-    Overlay = true, -- default; set to false for inline expansion
-    OnChanged = function(mode)
-        print("Mode set to", mode)
-    end,
-    Flag = "SelectedMode"
-})
--- overlay dropdowns reparent into the global overlay layer and close when clicking the blocker
+-- Combat Tab
+local CombatTab = Window:CreateTab({ Title = "Combat", Icon = "⚔️" })
+local CombatSection = CombatTab:CreateSection("Auto Farm")
 
-PlayerSection:CreateKeybind({
-    Text = "Dash Key",
-    Default = Enum.KeyCode.Q,
-    OnChanged = function(key)
-        print("Dash key =>", key.Name)
-    end,
-    Flag = "DashKey"
-})
-```
-
-### Lock Group Example
-```lua
-local LockTab = Window:CreateTab({ Title = "Automation", Icon = "lock" })
-local LockSection = LockTab:CreateSection("Automation Controls")
-
-LockSection:CreateToggle({
-    Text = "Master Switch",
-    LockGroup = "Automation",
-    OnChanged = function(state)
+-- Master toggle with lock group
+CombatSection:CreateToggle({
+    Text = "🎯 Auto Farm (Master)",
+    State = false,
+    LockGroup = "AutoFarm",
+    Flag = "AutoFarmMaster",
+    OnChanged = function(enabled)
         RvrseUI:Notify({
-            Title = state and "Automation On" or "Automation Off",
-            Message = state and "Child controls locked" or "Child controls unlocked",
-            Type = state and "warning" or "info"
+            Title = enabled and "Auto Farm Started" or "Auto Farm Stopped",
+            Message = enabled and "Individual farms locked" or "Manual control restored",
+            Type = enabled and "success" or "info"
         })
-    end,
-    Flag = "AutomationMaster"
+    end
 })
 
-LockSection:CreateSlider({
-    Text = "Automation Speed",
-    Min = 1,
-    Max = 10,
-    Default = 5,
-    RespectLock = "Automation",
-    Flag = "AutomationSpeed"
+-- Child toggles
+CombatSection:CreateToggle({
+    Text = "Farm Coins",
+    State = false,
+    RespectLock = "AutoFarm",
+    Flag = "FarmCoins"
+})
+
+CombatSection:CreateToggle({
+    Text = "Farm XP",
+    State = false,
+    RespectLock = "AutoFarm",
+    Flag = "FarmXP"
+})
+
+-- Settings Tab
+local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "🔧" })
+local ThemeSection = SettingsTab:CreateSection("Appearance")
+
+-- Theme color picker
+ThemeSection:CreateColorPicker({
+    Text = "Theme Color",
+    Default = Color3.fromRGB(88, 101, 242),
+    Advanced = true,
+    Flag = "ThemeColor",
+    OnChanged = function(color)
+        -- Apply to UI elements
+    end
+})
+
+-- CRITICAL: Show window LAST!
+Window:Show()
+
+-- Welcome message
+RvrseUI:Notify({
+    Title = "Welcome!",
+    Message = "Press K to toggle UI",
+    Duration = 5,
+    Type = "success"
 })
 ```
 
 ---
 
-## Public API Summary
+## 📝 Additional Resources
 
-### Window API
-- `CreateWindow(configTable)` → window handle.
-- `Window:CreateTab({ Title = string, Icon = string? })` → tab handle.
-- `Window:Show()` displays the UI after splash/config load.
-- `Window:SetTitle(newTitle)`, `Window:SetIcon(newIcon)` for runtime tweaks.
-- `Window:Destroy()` tears down the host ScreenGui and clears listeners.
-
-### Tab API
-- `Tab:CreateSection(title)` → section handle.
-- `Tab:SetIcon(icon)` to update the badge.
-- Tabs automatically hide/show when toggled; you typically operate via sections.
-
-### Section API
-- Element factories: `CreateButton`, `CreateToggle`, `CreateDropdown`, `CreateSlider`, `CreateKeybind`, `CreateTextBox`, `CreateColorPicker`, `CreateLabel`, `CreateParagraph`, `CreateDivider`.
-- `Section:Update(newTitle)` and `Section:SetVisible(boolean)` manage headings.
-
-### Global Helpers
-- `RvrseUI:Notify({ Title, Message, Type, Priority, Duration })` enqueues a toast.
-- `RvrseUI:SaveConfiguration()` / `LoadConfiguration()` handle persistence.
-- `RvrseUI:GetVersionInfo()` returns the active version table.
-- `RvrseUI:SetTheme("Dark"|"Light")` switches palettes and triggers auto-save if enabled.
+- **[Phase 2 Documentation](docs/PHASE2_COMPLETION.md)** - Complete Phase 2 feature guide
+- **[Quick Reference](docs/PHASE2_QUICK_REFERENCE.md)** - Developer quick reference
+- **[Repository Structure](DIRECTORY.md)** - How the project is organized
+- **[Changelog](CHANGELOG.md)** - Version history
+- **[Examples Directory](examples/)** - More example scripts
 
 ---
 
-## Theme & Notifications
-- Theme palettes live in `src/Theme.lua` with `Dark` and `Light` dictionaries.
-- `Theme:Switch` flips palettes and marks them dirty so the config writer persists the choice.
-- Notifications are rendered in a dedicated ScreenGui stack with priority ordering (`critical`, `high`, `normal`, `low`).
-- Use notifications sparingly—`DisableBuildWarnings` and `DisableRvrseUIPrompts` disable the built-in startup toasts if you prefer a silent boot.
+## 🤝 Rayfield Migration Guide
+
+**Switching from Rayfield? Good news: You don't need to change your code!**
+
+RvrseUI is 100% compatible with Rayfield's dropdown API:
+
+```lua
+-- This Rayfield code works as-is in RvrseUI:
+local Dropdown = Tab:CreateDropdown({
+   Name = "Dropdown Example",           -- RvrseUI uses "Text" but accepts "Name"
+   Options = {"Option 1","Option 2"},   -- ✅ Supported
+   CurrentOption = {"Option 1"},        -- ✅ Supported
+   MultipleOptions = false,             -- ✅ Supported
+   Flag = "Dropdown1",
+   Callback = function(Options)         -- ✅ Supported
+      print(Options[1])
+   end,
+})
+
+-- All Rayfield methods work:
+Dropdown:Refresh({"New1", "New2"})      -- ✅ Works
+Dropdown:Set({"Option 2"})              -- ✅ Works
+print(Dropdown.CurrentOption[1])        -- ✅ Works
+```
+
+**Just change the library load line and you're done!**
 
 ---
 
-## Compatibility & Limits
-- Client-side only: intended for Roblox `LocalScript` usage.
-- UI is responsive for desktop, tablet, and mobile; console is not officially supported.
-- Notifications and toast stacking require `TweenService` (standard in Roblox).
-- Theme persistence and configuration saving require an executor exposing `readfile`/`writefile` APIs; otherwise the UI runs without persistence.
+## ⚖️ License
+
+MIT License - See [LICENSE](LICENSE) file
 
 ---
 
-## Development Notes
-- `src/` contains the authoritative modules (`Theme`, `Animator`, `WindowBuilder`, element factories, etc.) that power both the modular loader (`init.lua`) and the bundled monolith.
-- `init.lua` is still the source of truth for wiring services, configuration, overlay creation, and notification setup. The monolith now embeds the same bootstrap so both entry-points initialise identically.
-- `WindowBuilder` enforces temporary clipping during minimize/restore to keep tab bodies from escaping the frame—do not remove this guard without validating the shrink animation.
-- `RvrseUI.lua` is generated; never hand-edit it. After touching any file in `src/` (or `init.lua`), run `node build.js` to rebuild the bundle. A Lua fallback (`lua build.lua`) exists for environments without Node.
-- The build scripts now scope every module in a `do ... end` block and hydrate shared singletons (`DEFAULT_HOST`, overlay frame, notifications, hotkeys) before exposing the public API, preventing cross-module leakage.
-- Keep `VERSION.json`, `README.md`, and `CLAUDE.md` consistent with each release; the push guard expects the version badge and metadata to match.
-- Legacy documentation, deep-dive reports, and historical tests remain archived under `docs/__archive/` for reference.
+## 🔗 Links
 
-### Monolith ↔ Modular Workflow
-1. Edit modules under `src/` (or the public API in `init.lua`).
-2. Run `node build.js` (or `lua build.lua`) to regenerate `RvrseUI.lua`.
-3. Verify runtime in Roblox/your executor using the rebuilt monolith.
-4. Commit both the source changes and the regenerated `RvrseUI.lua` together so GitHub consumers stay in sync with `main`.
-5. When testing persistence, remember that the compiled bundle now creates/retains the default `ScreenGui` + overlay globally—destroying them in your scripts requires calling `RvrseUI:Destroy()` to match the cached handles.
-
-### Testing & Validation
-- Use Roblox Studio or an executor to run manual smoke tests with your own scripts.
-- The previous comprehensive demo (`TEST_ALL_FEATURES.lua`) is archived at `docs/__archive/2025-10-09/TEST_ALL_FEATURES.lua` and can be run directly if you need end-to-end coverage.
+- **GitHub Repository:** [CoderRvrse/RvrseUI](https://github.com/CoderRvrse/RvrseUI)
+- **Issues:** [Report bugs here](https://github.com/CoderRvrse/RvrseUI/issues)
+- **Loadstring:** `https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua`
 
 ---
 
-## Versioning & Releases
-- Version metadata is defined in `VERSION.json` and mirrored inside `RvrseUI.lua`.
-- Release notes are tracked in [`CHANGELOG.md`](CHANGELOG.md).
-- Follow semantic versioning: breaking changes bump Major, new features bump Minor, fixes bump Patch.
+## 💬 Support
+
+**Confused? Check these first:**
+1. ✅ Did you add `Flag` to save values?
+2. ✅ Did you call `Window:Show()` LAST?
+3. ✅ Are you using `RvrseUI.Flags` (not `Window.Flags`)?
+4. ✅ Did you enable `ConfigurationSaving`?
+
+**Still stuck? Open an issue on GitHub with:**
+- Your code (simplified example)
+- What you expected
+- What actually happened
+- Any error messages
 
 ---
 
-## License & Support
-- Licensed under the MIT License (see [`LICENSE`](LICENSE)).
-- Issues and pull requests: [https://github.com/CoderRvrse/RvrseUI](https://github.com/CoderRvrse/RvrseUI).
-- For archived documentation, browse `docs/__archive/`.
+**Made with ❤️ by CoderRvrse**
+
+**Version 4.0.0** • **Build 228KB** • **26 Modules** • **Production Ready**
