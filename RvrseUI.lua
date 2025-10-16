@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-16T14:31:05.055Z
+-- Compiled from modular architecture on 2025-10-16T14:42:53.896Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -5226,25 +5226,6 @@ do
 		UIHelpers.corner(root, 16)
 		UIHelpers.stroke(root, pal.Accent, 2)
 	
-		-- ═══════════════════════════════════════════════════════════════
-		-- SAFETY DRAG BORDER - Invisible Extended Drag Area
-		-- ═══════════════════════════════════════════════════════════════
-		-- Creates an invisible 20px border around the window that extends
-		-- beyond its visible edges. This allows users to drag the window
-		-- back into view if it gets positioned off-screen.
-		-- ═══════════════════════════════════════════════════════════════
-	
-		local safetyBorderSize = 20  -- pixels of extra grabbable area
-	
-		local safetyBorder = Instance.new("Frame")
-		safetyBorder.Name = Obfuscation.getObfuscatedName("safety_border")
-		safetyBorder.Size = UDim2.new(1, safetyBorderSize * 2, 1, safetyBorderSize * 2)
-		safetyBorder.Position = UDim2.fromOffset(-safetyBorderSize, -safetyBorderSize)
-		safetyBorder.BackgroundTransparency = 1  -- Completely invisible
-		safetyBorder.BorderSizePixel = 0
-		safetyBorder.ZIndex = 99  -- Behind root but still grabbable
-		safetyBorder.Parent = root
-	
 		-- Header bar with gloss effect
 		local header = Instance.new("Frame")
 		header.Size = UDim2.new(1, 0, 0, 52)
@@ -5361,9 +5342,8 @@ do
 	
 		-- Start dragging when header is clicked
 		header.Active = true
-		safetyBorder.Active = true  -- Make safety border draggable too
 	
-		local function startDrag(io)
+		header.InputBegan:Connect(function(io)
 			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 				dragging = true
 				activeDragInput = io
@@ -5373,20 +5353,14 @@ do
 				Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragPointerOffset.X, dragPointerOffset.Y)
 				Debug.printf("[DRAG] Started - input type: %s", tostring(io.UserInputType))
 			end
-		end
+		end)
 	
-		local function endDrag(io)
+		-- End drag when released on header
+		header.InputEnded:Connect(function(io)
 			if io == activeDragInput then
 				finishDrag()
 			end
-		end
-	
-		header.InputBegan:Connect(startDrag)
-		header.InputEnded:Connect(endDrag)
-	
-		-- Safety border drag handlers
-		safetyBorder.InputBegan:Connect(startDrag)
-		safetyBorder.InputEnded:Connect(endDrag)
+		end)
 	
 		-- Main drag update loop - maintains cursor lock
 		UIS.InputChanged:Connect(function(io)
