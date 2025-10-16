@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-16T14:42:53.896Z
+-- Compiled from modular architecture on 2025-10-16T15:54:33.133Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2364,7 +2364,18 @@ do
 	
 		-- Public API
 		local buttonAPI = {
+			Set = function(_, text, interactText)
+				-- Rayfield-compatible Set method
+				-- text: Main button text (required)
+				-- interactText: Optional secondary text (not used in current design)
+				if text then
+					btn.Text = text
+					currentText = text
+				end
+				-- interactText parameter reserved for future use (Rayfield compatibility)
+			end,
 			SetText = function(_, txt)
+				-- Legacy method - kept for backwards compatibility
 				btn.Text = txt
 				currentText = txt
 			end,
@@ -3782,9 +3793,12 @@ do
 		local dragging = false
 		local hovering = false
 	
+		local suffix = o.Suffix or ""
+	
 		local function updateLabelText(newValue)
-			lbl.Text = string.format("%s: %s", baseLabelText, tostring(newValue))
-			valueLbl.Text = tostring(newValue)
+			local displayValue = suffix ~= "" and (tostring(newValue) .. suffix) or tostring(newValue)
+			lbl.Text = string.format("%s: %s", baseLabelText, displayValue)
+			valueLbl.Text = displayValue
 		end
 	
 		local function update(inputPos)
@@ -3905,6 +3919,26 @@ do
 		sliderAPI = {
 			Set = function(_, v)
 				setValueDirect(v)
+			end,
+			SetRange = function(_, newMin, newMax, newStep)
+				-- Rayfield-compatible SetRange method
+				-- Update min/max/step at runtime and recalculate current value
+				minVal = newMin or minVal
+				maxVal = newMax or maxVal
+				step = newStep or step
+				range = maxVal - minVal
+				if range == 0 then
+					range = 1
+				end
+				-- Clamp current value to new range
+				value = math.clamp(value, minVal, maxVal)
+				setValueDirect(value)
+			end,
+			SetSuffix = function(_, newSuffix)
+				-- Rayfield-compatible SetSuffix method
+				-- Update the suffix displayed after the value (e.g., "%", " items", " HP")
+				suffix = newSuffix or ""
+				updateLabelText(value)
 			end,
 			Get = function() return value end,
 			SetVisible = function(_, visible)

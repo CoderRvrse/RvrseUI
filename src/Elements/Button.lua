@@ -157,7 +157,18 @@ function Button.Create(o, dependencies)
 
 	-- Public API
 	local buttonAPI = {
+		Set = function(_, text, interactText)
+			-- Rayfield-compatible Set method
+			-- text: Main button text (required)
+			-- interactText: Optional secondary text (not used in current design)
+			if text then
+				btn.Text = text
+				currentText = text
+			end
+			-- interactText parameter reserved for future use (Rayfield compatibility)
+		end,
 		SetText = function(_, txt)
+			-- Legacy method - kept for backwards compatibility
 			btn.Text = txt
 			currentText = txt
 		end,

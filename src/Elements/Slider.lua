@@ -113,9 +113,12 @@ function Slider.Create(o, dependencies)
 	local dragging = false
 	local hovering = false
 
+	local suffix = o.Suffix or ""
+
 	local function updateLabelText(newValue)
-		lbl.Text = string.format("%s: %s", baseLabelText, tostring(newValue))
-		valueLbl.Text = tostring(newValue)
+		local displayValue = suffix ~= "" and (tostring(newValue) .. suffix) or tostring(newValue)
+		lbl.Text = string.format("%s: %s", baseLabelText, displayValue)
+		valueLbl.Text = displayValue
 	end
 
 	local function update(inputPos)
@@ -236,6 +239,26 @@ function Slider.Create(o, dependencies)
 	sliderAPI = {
 		Set = function(_, v)
 			setValueDirect(v)
+		end,
+		SetRange = function(_, newMin, newMax, newStep)
+			-- Rayfield-compatible SetRange method
+			-- Update min/max/step at runtime and recalculate current value
+			minVal = newMin or minVal
+			maxVal = newMax or maxVal
+			step = newStep or step
+			range = maxVal - minVal
+			if range == 0 then
+				range = 1
+			end
+			-- Clamp current value to new range
+			value = math.clamp(value, minVal, maxVal)
+			setValueDirect(value)
+		end,
+		SetSuffix = function(_, newSuffix)
+			-- Rayfield-compatible SetSuffix method
+			-- Update the suffix displayed after the value (e.g., "%", " items", " HP")
+			suffix = newSuffix or ""
+			updateLabelText(value)
 		end,
 		Get = function() return value end,
 		SetVisible = function(_, visible)
