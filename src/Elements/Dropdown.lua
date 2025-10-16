@@ -25,13 +25,25 @@ function Dropdown.Create(o, dependencies)
 
 	-- Settings
 	local values = {}
-	for _, v in ipairs(o.Values or {}) do
+	-- Support both "Values" (RvrseUI) and "Options" (Rayfield compatibility)
+	local sourceValues = o.Values or o.Options or {}
+	for _, v in ipairs(sourceValues) do
 		table.insert(values, v)
+	end
+
+	local multiSelect = o.MultiSelect == true or o.MultipleOptions == true  -- Multi-select mode (support both APIs)
+	local selectedValues = {}  -- For multi-select mode
+
+	-- Initialize selectedValues from CurrentOption (Rayfield compatibility)
+	if multiSelect and o.CurrentOption and type(o.CurrentOption) == "table" then
+		for _, val in ipairs(o.CurrentOption) do
+			table.insert(selectedValues, val)
+		end
 	end
 
 	local maxHeight = o.MaxHeight or 240  -- Increased to 240 for better visibility
 	local itemHeight = 40  -- Increased to 40 for better touch targets
-	local placeholder = o.PlaceholderText or "Select"
+	local placeholder = o.PlaceholderText or (multiSelect and "Select multiple" or "Select")
 	local DROPDOWN_BASE_Z = 3000
 	local fallbackOverlayLayer
 	local fallbackOverlayGui
@@ -202,6 +214,7 @@ function Dropdown.Create(o, dependencies)
 	local dropdownOpen = false
 	local optionButtons = {}
 	local idx = 1
+	local dropdownAPI = {}  -- Forward declaration for updateCurrentOption
 
 	local function locked()
 		return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
@@ -281,17 +294,54 @@ function Dropdown.Create(o, dependencies)
 		blockerActive = false
 	end
 
-	local function updateButtonText()
-		if values[idx] then
-			btn.Text = tostring(values[idx])
+	local function updateCurrentOption()
+		-- Update CurrentOption property (Rayfield compatibility)
+		if multiSelect then
+			dropdownAPI.CurrentOption = selectedValues
 		else
-			btn.Text = placeholder
+			dropdownAPI.CurrentOption = values[idx] and {values[idx]} or {}
+		end
+	end
+
+	local function updateButtonText()
+		if multiSelect then
+			local count = #selectedValues
+			if count == 0 then
+				btn.Text = placeholder
+			elseif count == 1 then
+				btn.Text = tostring(selectedValues[1])
+			else
+				btn.Text = count .. " selected"
+			end
+		else
+			if values[idx] then
+				btn.Text = tostring(values[idx])
+			else
+				btn.Text = placeholder
+			end
+		end
+		updateCurrentOption()
+	end
+
+	local function isValueSelected(value)
+		if multiSelect then
+			for _, v in ipairs(selectedValues) do
+				if v == value then
+					return true
+				end
+			end
+			return false
+		else
+			return values[idx] == value
 		end
 	end
 
 	local function updateHighlight()
 		for i, optionBtn in ipairs(optionButtons) do
-			if i == idx then
+			local value = values[i]
+			local selected = isValueSelected(value)
+
+			if selected then
 				optionBtn.BackgroundColor3 = pal3.Accent
 				optionBtn.BackgroundTransparency = 0.8
 				optionBtn.TextColor3 = pal3.Accent
@@ -299,6 +349,15 @@ function Dropdown.Create(o, dependencies)
 				optionBtn.BackgroundColor3 = pal3.Card
 				optionBtn.BackgroundTransparency = 0
 				optionBtn.TextColor3 = pal3.Text
+			end
+
+			-- Update checkbox if multi-select
+			if multiSelect then
+				local checkbox = optionBtn:FindFirstChild("Checkbox")
+				if checkbox then
+					checkbox.Text = selected and "☑" or "☐"
+					checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
+				end
 			end
 		end
 	end
@@ -391,6 +450,25 @@ function Dropdown.Create(o, dependencies)
 		if #values == 0 then
 			idx = 0
 		else
+			-- Initialize idx from CurrentOption (single-select mode, Rayfield compatibility)
+			if not multiSelect and o.CurrentOption then
+				local currentVal
+				if type(o.CurrentOption) == "table" and #o.CurrentOption > 0 then
+					currentVal = o.CurrentOption[1]
+				elseif type(o.CurrentOption) == "string" then
+					currentVal = o.CurrentOption
+				end
+
+				if currentVal then
+					for i, val in ipairs(values) do
+						if val == currentVal then
+							idx = i
+							break
+						end
+					end
+				end
+			end
+
 			if idx < 1 or idx > #values then
 				idx = 1
 			end
@@ -401,40 +479,88 @@ function Dropdown.Create(o, dependencies)
 			local optionBtn = Instance.new("TextButton")
 			optionBtn.Name = "Option_" .. i
 			optionBtn.Size = UDim2.new(1, -8, 0, 36)  -- Match itemHeight (40 - 4 for padding)
-			optionBtn.BackgroundColor3 = i == idx and pal3.Accent or pal3.Card
-			optionBtn.BackgroundTransparency = i == idx and 0.8 or 0
+			local selected = isValueSelected(value)
+			optionBtn.BackgroundColor3 = selected and pal3.Accent or pal3.Card
+			optionBtn.BackgroundTransparency = selected and 0.8 or 0
 			optionBtn.BorderSizePixel = 0
 			optionBtn.Font = Enum.Font.GothamMedium  -- Changed to Medium for better readability
 			optionBtn.TextSize = 14  -- Increased from 13 to 14 for clarity
-			optionBtn.TextColor3 = i == idx and pal3.Accent or pal3.Text
+			optionBtn.TextColor3 = selected and pal3.Accent or pal3.Text
 			optionBtn.Text = tostring(value)
+			optionBtn.TextXAlignment = multiSelect and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center
 			optionBtn.AutoButtonColor = false
 			optionBtn.LayoutOrder = i
 			optionBtn.ZIndex = dropdownScroll.ZIndex + 1
 			optionBtn.Parent = dropdownScroll
 			corner(optionBtn, 6)
 
+			-- Add checkbox for multi-select
+			if multiSelect then
+				local checkbox = Instance.new("TextLabel")
+				checkbox.Name = "Checkbox"
+				checkbox.BackgroundTransparency = 1
+				checkbox.Size = UDim2.new(0, 24, 1, 0)
+				checkbox.Position = UDim2.new(0, 8, 0, 0)
+				checkbox.Font = Enum.Font.GothamBold
+				checkbox.TextSize = 16
+				checkbox.Text = selected and "☑" or "☐"
+				checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
+				checkbox.ZIndex = optionBtn.ZIndex + 1
+				checkbox.Parent = optionBtn
+
+				-- Add padding for text after checkbox
+				local textPadding = Instance.new("UIPadding")
+				textPadding.PaddingLeft = UDim.new(0, 36)
+				textPadding.Parent = optionBtn
+			end
+
 			optionBtn.MouseButton1Click:Connect(function()
 				if locked() then return end
-				idx = i
-				updateButtonText()
-				updateHighlight()
-				setOpen(false)
 
-				if o.OnChanged then
-					task.spawn(o.OnChanged, value)
+				if multiSelect then
+					-- Toggle selection
+					local found = false
+					for k, v in ipairs(selectedValues) do
+						if v == value then
+							table.remove(selectedValues, k)
+							found = true
+							break
+						end
+					end
+
+					if not found then
+						table.insert(selectedValues, value)
+					end
+
+					updateButtonText()
+					updateHighlight()
+
+					if o.OnChanged then
+						task.spawn(o.OnChanged, selectedValues)
+					end
+					if o.Flag then RvrseUI:_autoSave() end
+				else
+					-- Single select (close on click)
+					idx = i
+					updateButtonText()
+					updateHighlight()
+					setOpen(false)
+
+					if o.OnChanged then
+						task.spawn(o.OnChanged, value)
+					end
+					if o.Flag then RvrseUI:_autoSave() end
 				end
-				if o.Flag then RvrseUI:_autoSave() end
 			end)
 
 			optionBtn.MouseEnter:Connect(function()
-				if i ~= idx then
+				if not isValueSelected(value) then
 					Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Hover}, Animator.Spring.Fast)
 				end
 			end)
 
 			optionBtn.MouseLeave:Connect(function()
-				if i ~= idx then
+				if not isValueSelected(value) then
 					Animator:Tween(optionBtn, {BackgroundColor3 = pal3.Card}, Animator.Spring.Fast)
 				end
 			end)
@@ -575,8 +701,28 @@ function Dropdown.Create(o, dependencies)
 		end)
 
 
-	local dropdownAPI = {
-		Set = function(_, v, suppressCallback)
+	-- Build dropdownAPI methods
+	dropdownAPI.Set = function(_, v, suppressCallback)
+		if multiSelect then
+			-- For multi-select, v should be an array
+			if type(v) == "table" then
+				selectedValues = {}
+				for _, val in ipairs(v) do
+					table.insert(selectedValues, val)
+				end
+			else
+				selectedValues = {}
+			end
+
+			updateButtonText()
+			updateHighlight()
+			visual()
+
+			if not suppressCallback and o.OnChanged then
+				task.spawn(o.OnChanged, selectedValues)
+			end
+		else
+			-- Single select mode
 			local foundIndex
 			if v ~= nil then
 				for i, val in ipairs(values) do
@@ -604,36 +750,75 @@ function Dropdown.Create(o, dependencies)
 			if not suppressCallback and o.OnChanged and values[idx] then
 				task.spawn(o.OnChanged, values[idx])
 			end
-		end,
-
-		Get = function()
-			return values[idx]
-		end,
-
-		Refresh = function(_, newValues)
-			if newValues then
-				values = {}
-				for _, val in ipairs(newValues) do
-					values[#values + 1] = val
-				end
-				idx = 1
-			end
-			rebuildOptions()
-			visual()
-			if dropdownOpen then
-				positionDropdown(nil, dropdownHeight)
-			end
-		end,
-
-		SetVisible = function(_, visible)
-			f.Visible = visible
-		end,
-
-		CurrentOption = values[idx],
-		SetOpen = function(_, state)
-			setOpen(state and true or false)
 		end
-	}
+	end
+
+	dropdownAPI.Get = function()
+		if multiSelect then
+			return selectedValues
+		else
+			return values[idx]
+		end
+	end
+
+	dropdownAPI.Refresh = function(_, newValues)
+		if newValues then
+			values = {}
+			for _, val in ipairs(newValues) do
+				values[#values + 1] = val
+			end
+			idx = 1
+		end
+		rebuildOptions()
+		visual()
+		if dropdownOpen then
+			positionDropdown(nil, dropdownHeight)
+		end
+	end
+
+	dropdownAPI.SetVisible = function(_, visible)
+		f.Visible = visible
+	end
+
+	dropdownAPI.SetOpen = function(_, state)
+		setOpen(state and true or false)
+	end
+
+	-- Multi-select specific methods
+	dropdownAPI.SelectAll = function(_)
+		if multiSelect then
+			selectedValues = {}
+			for _, val in ipairs(values) do
+				table.insert(selectedValues, val)
+			end
+			updateButtonText()
+			updateHighlight()
+			if o.OnChanged then
+				task.spawn(o.OnChanged, selectedValues)
+			end
+			if o.Flag then RvrseUI:_autoSave() end
+		end
+	end
+
+	dropdownAPI.ClearAll = function(_)
+		if multiSelect then
+			selectedValues = {}
+			updateButtonText()
+			updateHighlight()
+			if o.OnChanged then
+				task.spawn(o.OnChanged, selectedValues)
+			end
+			if o.Flag then RvrseUI:_autoSave() end
+		end
+	end
+
+	dropdownAPI.IsMultiSelect = function()
+		return multiSelect
+	end
+
+	-- Add CurrentOption property (Rayfield compatibility)
+	-- This returns the current selection as a table (like Rayfield)
+	dropdownAPI.CurrentOption = multiSelect and selectedValues or (values[idx] and {values[idx]} or {})
 
 	if o.Flag then
 		RvrseUI.Flags[o.Flag] = dropdownAPI

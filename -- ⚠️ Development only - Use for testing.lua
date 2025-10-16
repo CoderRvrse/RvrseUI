@@ -440,6 +440,227 @@ ParitySection:CreateParagraph({
   Text = "✅ Parity Test Results:\n• Button:Set() - Working\n• Slider:SetRange() - Working\n• Slider:SetSuffix() - Working\n• Mass Updates - Stable\n\nRvrseUI is now 95% Rayfield compatible!"
 })
 
+-- ═══════════════════════════════════════════════════════════════
+-- 🎨 PHASE 2: ColorPicker RGB/HSV + Hex Input Tests
+-- ═══════════════════════════════════════════════════════════════
+
+local Phase2Tab = Window:CreateTab({ Title = "🎨 Phase 2 Features", Icon = "🚀" })
+local ColorPickerSection = Phase2Tab:CreateSection("Advanced ColorPicker (RGB/HSV/Hex)")
+
+ColorPickerSection:CreateLabel({ Text = "─── Advanced Color Picker Demo ───" })
+
+-- Advanced ColorPicker with full RGB/HSV/Hex controls
+local advancedPicker = ColorPickerSection:CreateColorPicker({
+  Text = "Advanced Color Picker",
+  Default = Color3.fromRGB(88, 101, 242),  -- Discord Blurple
+  Advanced = true,  -- Enable RGB/HSV/Hex controls
+  Flag = "AdvancedColor",
+  OnChanged = function(color)
+    print("[Advanced Picker] Color changed:", color)
+  end
+})
+
+ColorPickerSection:CreateLabel({ Text = "Features:" })
+ColorPickerSection:CreateParagraph({
+  Text = "• RGB Sliders (0-255)\n• HSV Sliders (H: 0-360, S/V: 0-100%)\n• Hex Input (#RRGGBB)\n• Live Preview Circle\n• Auto-sync between modes\n• Click circle to toggle panel"
+})
+
+-- Simple ColorPicker for comparison
+ColorPickerSection:CreateLabel({ Text = "─── Simple Mode (Preset Colors) ───" })
+
+ColorPickerSection:CreateColorPicker({
+  Text = "Simple Color Cycler",
+  Default = Color3.fromRGB(255, 0, 0),
+  Advanced = false,  -- Disable advanced mode (8 preset colors)
+  Flag = "SimpleColor",
+  OnChanged = function(color)
+    print("[Simple Picker] Color changed:", color)
+  end
+})
+
+-- API Test Buttons
+ColorPickerSection:CreateLabel({ Text = "─── ColorPicker API Tests ───" })
+
+ColorPickerSection:CreateButton({
+  Text = "🎨 Set Random Color",
+  Callback = function()
+    local randomColor = Color3.fromRGB(
+      math.random(0, 255),
+      math.random(0, 255),
+      math.random(0, 255)
+    )
+    advancedPicker:Set(randomColor)
+    RvrseUI:Notify({
+      Title = "Color Updated",
+      Message = "Set to random color!",
+      Duration = 2,
+      Type = "success"
+    })
+  end
+})
+
+ColorPickerSection:CreateButton({
+  Text = "📋 Get Current Color",
+  Callback = function()
+    local color = advancedPicker:Get()
+    local r = math.floor(color.R * 255 + 0.5)
+    local g = math.floor(color.G * 255 + 0.5)
+    local b = math.floor(color.B * 255 + 0.5)
+    RvrseUI:Notify({
+      Title = "Current Color",
+      Message = string.format("RGB(%d, %d, %d)", r, g, b),
+      Duration = 3,
+      Type = "info"
+    })
+  end
+})
+
+-- ═══════════════════════════════════════════════════════════════
+-- 📋 PHASE 2: Dropdown Multi-Select Tests
+-- ═══════════════════════════════════════════════════════════════
+
+local DropdownSection = Phase2Tab:CreateSection("Dropdown Multi-Select")
+
+DropdownSection:CreateLabel({ Text = "─── Multi-Select Dropdown Demo ───" })
+
+-- Multi-select dropdown (Rayfield-compatible syntax)
+local multiDropdown = DropdownSection:CreateDropdown({
+  Text = "Select Game Modes",
+  Options = {"Team Deathmatch", "Capture the Flag", "King of the Hill", "Free for All", "Domination", "Search & Destroy"},  -- "Options" for Rayfield compatibility
+  CurrentOption = {"Team Deathmatch", "Free for All"},  -- Pre-select 2 options
+  MultipleOptions = true,  -- Rayfield syntax for multi-select
+  PlaceholderText = "Choose modes",
+  Flag = "GameModes",
+  OnChanged = function(selected)
+    print("[Multi-Select] Selected:", table.concat(selected, ", "))
+  end
+})
+
+DropdownSection:CreateLabel({ Text = "Features:" })
+DropdownSection:CreateParagraph({
+  Text = "• Checkboxes for each item\n• Multiple selection support\n• Shows count when 2+ selected\n• Returns array of values\n• Click to toggle selection\n• Stays open for more selections"
+})
+
+-- Control buttons for multi-select
+DropdownSection:CreateLabel({ Text = "─── Multi-Select Controls ───" })
+
+DropdownSection:CreateButton({
+  Text = "✅ Select All Modes",
+  Callback = function()
+    multiDropdown:SelectAll()
+    RvrseUI:Notify({
+      Title = "All Selected",
+      Message = "All game modes selected!",
+      Duration = 2,
+      Type = "success"
+    })
+  end
+})
+
+DropdownSection:CreateButton({
+  Text = "❌ Clear All Selections",
+  Callback = function()
+    multiDropdown:ClearAll()
+    RvrseUI:Notify({
+      Title = "Cleared",
+      Message = "All selections cleared",
+      Duration = 2,
+      Type = "warn"
+    })
+  end
+})
+
+DropdownSection:CreateButton({
+  Text = "📋 Get Selected Modes",
+  Callback = function()
+    local selected = multiDropdown:Get()
+    if #selected == 0 then
+      RvrseUI:Notify({
+        Title = "No Selection",
+        Message = "No modes selected",
+        Duration = 2,
+        Type = "warn"
+      })
+    else
+      RvrseUI:Notify({
+        Title = "Selected Modes",
+        Message = table.concat(selected, ", "),
+        Duration = 4,
+        Type = "info"
+      })
+    end
+  end
+})
+
+DropdownSection:CreateButton({
+  Text = "🔍 Check CurrentOption Property",
+  Callback = function()
+    -- Test Rayfield's CurrentOption property
+    local current = multiDropdown.CurrentOption
+    if #current == 0 then
+      RvrseUI:Notify({
+        Title = "CurrentOption",
+        Message = "Empty array: {}",
+        Duration = 2,
+        Type = "info"
+      })
+    else
+      RvrseUI:Notify({
+        Title = "CurrentOption Property",
+        Message = "Array: {" .. table.concat(current, ", ") .. "}",
+        Duration = 4,
+        Type = "info"
+      })
+    end
+  end
+})
+
+DropdownSection:CreateButton({
+  Text = "🎯 Set Custom Selection",
+  Callback = function()
+    multiDropdown:Set({"Team Deathmatch", "Free for All", "Domination"})
+    RvrseUI:Notify({
+      Title = "Selection Updated",
+      Message = "Set to 3 specific modes",
+      Duration = 2,
+      Type = "success"
+    })
+  end
+})
+
+-- Standard single-select for comparison (Rayfield syntax)
+DropdownSection:CreateLabel({ Text = "─── Single-Select (Rayfield Syntax) ───" })
+
+local singleDropdown = DropdownSection:CreateDropdown({
+  Text = "Select Difficulty",
+  Options = {"Easy", "Normal", "Hard", "Expert", "Master"},  -- Rayfield uses "Options"
+  CurrentOption = {"Hard"},  -- Pre-select "Hard" (Rayfield syntax: table with 1 item)
+  MultipleOptions = false,  -- Rayfield syntax for single-select
+  Flag = "Difficulty",
+  OnChanged = function(value)
+    print("[Single-Select] Selected:", value)
+  end
+})
+
+DropdownSection:CreateButton({
+  Text = "🔍 Check Single-Select CurrentOption",
+  Callback = function()
+    -- Test Rayfield's CurrentOption property for single-select
+    local current = singleDropdown.CurrentOption
+    RvrseUI:Notify({
+      Title = "Single-Select CurrentOption",
+      Message = "Array: {" .. table.concat(current, ", ") .. "}",
+      Duration = 3,
+      Type = "info"
+    })
+  end
+})
+
+-- Phase 2 Summary
+Phase2Tab:CreateSection("Phase 2 Summary"):CreateParagraph({
+  Text = "✨ Phase 2 Complete!\n\n🎨 ColorPicker Upgrade:\n• Full RGB/HSV slider controls\n• Hex color input (#RRGGBB)\n• Live preview with sync\n• Backward compatible simple mode\n\n📋 Dropdown Multi-Select:\n• Checkbox-based selection\n• SelectAll/ClearAll methods\n• Returns array of selected values\n• Preserves single-select mode\n• 100% Rayfield-compatible API:\n  - Options/Values\n  - CurrentOption property\n  - MultipleOptions/MultiSelect\n  - Refresh() and Set() methods\n\n🔥 Both features are production-ready!"
+})
+
 -- 🔧 IMPORTANT: Call Window:Show() to load config and display UI
 -- This MUST be called AFTER all tabs, sections, and elements are created!
 Window:Show()
@@ -447,7 +668,7 @@ Window:Show()
 -- Welcome notification
 RvrseUI:Notify({
   Title = "Dev Test Loaded",
-  Message = "Press K to toggle UI. Check 🧪 Parity Tests tab!",
-  Duration = 4,
+  Message = "Press K to toggle UI. Check 🎨 Phase 2 Features tab!",
+  Duration = 5,
   Type = "success"
 })
