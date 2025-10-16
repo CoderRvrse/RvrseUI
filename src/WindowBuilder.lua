@@ -6,7 +6,7 @@ local WindowBuilder = {}
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
-local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay
+local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem
 
 -- Roblox services (will be injected)
 local UIS, GuiService, RS, PlayerGui, HttpService
@@ -30,6 +30,7 @@ function WindowBuilder:Initialize(deps)
 	Elements = deps.Elements
 	OverlayLayer = deps.OverlayLayer
 	Overlay = deps.Overlay
+	KeySystem = deps.KeySystem
 
 	-- Services
 	UIS = deps.UIS
@@ -42,6 +43,26 @@ end
 -- Extract all the CreateWindow logic from RvrseUI.lua lines 1293-3922
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
+
+	-- ============================================
+	-- KEY SYSTEM VALIDATION (BLOCKING)
+	-- ============================================
+	if cfg.KeySystem then
+		Debug.printf("[KeySystem] Key system enabled, processing...")
+
+		-- Process key system (BLOCKS until validated or failed)
+		local success, message = KeySystem:Process(cfg, function(validated, msg)
+			Debug.printf("[KeySystem] Validation result: %s - %s", tostring(validated), msg)
+		end)
+
+		if not success then
+			Debug.printf("[KeySystem] Key validation failed: %s", message)
+			-- Key system will have already kicked the player or destroyed the UI
+			return nil
+		end
+
+		Debug.printf("[KeySystem] Key validated successfully, proceeding to window creation")
+	end
 
 	local overlayLayer = Overlay and Overlay:GetLayer() or OverlayLayer
 

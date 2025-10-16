@@ -63,6 +63,7 @@ const moduleOrder = [
 	'src/WindowManager.lua',
 	'src/Hotkeys.lua',
 	'src/Notifications.lua',
+	'src/KeySystem.lua',
 
 	// Elements
 	'src/Elements/Button.lua',

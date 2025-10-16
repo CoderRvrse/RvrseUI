@@ -28,6 +28,7 @@ local UIHelpers = require(script.src.UIHelpers)
 local Icons = require(script.src.Icons)
 local Notifications = require(script.src.Notifications)
 local Hotkeys = require(script.src.Hotkeys)
+local KeySystem = require(script.src.KeySystem)
 local WindowManager = require(script.src.WindowManager)
 local TabBuilder = require(script.src.TabBuilder)
 local SectionBuilder = require(script.src.SectionBuilder)
@@ -123,6 +124,15 @@ Hotkeys:Initialize({
 -- Initialize WindowManager
 WindowManager:Initialize()
 
+-- Initialize KeySystem (needs dependencies)
+KeySystem:Initialize({
+	Theme = Theme,
+	Animator = Animator,
+	UIHelpers = UIHelpers,
+	Debug = Debug,
+	Obfuscation = Obfuscation
+})
+
 -- Prepare dependency injection object
 local deps = {
 	Theme = Theme,
@@ -135,6 +145,7 @@ local deps = {
 	SectionBuilder = SectionBuilder,
 	WindowManager = WindowManager,
 	Notifications = Notifications,
+	KeySystem = KeySystem,
 	Debug = Debug,
 	Obfuscation = Obfuscation,
 	Hotkeys = Hotkeys,

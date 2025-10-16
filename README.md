@@ -595,6 +595,322 @@ Section:CreateSlider({
 
 ---
 
+### 🔐 Key System (Authentication)
+
+**Protect your hub with a key system!** RvrseUI includes a built-in key validation system with multiple authentication methods, Discord webhook logging, and 100% Rayfield compatibility.
+
+#### Basic Key System (Rayfield Compatible)
+
+```lua
+local Window = RvrseUI:CreateWindow({
+    Name = "Protected Hub",
+
+    -- Enable key system
+    KeySystem = true,
+
+    KeySettings = {
+        -- UI Configuration
+        Title = "My Hub - Authentication",
+        Subtitle = "Enter your key to continue",
+        Note = "Visit myhub.gg/key to get a key",
+
+        -- Simple key validation
+        Key = "MySecretKey123",  -- Single key (Rayfield compatible)
+
+        -- OR multiple keys
+        -- Keys = {"VIPKey2024", "AdminKey999", "DevKey123"},
+
+        -- Save key locally
+        SaveKey = true,
+        FileName = "MyHubKey",
+
+        -- Security settings
+        MaxAttempts = 3,         -- Attempts before kick
+        KickOnFailure = true     -- Kick player if validation fails
+    }
+})
+
+-- If execution reaches here, key was validated successfully!
+```
+
+#### Advanced Validation Methods
+
+**1. Multiple Valid Keys**
+```lua
+KeySettings = {
+    Keys = {"VIPKey2024", "AdminKey999", "TrialKey"},
+    SaveKey = true,
+    FileName = "License"
+}
+```
+
+**2. Remote Key Fetching (Pastebin/GitHub)**
+```lua
+KeySettings = {
+    GrabKeyFromSite = true,
+    Key = "https://pastebin.com/raw/YourKeyHere",  -- Fetches key from URL
+    SaveKey = true
+}
+```
+
+**3. HWID/User ID Whitelist**
+```lua
+KeySettings = {
+    Whitelist = {
+        "123456789",           -- User ID
+        "HWID-ABC123",         -- Hardware ID
+        "ManualOverride"       -- Manual key
+    },
+    MaxAttempts = 3
+}
+```
+
+**4. Custom Validator Function**
+```lua
+KeySettings = {
+    Validator = function(inputKey)
+        -- Example: Key changes daily
+        local dailyKey = "KEY-" .. os.date("%Y%m%d")
+        if inputKey == dailyKey then
+            return true
+        end
+
+        -- Or validate against external API
+        local success, response = pcall(function()
+            return game:HttpGet("https://api.example.com/validate?key=" .. inputKey)
+        end)
+
+        return success and response == "valid"
+    end,
+    SaveKey = false  -- Don't save since key changes
+}
+```
+
+#### Discord Webhook Logging
+
+Log all key attempts to Discord:
+
+```lua
+KeySettings = {
+    Keys = {"SecretKey2024"},
+
+    -- Discord webhook URL
+    WebhookURL = "https://discord.com/api/webhooks/YOUR_WEBHOOK_HERE",
+
+    MaxAttempts = 3
+}
+```
+
+**Webhook sends:**
+- Username & User ID
+- Input key
+- Validation result (success/failure)
+- Timestamp
+- Attempts remaining
+
+#### "Get Key" Button
+
+Add a button to help users get keys:
+
+```lua
+KeySettings = {
+    Note = "Click below to get your key",
+
+    NoteButton = {
+        Text = "🔑 Get Key",
+        Callback = function()
+            -- Copy link to clipboard
+            setclipboard("https://myhub.gg/getkey")
+
+            RvrseUI:Notify({
+                Title = "Link Copied!",
+                Message = "Key shop link copied to clipboard",
+                Type = "success"
+            })
+        end
+    },
+
+    Keys = {"PremiumKey2024"}
+}
+```
+
+#### Custom Callbacks
+
+React to key validation events:
+
+```lua
+KeySettings = {
+    Keys = {"TestKey123"},
+
+    -- Called when valid key entered
+    OnKeyValid = function(validKey)
+        print("✓ User authenticated with:", validKey)
+
+        RvrseUI:Notify({
+            Title = "Welcome!",
+            Message = "Access granted",
+            Type = "success"
+        })
+    end,
+
+    -- Called when invalid key entered
+    OnKeyInvalid = function(invalidKey, attemptsLeft)
+        warn("Failed attempt:", invalidKey, "- Remaining:", attemptsLeft)
+    end,
+
+    -- Called when attempts exhausted
+    OnAttemptsExhausted = function()
+        print("⚠️ User ran out of attempts")
+        -- Custom action (e.g., redirect to purchase page)
+    end,
+
+    KickOnFailure = false  -- Handle manually in callbacks
+}
+```
+
+#### Complete KeySettings Reference
+
+```lua
+KeySettings = {
+    -- UI Configuration
+    Title = "string",              -- Modal title
+    Subtitle = "string",           -- Modal subtitle
+    Note = "string",               -- Instruction text
+    NoteButton = {                 -- Optional "Get Key" button
+        Text = "string",
+        Callback = function() end
+    },
+
+    -- Validation Method (choose one or combine)
+    Key = "string",                -- Single key (Rayfield compatible)
+    Keys = {"key1", "key2"},       -- Multiple keys (RvrseUI extension)
+    Whitelist = {"id1", "id2"},    -- HWID/User ID whitelist
+    Validator = function(key)      -- Custom function
+        return boolean
+    end,
+
+    -- Remote Fetching
+    GrabKeyFromSite = false,       -- Fetch from URL
+    -- Key = "https://pastebin.com/raw/ABC",
+
+    -- Security
+    SaveKey = true,                -- Save validated key locally
+    FileName = "string",           -- Saved key filename
+    MaxAttempts = 3,               -- Attempts before kick
+    KickOnFailure = true,          -- Kick on failure
+
+    -- Logging
+    WebhookURL = "string",         -- Discord webhook (optional)
+
+    -- Callbacks (optional)
+    OnKeyValid = function(key) end,
+    OnKeyInvalid = function(key, attempts) end,
+    OnAttemptsExhausted = function() end
+}
+```
+
+#### Key System Flow
+
+1. **User loads hub** → Key system UI appears (blocks execution)
+2. **Check saved key** → If valid saved key exists, skip UI
+3. **User enters key** → Validation runs
+4. **Valid key** → UI closes, hub loads, key saved (if SaveKey=true)
+5. **Invalid key** → Shake animation, attempts decrease
+6. **Out of attempts** → Kick player (if KickOnFailure=true)
+
+#### Rayfield Migration
+
+**Your existing Rayfield key system code works as-is!**
+
+```lua
+-- This Rayfield code works in RvrseUI:
+KeySystem = true,
+KeySettings = {
+    Title = "Untitled",
+    Subtitle = "Key System",
+    Note = "No method of obtaining the key is provided",
+    FileName = "Key",
+    SaveKey = true,
+    GrabKeyFromSite = false,
+    Key = {"Hello"}  -- Rayfield uses table for Key
+}
+```
+
+**RvrseUI improvements you can add:**
+- `Keys` array for clearer multi-key syntax
+- `Whitelist` for HWID/User ID validation
+- `Validator` function for custom logic
+- `WebhookURL` for Discord logging
+- `NoteButton` for "Get Key" actions
+- `OnKeyValid`/`OnKeyInvalid` callbacks
+- Better themed UI with animations
+
+#### Example: Production Hub with Key System
+
+```lua
+local Hub = RvrseUI:CreateWindow({
+    Name = "My Premium Hub",
+    Icon = "🎮",
+    Theme = "Dark",
+
+    -- Configuration
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MyHub",
+        FileName = "Config.json"
+    },
+
+    -- Key System (blocks until validated)
+    KeySystem = true,
+    KeySettings = {
+        Title = "My Hub - Premium Access",
+        Subtitle = "Enter your license key",
+        Note = "Purchase a key at myhub.gg/shop",
+        NoteButton = {
+            Text = "🛒 Buy Key",
+            Callback = function()
+                setclipboard("https://myhub.gg/shop")
+            end
+        },
+
+        -- Validation
+        Keys = {"PREMIUM-2024", "VIP-ACCESS"},
+
+        -- OR whitelist your testers
+        -- Whitelist = {"123456", "789012"},
+
+        -- Security
+        SaveKey = true,
+        FileName = "License",
+        MaxAttempts = 3,
+        KickOnFailure = true,
+
+        -- Logging
+        WebhookURL = "https://discord.com/api/webhooks/YOUR_WEBHOOK",
+
+        -- Callbacks
+        OnKeyValid = function(key)
+            RvrseUI:Notify({
+                Title = "Welcome!",
+                Message = "License validated: " .. key,
+                Type = "success",
+                Duration = 5
+            })
+        end
+    }
+})
+
+-- Rest of your hub (only runs if key validated)
+local Tab = Hub:CreateTab({ Title = "Main", Icon = "⚙️" })
+-- ... your features here
+
+Hub:Show()
+```
+
+**See [examples/key-system-example.lua](examples/key-system-example.lua) for more examples!**
+
+---
+
 ### Notification System
 
 ```lua
