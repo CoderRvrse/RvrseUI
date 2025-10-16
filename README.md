@@ -55,10 +55,11 @@ Window:Show()  -- This loads saved config THEN shows UI
 3. [Installation](#-installation)
 4. [Configuration System (IMPORTANT!)](#-configuration-system-the-most-important-section)
 5. [All Elements Guide](#-all-elements-complete-guide)
-6. [Advanced Features](#-advanced-features)
-7. [API Reference](#-api-reference)
-8. [Troubleshooting](#-troubleshooting)
-9. [Examples](#-examples)
+6. [Dynamic Updates & Element API Methods](#-dynamic-updates--element-api-methods)
+7. [Advanced Features](#-advanced-features)
+8. [API Reference](#-api-reference)
+9. [Troubleshooting](#-troubleshooting)
+10. [Examples](#-examples)
 
 ---
 
@@ -825,6 +826,367 @@ RvrseUI:CreateWindow({
     Name = "Test",
     Container = "PlayerGui",  -- Try "CoreGui" if PlayerGui fails
     DisplayOrder = 999999    -- Higher z-index
+})
+```
+
+---
+
+## 🔄 Dynamic Updates & Element API Methods
+
+**All elements can be updated programmatically after creation!** Every element returns an API object with methods to modify its state, appearance, and behavior at runtime.
+
+### Common Methods (All Elements)
+
+Every element supports these methods:
+
+```lua
+-- Show/hide elements dynamically
+element:SetVisible(true)   -- Show the element
+element:SetVisible(false)  -- Hide the element
+
+-- Get/set current value (most elements)
+local value = element:Get()  -- Get current value
+element:Set(newValue)        -- Set new value
+```
+
+---
+
+### 📋 Complete Element API Reference
+
+#### 1. Button
+
+```lua
+local button = Section:CreateButton({
+    Text = "Click Me",
+    OnClick = function() print("Clicked!") end
+})
+
+-- Methods:
+button:Set("New Text")              -- Update button text
+button:SetText("Legacy method")     -- Alternative text update
+button:Trigger()                    -- Programmatically trigger click
+button:SetVisible(true/false)       -- Show/hide button
+
+-- Properties:
+print(button.CurrentValue)          -- Current button text
+```
+
+#### 2. Toggle
+
+```lua
+local toggle = Section:CreateToggle({
+    Text = "Feature Toggle",
+    State = false,
+    Flag = "MyToggle"
+})
+
+-- Methods:
+toggle:Set(true)                    -- Enable toggle
+toggle:Set(false)                   -- Disable toggle
+local state = toggle:Get()          -- Get current state (boolean)
+toggle:Refresh()                    -- Refresh visual state
+toggle:SetVisible(true/false)       -- Show/hide toggle
+
+-- Properties:
+print(toggle.CurrentValue)          -- Current state (boolean)
+```
+
+#### 3. Slider
+
+```lua
+local slider = Section:CreateSlider({
+    Text = "Volume",
+    Min = 0,
+    Max = 100,
+    Default = 50,
+    Suffix = "%",
+    Flag = "Volume"
+})
+
+-- Methods:
+slider:Set(75)                      -- Set slider to 75
+local value = slider:Get()          -- Get current value (number)
+slider:SetRange(0, 200, 5)          -- Update min/max/step at runtime
+slider:SetSuffix(" dB")             -- Change suffix display
+slider:SetVisible(true/false)       -- Show/hide slider
+
+-- Properties:
+print(slider.CurrentValue)          -- Current value (number)
+
+-- Example: Dynamic range based on game mode
+if hardMode then
+    slider:SetRange(0, 50, 1)  -- Limit max to 50 in hard mode
+else
+    slider:SetRange(0, 200, 5) -- Allow up to 200 in normal mode
+end
+```
+
+#### 4. Dropdown
+
+```lua
+local dropdown = Section:CreateDropdown({
+    Text = "Select Weapon",
+    Values = {"Sword", "Bow", "Staff"},
+    Default = "Sword",
+    Flag = "Weapon"
+})
+
+-- Methods:
+dropdown:Set("Bow")                 -- Single-select: set value
+dropdown:Set({"Sword", "Staff"})    -- Multi-select: set values
+local selection = dropdown:Get()    -- Get current selection
+dropdown:Refresh({"New1", "New2"})  -- Update options list
+dropdown:SetOpen(true)              -- Open dropdown menu
+dropdown:SetOpen(false)             -- Close dropdown menu
+dropdown:SelectAll()                -- Select all (multi-select only)
+dropdown:ClearAll()                 -- Clear all (multi-select only)
+local isMulti = dropdown:IsMultiSelect() -- Check if multi-select mode
+dropdown:SetVisible(true/false)     -- Show/hide dropdown
+
+-- Properties:
+print(dropdown.CurrentOption)       -- Current selection as table
+
+-- Example: Refresh dropdown with discovered items
+local foundWeapons = {"Sword", "Bow", "Staff", "Legendary Axe"}
+dropdown:Refresh(foundWeapons)
+dropdown:Set("Legendary Axe")
+```
+
+#### 5. ColorPicker
+
+```lua
+local colorPicker = Section:CreateColorPicker({
+    Text = "Theme Color",
+    Default = Color3.fromRGB(88, 101, 242),
+    Advanced = true,
+    Flag = "ThemeColor"
+})
+
+-- Methods:
+colorPicker:Set(Color3.fromRGB(255, 0, 0))  -- Set to red
+local color = colorPicker:Get()              -- Get current Color3
+colorPicker:SetVisible(true/false)           -- Show/hide color picker
+
+-- Properties:
+print(colorPicker.CurrentValue)              -- Current Color3
+
+-- Example: Apply color to UI elements
+colorPicker:Set(Color3.fromRGB(0, 255, 0))
+local currentColor = colorPicker:Get()
+frame.BackgroundColor3 = currentColor
+```
+
+#### 6. Keybind
+
+```lua
+local keybind = Section:CreateKeybind({
+    Text = "Toggle UI",
+    Default = Enum.KeyCode.K,
+    Flag = "ToggleKey"
+})
+
+-- Methods:
+keybind:Set(Enum.KeyCode.H)         -- Change keybind to H
+local key = keybind:Get()           -- Get current KeyCode
+keybind:SetVisible(true/false)      -- Show/hide keybind
+
+-- Properties:
+print(keybind.CurrentKeybind)       -- Current KeyCode
+
+-- Example: Update keybind based on user preference
+if VIPPlayer then
+    keybind:Set(Enum.KeyCode.F1)  -- VIP gets F1
+else
+    keybind:Set(Enum.KeyCode.K)   -- Regular users get K
+end
+```
+
+#### 7. TextBox
+
+```lua
+local textbox = Section:CreateTextBox({
+    Text = "Enter Name",
+    Default = "Player",
+    PlaceholderText = "Type here...",
+    Flag = "PlayerName"
+})
+
+-- Methods:
+textbox:Set("NewName")              -- Set textbox content
+local text = textbox:Get()          -- Get current text
+textbox:SetVisible(true/false)      -- Show/hide textbox
+
+-- Properties:
+print(textbox.CurrentValue)         -- Current text value
+
+-- Example: Update textbox with player's actual name
+textbox:Set(game.Players.LocalPlayer.Name)
+```
+
+#### 8. Label
+
+```lua
+local label = Section:CreateLabel({
+    Text = "Status: Idle"
+})
+
+-- Methods:
+label:Set("Status: Active")         -- Update label text
+local text = label:Get()            -- Get current text
+label:SetVisible(true/false)        -- Show/hide label
+
+-- Properties:
+print(label.CurrentValue)           -- Current label text
+
+-- Example: Live status updates
+while true do
+    label:Set("Coins: " .. tostring(playerCoins))
+    wait(1)
+end
+```
+
+#### 9. Paragraph
+
+```lua
+local paragraph = Section:CreateParagraph({
+    Text = "Welcome to the hub!\nEnjoy your stay."
+})
+
+-- Methods:
+paragraph:Set("New multi-line text\nLine 2\nLine 3")  -- Update text (auto-resizes)
+local text = paragraph:Get()                          -- Get current text
+paragraph:SetVisible(true/false)                      -- Show/hide paragraph
+
+-- Properties:
+print(paragraph.CurrentValue)                         -- Current paragraph text
+
+-- Example: Dynamic changelog display
+local changelog = "Version 2.0\n• Added auto-farm\n• Fixed bugs"
+paragraph:Set(changelog)
+```
+
+#### 10. Divider
+
+```lua
+local divider = Section:CreateDivider()
+
+-- Methods:
+divider:SetColor(Color3.fromRGB(255, 0, 0))  -- Set divider color
+divider:SetVisible(true/false)               -- Show/hide divider
+
+-- Example: Themed dividers
+divider:SetColor(Color3.fromRGB(88, 101, 242))  -- Match theme
+```
+
+---
+
+### 🎯 Real-World Update Examples
+
+#### Example 1: Live Player Stats Display
+
+```lua
+-- Create status labels
+local coinsLabel = Section:CreateLabel({ Text = "Coins: 0" })
+local levelLabel = Section:CreateLabel({ Text = "Level: 1" })
+
+-- Update loop
+game:GetService("RunService").Heartbeat:Connect(function()
+    coinsLabel:Set("Coins: " .. tostring(playerCoins))
+    levelLabel:Set("Level: " .. tostring(playerLevel))
+end)
+```
+
+#### Example 2: Dynamic Dropdown Based on Game State
+
+```lua
+local weaponDropdown = Section:CreateDropdown({
+    Text = "Equip Weapon",
+    Values = {},
+    Flag = "EquippedWeapon"
+})
+
+-- Function to update available weapons
+local function updateWeaponList()
+    local inventory = getPlayerInventory()  -- Your inventory function
+    weaponDropdown:Refresh(inventory)
+end
+
+-- Update when inventory changes
+game.Players.LocalPlayer.Inventory.ChildAdded:Connect(updateWeaponList)
+game.Players.LocalPlayer.Inventory.ChildRemoved:Connect(updateWeaponList)
+```
+
+#### Example 3: Conditional Slider Range
+
+```lua
+local speedSlider = Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    Flag = "WalkSpeed"
+})
+
+-- Admin mode toggle
+local adminToggle = Section:CreateToggle({
+    Text = "Admin Mode",
+    State = false,
+    OnChanged = function(enabled)
+        if enabled then
+            speedSlider:SetRange(16, 500, 5)  -- Allow super speed
+            speedSlider:SetSuffix(" (ADMIN)")
+        else
+            speedSlider:SetRange(16, 100, 1)  -- Normal limits
+            speedSlider:SetSuffix("")
+        end
+    end
+})
+```
+
+#### Example 4: Button State Updates
+
+```lua
+local farmButton = Section:CreateButton({
+    Text = "Start Auto Farm",
+    OnClick = function()
+        if farming then
+            stopFarming()
+            farmButton:Set("Start Auto Farm")
+        else
+            startFarming()
+            farmButton:Set("⏸ Stop Auto Farm")
+        end
+        farming = not farming
+    end
+})
+```
+
+#### Example 5: Using RvrseUI.Flags for Cross-Element Updates
+
+```lua
+-- Create elements with flags
+local speedSlider = Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    Flag = "WalkSpeed"  -- Accessible via RvrseUI.Flags
+})
+
+local resetButton = Section:CreateButton({
+    Text = "Reset to Default",
+    OnClick = function()
+        -- Access any flagged element via RvrseUI.Flags
+        RvrseUI.Flags["WalkSpeed"]:Set(16)
+
+        -- You can update multiple elements at once
+        if RvrseUI.Flags["JumpPower"] then
+            RvrseUI.Flags["JumpPower"]:Set(50)
+        end
+        if RvrseUI.Flags["GodMode"] then
+            RvrseUI.Flags["GodMode"]:Set(false)
+        end
+    end
 })
 ```
 
