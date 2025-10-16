@@ -216,6 +216,25 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Accent, 2)
 
+	-- ═══════════════════════════════════════════════════════════════
+	-- SAFETY DRAG BORDER - Invisible Extended Drag Area
+	-- ═══════════════════════════════════════════════════════════════
+	-- Creates an invisible 20px border around the window that extends
+	-- beyond its visible edges. This allows users to drag the window
+	-- back into view if it gets positioned off-screen.
+	-- ═══════════════════════════════════════════════════════════════
+
+	local safetyBorderSize = 20  -- pixels of extra grabbable area
+
+	local safetyBorder = Instance.new("Frame")
+	safetyBorder.Name = Obfuscation.getObfuscatedName("safety_border")
+	safetyBorder.Size = UDim2.new(1, safetyBorderSize * 2, 1, safetyBorderSize * 2)
+	safetyBorder.Position = UDim2.fromOffset(-safetyBorderSize, -safetyBorderSize)
+	safetyBorder.BackgroundTransparency = 1  -- Completely invisible
+	safetyBorder.BorderSizePixel = 0
+	safetyBorder.ZIndex = 99  -- Behind root but still grabbable
+	safetyBorder.Parent = root
+
 	-- Header bar with gloss effect
 	local header = Instance.new("Frame")
 	header.Size = UDim2.new(1, 0, 0, 52)
@@ -332,8 +351,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	-- Start dragging when header is clicked
 	header.Active = true
+	safetyBorder.Active = true  -- Make safety border draggable too
 
-	header.InputBegan:Connect(function(io)
+	local function startDrag(io)
 		if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			activeDragInput = io
@@ -343,14 +363,20 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragPointerOffset.X, dragPointerOffset.Y)
 			Debug.printf("[DRAG] Started - input type: %s", tostring(io.UserInputType))
 		end
-	end)
+	end
 
-	-- End drag when released on header
-	header.InputEnded:Connect(function(io)
+	local function endDrag(io)
 		if io == activeDragInput then
 			finishDrag()
 		end
-	end)
+	end
+
+	header.InputBegan:Connect(startDrag)
+	header.InputEnded:Connect(endDrag)
+
+	-- Safety border drag handlers
+	safetyBorder.InputBegan:Connect(startDrag)
+	safetyBorder.InputEnded:Connect(endDrag)
 
 	-- Main drag update loop - maintains cursor lock
 	UIS.InputChanged:Connect(function(io)
@@ -1160,16 +1186,15 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local chipCenterY = chipPos.Y + 25
 
 		local targetSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
-		local targetPos = UDim2.new(0.5, 0, 0.5, 0)
-		if RvrseUI._lastWindowPosition then
-			local savedPos = RvrseUI._lastWindowPosition
-			targetPos = UDim2.new(savedPos.XScale, savedPos.XOffset, savedPos.YScale, savedPos.YOffset)
-		end
-
+		-- ALWAYS center the window when restoring from minimize (ignore _lastWindowPosition)
 		local targetWidth = isMobile and 380 or baseWidth
 		local targetHeight = isMobile and 520 or baseHeight
-		local windowCenterX = targetPos.X.Scale * screenSize.X + targetPos.X.Offset + (targetWidth / 2)
-		local windowCenterY = targetPos.Y.Scale * screenSize.Y + targetPos.Y.Offset + (targetHeight / 2)
+		local centerX = (screenSize.X - targetWidth) / 2
+		local centerY = (screenSize.Y - targetHeight) / 2
+		local targetPos = UDim2.fromOffset(centerX, centerY)
+
+		local windowCenterX = centerX + (targetWidth / 2)
+		local windowCenterY = centerY + (targetHeight / 2)
 
 		createParticleFlow(
 			{X = chipCenterX, Y = chipCenterY},
