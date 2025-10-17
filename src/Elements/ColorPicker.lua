@@ -193,7 +193,7 @@ function ColorPicker.Create(o, dependencies)
 
 		corner(pickerPanel, 12)
 		stroke(pickerPanel, pal3.Accent, 2)
-		shadow(pickerPanel, 0.7, 20)
+		-- shadow(pickerPanel, 0.7, 20)  -- ❌ DISABLED: Shadow too large for overlay panels, blocks entire screen!
 
 		-- Panel padding
 		local panelPadding = Instance.new("UIPadding")

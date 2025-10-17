@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.1 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T22:54:45.737Z
+-- Compiled from modular architecture on 2025-10-17T23:04:00.518Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -5666,7 +5666,7 @@ do
 	
 			corner(pickerPanel, 12)
 			stroke(pickerPanel, pal3.Accent, 2)
-			shadow(pickerPanel, 0.7, 20)
+			-- shadow(pickerPanel, 0.7, 20)  -- ❌ DISABLED: Shadow too large for overlay panels, blocks entire screen!
 	
 			-- Panel padding
 			local panelPadding = Instance.new("UIPadding")
