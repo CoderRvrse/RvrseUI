@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T15:06:43.996Z
+-- Compiled from modular architecture on 2025-10-17T16:42:29.198Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -5469,7 +5469,8 @@ do
 				local dragging = false
 				local currentValue = default
 	
-				local function updateSlider(value)
+				-- Update slider visual and value (with optional callback trigger)
+				local function updateSlider(value, triggerCallback)
 					value = math.clamp(value, min, max)
 					currentValue = value
 	
@@ -5478,7 +5479,8 @@ do
 					thumb.Position = UDim2.new(percent, 0, 0.5, 0)
 					valueLabel.Text = tostring(value)
 	
-					if callback then
+					-- Only trigger callback if explicitly requested (user interaction)
+					if triggerCallback and callback then
 						callback(value)
 					end
 				end
@@ -5504,7 +5506,7 @@ do
 						local trackSize = track.AbsoluteSize.X
 						local percent = math.clamp((mousePos - trackPos) / trackSize, 0, 1)
 						local value = math.floor(min + (percent * (max - min)) + 0.5)
-						updateSlider(value)
+						updateSlider(value, true)  -- User clicked, trigger callback
 					end
 				end)
 	
@@ -5515,13 +5517,13 @@ do
 						local trackSize = track.AbsoluteSize.X
 						local percent = math.clamp((mousePos - trackPos) / trackSize, 0, 1)
 						local value = math.floor(min + (percent * (max - min)) + 0.5)
-						updateSlider(value)
+						updateSlider(value, true)  -- User dragging, trigger callback
 					end
 				end)
 	
 				return {
 					Set = function(value)
-						updateSlider(value)
+						updateSlider(value, false)  -- Programmatic set, don't trigger callback
 					end,
 					Get = function()
 						return currentValue

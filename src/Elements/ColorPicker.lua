@@ -250,7 +250,8 @@ function ColorPicker.Create(o, dependencies)
 			local dragging = false
 			local currentValue = default
 
-			local function updateSlider(value)
+			-- Update slider visual and value (with optional callback trigger)
+			local function updateSlider(value, triggerCallback)
 				value = math.clamp(value, min, max)
 				currentValue = value
 
@@ -259,7 +260,8 @@ function ColorPicker.Create(o, dependencies)
 				thumb.Position = UDim2.new(percent, 0, 0.5, 0)
 				valueLabel.Text = tostring(value)
 
-				if callback then
+				-- Only trigger callback if explicitly requested (user interaction)
+				if triggerCallback and callback then
 					callback(value)
 				end
 			end
@@ -285,7 +287,7 @@ function ColorPicker.Create(o, dependencies)
 					local trackSize = track.AbsoluteSize.X
 					local percent = math.clamp((mousePos - trackPos) / trackSize, 0, 1)
 					local value = math.floor(min + (percent * (max - min)) + 0.5)
-					updateSlider(value)
+					updateSlider(value, true)  -- User clicked, trigger callback
 				end
 			end)
 
@@ -296,13 +298,13 @@ function ColorPicker.Create(o, dependencies)
 					local trackSize = track.AbsoluteSize.X
 					local percent = math.clamp((mousePos - trackPos) / trackSize, 0, 1)
 					local value = math.floor(min + (percent * (max - min)) + 0.5)
-					updateSlider(value)
+					updateSlider(value, true)  -- User dragging, trigger callback
 				end
 			end)
 
 			return {
 				Set = function(value)
-					updateSlider(value)
+					updateSlider(value, false)  -- Programmatic set, don't trigger callback
 				end,
 				Get = function()
 					return currentValue
