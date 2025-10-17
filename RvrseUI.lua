@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T03:57:19.293Z
+-- Compiled from modular architecture on 2025-10-17T04:09:08.668Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -6522,13 +6522,38 @@ do
 	
 			-- Process key system (BLOCKS until validated or failed)
 			local success, message = KeySystem:Process(cfg, function(validated, msg)
-				Debug.printf("[KeySystem] Validation result: %s - %s", tostring(validated), msg)
+				Debug.printf("[KeySystem] Validation result: %s - %s", tostring(validated), msg or "nil")
 			end)
 	
 			if not success then
-				Debug.printf("[KeySystem] Key validation failed: %s", message)
-				-- Key system will have already kicked the player or destroyed the UI
-				return nil
+				Debug.printf("[KeySystem] Key validation failed: %s", tostring(message or "No attempts remaining"))
+				-- Return a dummy window object with no-op methods to prevent script errors
+				-- This allows user scripts to continue without crashing
+				local DummySection = {
+					CreateButton = function() return {} end,
+					CreateToggle = function() return {} end,
+					CreateSlider = function() return {} end,
+					CreateDropdown = function() return {} end,
+					CreateKeybind = function() return {} end,
+					CreateTextBox = function() return {} end,
+					CreateColorPicker = function() return {} end,
+					CreateLabel = function() return {} end,
+					CreateParagraph = function() return {} end,
+					CreateDivider = function() return {} end
+				}
+				local DummyTab = {
+					CreateSection = function() return DummySection end
+				}
+				local DummyWindow = {
+					CreateTab = function() return DummyTab end,
+					Show = function() end,
+					Destroy = function() end,
+					SetTheme = function() end,
+					Minimize = function() end,
+					Restore = function() end
+				}
+				warn("[RvrseUI] Key validation failed - Window creation blocked")
+				return DummyWindow
 			end
 	
 			Debug.printf("[KeySystem] Key validated successfully, proceeding to window creation")
