@@ -594,15 +594,15 @@ function KeySystem:Process(settings, callback)
 
 	KeySystem:CreateUI(settings, function(validKey)
 		passthrough = true
-	end, function(error)
+	end, function(errMsg)
 		passthrough = false
-		errorMsg = error
+		errorMsg = errMsg
 	end)
 
 	-- Block execution until validated
 	repeat
 		task.wait()
-	until passthrough or errorMsg
+	until passthrough == true or errorMsg ~= nil
 
 	if callback then
 		callback(passthrough, errorMsg or "Key validated")

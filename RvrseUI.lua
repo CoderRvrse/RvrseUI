@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-16T22:25:29.197Z
+-- Compiled from modular architecture on 2025-10-17T03:23:13.491Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2794,15 +2794,15 @@ do
 	
 		KeySystem:CreateUI(settings, function(validKey)
 			passthrough = true
-		end, function(error)
+		end, function(errMsg)
 			passthrough = false
-			errorMsg = error
+			errorMsg = errMsg
 		end)
 	
 		-- Block execution until validated
 		repeat
 			task.wait()
-		until passthrough or errorMsg
+		until passthrough == true or errorMsg ~= nil
 	
 		if callback then
 			callback(passthrough, errorMsg or "Key validated")
