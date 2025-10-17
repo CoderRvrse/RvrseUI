@@ -160,8 +160,9 @@ function ColorPicker.Create(o, dependencies)
 		pickerPanel = Instance.new("Frame")
 		pickerPanel.Name = "ColorPickerPanel"
 		pickerPanel.BackgroundColor3 = pal3.Elevated
+		pickerPanel.BackgroundTransparency = 0  -- Fully opaque
 		pickerPanel.BorderSizePixel = 0
-		pickerPanel.Size = UDim2.new(0, 320, 0, 380)  -- Full height to show sliders
+		pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
 		pickerPanel.Position = UDim2.new(1, -(320 + 6), 0.5, 52)
 		pickerPanel.Visible = false
 		pickerPanel.ZIndex = 5000
@@ -486,10 +487,7 @@ function ColorPicker.Create(o, dependencies)
 			pickerOpen = state
 
 			if state then
-				-- Show panel and blocker
-				pickerPanel.Visible = true
-				pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
-
+				-- Show blocker first
 				if OverlayService then
 					overlayBlocker = OverlayService:ShowBlocker({
 						Transparency = 0.45,
@@ -503,17 +501,24 @@ function ColorPicker.Create(o, dependencies)
 					end)
 				end
 
-				-- Wait for layout to calculate, then animate to full height
-				task.wait(0.05)
-				local targetHeight = panelLayout.AbsoluteContentSize.Y + 24
-				if targetHeight < 50 then
-					-- Fallback if layout hasn't calculated yet
-					targetHeight = 380
-				end
+				-- Show panel and animate (spawn to avoid blocking)
+				pickerPanel.Visible = true
+				pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
 
-				Animator:Tween(pickerPanel, {
-					Size = UDim2.new(0, 320, 0, targetHeight)
-				}, Animator.Spring.Gentle)
+				task.spawn(function()
+					-- Wait for layout to calculate content size
+					task.wait(0.05)
+					local targetHeight = panelLayout.AbsoluteContentSize.Y + 24
+					if targetHeight < 50 then
+						-- Fallback if layout hasn't calculated yet
+						targetHeight = 380
+					end
+
+					-- Animate to full height
+					Animator:Tween(pickerPanel, {
+						Size = UDim2.new(0, 320, 0, targetHeight)
+					}, Animator.Spring.Gentle)
+				end)
 
 				-- Pulse effect
 				Animator:Pulse(preview, 1.15, Animator.Spring.Bounce)
