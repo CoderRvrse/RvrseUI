@@ -1,8 +1,31 @@
 # ColorPicker Visual Debug Test Guide
 
-## 🎯 Purpose
+## ✅ ISSUE RESOLVED!
+
+**The gray box blocking the ColorPicker was the SHADOW element!**
+
+### What Happened:
+- `UIHelpers.shadow()` creates an ImageLabel that extends **40px beyond the panel on all sides**
+- For the ColorPickerPanel (320x456px), the shadow was **400x536px** - massive!
+- Shadow ZIndex = 199 (just below panel ZIndex 200)
+- This giant shadow was the gray/dark box covering the entire screen
+
+### The Fix:
+- Disabled `shadow(pickerPanel, 0.7, 20)` in [ColorPicker.lua:196](../src/Elements/ColorPicker.lua#L196)
+- Shadow helper is designed for small inline elements, NOT large overlay panels
+- Panel now renders cleanly without the blocking shadow
+
+### Version:
+- Fixed in commit `f48410e`
+- RvrseUI v4.0.1
+
+---
+
+## 🎯 Purpose (Historical)
 
 This test uses **color-coding** to identify which GUI layer is blocking the ColorPicker sliders. Each layer is assigned a distinct color so you can visually see what's covering what.
+
+**NOTE:** This test led to discovering the shadow bug! Keeping it for future debugging reference.
 
 ## 🎨 Color Legend
 
