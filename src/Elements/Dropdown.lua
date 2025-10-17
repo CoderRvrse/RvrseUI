@@ -215,6 +215,7 @@ function Dropdown.Create(o, dependencies)
 	local optionButtons = {}
 	local idx = 1
 	local dropdownAPI = {}  -- Forward declaration for updateCurrentOption
+	local setOpen  -- Forward declaration for blocker click handler
 
 	local function locked()
 		return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
@@ -574,7 +575,7 @@ function Dropdown.Create(o, dependencies)
 	rebuildOptions()
 	visual()
 
-	function setOpen(state)
+	setOpen = function(state)
 		if locked() then
 			return
 		end

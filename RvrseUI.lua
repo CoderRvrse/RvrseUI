@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.1 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T23:18:58.418Z
+-- Compiled from modular architecture on 2025-10-17T23:39:07.803Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3825,6 +3825,7 @@ do
 		local optionButtons = {}
 		local idx = 1
 		local dropdownAPI = {}  -- Forward declaration for updateCurrentOption
+		local setOpen  -- Forward declaration for blocker click handler
 	
 		local function locked()
 			return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
@@ -4184,7 +4185,7 @@ do
 		rebuildOptions()
 		visual()
 	
-		function setOpen(state)
+		setOpen = function(state)
 			if locked() then
 				return
 			end
