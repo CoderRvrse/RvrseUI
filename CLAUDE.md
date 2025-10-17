@@ -2,10 +2,39 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.0.0)
+# RvrseUI – Maintainer Notes (v4.0.1)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
+
+---
+
+## 🚨 CRITICAL WARNING: UIHelpers.shadow() Restriction
+
+### **NEVER use `shadow()` helper on overlay panels or dropdown menus!**
+
+**What happened in v4.0.1:**
+- The `shadow()` helper creates an ImageLabel that extends **40px beyond the parent element**
+- For overlay panels (ColorPicker, Dropdown), this created a **giant gray box covering the entire screen**
+- Shadow ZIndex = parent.ZIndex - 1, blocking ALL UI below it
+
+**Elements Fixed:**
+- ❌ ColorPicker.lua:196 - `shadow(pickerPanel, 0.7, 20)` → DISABLED
+- ❌ Dropdown.lua:180 - `shadow(dropdownList, 0.6, 16)` → DISABLED
+- ❌ DropdownLegacy.lua:91 - `shadow(dropdownList, 0.6, 16)` → DISABLED
+
+**Rules:**
+- ✅ **USE shadow() ONLY on small inline elements** (< 60px, ZIndex < 100)
+  - Button elements, Toggle thumbs, Slider thumbs
+- ❌ **NEVER use shadow() on:**
+  - Overlay panels (ColorPicker, Dropdown, Modals)
+  - Large containers (> 100px)
+  - Elements with high ZIndex (> 100)
+  - Scrolling frames, Popup elements
+
+**Alternative:** Use `stroke()` for visual definition on overlay panels.
+
+**Full Documentation:** [docs/UI-ARCHITECTURE.md](docs/UI-ARCHITECTURE.md#-critical-ui-helper-restrictions)
 
 ---
 

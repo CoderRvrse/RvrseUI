@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.1 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T23:04:00.518Z
+-- Compiled from modular architecture on 2025-10-17T23:18:58.418Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3787,7 +3787,7 @@ do
 		dropdownList.Parent = f
 		corner(dropdownList, 8)
 		stroke(dropdownList, pal3.Accent, 1)
-		shadow(dropdownList, 0.6, 16)
+		-- shadow(dropdownList, 0.6, 16)  -- ❌ DISABLED: Shadow too large for overlay mode, blocks entire screen!
 	
 		local dropdownScroll = Instance.new("ScrollingFrame")
 		dropdownScroll.BackgroundTransparency = 1
@@ -4532,7 +4532,7 @@ do
 		dropdownList.Parent = f
 		corner(dropdownList, 8)
 		stroke(dropdownList, pal3.Accent, 1)
-		shadow(dropdownList, 0.6, 16)
+		-- shadow(dropdownList, 0.6, 16)  -- ⚠️ DISABLED: Shadows on dropdown menus can cause visual issues
 	
 		local dropdownScroll = Instance.new("ScrollingFrame")
 		dropdownScroll.BackgroundTransparency = 1

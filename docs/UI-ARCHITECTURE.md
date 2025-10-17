@@ -594,4 +594,163 @@ pickerPanel.Parent = baseOverlayLayer or f  -- Falls back to f?
 
 ---
 
+## 🚨 CRITICAL: UI Helper Restrictions
+
+### The Shadow Helper Problem
+
+**NEVER use `shadow()` helper on overlay panels or large dropdown menus!**
+
+### What Happened (v4.0.1 Critical Bug)
+
+The `UIHelpers.shadow()` function creates an `ImageLabel` that extends **beyond the parent element bounds**:
+
+```lua
+-- UIHelpers.lua:74-88
+function UIHelpers.shadow(inst, transparency, size)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, (size or 4) * 2, 1, (size or 4) * 2)
+    --                       ^^^  ^^^^^^^^^^^^  ^^^  ^^^^^^^^^^^^
+    --                       100%  + OVERFLOW   100%  + OVERFLOW
+    shadow.ZIndex = inst.ZIndex - 1  -- Just below parent
+    shadow.Parent = inst  -- ⚠️ PARENTED TO THE ELEMENT!
+    return shadow
+end
+```
+
+### The Math (ColorPicker Example)
+
+```
+ColorPickerPanel:    320px × 456px (overlay panel)
+shadow(panel, 0.7, 20):
+  Size = UDim2.new(1, 40, 1, 40)
+  Result = 400px × 536px  ← SHADOW EXTENDS 40PX BEYOND PANEL!
+
+Shadow ZIndex = 199 (panel ZIndex - 1 = 200 - 1)
+Result: GIANT GRAY BOX COVERING ENTIRE SCREEN
+```
+
+### Why This Happened
+
+1. **Shadow was designed for small inline elements** (buttons, toggles, sliders)
+   - Button: 50×48px → Shadow: 70×68px ✅ OK (20px overflow)
+   - Toggle thumb: 26×26px → Shadow: 32×32px ✅ OK (6px overflow)
+
+2. **NOT designed for large overlay panels**
+   - ColorPicker panel: 320×456px → Shadow: 400×536px ❌ BLOCKS SCREEN
+   - Dropdown menu: 280×240px → Shadow: 360×308px ❌ BLOCKS SCREEN
+
+3. **Shadow ZIndex is always parent.ZIndex - 1**
+   - For overlay elements with high ZIndex (200), shadow gets ZIndex 199
+   - This puts shadow ABOVE everything except the panel itself
+   - Shadow blocks ALL UI elements below it
+
+### Elements Affected (Fixed in v4.0.1)
+
+| Element | Shadow Usage | Status | Fix Applied |
+|---------|-------------|--------|-------------|
+| **ColorPicker.lua** | `shadow(pickerPanel, 0.7, 20)` | ❌ CRITICAL | Line 196 - Disabled |
+| **Dropdown.lua** | `shadow(dropdownList, 0.6, 16)` | ❌ CRITICAL | Line 180 - Disabled |
+| **DropdownLegacy.lua** | `shadow(dropdownList, 0.6, 16)` | ⚠️ MINOR | Line 91 - Disabled |
+| Toggle.lua | `shadow(dot, 0.5, 3)` | ✅ OK | Small inline element |
+| Slider.lua | `shadow(thumb, 0.5, 5)` | ✅ OK | Small inline element |
+
+### Strict Rules for shadow() Helper
+
+#### ✅ SAFE to use shadow() on:
+- **Small inline elements** (< 60px in any dimension)
+  - Button elements
+  - Toggle thumbs/switches
+  - Slider thumbs
+  - Small icons/badges
+- **Elements with ClipsDescendants = true** (shadow can't overflow)
+- **Elements that never use overlay mode**
+
+#### ❌ NEVER use shadow() on:
+- **Overlay panels** (ColorPicker, Dropdown, Modals, Tooltips)
+- **Large containers** (> 100px in any dimension)
+- **Dropdown menus** (even inline ones - shadow looks weird)
+- **Popup elements** (anything that appears above other UI)
+- **Scrolling frames** (shadow extends beyond scroll area)
+- **Elements with high ZIndex** (> 100)
+
+### Alternative: Use Stroke Instead
+
+For overlay panels, use `stroke()` helper for visual definition:
+
+```lua
+-- ❌ DON'T DO THIS (blocks entire screen)
+shadow(pickerPanel, 0.7, 20)
+
+-- ✅ DO THIS (clean border, no blocking)
+stroke(pickerPanel, pal3.Accent, 2)
+corner(pickerPanel, 12)
+```
+
+### Checklist Before Using shadow()
+
+Before adding `shadow(element)` to ANY new element:
+
+- [ ] Is this element < 60px in both dimensions?
+- [ ] Is this element inline (never uses overlay)?
+- [ ] Is ClipsDescendants = true on the parent?
+- [ ] Is ZIndex < 100?
+- [ ] Have I tested with the element fully expanded?
+- [ ] Have I verified shadow doesn't extend beyond visible area?
+
+**If ANY answer is NO → DO NOT USE SHADOW!**
+
+### How We Found This Bug
+
+1. User reported gray/dark box covering ColorPicker sliders
+2. Created visual debug test with color-coded layers (RED/GREEN/BLUE/YELLOW)
+3. Gray box was NOT on the color-coded list
+4. User: "this gray color is not even on the list this is deffenitly bigger then we think"
+5. Audited ColorPicker.lua → Found `shadow(pickerPanel, 0.7, 20)` on line 196
+6. Traced to UIHelpers.shadow() creating 400×536px ImageLabel
+7. Fixed by disabling shadow() for all overlay elements
+
+### Testing for Shadow Issues
+
+**Symptoms:**
+- Gray or dark box appears when opening overlay element
+- Box covers entire screen or large portion of UI
+- Can't interact with sliders/options even though they're rendered
+- Element looks fine when inspected, but is blocked by transparent layer
+
+**Diagnosis:**
+```lua
+-- Check for Shadow element in overlay
+local panel = overlayLayer:FindFirstChild("ColorPickerPanel")
+if panel then
+    local shadow = panel:FindFirstChild("Shadow")
+    if shadow then
+        warn("SHADOW FOUND! Size:", shadow.Size, "ZIndex:", shadow.ZIndex)
+    end
+end
+```
+
+**Fix:**
+```lua
+-- Comment out shadow() call
+-- shadow(pickerPanel, 0.7, 20)  -- ❌ DISABLED: Shadow too large for overlay panels!
+```
+
+### Related Files
+
+- **UIHelpers.lua** - Defines shadow() helper (lines 74-88)
+- **ColorPicker.lua** - Fixed shadow usage (line 196)
+- **Dropdown.lua** - Fixed shadow usage (line 180)
+- **DropdownLegacy.lua** - Fixed shadow usage (line 91)
+- **examples/test-colorpicker-shadow-fix.lua** - Verification test
+- **examples/README-VISUAL-DEBUG.md** - Debug guide documenting the bug
+
+### Commits
+
+- `f48410e` - fix(colorpicker): disable shadow on overlay panel
+- `4415d67` - test: add shadow fix verification test
+- `d235737` - docs: update visual debug guide with shadow bug resolution
+
+---
+
 **This document should be the FIRST place any AI or developer looks when debugging overlay issues!**

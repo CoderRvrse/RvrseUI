@@ -88,7 +88,7 @@ dropdownList.Size = UDim2.new(0, dropdownWidth, 0, 0)
 	dropdownList.Parent = f
 	corner(dropdownList, 8)
 	stroke(dropdownList, pal3.Accent, 1)
-	shadow(dropdownList, 0.6, 16)
+	-- shadow(dropdownList, 0.6, 16)  -- ⚠️ DISABLED: Shadows on dropdown menus can cause visual issues
 
 	local dropdownScroll = Instance.new("ScrollingFrame")
 	dropdownScroll.BackgroundTransparency = 1

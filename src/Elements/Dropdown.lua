@@ -177,7 +177,7 @@ function Dropdown.Create(o, dependencies)
 	dropdownList.Parent = f
 	corner(dropdownList, 8)
 	stroke(dropdownList, pal3.Accent, 1)
-	shadow(dropdownList, 0.6, 16)
+	-- shadow(dropdownList, 0.6, 16)  -- ❌ DISABLED: Shadow too large for overlay mode, blocks entire screen!
 
 	local dropdownScroll = Instance.new("ScrollingFrame")
 	dropdownScroll.BackgroundTransparency = 1
