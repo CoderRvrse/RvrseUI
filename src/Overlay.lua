@@ -124,7 +124,27 @@ function Overlay:Initialize(opts)
 
 	updateDisplayOrder()
 
-	local blocker = popovers:FindFirstChild("OverlayBlocker")
+	-- Create overlay layer first (transparent container for overlays)
+	local layer = popovers:FindFirstChild("OverlayLayer")
+	if layer and not layer:IsA("Frame") then
+		layer:Destroy()
+		layer = nil
+	end
+	if not layer then
+		layer = Instance.new("Frame")
+		layer.Name = "OverlayLayer"
+		layer.BackgroundTransparency = 1
+		layer.BorderSizePixel = 0
+		layer.ClipsDescendants = false
+		layer.Size = UDim2.new(1, 0, 1, 0)
+		layer.ZIndex = 1  -- Base layer
+		layer.Visible = false
+		layer.Parent = popovers
+	end
+	self.Layer = layer
+
+	-- Create blocker inside layer (below overlay elements)
+	local blocker = layer:FindFirstChild("OverlayBlocker")
 	if blocker and not blocker:IsA("TextButton") then
 		blocker:Destroy()
 		blocker = nil
@@ -138,30 +158,12 @@ function Overlay:Initialize(opts)
 		blocker.BorderSizePixel = 0
 		blocker.Text = ""
 		blocker.Size = UDim2.new(1, 0, 1, 0)
-		blocker.ZIndex = 900
+		blocker.ZIndex = 100  -- Below overlay elements (200+)
 		blocker.Visible = false
 		blocker.Modal = false
-		blocker.Parent = popovers
+		blocker.Parent = layer  -- ⭐ Parent to layer, not popovers!
 	end
 	self.Blocker = blocker
-
-	local layer = popovers:FindFirstChild("OverlayLayer")
-	if layer and not layer:IsA("Frame") then
-		layer:Destroy()
-		layer = nil
-	end
-	if not layer then
-		layer = Instance.new("Frame")
-		layer.Name = "OverlayLayer"
-		layer.BackgroundTransparency = 1
-		layer.BorderSizePixel = 0
-		layer.ClipsDescendants = false
-		layer.Size = UDim2.new(1, 0, 1, 0)
-		layer.ZIndex = 950
-		layer.Visible = false
-		layer.Parent = popovers
-	end
-	self.Layer = layer
 
 	layer.ChildAdded:Connect(function(child)
 		child:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -198,7 +200,7 @@ function Overlay:ShowBlocker(options)
 	self._blockerCount += 1
 
 	local blocker = self.Blocker
-	blocker.ZIndex = options.ZIndex or 900
+	blocker.ZIndex = options.ZIndex or 100  -- Below overlay elements (200+)
 	blocker.Visible = true
 	blocker.Active = true
 	blocker.Modal = options.Modal ~= false
@@ -208,8 +210,13 @@ function Overlay:ShowBlocker(options)
 	end
 	blocker.BackgroundTransparency = transparency
 
+	-- Make sure layer is visible
+	if self.Layer then
+		self.Layer.Visible = true
+	end
+
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
-		self.Debug.printf("[OVERLAY] ShowBlocker depth=%d alpha=%.2f", self._blockerCount, blocker.BackgroundTransparency)
+		self.Debug.printf("[OVERLAY] ShowBlocker depth=%d alpha=%.2f zindex=%d", self._blockerCount, blocker.BackgroundTransparency, blocker.ZIndex)
 	end
 
 	return blocker

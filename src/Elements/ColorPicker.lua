@@ -175,7 +175,7 @@ function ColorPicker.Create(o, dependencies)
 		pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
 		pickerPanel.Position = UDim2.new(1, -(320 + 6), 0.5, 52)
 		pickerPanel.Visible = false
-		pickerPanel.ZIndex = 5000
+		pickerPanel.ZIndex = 200  -- Above blocker (100)
 		pickerPanel.ClipsDescendants = false  -- Don't clip during animation
 
 		-- Parent to overlay layer if available, otherwise to element card
@@ -521,7 +521,7 @@ function ColorPicker.Create(o, dependencies)
 					print("[ColorPicker] Showing blocker...")
 					overlayBlocker = OverlayService:ShowBlocker({
 						Transparency = 0.45,
-						ZIndex = 4999,
+						ZIndex = 100,
 					})
 					if overlayBlockerConnection then
 						overlayBlockerConnection:Disconnect()

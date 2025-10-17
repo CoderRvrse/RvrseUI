@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T17:46:46.877Z
+-- Compiled from modular architecture on 2025-10-17T22:37:56.076Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2328,7 +2328,27 @@ do
 	
 		updateDisplayOrder()
 	
-		local blocker = popovers:FindFirstChild("OverlayBlocker")
+		-- Create overlay layer first (transparent container for overlays)
+		local layer = popovers:FindFirstChild("OverlayLayer")
+		if layer and not layer:IsA("Frame") then
+			layer:Destroy()
+			layer = nil
+		end
+		if not layer then
+			layer = Instance.new("Frame")
+			layer.Name = "OverlayLayer"
+			layer.BackgroundTransparency = 1
+			layer.BorderSizePixel = 0
+			layer.ClipsDescendants = false
+			layer.Size = UDim2.new(1, 0, 1, 0)
+			layer.ZIndex = 1  -- Base layer
+			layer.Visible = false
+			layer.Parent = popovers
+		end
+		self.Layer = layer
+	
+		-- Create blocker inside layer (below overlay elements)
+		local blocker = layer:FindFirstChild("OverlayBlocker")
 		if blocker and not blocker:IsA("TextButton") then
 			blocker:Destroy()
 			blocker = nil
@@ -2342,30 +2362,12 @@ do
 			blocker.BorderSizePixel = 0
 			blocker.Text = ""
 			blocker.Size = UDim2.new(1, 0, 1, 0)
-			blocker.ZIndex = 900
+			blocker.ZIndex = 100  -- Below overlay elements (200+)
 			blocker.Visible = false
 			blocker.Modal = false
-			blocker.Parent = popovers
+			blocker.Parent = layer  -- ⭐ Parent to layer, not popovers!
 		end
 		self.Blocker = blocker
-	
-		local layer = popovers:FindFirstChild("OverlayLayer")
-		if layer and not layer:IsA("Frame") then
-			layer:Destroy()
-			layer = nil
-		end
-		if not layer then
-			layer = Instance.new("Frame")
-			layer.Name = "OverlayLayer"
-			layer.BackgroundTransparency = 1
-			layer.BorderSizePixel = 0
-			layer.ClipsDescendants = false
-			layer.Size = UDim2.new(1, 0, 1, 0)
-			layer.ZIndex = 950
-			layer.Visible = false
-			layer.Parent = popovers
-		end
-		self.Layer = layer
 	
 		layer.ChildAdded:Connect(function(child)
 			child:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -2402,7 +2404,7 @@ do
 		self._blockerCount += 1
 	
 		local blocker = self.Blocker
-		blocker.ZIndex = options.ZIndex or 900
+		blocker.ZIndex = options.ZIndex or 100  -- Below overlay elements (200+)
 		blocker.Visible = true
 		blocker.Active = true
 		blocker.Modal = options.Modal ~= false
@@ -2412,8 +2414,13 @@ do
 		end
 		blocker.BackgroundTransparency = transparency
 	
+		-- Make sure layer is visible
+		if self.Layer then
+			self.Layer.Visible = true
+		end
+	
 		if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
-			self.Debug.printf("[OVERLAY] ShowBlocker depth=%d alpha=%.2f", self._blockerCount, blocker.BackgroundTransparency)
+			self.Debug.printf("[OVERLAY] ShowBlocker depth=%d alpha=%.2f zindex=%d", self._blockerCount, blocker.BackgroundTransparency, blocker.ZIndex)
 		end
 	
 		return blocker
@@ -5641,7 +5648,7 @@ do
 			pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
 			pickerPanel.Position = UDim2.new(1, -(320 + 6), 0.5, 52)
 			pickerPanel.Visible = false
-			pickerPanel.ZIndex = 5000
+			pickerPanel.ZIndex = 200  -- Above blocker (100)
 			pickerPanel.ClipsDescendants = false  -- Don't clip during animation
 	
 			-- Parent to overlay layer if available, otherwise to element card
@@ -5987,7 +5994,7 @@ do
 						print("[ColorPicker] Showing blocker...")
 						overlayBlocker = OverlayService:ShowBlocker({
 							Transparency = 0.45,
-							ZIndex = 4999,
+							ZIndex = 100,
 						})
 						if overlayBlockerConnection then
 							overlayBlockerConnection:Disconnect()
