@@ -63,6 +63,7 @@ const moduleOrder = [
 	'src/WindowManager.lua',
 	'src/Hotkeys.lua',
 	'src/Notifications.lua',
+	'src/Overlay.lua',  // ⭐ CRITICAL: Must be included for ColorPicker!
 	'src/KeySystem.lua',
 
 	// Elements
@@ -203,6 +204,13 @@ DEFAULT_OVERLAY.ZIndex = 20000
 DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
 DEFAULT_OVERLAY.Parent = DEFAULT_HOST
 
+-- Initialize Overlay service
+Overlay:Initialize({
+	PlayerGui = PlayerGui,
+	DisplayOrder = DEFAULT_HOST.DisplayOrder + 10,
+	OverlayFrame = DEFAULT_OVERLAY
+})
+
 Notifications:Initialize({
 	host = DEFAULT_HOST,
 	Theme = Theme,
@@ -267,6 +275,7 @@ function RvrseUI:CreateWindow(cfg)
 		SectionBuilder = SectionBuilder,
 		WindowManager = WindowManager,
 		Notifications = Notifications,
+		Overlay = Overlay,  -- ⭐ CRITICAL: Pass Overlay service!
 		KeySystem = KeySystem,
 		Debug = Debug,
 		Obfuscation = Obfuscation,
