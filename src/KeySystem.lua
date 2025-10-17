@@ -176,6 +176,9 @@ end
 function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	local keySettings = settings.KeySettings or {}
 
+	-- Get theme colors
+	local colors = deps.Theme:Get()
+
 	-- UI Configuration
 	local title = keySettings.Title or (settings.Name .. " - Key System")
 	local subtitle = keySettings.Subtitle or "Enter your key to continue"
@@ -209,7 +212,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	Container.Size = UDim2.new(0, 0, 0, 0) -- Start at 0 for animation
 	Container.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Container.AnchorPoint = Vector2.new(0.5, 0.5)
-	Container.BackgroundColor3 = deps.Theme.Current.WindowBackground
+	Container.BackgroundColor3 = colors.Bg
 	Container.BorderSizePixel = 0
 	Container.Parent = KeyGui
 
@@ -241,7 +244,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	Title.BackgroundTransparency = 1
 	Title.Font = Enum.Font.GothamBold
 	Title.Text = title
-	Title.TextColor3 = deps.Theme.Current.PrimaryText
+	Title.TextColor3 = colors.Text
 	Title.TextSize = 18
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.Parent = Container
@@ -254,7 +257,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	Subtitle.BackgroundTransparency = 1
 	Subtitle.Font = Enum.Font.Gotham
 	Subtitle.Text = subtitle
-	Subtitle.TextColor3 = deps.Theme.Current.SecondaryText
+	Subtitle.TextColor3 = colors.TextSub
 	Subtitle.TextSize = 14
 	Subtitle.TextXAlignment = Enum.TextXAlignment.Left
 	Subtitle.Parent = Container
@@ -267,7 +270,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	NoteLabel.BackgroundTransparency = 1
 	NoteLabel.Font = Enum.Font.Gotham
 	NoteLabel.Text = note
-	NoteLabel.TextColor3 = deps.Theme.Current.SecondaryText
+	NoteLabel.TextColor3 = colors.TextSub
 	NoteLabel.TextSize = 12
 	NoteLabel.TextXAlignment = Enum.TextXAlignment.Left
 	NoteLabel.TextYAlignment = Enum.TextYAlignment.Top
@@ -283,7 +286,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		NoteBtn.Name = "NoteButton"
 		NoteBtn.Size = UDim2.new(1, -40, 0, 35)
 		NoteBtn.Position = UDim2.new(0, 20, 0, 130)
-		NoteBtn.BackgroundColor3 = deps.Theme.Current.Accent
+		NoteBtn.BackgroundColor3 = colors.Accent
 		NoteBtn.BorderSizePixel = 0
 		NoteBtn.Font = Enum.Font.GothamMedium
 		NoteBtn.Text = noteButton.Text or "Get Key"
@@ -304,10 +307,10 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 
 		-- Hover effect
 		NoteBtn.MouseEnter:Connect(function()
-			deps.Animator:Spring(NoteBtn, 0.3, {BackgroundColor3 = deps.UIHelpers:LightenColor(deps.Theme.Current.Accent, 0.1)})
+			deps.Animator:Spring(NoteBtn, 0.3, {BackgroundColor3 = colors.AccentHover})
 		end)
 		NoteBtn.MouseLeave:Connect(function()
-			deps.Animator:Spring(NoteBtn, 0.3, {BackgroundColor3 = deps.Theme.Current.Accent})
+			deps.Animator:Spring(NoteBtn, 0.3, {BackgroundColor3 = colors.Accent})
 		end)
 	end
 
@@ -316,13 +319,13 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	InputBox.Name = "InputBox"
 	InputBox.Size = UDim2.new(1, -40, 0, 40)
 	InputBox.Position = UDim2.new(0, 20, 0, 135 + noteButtonHeight)
-	InputBox.BackgroundColor3 = deps.Theme.Current.ElementBackground
+	InputBox.BackgroundColor3 = colors.Surface
 	InputBox.BorderSizePixel = 0
 	InputBox.Font = Enum.Font.GothamMedium
 	InputBox.PlaceholderText = "Enter key here..."
-	InputBox.PlaceholderColor3 = deps.Theme.Current.SecondaryText
+	InputBox.PlaceholderColor3 = colors.TextMuted
 	InputBox.Text = ""
-	InputBox.TextColor3 = deps.Theme.Current.PrimaryText
+	InputBox.TextColor3 = colors.Text
 	InputBox.TextSize = 14
 	InputBox.ClearTextOnFocus = false
 	InputBox.Parent = Container
@@ -344,7 +347,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	StatusLabel.BackgroundTransparency = 1
 	StatusLabel.Font = Enum.Font.Gotham
 	StatusLabel.Text = string.format("Attempts remaining: %d/%d", attemptsRemaining, maxAttempts)
-	StatusLabel.TextColor3 = deps.Theme.Current.SecondaryText
+	StatusLabel.TextColor3 = colors.TextSub
 	StatusLabel.TextSize = 12
 	StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 	StatusLabel.Parent = Container
@@ -354,7 +357,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	SubmitBtn.Name = "Submit"
 	SubmitBtn.Size = UDim2.new(1, -40, 0, 40)
 	SubmitBtn.Position = UDim2.new(0, 20, 0, 215 + noteButtonHeight)
-	SubmitBtn.BackgroundColor3 = deps.Theme.Current.Accent
+	SubmitBtn.BackgroundColor3 = colors.Accent
 	SubmitBtn.BorderSizePixel = 0
 	SubmitBtn.Font = Enum.Font.GothamBold
 	SubmitBtn.Text = "Submit Key"
@@ -529,10 +532,10 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 
 	-- Hover effects
 	SubmitBtn.MouseEnter:Connect(function()
-		deps.Animator:Spring(SubmitBtn, 0.3, {BackgroundColor3 = deps.UIHelpers:LightenColor(deps.Theme.Current.Accent, 0.1)})
+		deps.Animator:Spring(SubmitBtn, 0.3, {BackgroundColor3 = colors.AccentHover})
 	end)
 	SubmitBtn.MouseLeave:Connect(function()
-		deps.Animator:Spring(SubmitBtn, 0.3, {BackgroundColor3 = deps.Theme.Current.Accent})
+		deps.Animator:Spring(SubmitBtn, 0.3, {BackgroundColor3 = colors.Accent})
 	end)
 
 	-- Focus input box
