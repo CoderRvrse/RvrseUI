@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 0,
-    "patch": 0,
-    "full": "4.0.0",
-    "build": "20251010",
-    "hash": "V8N3X7C2",
+    "patch": 1,
+    "full": "4.0.1",
+    "build": "20251017",
+    "hash": "C9P2X5L8",
     "channel": "Stable"
   },
   "release": {
@@ -40,6 +40,20 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.0.1": {
+      "date": "2025-10-17",
+      "hash": "C9P2X5L8",
+      "changes": [
+        "🎨 ColorPicker Phase 2 - Advanced mode fixes (RGB/HSV sliders + Hex input)",
+        "🔧 Fixed Overlay module missing from build pipeline - was never compiled into monolith",
+        "🐛 Fixed ColorPicker panel visibility issues (ClipsDescendants, parenting, transparency)",
+        "⚡ Optimized slider callbacks - only fire on user interaction, not programmatic updates",
+        "📊 Added comprehensive GUI architecture documentation (UI-ARCHITECTURE.md, DEBUGGING-WORKFLOW.md)",
+        "🛠️ Created GUI inspector tools (visual + console-based) for debugging layer issues",
+        "🎯 Added visual debug test with color-coded layers for troubleshooting blocker issues",
+        "📝 Enhanced debug logging throughout ColorPicker and Overlay modules"
+      ]
+    },
     "4.0.0": {
       "date": "2025-10-10",
       "hash": "V8N3X7C2",

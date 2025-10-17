@@ -6,11 +6,11 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 RvrseUI v4.0.0 Build Script');
+console.log('🔨 RvrseUI v4.0.1 Build Script');
 console.log('='.repeat(52));
 
 // Header for compiled file
-const header = `-- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
+const header = `-- RvrseUI v4.0.1 | Cyberpunk Neon UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized

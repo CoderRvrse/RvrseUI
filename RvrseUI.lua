@@ -1,5 +1,5 @@
--- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T22:37:56.076Z
+-- RvrseUI v4.0.1 | Cyberpunk Neon UI Framework
+-- Compiled from modular architecture on 2025-10-17T22:54:45.737Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -35,10 +35,10 @@ do
 	Version.Data = {
 		Major = 4,
 		Minor = 0,
-		Patch = 0,
-		Build = "20251010",  -- YYYYMMDD format
-		Full = "4.0.0",
-		Hash = "V8N3X7C2",  -- Release hash for integrity verification
+		Patch = 1,
+		Build = "20251017",  -- YYYYMMDD format
+		Full = "4.0.1",
+		Hash = "C9P2X5L8",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
