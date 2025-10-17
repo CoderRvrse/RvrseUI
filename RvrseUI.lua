@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T03:47:30.118Z
+-- Compiled from modular architecture on 2025-10-17T03:57:19.293Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2384,7 +2384,7 @@ do
 		local title = keySettings.Title or (settings.Name .. " - Key System")
 		local subtitle = keySettings.Subtitle or "Enter your key to continue"
 		local note = keySettings.Note or "Visit our website to get a key"
-		local noteButton = keySettings.NoteButton or nil -- { Text = "Get Key", Callback = function() end }
+		local noteButton = keySettings.NoteButton or nil
 	
 		-- Attempt configuration
 		local maxAttempts = keySettings.MaxAttempts or 3
@@ -2407,98 +2407,179 @@ do
 			KeyGui.Parent = game.CoreGui
 		end
 	
-		-- Main container
+		-- Main container with improved design
 		local Container = Instance.new("Frame")
 		Container.Name = "Container"
-		Container.Size = UDim2.new(0, 0, 0, 0) -- Start at 0 for animation
+		Container.Size = UDim2.new(0, 500, 0, 0) -- Wider container
 		Container.Position = UDim2.new(0.5, 0, 0.5, 0)
 		Container.AnchorPoint = Vector2.new(0.5, 0.5)
 		Container.BackgroundColor3 = colors.Bg
 		Container.BorderSizePixel = 0
+		Container.ClipsDescendants = true
 		Container.Parent = KeyGui
 	
-		-- Corner radius
+		-- Rounded corners
 		local Corner = Instance.new("UICorner")
-		Corner.CornerRadius = UDim.new(0, 12)
+		Corner.CornerRadius = UDim.new(0, 16)
 		Corner.Parent = Container
+	
+		-- Gradient border effect
+		local Border = Instance.new("UIStroke")
+		Border.Color = colors.Accent
+		Border.Thickness = 2
+		Border.Transparency = 0.5
+		Border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		Border.Parent = Container
+	
+		local BorderGradient = Instance.new("UIGradient")
+		BorderGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, colors.Primary),
+			ColorSequenceKeypoint.new(0.5, colors.Accent),
+			ColorSequenceKeypoint.new(1, colors.Secondary)
+		})
+		BorderGradient.Rotation = 45
+		BorderGradient.Parent = Border
+	
+		-- Animated gradient rotation
+		task.spawn(function()
+			while Container.Parent do
+				for i = 0, 360, 2 do
+					if not Container.Parent then break end
+					BorderGradient.Rotation = i
+					task.wait(0.03)
+				end
+			end
+		end)
 	
 		-- Shadow/glow effect
 		local Glow = Instance.new("ImageLabel")
 		Glow.Name = "Glow"
-		Glow.Size = UDim2.new(1, 40, 1, 40)
+		Glow.Size = UDim2.new(1, 60, 1, 60)
 		Glow.Position = UDim2.new(0.5, 0, 0.5, 0)
 		Glow.AnchorPoint = Vector2.new(0.5, 0.5)
 		Glow.BackgroundTransparency = 1
 		Glow.Image = "rbxassetid://5028857084"
-		Glow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-		Glow.ImageTransparency = 0.8
+		Glow.ImageColor3 = colors.Accent
+		Glow.ImageTransparency = 0.6
 		Glow.ScaleType = Enum.ScaleType.Slice
 		Glow.SliceCenter = Rect.new(24, 24, 276, 276)
-		Glow.ZIndex = -1
+		Glow.ZIndex = 0
 		Glow.Parent = Container
+	
+		-- Header section with gradient
+		local Header = Instance.new("Frame")
+		Header.Name = "Header"
+		Header.Size = UDim2.new(1, 0, 0, 100)
+		Header.BackgroundColor3 = colors.Card
+		Header.BorderSizePixel = 0
+		Header.Parent = Container
+	
+		local HeaderCorner = Instance.new("UICorner")
+		HeaderCorner.CornerRadius = UDim.new(0, 16)
+		HeaderCorner.Parent = Header
+	
+		local HeaderGradient = Instance.new("UIGradient")
+		HeaderGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, colors.Primary),
+			ColorSequenceKeypoint.new(1, colors.Accent)
+		})
+		HeaderGradient.Rotation = 90
+		HeaderGradient.Transparency = NumberSequence.new(0.7)
+		HeaderGradient.Parent = Header
+	
+		-- Icon
+		local Icon = Instance.new("TextLabel")
+		Icon.Name = "Icon"
+		Icon.Size = UDim2.new(0, 50, 0, 50)
+		Icon.Position = UDim2.new(0, 25, 0, 25)
+		Icon.BackgroundTransparency = 1
+		Icon.Font = Enum.Font.GothamBold
+		Icon.Text = "🔐"
+		Icon.TextColor3 = colors.TextBright
+		Icon.TextSize = 32
+		Icon.Parent = Header
 	
 		-- Title
 		local Title = Instance.new("TextLabel")
 		Title.Name = "Title"
-		Title.Size = UDim2.new(1, -40, 0, 30)
-		Title.Position = UDim2.new(0, 20, 0, 20)
+		Title.Size = UDim2.new(1, -100, 0, 30)
+		Title.Position = UDim2.new(0, 85, 0, 20)
 		Title.BackgroundTransparency = 1
 		Title.Font = Enum.Font.GothamBold
 		Title.Text = title
-		Title.TextColor3 = colors.Text
-		Title.TextSize = 18
+		Title.TextColor3 = colors.TextBright
+		Title.TextSize = 20
 		Title.TextXAlignment = Enum.TextXAlignment.Left
-		Title.Parent = Container
+		Title.Parent = Header
 	
 		-- Subtitle
 		local Subtitle = Instance.new("TextLabel")
 		Subtitle.Name = "Subtitle"
-		Subtitle.Size = UDim2.new(1, -40, 0, 20)
-		Subtitle.Position = UDim2.new(0, 20, 0, 55)
+		Subtitle.Size = UDim2.new(1, -100, 0, 20)
+		Subtitle.Position = UDim2.new(0, 85, 0, 55)
 		Subtitle.BackgroundTransparency = 1
 		Subtitle.Font = Enum.Font.Gotham
 		Subtitle.Text = subtitle
 		Subtitle.TextColor3 = colors.TextSub
 		Subtitle.TextSize = 14
 		Subtitle.TextXAlignment = Enum.TextXAlignment.Left
-		Subtitle.Parent = Container
+		Subtitle.Parent = Header
+	
+		-- Content area
+		local Content = Instance.new("Frame")
+		Content.Name = "Content"
+		Content.Size = UDim2.new(1, -40, 1, -120)
+		Content.Position = UDim2.new(0, 20, 0, 110)
+		Content.BackgroundTransparency = 1
+		Content.Parent = Container
 	
 		-- Note message
 		local NoteLabel = Instance.new("TextLabel")
 		NoteLabel.Name = "Note"
-		NoteLabel.Size = UDim2.new(1, -40, 0, 40)
-		NoteLabel.Position = UDim2.new(0, 20, 0, 85)
+		NoteLabel.Size = UDim2.new(1, 0, 0, 40)
+		NoteLabel.Position = UDim2.new(0, 0, 0, 0)
 		NoteLabel.BackgroundTransparency = 1
 		NoteLabel.Font = Enum.Font.Gotham
 		NoteLabel.Text = note
 		NoteLabel.TextColor3 = colors.TextSub
-		NoteLabel.TextSize = 12
+		NoteLabel.TextSize = 13
 		NoteLabel.TextXAlignment = Enum.TextXAlignment.Left
 		NoteLabel.TextYAlignment = Enum.TextYAlignment.Top
 		NoteLabel.TextWrapped = true
-		NoteLabel.Parent = Container
+		NoteLabel.Parent = Content
 	
-		-- Note button (optional - "Get Key" link)
+		-- Note button (optional)
 		local noteButtonHeight = 0
 		if noteButton then
-			noteButtonHeight = 40
+			noteButtonHeight = 45
 	
 			local NoteBtn = Instance.new("TextButton")
 			NoteBtn.Name = "NoteButton"
-			NoteBtn.Size = UDim2.new(1, -40, 0, 35)
-			NoteBtn.Position = UDim2.new(0, 20, 0, 130)
-			NoteBtn.BackgroundColor3 = colors.Accent
+			NoteBtn.Size = UDim2.new(1, 0, 0, 38)
+			NoteBtn.Position = UDim2.new(0, 0, 0, 50)
+			NoteBtn.BackgroundColor3 = colors.Surface
 			NoteBtn.BorderSizePixel = 0
 			NoteBtn.Font = Enum.Font.GothamMedium
-			NoteBtn.Text = noteButton.Text or "Get Key"
-			NoteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			NoteBtn.Text = "  " .. (noteButton.Text or "Get Key")
+			NoteBtn.TextColor3 = colors.Accent
 			NoteBtn.TextSize = 14
+			NoteBtn.TextXAlignment = Enum.TextXAlignment.Left
 			NoteBtn.AutoButtonColor = false
-			NoteBtn.Parent = Container
+			NoteBtn.Parent = Content
 	
 			local NoteBtnCorner = Instance.new("UICorner")
-			NoteBtnCorner.CornerRadius = UDim.new(0, 8)
+			NoteBtnCorner.CornerRadius = UDim.new(0, 10)
 			NoteBtnCorner.Parent = NoteBtn
+	
+			local NoteBtnStroke = Instance.new("UIStroke")
+			NoteBtnStroke.Color = colors.Accent
+			NoteBtnStroke.Thickness = 1.5
+			NoteBtnStroke.Transparency = 0.7
+			NoteBtnStroke.Parent = NoteBtn
+	
+			local NoteBtnPadding = Instance.new("UIPadding")
+			NoteBtnPadding.PaddingLeft = UDim.new(0, 12)
+			NoteBtnPadding.Parent = NoteBtn
 	
 			NoteBtn.MouseButton1Click:Connect(function()
 				if noteButton.Callback then
@@ -2508,93 +2589,128 @@ do
 	
 			-- Hover effect
 			NoteBtn.MouseEnter:Connect(function()
-				deps.Animator:Spring(NoteBtn, 0.3, {BackgroundColor3 = colors.AccentHover})
+				deps.Animator:Tween(NoteBtn, {BackgroundColor3 = colors.HoverBright}, deps.Animator.Spring.Lightning)
+				deps.Animator:Tween(NoteBtnStroke, {Transparency = 0.3}, deps.Animator.Spring.Lightning)
 			end)
 			NoteBtn.MouseLeave:Connect(function()
-				deps.Animator:Spring(NoteBtn, 0.3, {BackgroundColor3 = colors.Accent})
+				deps.Animator:Tween(NoteBtn, {BackgroundColor3 = colors.Surface}, deps.Animator.Spring.Lightning)
+				deps.Animator:Tween(NoteBtnStroke, {Transparency = 0.7}, deps.Animator.Spring.Lightning)
 			end)
 		end
 	
 		-- Input box
 		local InputBox = Instance.new("TextBox")
 		InputBox.Name = "InputBox"
-		InputBox.Size = UDim2.new(1, -40, 0, 40)
-		InputBox.Position = UDim2.new(0, 20, 0, 135 + noteButtonHeight)
+		InputBox.Size = UDim2.new(1, 0, 0, 48)
+		InputBox.Position = UDim2.new(0, 0, 0, 55 + noteButtonHeight)
 		InputBox.BackgroundColor3 = colors.Surface
 		InputBox.BorderSizePixel = 0
 		InputBox.Font = Enum.Font.GothamMedium
-		InputBox.PlaceholderText = "Enter key here..."
+		InputBox.PlaceholderText = "Enter your key here..."
 		InputBox.PlaceholderColor3 = colors.TextMuted
 		InputBox.Text = ""
-		InputBox.TextColor3 = colors.Text
-		InputBox.TextSize = 14
+		InputBox.TextColor3 = colors.TextBright
+		InputBox.TextSize = 15
 		InputBox.ClearTextOnFocus = false
-		InputBox.Parent = Container
+		InputBox.Parent = Content
 	
 		local InputCorner = Instance.new("UICorner")
-		InputCorner.CornerRadius = UDim.new(0, 8)
+		InputCorner.CornerRadius = UDim.new(0, 10)
 		InputCorner.Parent = InputBox
 	
+		local InputStroke = Instance.new("UIStroke")
+		InputStroke.Color = colors.Border
+		InputStroke.Thickness = 1.5
+		InputStroke.Transparency = 0.5
+		InputStroke.Parent = InputBox
+	
 		local InputPadding = Instance.new("UIPadding")
-		InputPadding.PaddingLeft = UDim.new(0, 12)
-		InputPadding.PaddingRight = UDim.new(0, 12)
+		InputPadding.PaddingLeft = UDim.new(0, 16)
+		InputPadding.PaddingRight = UDim.new(0, 16)
 		InputPadding.Parent = InputBox
 	
-		-- Status label (for attempts remaining / error messages)
+		-- Input focus effects
+		InputBox.Focused:Connect(function()
+			deps.Animator:Tween(InputStroke, {Color = colors.Accent, Transparency = 0.2}, deps.Animator.Spring.Lightning)
+		end)
+		InputBox.FocusLost:Connect(function()
+			deps.Animator:Tween(InputStroke, {Color = colors.Border, Transparency = 0.5}, deps.Animator.Spring.Lightning)
+		end)
+	
+		-- Status label
 		local StatusLabel = Instance.new("TextLabel")
 		StatusLabel.Name = "Status"
-		StatusLabel.Size = UDim2.new(1, -40, 0, 20)
-		StatusLabel.Position = UDim2.new(0, 20, 0, 185 + noteButtonHeight)
+		StatusLabel.Size = UDim2.new(1, 0, 0, 20)
+		StatusLabel.Position = UDim2.new(0, 0, 0, 113 + noteButtonHeight)
 		StatusLabel.BackgroundTransparency = 1
 		StatusLabel.Font = Enum.Font.Gotham
 		StatusLabel.Text = string.format("Attempts remaining: %d/%d", attemptsRemaining, maxAttempts)
 		StatusLabel.TextColor3 = colors.TextSub
 		StatusLabel.TextSize = 12
 		StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
-		StatusLabel.Parent = Container
+		StatusLabel.Parent = Content
 	
 		-- Submit button
 		local SubmitBtn = Instance.new("TextButton")
 		SubmitBtn.Name = "Submit"
-		SubmitBtn.Size = UDim2.new(1, -40, 0, 40)
-		SubmitBtn.Position = UDim2.new(0, 20, 0, 215 + noteButtonHeight)
+		SubmitBtn.Size = UDim2.new(1, 0, 0, 48)
+		SubmitBtn.Position = UDim2.new(0, 0, 0, 143 + noteButtonHeight)
 		SubmitBtn.BackgroundColor3 = colors.Accent
 		SubmitBtn.BorderSizePixel = 0
 		SubmitBtn.Font = Enum.Font.GothamBold
-		SubmitBtn.Text = "Submit Key"
+		SubmitBtn.Text = "Validate Key"
 		SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		SubmitBtn.TextSize = 14
+		SubmitBtn.TextSize = 15
 		SubmitBtn.AutoButtonColor = false
-		SubmitBtn.Parent = Container
+		SubmitBtn.Parent = Content
 	
 		local SubmitCorner = Instance.new("UICorner")
-		SubmitCorner.CornerRadius = UDim.new(0, 8)
+		SubmitCorner.CornerRadius = UDim.new(0, 10)
 		SubmitCorner.Parent = SubmitBtn
 	
-		-- Calculate final container size
-		local finalHeight = 265 + noteButtonHeight
+		-- Submit button gradient
+		local SubmitGradient = Instance.new("UIGradient")
+		SubmitGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, colors.Primary),
+			ColorSequenceKeypoint.new(1, colors.Accent)
+		})
+		SubmitGradient.Rotation = 45
+		SubmitGradient.Parent = SubmitBtn
+	
+		-- Calculate final container height
+		local finalHeight = 320 + noteButtonHeight
 	
 		-- Animate container entrance
-		Container.Size = UDim2.new(0, 450, 0, finalHeight)
+		Container.Size = UDim2.new(0, 500, 0, 0)
 		Container.BackgroundTransparency = 1
+		Header.BackgroundTransparency = 1
+		Icon.TextTransparency = 1
 		Title.TextTransparency = 1
 		Subtitle.TextTransparency = 1
 		NoteLabel.TextTransparency = 1
 		StatusLabel.TextTransparency = 1
 		InputBox.BackgroundTransparency = 1
 		InputBox.TextTransparency = 1
+		InputStroke.Transparency = 1
 		SubmitBtn.BackgroundTransparency = 1
 		SubmitBtn.TextTransparency = 1
+		Border.Transparency = 1
 	
 		task.wait(0.1)
 	
-		deps.Animator:Spring(Container, 0.6, {BackgroundTransparency = 0})
-		deps.Animator:Spring(Title, 0.6, {TextTransparency = 0})
-		deps.Animator:Spring(Subtitle, 0.6, {TextTransparency = 0})
-		deps.Animator:Spring(NoteLabel, 0.6, {TextTransparency = 0})
-		deps.Animator:Spring(StatusLabel, 0.6, {TextTransparency = 0})
-		deps.Animator:Spring(InputBox, 0.6, {BackgroundTransparency = 0, TextTransparency = 0})
-		deps.Animator:Spring(SubmitBtn, 0.6, {BackgroundTransparency = 0, TextTransparency = 0})
+		-- Smooth entrance animations
+		deps.Animator:Tween(Container, {Size = UDim2.new(0, 500, 0, finalHeight)}, deps.Animator.Spring.Bounce)
+		deps.Animator:Tween(Container, {BackgroundTransparency = 0}, deps.Animator.Spring.Butter)
+		deps.Animator:Tween(Header, {BackgroundTransparency = 0}, deps.Animator.Spring.Butter)
+		deps.Animator:Tween(Icon, {TextTransparency = 0}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(Title, {TextTransparency = 0}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(Subtitle, {TextTransparency = 0}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(NoteLabel, {TextTransparency = 0}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(StatusLabel, {TextTransparency = 0}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(InputBox, {BackgroundTransparency = 0, TextTransparency = 0}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(InputStroke, {Transparency = 0.5}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(SubmitBtn, {BackgroundTransparency = 0, TextTransparency = 0}, deps.Animator.Spring.Glide)
+		deps.Animator:Tween(Border, {Transparency = 0.5}, deps.Animator.Spring.Glide)
 	
 		-- Validation function
 		local function validateInput()
@@ -2602,14 +2718,14 @@ do
 	
 			if inputKey == "" then
 				-- Shake animation
-				deps.Animator:Spring(Container, 0.3, {Position = UDim2.new(0.5, 10, 0.5, 0)})
-				task.wait(0.1)
-				deps.Animator:Spring(Container, 0.3, {Position = UDim2.new(0.5, -10, 0.5, 0)})
-				task.wait(0.1)
-				deps.Animator:Spring(Container, 0.3, {Position = UDim2.new(0.5, 0, 0.5, 0)})
+				deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 10, 0.5, 0)}, deps.Animator.Spring.Lightning)
+				task.wait(0.05)
+				deps.Animator:Tween(Container, {Position = UDim2.new(0.5, -10, 0.5, 0)}, deps.Animator.Spring.Lightning)
+				task.wait(0.05)
+				deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 0, 0.5, 0)}, deps.Animator.Spring.Lightning)
 	
-				StatusLabel.Text = "Please enter a key!"
-				StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+				StatusLabel.Text = "⚠️ Please enter a key!"
+				StatusLabel.TextColor3 = colors.Warning
 				return
 			end
 	
@@ -2619,7 +2735,7 @@ do
 			if valid then
 				-- Success!
 				StatusLabel.Text = "✓ Key validated! Loading..."
-				StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+				StatusLabel.TextColor3 = colors.Success
 	
 				-- Save key if enabled
 				if keySettings.SaveKey then
@@ -2632,7 +2748,7 @@ do
 					KeySystem:SendWebhook(keySettings.WebhookURL, {
 						Title = "Key Validated ✓",
 						Description = "User successfully validated key",
-						Color = 3066993, -- Green
+						Color = 3066993,
 						Key = inputKey,
 						Result = "Success: " .. message
 					})
@@ -2645,15 +2761,18 @@ do
 	
 				-- Animate out
 				task.wait(0.5)
-				deps.Animator:Spring(Container, 0.4, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
-				deps.Animator:Spring(Title, 0.4, {TextTransparency = 1})
-				deps.Animator:Spring(Subtitle, 0.4, {TextTransparency = 1})
-				deps.Animator:Spring(NoteLabel, 0.4, {TextTransparency = 1})
-				deps.Animator:Spring(StatusLabel, 0.4, {TextTransparency = 1})
-				deps.Animator:Spring(InputBox, 0.4, {BackgroundTransparency = 1, TextTransparency = 1})
-				deps.Animator:Spring(SubmitBtn, 0.4, {BackgroundTransparency = 1, TextTransparency = 1})
+				deps.Animator:Tween(Container, {Size = UDim2.new(0, 500, 0, 0), BackgroundTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(Header, {BackgroundTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(Icon, {TextTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(Title, {TextTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(Subtitle, {TextTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(NoteLabel, {TextTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(StatusLabel, {TextTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(InputBox, {BackgroundTransparency = 1, TextTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(SubmitBtn, {BackgroundTransparency = 1, TextTransparency = 1}, deps.Animator.Spring.Expo)
+				deps.Animator:Tween(Border, {Transparency = 1}, deps.Animator.Spring.Expo)
 	
-				task.wait(0.5)
+				task.wait(0.6)
 				KeyGui:Destroy()
 	
 				-- Success callback
@@ -2665,18 +2784,18 @@ do
 				attemptsRemaining = attemptsRemaining - 1
 	
 				-- Shake animation
-				deps.Animator:Spring(Container, 0.3, {Position = UDim2.new(0.5, 10, 0.5, 0)})
-				task.wait(0.1)
-				deps.Animator:Spring(Container, 0.3, {Position = UDim2.new(0.5, -10, 0.5, 0)})
-				task.wait(0.1)
-				deps.Animator:Spring(Container, 0.3, {Position = UDim2.new(0.5, 0, 0.5, 0)})
+				deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 15, 0.5, 0)}, deps.Animator.Spring.Lightning)
+				task.wait(0.05)
+				deps.Animator:Tween(Container, {Position = UDim2.new(0.5, -15, 0.5, 0)}, deps.Animator.Spring.Lightning)
+				task.wait(0.05)
+				deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 0, 0.5, 0)}, deps.Animator.Spring.Lightning)
 	
 				-- Send webhook if configured
 				if keySettings.WebhookURL then
 					KeySystem:SendWebhook(keySettings.WebhookURL, {
 						Title = "Invalid Key Attempt ✗",
 						Description = "User entered invalid key",
-						Color = 15158332, -- Red
+						Color = 15158332,
 						Key = inputKey,
 						Result = "Failed: " .. message .. " | Attempts remaining: " .. attemptsRemaining
 					})
@@ -2690,7 +2809,7 @@ do
 				if attemptsRemaining <= 0 then
 					-- Out of attempts
 					StatusLabel.Text = "✗ Out of attempts! Closing..."
-					StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+					StatusLabel.TextColor3 = colors.Error
 	
 					-- Callback
 					if keySettings.OnAttemptsExhausted then
@@ -2700,7 +2819,7 @@ do
 					task.wait(1)
 	
 					-- Kick player if configured
-					if keySettings.KickOnFailure ~= false then -- Default true
+					if keySettings.KickOnFailure ~= false then
 						game.Players.LocalPlayer:Kick("Key validation failed - No attempts remaining")
 					end
 	
@@ -2713,7 +2832,7 @@ do
 				else
 					-- Update status
 					StatusLabel.Text = string.format("✗ Invalid key! Attempts: %d/%d", attemptsRemaining, maxAttempts)
-					StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+					StatusLabel.TextColor3 = colors.Error
 	
 					-- Clear input
 					InputBox.Text = ""
@@ -2733,14 +2852,14 @@ do
 	
 		-- Hover effects
 		SubmitBtn.MouseEnter:Connect(function()
-			deps.Animator:Spring(SubmitBtn, 0.3, {BackgroundColor3 = colors.AccentHover})
+			deps.Animator:Tween(SubmitBtn, {BackgroundColor3 = colors.AccentHover}, deps.Animator.Spring.Lightning)
 		end)
 		SubmitBtn.MouseLeave:Connect(function()
-			deps.Animator:Spring(SubmitBtn, 0.3, {BackgroundColor3 = colors.Accent})
+			deps.Animator:Tween(SubmitBtn, {BackgroundColor3 = colors.Accent}, deps.Animator.Spring.Lightning)
 		end)
 	
 		-- Focus input box
-		task.wait(0.7)
+		task.wait(0.8)
 		InputBox:CaptureFocus()
 	
 		return KeyGui
