@@ -161,12 +161,13 @@ function ColorPicker.Create(o, dependencies)
 		pickerPanel.Name = "ColorPickerPanel"
 		pickerPanel.BackgroundColor3 = pal3.Elevated
 		pickerPanel.BorderSizePixel = 0
-		pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
+		pickerPanel.Size = UDim2.new(0, 320, 0, 380)  -- Full height to show sliders
 		pickerPanel.Position = UDim2.new(1, -(320 + 6), 0.5, 52)
 		pickerPanel.Visible = false
 		pickerPanel.ZIndex = 5000
-		pickerPanel.ClipsDescendants = true
-		pickerPanel.Parent = f
+		pickerPanel.ClipsDescendants = false  -- Don't clip during animation
+		-- Parent to overlay layer if available, otherwise to element card
+		pickerPanel.Parent = baseOverlayLayer or f
 		corner(pickerPanel, 12)
 		stroke(pickerPanel, pal3.Accent, 2)
 		shadow(pickerPanel, 0.7, 20)
@@ -483,10 +484,12 @@ function ColorPicker.Create(o, dependencies)
 			if RvrseUI.Store:IsLocked(o.RespectLock) then return end
 
 			pickerOpen = state
-			pickerPanel.Visible = state
 
 			if state then
-				-- Show blocker
+				-- Show panel and blocker
+				pickerPanel.Visible = true
+				pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
+
 				if OverlayService then
 					overlayBlocker = OverlayService:ShowBlocker({
 						Transparency = 0.45,
@@ -500,9 +503,16 @@ function ColorPicker.Create(o, dependencies)
 					end)
 				end
 
-				-- Animate panel open
+				-- Wait for layout to calculate, then animate to full height
+				task.wait(0.05)
+				local targetHeight = panelLayout.AbsoluteContentSize.Y + 24
+				if targetHeight < 50 then
+					-- Fallback if layout hasn't calculated yet
+					targetHeight = 380
+				end
+
 				Animator:Tween(pickerPanel, {
-					Size = UDim2.new(0, 320, 0, panelLayout.AbsoluteContentSize.Y + 24)
+					Size = UDim2.new(0, 320, 0, targetHeight)
 				}, Animator.Spring.Gentle)
 
 				-- Pulse effect
@@ -522,7 +532,7 @@ function ColorPicker.Create(o, dependencies)
 					Size = UDim2.new(0, 320, 0, 0)
 				}, Animator.Spring.Snappy)
 
-				task.delay(0.2, function()
+				task.delay(0.3, function()
 					if not pickerOpen then
 						pickerPanel.Visible = false
 					end
