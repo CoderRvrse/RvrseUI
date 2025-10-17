@@ -188,7 +188,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 
 	-- Create ScreenGui
 	local KeyGui = Instance.new("ScreenGui")
-	KeyGui.Name = deps.Obfuscation:Obfuscate("KeySystem")
+	KeyGui.Name = deps.Obfuscation:Generate("KeySystem")
 	KeyGui.DisplayOrder = 999999
 	KeyGui.ResetOnSpawn = false
 	KeyGui.IgnoreGuiInset = true

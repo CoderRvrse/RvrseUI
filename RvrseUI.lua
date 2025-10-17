@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T03:31:26.286Z
+-- Compiled from modular architecture on 2025-10-17T03:37:56.491Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2389,7 +2389,7 @@ do
 	
 		-- Create ScreenGui
 		local KeyGui = Instance.new("ScreenGui")
-		KeyGui.Name = deps.Obfuscation:Obfuscate("KeySystem")
+		KeyGui.Name = deps.Obfuscation:Generate("KeySystem")
 		KeyGui.DisplayOrder = 999999
 		KeyGui.ResetOnSpawn = false
 		KeyGui.IgnoreGuiInset = true
