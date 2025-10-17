@@ -94,8 +94,18 @@ function ColorPicker.Create(o, dependencies)
 	local baseOverlayLayer = dependencies.OverlayLayer
 	local OverlayService = dependencies.Overlay
 
+	-- DEBUG: Check overlay layer availability
+	print("[ColorPicker] Creating ColorPicker, Advanced =", o.Advanced ~= false)
+	print("[ColorPicker] OverlayLayer from deps:", baseOverlayLayer)
+	print("[ColorPicker] OverlayService:", OverlayService)
+
 	if OverlayService and not baseOverlayLayer then
 		baseOverlayLayer = OverlayService:GetLayer()
+		print("[ColorPicker] Got layer from OverlayService:", baseOverlayLayer)
+	end
+
+	if not baseOverlayLayer then
+		warn("[ColorPicker] ⚠️ CRITICAL: No OverlayLayer available! Panel will parent to element card and may be clipped!")
 	end
 
 	-- Settings
@@ -167,8 +177,20 @@ function ColorPicker.Create(o, dependencies)
 		pickerPanel.Visible = false
 		pickerPanel.ZIndex = 5000
 		pickerPanel.ClipsDescendants = false  -- Don't clip during animation
+
 		-- Parent to overlay layer if available, otherwise to element card
-		pickerPanel.Parent = baseOverlayLayer or f
+		local panelParent = baseOverlayLayer or f
+		pickerPanel.Parent = panelParent
+
+		-- DEBUG: Log panel creation
+		print("[ColorPicker] Panel created:")
+		print("  Parent:", pickerPanel.Parent)
+		print("  Parent Name:", pickerPanel.Parent and pickerPanel.Parent.Name or "nil")
+		print("  Size:", pickerPanel.Size)
+		print("  Visible:", pickerPanel.Visible)
+		print("  BackgroundTransparency:", pickerPanel.BackgroundTransparency)
+		print("  ZIndex:", pickerPanel.ZIndex)
+
 		corner(pickerPanel, 12)
 		stroke(pickerPanel, pal3.Accent, 2)
 		shadow(pickerPanel, 0.7, 20)
@@ -482,13 +504,21 @@ function ColorPicker.Create(o, dependencies)
 
 		-- Toggle panel function
 		local function setPickerOpen(state)
-			if RvrseUI.Store:IsLocked(o.RespectLock) then return end
+			print("[ColorPicker] setPickerOpen called, state =", state)
+
+			if RvrseUI.Store:IsLocked(o.RespectLock) then
+				print("[ColorPicker] Blocked by lock, RespectLock =", o.RespectLock)
+				return
+			end
 
 			pickerOpen = state
 
 			if state then
+				print("[ColorPicker] Opening panel...")
+
 				-- Show blocker first
 				if OverlayService then
+					print("[ColorPicker] Showing blocker...")
 					overlayBlocker = OverlayService:ShowBlocker({
 						Transparency = 0.45,
 						ZIndex = 4999,
@@ -499,29 +529,45 @@ function ColorPicker.Create(o, dependencies)
 					overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(function()
 						setPickerOpen(false)
 					end)
+					print("[ColorPicker] Blocker shown:", overlayBlocker)
+				else
+					warn("[ColorPicker] ⚠️ No OverlayService available!")
 				end
 
 				-- Show panel and animate (spawn to avoid blocking)
+				print("[ColorPicker] Setting panel visible...")
 				pickerPanel.Visible = true
 				pickerPanel.Size = UDim2.new(0, 320, 0, 0)  -- Start collapsed
+
+				print("[ColorPicker] Panel state after visible:")
+				print("  Visible:", pickerPanel.Visible)
+				print("  Size:", pickerPanel.Size)
+				print("  AbsoluteSize:", pickerPanel.AbsoluteSize)
+				print("  Parent:", pickerPanel.Parent)
 
 				task.spawn(function()
 					-- Wait for layout to calculate content size
 					task.wait(0.05)
 					local targetHeight = panelLayout.AbsoluteContentSize.Y + 24
+					print("[ColorPicker] Layout calculated, targetHeight =", targetHeight)
+
 					if targetHeight < 50 then
 						-- Fallback if layout hasn't calculated yet
 						targetHeight = 380
+						print("[ColorPicker] Using fallback height:", targetHeight)
 					end
 
 					-- Animate to full height
+					print("[ColorPicker] Starting animation to height:", targetHeight)
 					Animator:Tween(pickerPanel, {
 						Size = UDim2.new(0, 320, 0, targetHeight)
 					}, Animator.Spring.Gentle)
+					print("[ColorPicker] Animation started")
 				end)
 
 				-- Pulse effect
 				Animator:Pulse(preview, 1.15, Animator.Spring.Bounce)
+				print("[ColorPicker] Panel opened successfully")
 			else
 				-- Hide blocker
 				if OverlayService then
