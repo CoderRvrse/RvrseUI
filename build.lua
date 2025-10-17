@@ -232,6 +232,14 @@ Hotkeys:Initialize({
 })
 
 WindowManager:Initialize()
+
+KeySystem:Initialize({
+	Theme = Theme,
+	Animator = Animator,
+	UIHelpers = UIHelpers,
+	Debug = Debug,
+	Obfuscation = Obfuscation
+})
 ]]
 
 finalCode = finalCode .. initSection .. "\n"
@@ -276,6 +284,7 @@ function RvrseUI:CreateWindow(cfg)
 		SectionBuilder = SectionBuilder,
 		WindowManager = WindowManager,
 		Notifications = Notifications,
+		KeySystem = KeySystem,
 		Debug = Debug,
 		Obfuscation = Obfuscation,
 		Hotkeys = Hotkeys,

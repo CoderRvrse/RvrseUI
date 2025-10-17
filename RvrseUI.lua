@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.0 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-17T03:23:13.491Z
+-- Compiled from modular architecture on 2025-10-17T03:31:26.286Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -8346,6 +8346,14 @@ Hotkeys:Initialize({
 
 WindowManager:Initialize()
 
+KeySystem:Initialize({
+	Theme = Theme,
+	Animator = Animator,
+	UIHelpers = UIHelpers,
+	Debug = Debug,
+	Obfuscation = Obfuscation
+})
+
 
 -- ============================================
 -- MAIN RVRSEUI TABLE & PUBLIC API
@@ -8384,6 +8392,7 @@ function RvrseUI:CreateWindow(cfg)
 		SectionBuilder = SectionBuilder,
 		WindowManager = WindowManager,
 		Notifications = Notifications,
+		KeySystem = KeySystem,
 		Debug = Debug,
 		Obfuscation = Obfuscation,
 		Hotkeys = Hotkeys,
