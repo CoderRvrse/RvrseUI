@@ -845,6 +845,83 @@ KeySettings = {
 - `OnKeyValid`/`OnKeyInvalid` callbacks
 - Better themed UI with animations
 
+#### Testing Lockout Behavior
+
+**Example: Test invalid key attempts and graceful failure handling**
+
+```lua
+-- ✅ Final Test Script - Test Invalid Keys
+local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+
+-- Enable debug to see validation flow
+RvrseUI:EnableDebug(true)
+
+local Window = RvrseUI:CreateWindow({
+    Name = "Lockout Test Hub",
+    Icon = "🔐",
+    Theme = "Dark",
+
+    KeySystem = true,
+    KeySettings = {
+        Title = "Test Lockout System",
+        Subtitle = "Try entering invalid keys",
+        Note = "You have 3 attempts to enter the correct key",
+
+        -- Correct key for testing
+        Keys = {"CorrectKey123"},
+
+        -- Lockout settings
+        MaxAttempts = 3,
+        KickOnFailure = true,  -- Will kick after 3 failed attempts
+
+        -- Callbacks to see what's happening
+        OnKeyValid = function(key)
+            print("✓ Valid key entered:", key)
+        end,
+
+        OnKeyInvalid = function(key, attemptsLeft)
+            print("✗ Invalid key:", key)
+            print("Attempts remaining:", attemptsLeft)
+        end,
+
+        OnAttemptsExhausted = function()
+            print("⚠️ Out of attempts! User will be kicked.")
+        end
+    }
+})
+
+-- This code only runs if key was validated successfully
+local Tab = Window:CreateTab({ Title = "Main", Icon = "⚙️" })
+local Section = Tab:CreateSection("Welcome")
+
+Section:CreateLabel({ Text = "✓ Access granted!" })
+
+Window:Show()
+```
+
+**What happens when testing:**
+
+1. **Enter 3 wrong keys** → Lockout triggers
+2. **Key system destroys UI** → Clean exit
+3. **Player is kicked** → `game.Players.LocalPlayer:Kick()`
+4. **Script doesn't crash** → Dummy window returned to prevent nil errors
+
+**Console output example:**
+```
+[KeySystem] Validation failed: Invalid key (2 attempts remaining)
+[KeySystem] Validation failed: Invalid key (1 attempt remaining)
+[KeySystem] Validation failed: Invalid key (0 attempts remaining)
+⚠️ Out of attempts! User will be kicked.
+[RvrseUI] Key validation failed - Window creation blocked
+[KeySystem] Player kicked due to failed validation
+```
+
+**Graceful Failure Design:**
+- Window creation returns a **dummy object** (not `nil`) when validation fails
+- Dummy object has all methods (CreateTab, CreateSection, etc.) that do nothing
+- Prevents `attempt to index nil` errors in user scripts
+- Allows scripts to complete without crashing, even after lockout
+
 #### Example: Production Hub with Key System
 
 ```lua

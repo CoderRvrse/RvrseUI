@@ -26,6 +26,7 @@ RvrseUI/
 │   ├── UIHelpers.lua         # UI utility functions
 │   ├── Notifications.lua     # Toast notification system
 │   ├── Hotkeys.lua           # Global hotkey management
+│   ├── KeySystem.lua         # 🔐 NEW! Advanced key validation system
 │   ├── WindowManager.lua     # Multi-window coordination
 │   ├── Overlay.lua           # Overlay layer management (dropdowns, blockers)
 │   ├── WindowBuilder.lua     # Main window construction
@@ -86,10 +87,12 @@ RvrseUI/
 Foundation: Version → Debug → Obfuscation
 Data: Icons → Theme
 Systems: Animator → State → UIHelpers
-Services: Config → WindowManager → Hotkeys → Notifications
+Services: Config → WindowManager → Hotkeys → Notifications → KeySystem
 Elements: Button → Toggle → Dropdown → Slider → Keybind → TextBox → ColorPicker → Label → Paragraph → Divider
 Builders: SectionBuilder → TabBuilder → WindowBuilder
 ```
+
+**Module count: 27 total** (was 26 before KeySystem)
 
 ### Critical Build Rules
 
@@ -286,6 +289,61 @@ git push origin main
 
 ### Hotkey Pipeline
 - `Hotkeys:Initialize` immediately wires `InputBegan` and prevents double hookups. Ensure any future hotkey changes toggle `_initialized` carefully.
+
+### KeySystem (`src/KeySystem.lua`) - v4.0.0 NEW!
+- **737-line advanced key validation system** with multiple authentication methods
+- Blocks `CreateWindow` execution until key validated or max attempts exhausted
+- **CRITICAL**: All animations use `Animator:Tween()` not `Animator:Spring()` (Spring is a table, not method!)
+- Theme colors accessed via `deps.Theme:Get()` which returns the palette table (not `Theme.Current` which is a string!)
+- Obfuscation uses `:Generate()` method, not `:Obfuscate()`
+
+#### Key System Architecture
+- **UI Design**: 500px wide container, gradient header with 🔐 icon, animated rotating border gradient, modern rounded corners (16px)
+- **Validation Methods** (4 types):
+  1. Simple string key (`Key = "string"`) - Rayfield compatible
+  2. Multiple keys (`Keys = {"key1", "key2"}`) - RvrseUI extension
+  3. HWID/User ID whitelist (`Whitelist = {"123", "HWID-ABC"}`)
+  4. Custom validator function (`Validator = function(key) return boolean end`)
+- **Remote Key Fetching**: `GrabKeyFromSite = true` + URL in `Key` parameter
+- **File Persistence**: Saves validated keys to `RvrseUI/KeySystem/{FileName}.key`
+- **Attempt Limiting**: Configurable `MaxAttempts` (default 3)
+- **Graceful Failure**: Returns dummy window object on validation failure (prevents script crashes)
+- **Discord Logging**: Optional webhook integration logs all attempts with user info
+- **Callbacks**: `OnKeyValid`, `OnKeyInvalid`, `OnAttemptsExhausted` for custom behavior
+
+#### Integration with WindowBuilder
+- KeySystem validation runs **BEFORE** window creation in `WindowBuilder:CreateWindow()`
+- If validation fails and `KickOnFailure = false`, a **dummy window object** is returned with no-op methods
+- Dummy window prevents `attempt to index nil` errors when user script tries to call `Window:CreateTab()`
+- All dummy methods return empty tables so script continues without crashing
+- Warning logged: `[RvrseUI] Key validation failed - Window creation blocked`
+
+#### Common KeySystem Pitfalls
+1. **Animation Method Error** - Use `Animator:Tween(obj, props, info)` not `Animator:Spring()`
+2. **Theme Access** - Use `deps.Theme:Get()` to get color palette table
+3. **Color Properties** - Theme palette uses: `Bg`, `Text`, `TextSub`, `TextMuted`, `Surface`, `Accent`, `AccentHover`, `Success`, `Error`, `Warning`
+4. **Nil Message Handling** - Always use `tostring(message or "default")` when logging validation results
+5. **Dummy Window Pattern** - Must return full dummy object tree (Window → Tab → Section → Elements) to prevent crashes
+
+#### KeySystem Testing
+```lua
+-- Test lockout behavior (wrong keys)
+RvrseUI:CreateWindow({
+    KeySystem = true,
+    KeySettings = {
+        Keys = {"TestKey123"},
+        MaxAttempts = 3,
+        KickOnFailure = false,  -- Don't kick to test dummy window
+        OnKeyInvalid = function(key, attemptsLeft)
+            print("❌ INVALID:", key, "| Left:", attemptsLeft)
+        end,
+        OnAttemptsExhausted = function()
+            print("⚠️ LOCKOUT! No attempts remaining")
+        end
+    }
+})
+-- Enter 3 wrong keys → Lockout → Dummy window returned → Script continues
+```
 
 ### Debug & Version Helpers
 - `Debug.printf` is relied on throughout `WindowBuilder`; keep it exported when refactoring the debug module.
