@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.0.2)
+# RvrseUI – Maintainer Notes (v4.0.3)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.

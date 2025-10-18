@@ -3,7 +3,7 @@
 -- Compiles all modular files from src/ into a single RvrseUI.lua file
 -- Usage: lua build.lua
 
-print("🔨 RvrseUI v4.0.2 Build Script")
+print("🔨 RvrseUI v4.0.3 Build Script")
 print("=" .. string.rep("=", 50))
 
 local function readFile(path)

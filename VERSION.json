@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 0,
-    "patch": 2,
-    "full": "4.0.2",
-    "build": "20251017",
-    "hash": "D3F7K9M2",
+    "patch": 3,
+    "full": "4.0.3",
+    "build": "20251017b",
+    "hash": "P8X4N7Q2",
     "channel": "Stable"
   },
   "release": {
@@ -40,6 +40,19 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.0.3": {
+      "date": "2025-10-17",
+      "hash": "P8X4N7Q2",
+      "changes": [
+        "🐛 BLOCKER DEBUG: Comprehensive logging for dropdown close flow",
+        "🔍 Added debug prints to Overlay:ShowBlocker (Modal/Active state)",
+        "🔍 Added debug prints to blocker MouseButton1Click handler",
+        "🔍 Added debug prints to closeDropdown wrapper function",
+        "🔍 Added debug prints to setOpen function",
+        "📊 Logs now show exact blocker properties and click event flow",
+        "🔢 Build number properly incremented to 20251017b"
+      ]
+    },
     "4.0.2": {
       "date": "2025-10-17",
       "hash": "D3F7K9M2",

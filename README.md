@@ -1,8 +1,8 @@
-# RvrseUI v4.0.2
+# RvrseUI v4.0.3
 
 **Modern, Production-Ready Roblox UI Library** with RGB/HSV ColorPicker, Multi-Select Dropdowns, and 100% Rayfield API Compatibility
 
-![Version](https://img.shields.io/badge/version-4.0.2-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-228KB-orange)
+![Version](https://img.shields.io/badge/version-4.0.3-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-228KB-orange)
 
 ---
 

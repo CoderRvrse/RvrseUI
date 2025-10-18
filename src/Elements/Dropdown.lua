@@ -219,8 +219,12 @@ function Dropdown.Create(o, dependencies)
 
 	-- Wrapper function that ALWAYS calls the current setOpen (fixes closure issue)
 	local function closeDropdown()
+		print("[DROPDOWN] 🔴 closeDropdown() wrapper called")
 		if setOpen then
+			print("[DROPDOWN] ✅ setOpen function exists, calling setOpen(false)")
 			setOpen(false)
+		else
+			print("[DROPDOWN] ❌ ERROR: setOpen is nil!")
 		end
 	end
 
@@ -237,18 +241,26 @@ function Dropdown.Create(o, dependencies)
 	end
 
 	local function showOverlayBlocker()
+		print("[DROPDOWN] 📦 showOverlayBlocker() called")
 		-- Always show overlay blocker for dropdown
 		if OverlayService then
+			print("[DROPDOWN] Using Overlay service")
 			overlayBlocker = OverlayService:ShowBlocker({
 				Transparency = 0.45,
 				ZIndex = DROPDOWN_BASE_Z - 2,
 				Modal = false,  -- Allow click events to fire on blocker
 			})
+			print(string.format("[DROPDOWN] Blocker created - Modal: %s, Active: %s, Visible: %s",
+				tostring(overlayBlocker.Modal),
+				tostring(overlayBlocker.Active),
+				tostring(overlayBlocker.Visible)))
 			if overlayBlockerConnection then
 				overlayBlockerConnection:Disconnect()
 			end
 			-- Use wrapper function instead of direct setOpen call
+			print("[DROPDOWN] Connecting blocker MouseButton1Click to closeDropdown wrapper")
 			overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(closeDropdown)
+			print("[DROPDOWN] ✅ Blocker connection established")
 		else
 			local layer = resolveOverlayLayer()
 			if not layer then
@@ -582,11 +594,14 @@ function Dropdown.Create(o, dependencies)
 	visual()
 
 	setOpen = function(state)
+		print(string.format("[DROPDOWN] 🎯 setOpen(%s) called", tostring(state)))
 		if locked() then
+			print("[DROPDOWN] ⛔ Dropdown is locked, ignoring")
 			return
 		end
 
 		if state == dropdownOpen then
+			print(string.format("[DROPDOWN] State already %s, skipping", tostring(state)))
 			if state then
 				positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, 150), dropdownHeight, true)
 			end
@@ -595,8 +610,10 @@ function Dropdown.Create(o, dependencies)
 
 		dropdownOpen = state
 		arrow.Text = dropdownOpen and "▲" or "▼"
+		print(string.format("[DROPDOWN] dropdownOpen now: %s, arrow: %s", tostring(dropdownOpen), arrow.Text))
 
 		if dropdownOpen then
+			print("[DROPDOWN] 🟢 OPENING dropdown")
 			if o.OnOpen then
 				o.OnOpen()
 			end
@@ -622,12 +639,15 @@ function Dropdown.Create(o, dependencies)
 			dropdownList.Visible = true
 			dropdownScroll.CanvasPosition = Vector2.new(0, 0)
 		else
+			print("[DROPDOWN] 🔴 CLOSING dropdown")
 			local layer = currentOverlayLayer()
 			local targetWidth = layer and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
 			dropdownList.Visible = false
 			dropdownList.Size = UDim2.new(0, targetWidth, 0, 0)
 			collapseInline()
+			print("[DROPDOWN] Calling hideOverlayBlocker()")
 			hideOverlayBlocker(false)
+			print("[DROPDOWN] ✅ Dropdown closed successfully")
 			if o.OnClose then
 				o.OnClose()
 			end

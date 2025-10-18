@@ -1,5 +1,5 @@
--- RvrseUI v4.0.2 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T05:08:26.887Z
+-- RvrseUI v4.0.3 | Cyberpunk Neon UI Framework
+-- Compiled from modular architecture on 2025-10-18T05:20:25.731Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -35,10 +35,10 @@ do
 	Version.Data = {
 		Major = 4,
 		Minor = 0,
-		Patch = 2,
-		Build = "20251017",  -- YYYYMMDD format
-		Full = "4.0.2",
-		Hash = "D3F7K9M2",  -- Release hash for integrity verification
+		Patch = 3,
+		Build = "20251017b",  -- YYYYMMDD format
+		Full = "4.0.3",
+		Hash = "P8X4N7Q2",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
@@ -2401,6 +2401,11 @@ do
 		assert(self.Blocker, "[Overlay] Service not initialized")
 		options = options or {}
 	
+		print("[OVERLAY] 🔷 ShowBlocker called with options:")
+		print(string.format("  - Modal: %s", tostring(options.Modal)))
+		print(string.format("  - ZIndex: %s", tostring(options.ZIndex)))
+		print(string.format("  - Transparency: %s", tostring(options.Transparency)))
+	
 		self._blockerCount += 1
 	
 		local blocker = self.Blocker
@@ -2414,9 +2419,18 @@ do
 		end
 		blocker.BackgroundTransparency = transparency
 	
+		print(string.format("[OVERLAY] ✅ Blocker configured:"))
+		print(string.format("  - Visible: %s", tostring(blocker.Visible)))
+		print(string.format("  - Active: %s", tostring(blocker.Active)))
+		print(string.format("  - Modal: %s", tostring(blocker.Modal)))
+		print(string.format("  - ZIndex: %d", blocker.ZIndex))
+		print(string.format("  - Transparency: %.2f", blocker.BackgroundTransparency))
+		print(string.format("  - Blocker depth: %d", self._blockerCount))
+	
 		-- Make sure layer is visible
 		if self.Layer then
 			self.Layer.Visible = true
+			print(string.format("[OVERLAY] Layer made visible"))
 		end
 	
 		if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
@@ -2429,11 +2443,15 @@ do
 	function Overlay:HideBlocker(force)
 		assert(self.Blocker, "[Overlay] Service not initialized")
 	
+		print(string.format("[OVERLAY] 🔶 HideBlocker called (force: %s, current depth: %d)", tostring(force), self._blockerCount))
+	
 		if force then
 			self._blockerCount = 0
 		else
 			self._blockerCount = math.max(0, self._blockerCount - 1)
 		end
+	
+		print(string.format("[OVERLAY] New blocker depth: %d", self._blockerCount))
 	
 		if self._blockerCount == 0 then
 			local blocker = self.Blocker
@@ -2441,6 +2459,9 @@ do
 			blocker.Modal = false
 			blocker.Visible = false
 			blocker.BackgroundTransparency = 1
+			print("[OVERLAY] ✅ Blocker hidden (depth reached 0)")
+		else
+			print(string.format("[OVERLAY] ⚠️ Blocker still active (depth: %d)", self._blockerCount))
 		end
 	
 		if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
@@ -3829,8 +3850,12 @@ do
 	
 		-- Wrapper function that ALWAYS calls the current setOpen (fixes closure issue)
 		local function closeDropdown()
+			print("[DROPDOWN] 🔴 closeDropdown() wrapper called")
 			if setOpen then
+				print("[DROPDOWN] ✅ setOpen function exists, calling setOpen(false)")
 				setOpen(false)
+			else
+				print("[DROPDOWN] ❌ ERROR: setOpen is nil!")
 			end
 		end
 	
@@ -3847,18 +3872,26 @@ do
 		end
 	
 		local function showOverlayBlocker()
+			print("[DROPDOWN] 📦 showOverlayBlocker() called")
 			-- Always show overlay blocker for dropdown
 			if OverlayService then
+				print("[DROPDOWN] Using Overlay service")
 				overlayBlocker = OverlayService:ShowBlocker({
 					Transparency = 0.45,
 					ZIndex = DROPDOWN_BASE_Z - 2,
 					Modal = false,  -- Allow click events to fire on blocker
 				})
+				print(string.format("[DROPDOWN] Blocker created - Modal: %s, Active: %s, Visible: %s",
+					tostring(overlayBlocker.Modal),
+					tostring(overlayBlocker.Active),
+					tostring(overlayBlocker.Visible)))
 				if overlayBlockerConnection then
 					overlayBlockerConnection:Disconnect()
 				end
 				-- Use wrapper function instead of direct setOpen call
+				print("[DROPDOWN] Connecting blocker MouseButton1Click to closeDropdown wrapper")
 				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(closeDropdown)
+				print("[DROPDOWN] ✅ Blocker connection established")
 			else
 				local layer = resolveOverlayLayer()
 				if not layer then
@@ -4192,11 +4225,14 @@ do
 		visual()
 	
 		setOpen = function(state)
+			print(string.format("[DROPDOWN] 🎯 setOpen(%s) called", tostring(state)))
 			if locked() then
+				print("[DROPDOWN] ⛔ Dropdown is locked, ignoring")
 				return
 			end
 	
 			if state == dropdownOpen then
+				print(string.format("[DROPDOWN] State already %s, skipping", tostring(state)))
 				if state then
 					positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, 150), dropdownHeight, true)
 				end
@@ -4205,8 +4241,10 @@ do
 	
 			dropdownOpen = state
 			arrow.Text = dropdownOpen and "▲" or "▼"
+			print(string.format("[DROPDOWN] dropdownOpen now: %s, arrow: %s", tostring(dropdownOpen), arrow.Text))
 	
 			if dropdownOpen then
+				print("[DROPDOWN] 🟢 OPENING dropdown")
 				if o.OnOpen then
 					o.OnOpen()
 				end
@@ -4232,12 +4270,15 @@ do
 				dropdownList.Visible = true
 				dropdownScroll.CanvasPosition = Vector2.new(0, 0)
 			else
+				print("[DROPDOWN] 🔴 CLOSING dropdown")
 				local layer = currentOverlayLayer()
 				local targetWidth = layer and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
 				dropdownList.Visible = false
 				dropdownList.Size = UDim2.new(0, targetWidth, 0, 0)
 				collapseInline()
+				print("[DROPDOWN] Calling hideOverlayBlocker()")
 				hideOverlayBlocker(false)
+				print("[DROPDOWN] ✅ Dropdown closed successfully")
 				if o.OnClose then
 					o.OnClose()
 				end

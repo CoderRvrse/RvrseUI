@@ -197,6 +197,11 @@ function Overlay:ShowBlocker(options)
 	assert(self.Blocker, "[Overlay] Service not initialized")
 	options = options or {}
 
+	print("[OVERLAY] 🔷 ShowBlocker called with options:")
+	print(string.format("  - Modal: %s", tostring(options.Modal)))
+	print(string.format("  - ZIndex: %s", tostring(options.ZIndex)))
+	print(string.format("  - Transparency: %s", tostring(options.Transparency)))
+
 	self._blockerCount += 1
 
 	local blocker = self.Blocker
@@ -210,9 +215,18 @@ function Overlay:ShowBlocker(options)
 	end
 	blocker.BackgroundTransparency = transparency
 
+	print(string.format("[OVERLAY] ✅ Blocker configured:"))
+	print(string.format("  - Visible: %s", tostring(blocker.Visible)))
+	print(string.format("  - Active: %s", tostring(blocker.Active)))
+	print(string.format("  - Modal: %s", tostring(blocker.Modal)))
+	print(string.format("  - ZIndex: %d", blocker.ZIndex))
+	print(string.format("  - Transparency: %.2f", blocker.BackgroundTransparency))
+	print(string.format("  - Blocker depth: %d", self._blockerCount))
+
 	-- Make sure layer is visible
 	if self.Layer then
 		self.Layer.Visible = true
+		print(string.format("[OVERLAY] Layer made visible"))
 	end
 
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
@@ -225,11 +239,15 @@ end
 function Overlay:HideBlocker(force)
 	assert(self.Blocker, "[Overlay] Service not initialized")
 
+	print(string.format("[OVERLAY] 🔶 HideBlocker called (force: %s, current depth: %d)", tostring(force), self._blockerCount))
+
 	if force then
 		self._blockerCount = 0
 	else
 		self._blockerCount = math.max(0, self._blockerCount - 1)
 	end
+
+	print(string.format("[OVERLAY] New blocker depth: %d", self._blockerCount))
 
 	if self._blockerCount == 0 then
 		local blocker = self.Blocker
@@ -237,6 +255,9 @@ function Overlay:HideBlocker(force)
 		blocker.Modal = false
 		blocker.Visible = false
 		blocker.BackgroundTransparency = 1
+		print("[OVERLAY] ✅ Blocker hidden (depth reached 0)")
+	else
+		print(string.format("[OVERLAY] ⚠️ Blocker still active (depth: %d)", self._blockerCount))
 	end
 
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
