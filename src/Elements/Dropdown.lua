@@ -217,26 +217,6 @@ function Dropdown.Create(o, dependencies)
 	local dropdownAPI = {}  -- Forward declaration for updateCurrentOption
 	local setOpen  -- Forward declaration for blocker click handler
 
-	-- Wrapper function that ALWAYS calls the current setOpen (fixes closure issue)
-	local function closeDropdown()
-		print("=========================================================")
-		print("[DROPDOWN] 🔴🔴🔴 BLOCKER CLICKED! closeDropdown() wrapper called")
-		print("=========================================================")
-		print(string.format("  - setOpen variable type: %s", type(setOpen)))
-		print(string.format("  - setOpen is nil: %s", tostring(setOpen == nil)))
-		print(string.format("  - setOpen exists: %s", tostring(setOpen ~= nil)))
-
-		if setOpen then
-			print("[DROPDOWN] ✅ setOpen function EXISTS! Calling setOpen(false)...")
-			setOpen(false)
-			print("[DROPDOWN] ✅ setOpen(false) call completed")
-		else
-			print("[DROPDOWN] ❌❌❌ CRITICAL ERROR: setOpen is nil!")
-			print("[DROPDOWN] This means the closure captured setOpen before it was assigned!")
-		end
-		print("=========================================================")
-	end
-
 	local function locked()
 		return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
 	end
@@ -283,8 +263,12 @@ function Dropdown.Create(o, dependencies)
 				overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 				overlayBlocker.Visible = false
 				overlayBlocker.Parent = layer
-				-- Use wrapper function instead of direct setOpen call
-				overlayBlocker.MouseButton1Click:Connect(closeDropdown)
+				-- Connect inline function to close dropdown
+				overlayBlocker.MouseButton1Click:Connect(function()
+					if setOpen then
+						setOpen(false)
+					end
+				end)
 			elseif overlayBlocker.Parent ~= layer then
 				overlayBlocker.Parent = layer
 			end
@@ -619,20 +603,28 @@ function Dropdown.Create(o, dependencies)
 
 			print("[DROPDOWN] 🎯 About to connect MouseButton1Click handler")
 			print(string.format("  - setOpen exists: %s (type: %s)", tostring(setOpen ~= nil), type(setOpen)))
-			print(string.format("  - closeDropdown exists: %s (type: %s)", tostring(closeDropdown ~= nil), type(closeDropdown)))
 
-			-- TEST: Connect a simple test handler to verify signal works
-			local testConnection = overlayBlocker.MouseButton1Click:Connect(function()
-				print("[DROPDOWN] 🧪🧪🧪 TEST HANDLER FIRED! MouseButton1Click signal IS working!")
+			-- Connect blocker click handler with inline function
+			-- This creates a NEW closure each time, capturing the CURRENT scope
+			overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(function()
+				print("=========================================================")
+				print("[DROPDOWN] 🔴🔴🔴 BLOCKER CLICKED! Handler called")
+				print("=========================================================")
+				print(string.format("  - setOpen type at click time: %s", type(setOpen)))
+				print(string.format("  - setOpen exists: %s", tostring(setOpen ~= nil)))
+
+				if setOpen then
+					print("[DROPDOWN] ✅ setOpen EXISTS! Calling setOpen(false)...")
+					setOpen(false)
+					print("[DROPDOWN] ✅ Dropdown closed successfully!")
+				else
+					print("[DROPDOWN] ❌❌❌ ERROR: setOpen is nil at click time!")
+				end
+				print("=========================================================")
 			end)
-			print("[DROPDOWN] 🧪 Test handler connected to verify signal")
-
-			-- Connect actual handler
-			overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(closeDropdown)
 
 			print(string.format("  - Connection created: %s (type: %s)", tostring(overlayBlockerConnection ~= nil), type(overlayBlockerConnection)))
-			print("[DROPDOWN] ✅ Blocker handler connected!")
-			print("[DROPDOWN] ⚠️ NOTE: Both test handler AND closeDropdown handler are now connected")
+			print("[DROPDOWN] ✅ Blocker handler connected with inline function!")
 		else
 			print("[DROPDOWN] ❌ Cannot connect handler - blocker or service missing")
 		end
