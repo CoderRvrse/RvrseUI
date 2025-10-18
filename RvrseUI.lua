@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.3 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T13:12:36.004Z
+-- Compiled from modular architecture on 2025-10-18T13:45:34.457Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -7202,7 +7202,7 @@ do
 		-- ═══════════════════════════════════════════════════════════════
 	
 		local dragging, activeDragInput
-		local dragPointerOffset
+		local dragPointerOffset  -- Offset from pointer to window TOP-LEFT (accounting for AnchorPoint)
 		local headerLastPointer
 		local hostScreenGui = typeof(windowHost) == "Instance"
 			and windowHost:IsA("ScreenGui")
@@ -7262,8 +7262,23 @@ do
 				dragging = true
 				activeDragInput = io
 				local pointer = getPointerPosition(io)
-				dragPointerOffset = pointer - root.AbsolutePosition
+	
+				-- Calculate the top-left position accounting for AnchorPoint
+				local topLeft = Vector2.new(
+					root.AbsolutePosition.X - (root.AnchorPoint.X * root.AbsoluteSize.X),
+					root.AbsolutePosition.Y - (root.AnchorPoint.Y * root.AbsoluteSize.Y)
+				)
+	
+				-- Offset from pointer to top-left corner
+				dragPointerOffset = pointer - topLeft
 				headerLastPointer = pointer
+	
+				Debug.printf("[DRAG] Mouse down at: (%.1f, %.1f)", pointer.X, pointer.Y)
+				Debug.printf("[DRAG] Root AbsPos: (%.1f, %.1f), AbsSize: (%.1f, %.1f), AnchorPoint: (%.2f, %.2f)",
+					root.AbsolutePosition.X, root.AbsolutePosition.Y,
+					root.AbsoluteSize.X, root.AbsoluteSize.Y,
+					root.AnchorPoint.X, root.AnchorPoint.Y)
+				Debug.printf("[DRAG] Calculated topLeft: (%.1f, %.1f)", topLeft.X, topLeft.Y)
 				Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragPointerOffset.X, dragPointerOffset.Y)
 				Debug.printf("[DRAG] Started - input type: %s", tostring(io.UserInputType))
 			end
@@ -7282,6 +7297,12 @@ do
 				return
 			end
 	
+			-- CRITICAL: Only process drag if offset was calculated (prevents jump bugs)
+			if not dragPointerOffset then
+				Debug.printf("[DRAG] WARNING: dragPointerOffset is nil during drag - ignoring movement")
+				return
+			end
+	
 			-- Check if this is our active drag input
 			local isMouseDrag = io.UserInputType == Enum.UserInputType.MouseMovement
 				and activeDragInput
@@ -7293,9 +7314,6 @@ do
 			end
 	
 			local pointerPosition = getPointerPosition(io)
-			if not dragPointerOffset then
-				dragPointerOffset = pointerPosition - root.AbsolutePosition
-			end
 			local previousPointer = headerLastPointer or pointerPosition
 			headerLastPointer = pointerPosition
 	
@@ -8175,10 +8193,28 @@ do
 				chipWasDragged = false
 				chipDragThreshold = false
 				chipActiveDragInput = io
-				chipCenterOffset = nil  -- Will be calculated on first movement
-				chipInitialPointer = getPointerPosition(io)
-				chipLastPointer = chipInitialPointer
 	
+				local pointer = getPointerPosition(io)
+				chipInitialPointer = pointer
+				chipLastPointer = pointer
+	
+				-- Calculate chip center accounting for AnchorPoint (0.5, 0.5)
+				local chipTopLeft = controllerChip.AbsolutePosition
+				local chipSize = controllerChip.AbsoluteSize
+				local chipAnchor = controllerChip.AnchorPoint
+				local chipCenter = Vector2.new(
+					chipTopLeft.X + (chipSize.X * chipAnchor.X),
+					chipTopLeft.Y + (chipSize.Y * chipAnchor.Y)
+				)
+	
+				-- CRITICAL: Calculate offset from pointer to center AT MOUSE DOWN (not on first movement!)
+				chipCenterOffset = pointer - chipCenter
+	
+				Debug.printf("[CHIP DRAG] Mouse down at: (%.1f, %.1f)", pointer.X, pointer.Y)
+				Debug.printf("[CHIP DRAG] Chip AbsPos: (%.1f, %.1f), AbsSize: (%.1f, %.1f), AnchorPoint: (%.2f, %.2f)",
+					chipTopLeft.X, chipTopLeft.Y, chipSize.X, chipSize.Y, chipAnchor.X, chipAnchor.Y)
+				Debug.printf("[CHIP DRAG] Calculated chipCenter: (%.1f, %.1f)", chipCenter.X, chipCenter.Y)
+				Debug.printf("[CHIP DRAG] Cached grab offset: X=%.2f, Y=%.2f", chipCenterOffset.X, chipCenterOffset.Y)
 				Debug.printf("[CHIP DRAG] Started - input type: %s", tostring(io.UserInputType))
 			end
 		end)
@@ -8213,6 +8249,12 @@ do
 				return
 			end
 	
+			-- CRITICAL: Only process drag if offset was calculated (prevents jump bugs)
+			if not chipCenterOffset then
+				Debug.printf("[CHIP DRAG] WARNING: chipCenterOffset is nil during drag - ignoring movement")
+				return
+			end
+	
 			-- Check if this is our active drag input
 			local isMouseDrag = io.UserInputType == Enum.UserInputType.MouseMovement
 				and chipActiveDragInput
@@ -8229,22 +8271,7 @@ do
 			chipLastPointer = pointer
 			local inset = getGuiInset()
 	
-			local chipTopLeft = controllerChip.AbsolutePosition
 			local chipSize = controllerChip.AbsoluteSize
-			local chipAnchor = controllerChip.AnchorPoint
-			local chipCenter = Vector2.new(
-				chipTopLeft.X + (chipSize.X * chipAnchor.X),
-				chipTopLeft.Y + (chipSize.Y * chipAnchor.Y)
-			)
-	
-			if not chipCenterOffset then
-				chipCenterOffset = pointer - chipCenter
-				Debug.printf("[CHIP DRAG] Cached grab offset: X=%.2f, Y=%.2f", chipCenterOffset.X, chipCenterOffset.Y)
-			end
-	
-			if not chipInitialPointer then
-				chipInitialPointer = pointer
-			end
 	
 			-- Check if we've moved enough to activate dragging (prevents accidental drags)
 			if not chipDragThreshold then
