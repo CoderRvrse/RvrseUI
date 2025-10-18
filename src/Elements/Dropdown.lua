@@ -387,9 +387,14 @@ function Dropdown.Create(o, dependencies)
 
 		tempLabel:Destroy()
 
-		-- Calculate total width needed:
-		-- 4px (left padding) + 32px (checkbox) + 8px (spacing) + text + 12px (right padding)
-		local totalWidth = 4 + 32 + 8 + maxTextWidth + 12
+		-- Calculate total width needed to match actual UI layout:
+		-- UI structure: [4px scroll pad][4px icon pad][32px checkbox][8px gap][TEXT][4px pad][4px scroll pad]
+		-- ScrollFrame padding: 4px left + 4px right = 8px
+		-- Icon area (iconFrame + gap to text): 40px (textFrame starts at X=40)
+		-- Text area reserved space: textFrame.Size = (1, -44) means 44px is reserved for icon area + right padding
+		-- Right padding: 4px
+		-- Total chrome: 8px (scroll padding) + 44px (icon area + right pad) = 52px
+		local totalWidth = 52 + maxTextWidth
 
 		-- Clamp between min and max
 		totalWidth = math.clamp(totalWidth, minDropdownWidth, maxDropdownWidth)
