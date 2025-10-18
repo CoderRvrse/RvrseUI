@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.2 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T03:57:49.040Z
+-- Compiled from modular architecture on 2025-10-18T04:47:28.395Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3882,8 +3882,8 @@ do
 					overlayBlocker.Parent = layer
 				end
 				overlayBlocker.Visible = true
-				overlayBlocker.Active = true
-				overlayBlocker.Modal = true
+				overlayBlocker.Active = false  -- Allow click events to fire
+				overlayBlocker.Modal = false   -- Don't block other UI
 				overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 			end
 	

@@ -272,8 +272,8 @@ function Dropdown.Create(o, dependencies)
 				overlayBlocker.Parent = layer
 			end
 			overlayBlocker.Visible = true
-			overlayBlocker.Active = true
-			overlayBlocker.Modal = true
+			overlayBlocker.Active = false  -- Allow click events to fire
+			overlayBlocker.Modal = false   -- Don't block other UI
 			overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 		end
 
