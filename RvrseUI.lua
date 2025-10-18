@@ -1,5 +1,5 @@
 -- RvrseUI v4.1.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-18T22:42:32.100Z
+-- Compiled from modular architecture on 2025-10-18T23:02:30.994Z
 
 -- Features: Unified Multi-Select Dropdowns, Advanced ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -3673,8 +3673,8 @@ do
 		local itemHeight = 40
 		local placeholder = o.PlaceholderText or "Select items"
 		local DROPDOWN_BASE_Z = 3000
-		local minDropdownWidth = 200  -- Minimum dropdown width
-		local maxDropdownWidth = 400  -- Maximum dropdown width
+		local minDropdownWidth = 220  -- Minimum dropdown width (increased)
+		local maxDropdownWidth = 500  -- Maximum dropdown width (increased for very long labels)
 		local fallbackOverlayLayer
 		local fallbackOverlayGui
 	
@@ -3779,11 +3779,11 @@ do
 		lbl.Text = o.Text or "Dropdown"
 		lbl.Parent = f
 	
-		-- Trigger button
+		-- Trigger button (wider for long labels)
 		local btn = Instance.new("TextButton")
 		btn.AnchorPoint = Vector2.new(1, 0.5)
 		btn.Position = UDim2.new(1, -6, 0.5, 0)
-		btn.Size = UDim2.new(0, 130, 0, 32)
+		btn.Size = UDim2.new(0, 200, 0, 32)  -- Increased from 130 to 200px
 		btn.BackgroundColor3 = pal3.Card
 		btn.BorderSizePixel = 0
 		btn.Font = Enum.Font.Gotham
