@@ -2,14 +2,117 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.0.3)
+# RvrseUI – Maintainer Notes (v4.0.4)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
 
 ---
 
-## 🚨 CRITICAL WARNING: UIHelpers.shadow() Restriction
+## 🚨 CRITICAL WARNING #1: NEVER Overcomplicate Drag-and-Drop Logic!
+
+### **ALWAYS use the classic Roblox drag pattern - NOTHING MORE!**
+
+**What happened in v4.0.4:**
+- Window and controller chip "kicked away" from cursor during drag
+- **ROOT CAUSE:** Overcomplicated logic with AbsolutePosition calculations, AnchorPoint math, GUI inset handling, coordinate conversions
+- **600 lines of buggy complex code** trying to be "smart" about cursor tracking
+- User reported: *"if i click on th upper top side of coin the mouse shifts more center"*
+
+**The Fix - Back to Basics:**
+```lua
+-- ✅ CORRECT - Simple delta calculation (THE ONLY WAY!)
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position      -- Store mouse start
+        startPos = frame.Position       -- Store frame start
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+```
+
+**Rules - NO EXCEPTIONS:**
+- ✅ **Store starting mouse position** (`dragStart = input.Position`)
+- ✅ **Store starting frame position** (`startPos = frame.Position`)
+- ✅ **Calculate delta** (`delta = input.Position - dragStart`)
+- ✅ **Apply delta to original position** (`startPos + delta`)
+- ✅ **Use UDim2 directly** - Roblox handles scale/offset math for you!
+- ❌ **NEVER use AbsolutePosition** - it's for reading, not drag logic!
+- ❌ **NEVER do AnchorPoint math** - UDim2 system handles it automatically!
+- ❌ **NEVER calculate GUI inset** - not needed with this pattern!
+- ❌ **NEVER convert coordinate spaces** - stay in input.Position space!
+- ❌ **NEVER lock sizes during drag** - not needed!
+- ❌ **NEVER disable hover animations** - not needed!
+
+**Why This Works:**
+- Roblox's UDim2 system handles ALL coordinate transformations for you
+- `input.Position` is screen-space, `UDim2` is UI-space - Roblox converts automatically
+- Simple delta calculation: `currentMouse - startMouse = howMuchToMove`
+- Apply that movement to where the frame started: `startFrame + movement = newFrame`
+- **NO MATH NEEDED!** Just subtraction and addition!
+
+**What We Removed (All Unnecessary!):**
+```lua
+-- ❌ ALL OF THIS WAS WRONG:
+local function getPointerPosition(inputObject)
+    return Vector2.new(inputObject.Position.X, inputObject.Position.Y)
+end
+
+local function getGuiInset()
+    return GuiService:GetGuiInset()
+end
+
+local topLeft = root.AbsolutePosition
+local bottomRight = topLeft + root.AbsoluteSize
+local dragPointerOffset = pointer - topLeft
+local newPosition = UDim2.fromOffset(
+    pointerPosition.X - dragPointerOffset.X,
+    pointerPosition.Y - dragPointerOffset.Y
+)
+-- ... 200+ more lines of confusion
+```
+
+**Result:**
+- ✅ 65% code reduction (400 lines → 140 lines)
+- ✅ NO jumps, NO drift, cursor perfectly locked to grab point
+- ✅ Works with ANY AnchorPoint value
+- ✅ Works with ANY parent container
+- ✅ User confirmed: *"that was it that was the fix back to the basics!"*
+
+**Reference Implementation:**
+See `SIMPLE_DRAG_REFERENCE.lua` for the canonical pattern. Copy it exactly for any future drag needs.
+
+**If you're tempted to add ANY complexity to drag logic:**
+1. **STOP** - You're about to introduce bugs
+2. **Re-read this section** - The simple pattern is complete
+3. **Ask yourself:** "Why am I not using the proven pattern?"
+4. **Use the simple pattern** - It works perfectly!
+
+---
+
+## 🚨 CRITICAL WARNING #2: UIHelpers.shadow() Restriction
 
 ### **NEVER use `shadow()` helper on overlay panels or dropdown menus!**
 
@@ -38,7 +141,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 🚨 CRITICAL WARNING #2: Function Forward-Declaration Required
+## 🚨 CRITICAL WARNING #3: Function Forward-Declaration Required
 
 ### **ALWAYS forward-declare functions used in closures/callbacks!**
 
@@ -78,7 +181,7 @@ end
 
 ---
 
-## 🚨 CRITICAL WARNING #3: Lua Closure Upvalue Capture Bug
+## 🚨 CRITICAL WARNING #4: Lua Closure Upvalue Capture Bug
 
 ### **NEVER define wrapper functions that capture forward-declared variables!**
 

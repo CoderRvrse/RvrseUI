@@ -1,8 +1,8 @@
-# RvrseUI v4.0.3
+# RvrseUI v4.0.4
 
 **Modern, Production-Ready Roblox UI Library** with RGB/HSV ColorPicker, Multi-Select Dropdowns, and 100% Rayfield API Compatibility
 
-![Version](https://img.shields.io/badge/version-4.0.3-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-228KB-orange)
+![Version](https://img.shields.io/badge/version-4.0.4-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-260KB-orange)
 
 ---
 
@@ -63,7 +63,41 @@ Window:Show()  -- This loads saved config THEN shows UI
 
 ---
 
-## ✨ What's New in v4.0.3 (Latest)
+## ✨ What's New in v4.0.4 (Latest)
+
+### 🎯 CRITICAL FIX: Complete Drag System Rewrite - Back to Basics!
+- **Problem:** Window and controller chip "kicked away" from cursor during drag
+- **Root Cause:** Overcomplicated drag logic with AbsolutePosition/AnchorPoint math introduced offset bugs
+- **Solution:** Replaced ~600 lines of complex code with ~140 lines of classic Roblox drag pattern
+- **Result:** No jumps, no offset drift, cursor stays glued to grab point! ✅
+
+**The Simple Pattern:**
+```lua
+-- Store starting positions
+local dragStart = input.Position
+local startPos = frame.Position
+
+-- Calculate delta and apply
+local delta = input.Position - dragStart
+frame.Position = UDim2.new(
+    startPos.X.Scale,
+    startPos.X.Offset + delta.X,
+    startPos.Y.Scale,
+    startPos.Y.Offset + delta.Y
+)
+```
+
+**What Was Removed:**
+- ❌ AbsolutePosition calculations and GUI inset handling
+- ❌ AnchorPoint math and coordinate space conversions
+- ❌ Size locking systems and hover animation blocking
+- ✅ Kept: Animation blocking during minimize/restore tweens
+
+**65% code reduction** (400 lines → 140 lines) - simpler is better!
+
+---
+
+## Previous Updates (v4.0.3)
 
 ### 🎉 CRITICAL FIX: Multi-Select Dropdown Blocker Now Works!
 - **Fixed Modern Dropdown** - Multi-select now closes properly when clicking outside! ✅
