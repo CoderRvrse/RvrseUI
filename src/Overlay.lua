@@ -202,7 +202,7 @@ function Overlay:ShowBlocker(options)
 	local blocker = self.Blocker
 	blocker.ZIndex = options.ZIndex or 100  -- Below overlay elements (200+)
 	blocker.Visible = true
-	blocker.Active = true
+	blocker.Active = false  -- Allow click events to fire
 	blocker.Modal = options.Modal ~= false
 	local transparency = options.Transparency
 	if transparency == nil then

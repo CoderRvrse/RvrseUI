@@ -242,6 +242,7 @@ function Dropdown.Create(o, dependencies)
 			overlayBlocker = OverlayService:ShowBlocker({
 				Transparency = 0.45,
 				ZIndex = DROPDOWN_BASE_Z - 2,
+				Modal = false,  -- Allow click events to fire on blocker
 			})
 			if overlayBlockerConnection then
 				overlayBlockerConnection:Disconnect()

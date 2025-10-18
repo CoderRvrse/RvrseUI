@@ -522,6 +522,7 @@ function ColorPicker.Create(o, dependencies)
 					overlayBlocker = OverlayService:ShowBlocker({
 						Transparency = 0.45,
 						ZIndex = 100,
+						Modal = false,  -- Allow click events to fire on blocker
 					})
 					if overlayBlockerConnection then
 						overlayBlockerConnection:Disconnect()

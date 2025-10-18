@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.2 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T04:47:28.395Z
+-- Compiled from modular architecture on 2025-10-18T05:08:26.887Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -2406,7 +2406,7 @@ do
 		local blocker = self.Blocker
 		blocker.ZIndex = options.ZIndex or 100  -- Below overlay elements (200+)
 		blocker.Visible = true
-		blocker.Active = true
+		blocker.Active = false  -- Allow click events to fire
 		blocker.Modal = options.Modal ~= false
 		local transparency = options.Transparency
 		if transparency == nil then
@@ -3852,6 +3852,7 @@ do
 				overlayBlocker = OverlayService:ShowBlocker({
 					Transparency = 0.45,
 					ZIndex = DROPDOWN_BASE_Z - 2,
+					Modal = false,  -- Allow click events to fire on blocker
 				})
 				if overlayBlockerConnection then
 					overlayBlockerConnection:Disconnect()
@@ -6001,6 +6002,7 @@ do
 						overlayBlocker = OverlayService:ShowBlocker({
 							Transparency = 0.45,
 							ZIndex = 100,
+							Modal = false,  -- Allow click events to fire on blocker
 						})
 						if overlayBlockerConnection then
 							overlayBlockerConnection:Disconnect()

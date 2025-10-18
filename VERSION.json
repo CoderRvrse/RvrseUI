@@ -48,9 +48,12 @@
         "🔧 Fixed forward-declaration scoping issue in Dropdown.lua",
         "⚡ Added 'local setOpen' forward declaration before showOverlayBlocker()",
         "✅ Multi-select dropdowns now close properly when clicking outside",
+        "🎯 BLOCKER FIX: Set Modal=false and Active=false in Overlay:ShowBlocker",
+        "🔧 Dropdown.lua and ColorPicker.lua now explicitly pass Modal=false",
         "📝 Documented that DropdownLegacy does NOT support multi-select",
         "🧪 Updated test suite to reflect Legacy Dropdown limitations",
-        "🚨 Error fixed: ':3853: attempt to call a nil value' when closing multi-select"
+        "🚨 Error fixed: ':3853: attempt to call a nil value' when closing multi-select",
+        "🖱️ Blocker click events now fire correctly (was blocked by Active=true)"
       ]
     },
     "4.0.1": {
