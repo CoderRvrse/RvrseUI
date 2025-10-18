@@ -97,12 +97,14 @@ local legacyDropdown1 = LegacySection:CreateDropdown({
 LegacySection:CreateDivider()
 
 local legacyDropdown2 = LegacySection:CreateDropdown({
-    Text = "Test 4: Legacy Multi-Select",
+    Text = "Test 4: Legacy Single-Select Only",
     Values = {"Apple", "Banana", "Cherry", "Date", "Elderberry"},
-    MultiSelect = true,
-    CurrentOption = {"Apple", "Cherry"},
-    OnChanged = function(values)
-        print("[Legacy Dropdown 2] Selected:", table.concat(values, ", "))
+    CurrentOption = "Apple",
+    -- ⚠️ NOTE: Legacy dropdown does NOT support MultiSelect!
+    -- MultiSelect = true,  -- ❌ NOT SUPPORTED in DropdownLegacy
+    OnChanged = function(value)
+        -- Legacy dropdown ALWAYS passes a single string value, not a table
+        print("[Legacy Dropdown 2] Selected:", value)
     end
 })
 
@@ -203,7 +205,8 @@ print("  3. Click Legacy Dropdown (Tab 3) - Check for:")
 print("     ✅ Dropdown menu appears inline")
 print("     ❌ NO gray shadows extending beyond menu")
 print("     ✅ Options are clickable")
-print("     ✅ Multi-select shows checkboxes")
+print("     ✅ Closes automatically after selection (single-select only)")
+print("     ⚠️  Legacy does NOT support multi-select!")
 print()
 print("  4. Click outside any open panel:")
 print("     ✅ Panel closes smoothly")
