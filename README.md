@@ -316,12 +316,10 @@ local value = mySlider:Get()          -- Get current value
 ```lua
 local myDropdown = Section:CreateDropdown({
     Text = "Select Weapon",
-    Values = {"Sword", "Bow", "Staff", "Axe"},     -- Options
-    -- OR use Rayfield syntax:
-    Options = {"Sword", "Bow", "Staff", "Axe"},    -- Same thing!
+    Options = {"Sword", "Bow", "Staff", "Axe"},    -- Options list
 
     CurrentOption = {"Sword"},                      -- Pre-select (optional)
-    MultiSelect = false,                            -- Single-select mode
+    MultipleOptions = false,                        -- Single-select mode (default)
     Flag = "SelectedWeapon",                        -- 🔑 Saves automatically!
     OnChanged = function(value)
         print("Weapon:", value)  -- Returns single value
@@ -989,20 +987,27 @@ Window:Show()  -- This loads config THEN shows UI
 
 ### "Dropdown multi-select not working"
 
-**Problem:** Using wrong parameter names
-**Solution:** Use `MultipleOptions` or `MultiSelect`:
+**Problem:** Forgot to enable multi-select mode
+**Solution:** Set `MultipleOptions = true`:
 
 ```lua
--- ✅ Rayfield syntax
-CreateDropdown({
-    Options = {...},
-    MultipleOptions = true  -- Rayfield API
+-- ✅ CORRECT - Multi-select dropdown
+Section:CreateDropdown({
+    Text = "Select Items",
+    Options = {"Item1", "Item2", "Item3"},
+    MultipleOptions = true,  -- MUST BE TRUE for multi-select!
+    CurrentOption = {"Item1"},
+    Flag = "MyDropdown",
+    OnChanged = function(selected)
+        -- selected is an ARRAY: {"Item1", "Item3"}
+        print("Selected:", table.concat(selected, ", "))
+    end
 })
 
--- ✅ RvrseUI syntax
-CreateDropdown({
-    Values = {...},
-    MultiSelect = true      -- RvrseUI API
+-- ❌ WRONG - This creates single-select
+Section:CreateDropdown({
+    Options = {...},
+    -- Missing MultipleOptions = true!
 })
 ```
 
