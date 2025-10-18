@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.2 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T00:50:58.707Z
+-- Compiled from modular architecture on 2025-10-18T03:57:49.040Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3827,6 +3827,13 @@ do
 		local dropdownAPI = {}  -- Forward declaration for updateCurrentOption
 		local setOpen  -- Forward declaration for blocker click handler
 	
+		-- Wrapper function that ALWAYS calls the current setOpen (fixes closure issue)
+		local function closeDropdown()
+			if setOpen then
+				setOpen(false)
+			end
+		end
+	
 		local function locked()
 			return o.RespectLock and RvrseUI.Store:IsLocked(o.RespectLock)
 		end
@@ -3849,9 +3856,8 @@ do
 				if overlayBlockerConnection then
 					overlayBlockerConnection:Disconnect()
 				end
-				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(function()
-					setOpen(false)
-				end)
+				-- Use wrapper function instead of direct setOpen call
+				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(closeDropdown)
 			else
 				local layer = resolveOverlayLayer()
 				if not layer then
@@ -3870,9 +3876,8 @@ do
 					overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 					overlayBlocker.Visible = false
 					overlayBlocker.Parent = layer
-					overlayBlocker.MouseButton1Click:Connect(function()
-						setOpen(false)
-					end)
+					-- Use wrapper function instead of direct setOpen call
+					overlayBlocker.MouseButton1Click:Connect(closeDropdown)
 				elseif overlayBlocker.Parent ~= layer then
 					overlayBlocker.Parent = layer
 				end
