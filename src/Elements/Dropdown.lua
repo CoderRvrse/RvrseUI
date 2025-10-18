@@ -219,13 +219,22 @@ function Dropdown.Create(o, dependencies)
 
 	-- Wrapper function that ALWAYS calls the current setOpen (fixes closure issue)
 	local function closeDropdown()
-		print("[DROPDOWN] 🔴 closeDropdown() wrapper called")
+		print("=========================================================")
+		print("[DROPDOWN] 🔴🔴🔴 BLOCKER CLICKED! closeDropdown() wrapper called")
+		print("=========================================================")
+		print(string.format("  - setOpen variable type: %s", type(setOpen)))
+		print(string.format("  - setOpen is nil: %s", tostring(setOpen == nil)))
+		print(string.format("  - setOpen exists: %s", tostring(setOpen ~= nil)))
+
 		if setOpen then
-			print("[DROPDOWN] ✅ setOpen function exists, calling setOpen(false)")
+			print("[DROPDOWN] ✅ setOpen function EXISTS! Calling setOpen(false)...")
 			setOpen(false)
+			print("[DROPDOWN] ✅ setOpen(false) call completed")
 		else
-			print("[DROPDOWN] ❌ ERROR: setOpen is nil!")
+			print("[DROPDOWN] ❌❌❌ CRITICAL ERROR: setOpen is nil!")
+			print("[DROPDOWN] This means the closure captured setOpen before it was assigned!")
 		end
+		print("=========================================================")
 	end
 
 	local function locked()
@@ -590,14 +599,42 @@ function Dropdown.Create(o, dependencies)
 
 	-- Connect blocker click handler (called AFTER blocker is created)
 	local function connectBlockerHandler()
+		print("[DROPDOWN] 🔗 connectBlockerHandler() called")
+		print(string.format("  - overlayBlocker exists: %s", tostring(overlayBlocker ~= nil)))
+		print(string.format("  - OverlayService exists: %s", tostring(OverlayService ~= nil)))
+
 		if overlayBlocker and OverlayService then
+			print(string.format("  - overlayBlocker ClassName: %s", overlayBlocker.ClassName))
+			print(string.format("  - overlayBlocker.Name: %s", overlayBlocker.Name))
+			print(string.format("  - overlayBlocker.Parent: %s", tostring(overlayBlocker.Parent)))
+			print(string.format("  - overlayBlocker.Visible: %s", tostring(overlayBlocker.Visible)))
+			print(string.format("  - overlayBlocker.Modal: %s", tostring(overlayBlocker.Modal)))
+			print(string.format("  - overlayBlocker.Active: %s", tostring(overlayBlocker.Active)))
+			print(string.format("  - overlayBlocker.ZIndex: %d", overlayBlocker.ZIndex))
+
 			if overlayBlockerConnection then
+				print("[DROPDOWN] ⚠️ Disconnecting previous blocker connection")
 				overlayBlockerConnection:Disconnect()
 			end
-			print("[DROPDOWN] 🔗 Connecting blocker MouseButton1Click to closeDropdown wrapper")
-			print(string.format("[DROPDOWN] setOpen function exists: %s", tostring(setOpen ~= nil)))
+
+			print("[DROPDOWN] 🎯 About to connect MouseButton1Click handler")
+			print(string.format("  - setOpen exists: %s (type: %s)", tostring(setOpen ~= nil), type(setOpen)))
+			print(string.format("  - closeDropdown exists: %s (type: %s)", tostring(closeDropdown ~= nil), type(closeDropdown)))
+
+			-- TEST: Connect a simple test handler to verify signal works
+			local testConnection = overlayBlocker.MouseButton1Click:Connect(function()
+				print("[DROPDOWN] 🧪🧪🧪 TEST HANDLER FIRED! MouseButton1Click signal IS working!")
+			end)
+			print("[DROPDOWN] 🧪 Test handler connected to verify signal")
+
+			-- Connect actual handler
 			overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(closeDropdown)
+
+			print(string.format("  - Connection created: %s (type: %s)", tostring(overlayBlockerConnection ~= nil), type(overlayBlockerConnection)))
 			print("[DROPDOWN] ✅ Blocker handler connected!")
+			print("[DROPDOWN] ⚠️ NOTE: Both test handler AND closeDropdown handler are now connected")
+		else
+			print("[DROPDOWN] ❌ Cannot connect handler - blocker or service missing")
 		end
 	end
 
@@ -640,7 +677,11 @@ function Dropdown.Create(o, dependencies)
 			end
 
 			showOverlayBlocker()
+			print("[DROPDOWN] 🚨 About to call connectBlockerHandler()")
+			print(string.format("  - We are INSIDE setOpen function body (state=%s)", tostring(state)))
+			print(string.format("  - setOpen variable in THIS scope: %s (type: %s)", tostring(setOpen ~= nil), type(setOpen)))
 			connectBlockerHandler()  -- Connect handler AFTER setOpen is fully defined
+			print("[DROPDOWN] 🚨 connectBlockerHandler() call completed")
 
 			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
 			positionDropdown(targetWidth, dropdownHeight)
