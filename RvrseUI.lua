@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.3 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T05:20:25.731Z
+-- Compiled from modular architecture on 2025-10-18T12:39:59.592Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3885,13 +3885,8 @@ do
 					tostring(overlayBlocker.Modal),
 					tostring(overlayBlocker.Active),
 					tostring(overlayBlocker.Visible)))
-				if overlayBlockerConnection then
-					overlayBlockerConnection:Disconnect()
-				end
-				-- Use wrapper function instead of direct setOpen call
-				print("[DROPDOWN] Connecting blocker MouseButton1Click to closeDropdown wrapper")
-				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(closeDropdown)
-				print("[DROPDOWN] ✅ Blocker connection established")
+				-- DON'T connect handler here - will be connected after setOpen is defined
+				print("[DROPDOWN] ⚠️ Blocker created, handler will be connected after setOpen is defined")
 			else
 				local layer = resolveOverlayLayer()
 				if not layer then
@@ -4224,6 +4219,19 @@ do
 		rebuildOptions()
 		visual()
 	
+		-- Connect blocker click handler (called AFTER blocker is created)
+		local function connectBlockerHandler()
+			if overlayBlocker and OverlayService then
+				if overlayBlockerConnection then
+					overlayBlockerConnection:Disconnect()
+				end
+				print("[DROPDOWN] 🔗 Connecting blocker MouseButton1Click to closeDropdown wrapper")
+				print(string.format("[DROPDOWN] setOpen function exists: %s", tostring(setOpen ~= nil)))
+				overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(closeDropdown)
+				print("[DROPDOWN] ✅ Blocker handler connected!")
+			end
+		end
+	
 		setOpen = function(state)
 			print(string.format("[DROPDOWN] 🎯 setOpen(%s) called", tostring(state)))
 			if locked() then
@@ -4263,6 +4271,7 @@ do
 				end
 	
 				showOverlayBlocker()
+				connectBlockerHandler()  -- Connect handler AFTER setOpen is fully defined
 	
 				local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
 				positionDropdown(targetWidth, dropdownHeight)
