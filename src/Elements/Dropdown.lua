@@ -1,6 +1,6 @@
 -- Dropdown Element Module
--- Provides in-flow or overlay dropdown with dynamic data refresh support.
--- NOTE: SectionBuilder now treats this as experimental; call sites must pass `UseModernDropdown = true`.
+-- Modern multi-select overlay dropdown system (unified as of v4.1.0)
+-- Users can select multiple items or just one by clicking once
 
 local Dropdown = {}
 
@@ -11,7 +11,6 @@ function Dropdown.Create(o, dependencies)
 	local card = dependencies.card
 	local corner = dependencies.corner
 	local stroke = dependencies.stroke
-	local shadow = dependencies.shadow
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
@@ -25,25 +24,23 @@ function Dropdown.Create(o, dependencies)
 
 	-- Settings
 	local values = {}
-	-- Support both "Values" (RvrseUI) and "Options" (Rayfield compatibility)
-	local sourceValues = o.Values or o.Options or {}
+	local sourceValues = o.Values or {}
 	for _, v in ipairs(sourceValues) do
 		table.insert(values, v)
 	end
 
-	local multiSelect = o.MultiSelect == true or o.MultipleOptions == true  -- Multi-select mode (support both APIs)
-	local selectedValues = {}  -- For multi-select mode
+	local selectedValues = {}  -- Always use multi-select mode
 
-	-- Initialize selectedValues from CurrentOption (Rayfield compatibility)
-	if multiSelect and o.CurrentOption and type(o.CurrentOption) == "table" then
+	-- Initialize selectedValues from CurrentOption
+	if o.CurrentOption and type(o.CurrentOption) == "table" then
 		for _, val in ipairs(o.CurrentOption) do
 			table.insert(selectedValues, val)
 		end
 	end
 
-	local maxHeight = o.MaxHeight or 240  -- Increased to 240 for better visibility
-	local itemHeight = 40  -- Increased to 40 for better touch targets
-	local placeholder = o.PlaceholderText or (multiSelect and "Select multiple" or "Select")
+	local maxHeight = o.MaxHeight or 240
+	local itemHeight = 40
+	local placeholder = o.PlaceholderText or "Select items"
 	local DROPDOWN_BASE_Z = 3000
 	local fallbackOverlayLayer
 	local fallbackOverlayGui
@@ -190,7 +187,6 @@ function Dropdown.Create(o, dependencies)
 	dropdownList.Parent = f
 	corner(dropdownList, 8)
 	stroke(dropdownList, pal3.Accent, 1)
-	-- shadow(dropdownList, 0.6, 16)  -- ❌ DISABLED: Shadow too large for overlay mode, blocks entire screen!
 
 	local dropdownScroll = Instance.new("ScrollingFrame")
 	dropdownScroll.BackgroundTransparency = 1
@@ -206,7 +202,7 @@ function Dropdown.Create(o, dependencies)
 	local dropdownLayout = Instance.new("UIListLayout")
 	dropdownLayout.FillDirection = Enum.FillDirection.Vertical
 	dropdownLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	dropdownLayout.Padding = UDim.new(0, 4)  -- Increased from 2 to 4 for better spacing
+	dropdownLayout.Padding = UDim.new(0, 4)
 	dropdownLayout.Parent = dropdownScroll
 
 	-- Add padding inside dropdown scroll
@@ -226,8 +222,7 @@ function Dropdown.Create(o, dependencies)
 	local blockerActive = false
 	local dropdownOpen = false
 	local optionButtons = {}
-	local idx = 1
-	local dropdownAPI = {}  -- Forward declaration for updateCurrentOption
+	local dropdownAPI = {}
 	local setOpen  -- Forward declaration for blocker click handler
 
 	local function locked()
@@ -243,21 +238,12 @@ function Dropdown.Create(o, dependencies)
 	end
 
 	local function showOverlayBlocker()
-		print("[DROPDOWN] 📦 showOverlayBlocker() called")
-		-- Always show overlay blocker for dropdown
 		if OverlayService then
-			print("[DROPDOWN] Using Overlay service")
 			overlayBlocker = OverlayService:ShowBlocker({
 				Transparency = 0.45,
 				ZIndex = DROPDOWN_BASE_Z - 2,
-				Modal = false,  -- Allow click events to fire on blocker
+				Modal = false,
 			})
-			print(string.format("[DROPDOWN] Blocker created - Modal: %s, Active: %s, Visible: %s",
-				tostring(overlayBlocker.Modal),
-				tostring(overlayBlocker.Active),
-				tostring(overlayBlocker.Visible)))
-			-- DON'T connect handler here - will be connected after setOpen is defined
-			print("[DROPDOWN] ⚠️ Blocker created, handler will be connected after setOpen is defined")
 		else
 			local layer = resolveOverlayLayer()
 			if not layer then
@@ -286,8 +272,8 @@ function Dropdown.Create(o, dependencies)
 				overlayBlocker.Parent = layer
 			end
 			overlayBlocker.Visible = true
-			overlayBlocker.Active = false  -- Allow click events to fire
-			overlayBlocker.Modal = false   -- Don't block other UI
+			overlayBlocker.Active = false
+			overlayBlocker.Modal = false
 			overlayBlocker.ZIndex = DROPDOWN_BASE_Z - 2
 		end
 
@@ -315,45 +301,28 @@ function Dropdown.Create(o, dependencies)
 	end
 
 	local function updateCurrentOption()
-		-- Update CurrentOption property (Rayfield compatibility)
-		if multiSelect then
-			dropdownAPI.CurrentOption = selectedValues
-		else
-			dropdownAPI.CurrentOption = values[idx] and {values[idx]} or {}
-		end
+		dropdownAPI.CurrentOption = selectedValues
 	end
 
 	local function updateButtonText()
-		if multiSelect then
-			local count = #selectedValues
-			if count == 0 then
-				btn.Text = placeholder
-			elseif count == 1 then
-				btn.Text = tostring(selectedValues[1])
-			else
-				btn.Text = count .. " selected"
-			end
+		local count = #selectedValues
+		if count == 0 then
+			btn.Text = placeholder
+		elseif count == 1 then
+			btn.Text = tostring(selectedValues[1])
 		else
-			if values[idx] then
-				btn.Text = tostring(values[idx])
-			else
-				btn.Text = placeholder
-			end
+			btn.Text = count .. " selected"
 		end
 		updateCurrentOption()
 	end
 
 	local function isValueSelected(value)
-		if multiSelect then
-			for _, v in ipairs(selectedValues) do
-				if v == value then
-					return true
-				end
+		for _, v in ipairs(selectedValues) do
+			if v == value then
+				return true
 			end
-			return false
-		else
-			return values[idx] == value
 		end
+		return false
 	end
 
 	local function updateHighlight()
@@ -369,19 +338,15 @@ function Dropdown.Create(o, dependencies)
 				optionBtn.BackgroundTransparency = 0
 			end
 
-			-- Update text label color
-			local textLabel = optionBtn:FindFirstChild("TextLabel", true)  -- Recursive search
+			local textLabel = optionBtn:FindFirstChild("TextLabel", true)
 			if textLabel then
 				textLabel.TextColor3 = selected and pal3.Accent or pal3.Text
 			end
 
-			-- Update checkbox if multi-select
-			if multiSelect then
-				local checkbox = optionBtn:FindFirstChild("Checkbox", true)  -- Recursive search
-				if checkbox then
-					checkbox.Text = selected and "☑" or "☐"
-					checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
-				end
+			local checkbox = optionBtn:FindFirstChild("Checkbox", true)
+			if checkbox then
+				checkbox.Text = selected and "☑" or "☐"
+				checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
 			end
 		end
 	end
@@ -466,10 +431,7 @@ function Dropdown.Create(o, dependencies)
 		return width
 	end
 
-	local setOpen -- forward declaration
-
 	local function rebuildOptions()
-
 		for _, child in ipairs(dropdownScroll:GetChildren()) do
 			if child:IsA("TextButton") then
 				child:Destroy()
@@ -477,184 +439,102 @@ function Dropdown.Create(o, dependencies)
 		end
 
 		table.clear(optionButtons)
-		-- Calculate proper height: items + spacing + padding
-		local spacingPerItem = 4  -- From UIListLayout.Padding
+		local spacingPerItem = 4
 		local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
-		local paddingTotal = 8 + 8  -- Top + Bottom padding (4+4 each side, doubled for Frame + Scroll)
+		local paddingTotal = 8 + 8
 
-
-		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)  -- Add 8 for scroll padding
+		dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)
 		dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
 
-
-		if #values == 0 then
-			idx = 0
-		else
-			-- Initialize idx from CurrentOption (single-select mode, Rayfield compatibility)
-			if not multiSelect and o.CurrentOption then
-				local currentVal
-				if type(o.CurrentOption) == "table" and #o.CurrentOption > 0 then
-					currentVal = o.CurrentOption[1]
-				elseif type(o.CurrentOption) == "string" then
-					currentVal = o.CurrentOption
-				end
-
-				if currentVal then
-					for i, val in ipairs(values) do
-						if val == currentVal then
-							idx = i
-							break
-						end
-					end
-				end
-			end
-
-			if idx < 1 or idx > #values then
-				idx = 1
-			end
-		end
 		updateButtonText()
-
-		-- Truncation mode: "singleLine" (ellipsis) or "twoLine" (wrap up to 2 lines)
-		local truncationMode = o.TruncationMode or "singleLine"
 
 		for i, value in ipairs(values) do
 			local optionBtn = Instance.new("TextButton")
 			optionBtn.Name = "Option_" .. i
-			optionBtn.Size = UDim2.new(1, -8, 0, truncationMode == "twoLine" and 48 or 36)  -- Taller for two-line mode
+			optionBtn.Size = UDim2.new(1, -8, 0, 36)
 			local selected = isValueSelected(value)
 			optionBtn.BackgroundColor3 = selected and pal3.Accent or pal3.Card
 			optionBtn.BackgroundTransparency = selected and 0.8 or 0
 			optionBtn.BorderSizePixel = 0
-			optionBtn.Text = ""  -- IMPORTANT: Clear text, we'll use a TextLabel child
+			optionBtn.Text = ""
 			optionBtn.AutoButtonColor = false
 			optionBtn.LayoutOrder = i
 			optionBtn.ZIndex = dropdownScroll.ZIndex + 1
 			optionBtn.Parent = dropdownScroll
 			corner(optionBtn, 6)
 
-			-- Add horizontal layout for icon + text columns
-			if multiSelect then
-				-- Icon column (fixed width)
-				local iconFrame = Instance.new("Frame")
-				iconFrame.Name = "IconColumn"
-				iconFrame.BackgroundTransparency = 1
-				iconFrame.Size = UDim2.new(0, 32, 1, 0)  -- Fixed 32px width for icon
-				iconFrame.Position = UDim2.new(0, 4, 0, 0)
-				iconFrame.ZIndex = optionBtn.ZIndex + 1
-				iconFrame.Parent = optionBtn
+			-- Icon column (fixed width for checkbox)
+			local iconFrame = Instance.new("Frame")
+			iconFrame.Name = "IconColumn"
+			iconFrame.BackgroundTransparency = 1
+			iconFrame.Size = UDim2.new(0, 32, 1, 0)
+			iconFrame.Position = UDim2.new(0, 4, 0, 0)
+			iconFrame.ZIndex = optionBtn.ZIndex + 1
+			iconFrame.Parent = optionBtn
 
-				local checkbox = Instance.new("TextLabel")
-				checkbox.Name = "Checkbox"
-				checkbox.BackgroundTransparency = 1
-				checkbox.Size = UDim2.new(1, 0, 1, 0)
-				checkbox.Position = UDim2.new(0, 0, 0, 0)
-				checkbox.Font = Enum.Font.GothamBold
-				checkbox.TextSize = 16
-				checkbox.Text = selected and "☑" or "☐"
-				checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
-				checkbox.TextXAlignment = Enum.TextXAlignment.Center
-				checkbox.TextYAlignment = Enum.TextYAlignment.Center
-				checkbox.ZIndex = iconFrame.ZIndex + 1
-				checkbox.Parent = iconFrame
+			local checkbox = Instance.new("TextLabel")
+			checkbox.Name = "Checkbox"
+			checkbox.BackgroundTransparency = 1
+			checkbox.Size = UDim2.new(1, 0, 1, 0)
+			checkbox.Position = UDim2.new(0, 0, 0, 0)
+			checkbox.Font = Enum.Font.GothamBold
+			checkbox.TextSize = 16
+			checkbox.Text = selected and "☑" or "☐"
+			checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
+			checkbox.TextXAlignment = Enum.TextXAlignment.Center
+			checkbox.TextYAlignment = Enum.TextYAlignment.Center
+			checkbox.ZIndex = iconFrame.ZIndex + 1
+			checkbox.Parent = iconFrame
 
-				-- Text column (flexible width with constraints)
-				local textFrame = Instance.new("Frame")
-				textFrame.Name = "TextColumn"
-				textFrame.BackgroundTransparency = 1
-				textFrame.Size = UDim2.new(1, -44, 1, 0)  -- Full width minus icon (32) + padding (12)
-				textFrame.Position = UDim2.new(0, 40, 0, 0)  -- Start after icon + padding
-				textFrame.ZIndex = optionBtn.ZIndex + 1
-				textFrame.Parent = optionBtn
+			-- Text column (flexible width)
+			local textFrame = Instance.new("Frame")
+			textFrame.Name = "TextColumn"
+			textFrame.BackgroundTransparency = 1
+			textFrame.Size = UDim2.new(1, -44, 1, 0)
+			textFrame.Position = UDim2.new(0, 40, 0, 0)
+			textFrame.ZIndex = optionBtn.ZIndex + 1
+			textFrame.Parent = optionBtn
 
-				local textLabel = Instance.new("TextLabel")
-				textLabel.Name = "TextLabel"
-				textLabel.BackgroundTransparency = 1
-				textLabel.Size = UDim2.new(1, 0, 1, 0)
-				textLabel.Position = UDim2.new(0, 0, 0, 0)
-				textLabel.Font = Enum.Font.GothamMedium
-				textLabel.TextSize = 14
-				textLabel.Text = tostring(value)
-				textLabel.TextColor3 = selected and pal3.Accent or pal3.Text
-				textLabel.TextXAlignment = Enum.TextXAlignment.Left
-				textLabel.TextYAlignment = Enum.TextYAlignment.Center
-				textLabel.ZIndex = textFrame.ZIndex + 1
-				textLabel.Parent = textFrame
-
-				-- Apply truncation mode
-				if truncationMode == "singleLine" then
-					textLabel.TextTruncate = Enum.TextTruncate.AtEnd
-					textLabel.TextWrapped = false
-				else  -- twoLine
-					textLabel.TextWrapped = true
-					textLabel.TextTruncate = Enum.TextTruncate.AtEnd
-					-- Max 2 lines: each line ~18px (14px text + 4px spacing), limit to 2 lines
-					local padding = Instance.new("UIPadding")
-					padding.PaddingTop = UDim.new(0, 4)
-					padding.PaddingBottom = UDim.new(0, 4)
-					padding.Parent = textLabel
-				end
-			else
-				-- Single-select: centered text (no icon column)
-				local textLabel = Instance.new("TextLabel")
-				textLabel.Name = "TextLabel"
-				textLabel.BackgroundTransparency = 1
-				textLabel.Size = UDim2.new(1, -16, 1, 0)
-				textLabel.Position = UDim2.new(0, 8, 0, 0)
-				textLabel.Font = Enum.Font.GothamMedium
-				textLabel.TextSize = 14
-				textLabel.Text = tostring(value)
-				textLabel.TextColor3 = selected and pal3.Accent or pal3.Text
-				textLabel.TextXAlignment = Enum.TextXAlignment.Center
-				textLabel.TextYAlignment = Enum.TextYAlignment.Center
-				textLabel.TextTruncate = Enum.TextTruncate.AtEnd
-				textLabel.TextWrapped = false
-				textLabel.ZIndex = optionBtn.ZIndex + 1
-				textLabel.Parent = optionBtn
-			end
+			local textLabel = Instance.new("TextLabel")
+			textLabel.Name = "TextLabel"
+			textLabel.BackgroundTransparency = 1
+			textLabel.Size = UDim2.new(1, 0, 1, 0)
+			textLabel.Position = UDim2.new(0, 0, 0, 0)
+			textLabel.Font = Enum.Font.GothamMedium
+			textLabel.TextSize = 14
+			textLabel.Text = tostring(value)
+			textLabel.TextColor3 = selected and pal3.Accent or pal3.Text
+			textLabel.TextXAlignment = Enum.TextXAlignment.Left
+			textLabel.TextYAlignment = Enum.TextYAlignment.Center
+			textLabel.TextTruncate = Enum.TextTruncate.AtEnd
+			textLabel.TextWrapped = false
+			textLabel.ZIndex = textFrame.ZIndex + 1
+			textLabel.Parent = textFrame
 
 			optionBtn.MouseButton1Click:Connect(function()
 				if locked() then return end
 
-				if multiSelect then
-					-- Toggle selection
-					local found = false
-					for k, v in ipairs(selectedValues) do
-						if v == value then
-							table.remove(selectedValues, k)
-							found = true
-							break
-						end
+				-- Toggle selection
+				local found = false
+				for k, v in ipairs(selectedValues) do
+					if v == value then
+						table.remove(selectedValues, k)
+						found = true
+						break
 					end
-
-					if not found then
-						table.insert(selectedValues, value)
-					end
-
-					updateButtonText()
-					updateHighlight()
-
-					if o.OnChanged then
-						task.spawn(o.OnChanged, selectedValues)
-					end
-					if o.Flag then RvrseUI:_autoSave() end
-				else
-					-- Single select (close on click)
-					idx = i
-					updateButtonText()
-					updateHighlight()
-					setOpen(false)
-
-					if o.OnChanged then
-						-- Normalize to table format for API consistency (Rayfield compatible)
-						local normalizedValue = {value}
-						if dependencies.Debug and dependencies.Debug.IsEnabled() then
-							dependencies.Debug.printf("[Dropdown] OnChanged (single-select): value='%s', normalized to table", value)
-						end
-						task.spawn(o.OnChanged, normalizedValue)
-					end
-					if o.Flag then RvrseUI:_autoSave() end
 				end
+
+				if not found then
+					table.insert(selectedValues, value)
+				end
+
+				updateButtonText()
+				updateHighlight()
+
+				if o.OnChanged then
+					task.spawn(o.OnChanged, selectedValues)
+				end
+				if o.Flag then RvrseUI:_autoSave() end
 			end)
 
 			optionBtn.MouseEnter:Connect(function()
@@ -680,62 +560,25 @@ function Dropdown.Create(o, dependencies)
 
 	-- Connect blocker click handler (called AFTER blocker is created)
 	local function connectBlockerHandler()
-		print("[DROPDOWN] 🔗 connectBlockerHandler() called")
-		print(string.format("  - overlayBlocker exists: %s", tostring(overlayBlocker ~= nil)))
-		print(string.format("  - OverlayService exists: %s", tostring(OverlayService ~= nil)))
-
 		if overlayBlocker and OverlayService then
-			print(string.format("  - overlayBlocker ClassName: %s", overlayBlocker.ClassName))
-			print(string.format("  - overlayBlocker.Name: %s", overlayBlocker.Name))
-			print(string.format("  - overlayBlocker.Parent: %s", tostring(overlayBlocker.Parent)))
-			print(string.format("  - overlayBlocker.Visible: %s", tostring(overlayBlocker.Visible)))
-			print(string.format("  - overlayBlocker.Modal: %s", tostring(overlayBlocker.Modal)))
-			print(string.format("  - overlayBlocker.Active: %s", tostring(overlayBlocker.Active)))
-			print(string.format("  - overlayBlocker.ZIndex: %d", overlayBlocker.ZIndex))
-
 			if overlayBlockerConnection then
-				print("[DROPDOWN] ⚠️ Disconnecting previous blocker connection")
 				overlayBlockerConnection:Disconnect()
 			end
 
-			print("[DROPDOWN] 🎯 About to connect MouseButton1Click handler")
-			print(string.format("  - setOpen exists: %s (type: %s)", tostring(setOpen ~= nil), type(setOpen)))
-
-			-- Connect blocker click handler with inline function
-			-- This creates a NEW closure each time, capturing the CURRENT scope
 			overlayBlockerConnection = overlayBlocker.MouseButton1Click:Connect(function()
-				print("=========================================================")
-				print("[DROPDOWN] 🔴🔴🔴 BLOCKER CLICKED! Handler called")
-				print("=========================================================")
-				print(string.format("  - setOpen type at click time: %s", type(setOpen)))
-				print(string.format("  - setOpen exists: %s", tostring(setOpen ~= nil)))
-
 				if setOpen then
-					print("[DROPDOWN] ✅ setOpen EXISTS! Calling setOpen(false)...")
 					setOpen(false)
-					print("[DROPDOWN] ✅ Dropdown closed successfully!")
-				else
-					print("[DROPDOWN] ❌❌❌ ERROR: setOpen is nil at click time!")
 				end
-				print("=========================================================")
 			end)
-
-			print(string.format("  - Connection created: %s (type: %s)", tostring(overlayBlockerConnection ~= nil), type(overlayBlockerConnection)))
-			print("[DROPDOWN] ✅ Blocker handler connected with inline function!")
-		else
-			print("[DROPDOWN] ❌ Cannot connect handler - blocker or service missing")
 		end
 	end
 
 	setOpen = function(state)
-		print(string.format("[DROPDOWN] 🎯 setOpen(%s) called", tostring(state)))
 		if locked() then
-			print("[DROPDOWN] ⛔ Dropdown is locked, ignoring")
 			return
 		end
 
 		if state == dropdownOpen then
-			print(string.format("[DROPDOWN] State already %s, skipping", tostring(state)))
 			if state then
 				positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, 150), dropdownHeight, true)
 			end
@@ -744,15 +587,12 @@ function Dropdown.Create(o, dependencies)
 
 		dropdownOpen = state
 		arrow.Text = dropdownOpen and "▲" or "▼"
-		print(string.format("[DROPDOWN] dropdownOpen now: %s, arrow: %s", tostring(dropdownOpen), arrow.Text))
 
 		if dropdownOpen then
-			print("[DROPDOWN] 🟢 OPENING dropdown")
 			if o.OnOpen then
 				o.OnOpen()
 			end
 
-			-- Calculate proper dropdown height
 			local spacingPerItem = 4
 			local totalItemsHeight = (#values * itemHeight) + ((#values - 1) * spacingPerItem)
 			local paddingTotal = 8 + 8
@@ -760,19 +600,14 @@ function Dropdown.Create(o, dependencies)
 			dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, totalItemsHeight + 8)
 			dropdownHeight = math.min(totalItemsHeight + paddingTotal, maxHeight)
 
-			-- Ensure minimum height if there are items
 			if #values > 0 then
 				dropdownHeight = math.max(dropdownHeight, itemHeight + paddingTotal)
 			end
 
 			showOverlayBlocker()
-			print("[DROPDOWN] 🚨 About to call connectBlockerHandler()")
-			print(string.format("  - We are INSIDE setOpen function body (state=%s)", tostring(state)))
-			print(string.format("  - setOpen variable in THIS scope: %s (type: %s)", tostring(setOpen ~= nil), type(setOpen)))
-			connectBlockerHandler()  -- Connect handler AFTER setOpen is fully defined
-			print("[DROPDOWN] 🚨 connectBlockerHandler() call completed")
+			connectBlockerHandler()
 
-			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
+			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)
 			positionDropdown(targetWidth, dropdownHeight)
 
 			-- Diagnostic logging for render order debugging
@@ -800,15 +635,12 @@ function Dropdown.Create(o, dependencies)
 			dropdownList.Visible = true
 			dropdownScroll.CanvasPosition = Vector2.new(0, 0)
 		else
-			print("[DROPDOWN] 🔴 CLOSING dropdown")
 			local layer = currentOverlayLayer()
 			local targetWidth = layer and math.max(btn.AbsoluteSize.X, inlineWidth) or inlineWidth
 			dropdownList.Visible = false
 			dropdownList.Size = UDim2.new(0, targetWidth, 0, 0)
 			collapseInline()
-			print("[DROPDOWN] Calling hideOverlayBlocker()")
 			hideOverlayBlocker(false)
-			print("[DROPDOWN] ✅ Dropdown closed successfully")
 			if o.OnClose then
 				o.OnClose()
 			end
@@ -817,9 +649,7 @@ function Dropdown.Create(o, dependencies)
 
 	-- Toggle dropdown on button click
 	btn.MouseButton1Click:Connect(function()
-		-- Refresh dropdown values before opening (for dynamic config lists)
 		if not dropdownOpen then
-			-- If a refresh callback is provided, use it to get new values
 			if o.OnRefresh then
 				local newValues = o.OnRefresh()
 				if newValues and type(newValues) == "table" then
@@ -828,8 +658,6 @@ function Dropdown.Create(o, dependencies)
 						table.insert(values, val)
 					end
 					rebuildOptions()
-				else
-					warn("[Dropdown] OnRefresh returned invalid data: " .. tostring(type(newValues)))
 				end
 			elseif o.RefreshOnOpen then
 				rebuildOptions()
@@ -881,74 +709,36 @@ function Dropdown.Create(o, dependencies)
 
 	table.insert(RvrseUI._lockListeners, visual)
 
-		f.Destroying:Connect(function()
-			if dropdownOpen then
-				hideOverlayBlocker(true)
-				dropdownOpen = false
-			end
-		end)
-
+	f.Destroying:Connect(function()
+		if dropdownOpen then
+			hideOverlayBlocker(true)
+			dropdownOpen = false
+		end
+	end)
 
 	-- Build dropdownAPI methods
 	dropdownAPI.Set = function(_, v, suppressCallback)
-		if multiSelect then
-			-- For multi-select, v should be an array
-			if type(v) == "table" then
-				selectedValues = {}
-				for _, val in ipairs(v) do
-					table.insert(selectedValues, val)
-				end
-			else
-				selectedValues = {}
-			end
-
-			updateButtonText()
-			updateHighlight()
-			visual()
-
-			if not suppressCallback and o.OnChanged then
-				task.spawn(o.OnChanged, selectedValues)
+		-- For multi-select, v should be an array
+		if type(v) == "table" then
+			selectedValues = {}
+			for _, val in ipairs(v) do
+				table.insert(selectedValues, val)
 			end
 		else
-			-- Single select mode
-			local foundIndex
-			if v ~= nil then
-				for i, val in ipairs(values) do
-					if val == v then
-						foundIndex = i
-						break
-					end
-				end
-			end
+			selectedValues = {}
+		end
 
-			if foundIndex then
-				idx = foundIndex
-			else
-				if #values > 0 then
-					idx = 1
-				else
-					idx = 0
-				end
-			end
+		updateButtonText()
+		updateHighlight()
+		visual()
 
-			updateButtonText()
-			updateHighlight()
-			visual()
-
-			if not suppressCallback and o.OnChanged and values[idx] then
-				-- Normalize to table format for API consistency
-				local normalizedValue = {values[idx]}
-				task.spawn(o.OnChanged, normalizedValue)
-			end
+		if not suppressCallback and o.OnChanged then
+			task.spawn(o.OnChanged, selectedValues)
 		end
 	end
 
 	dropdownAPI.Get = function()
-		if multiSelect then
-			return selectedValues
-		else
-			return values[idx]
-		end
+		return selectedValues
 	end
 
 	dropdownAPI.Refresh = function(_, newValues)
@@ -957,7 +747,6 @@ function Dropdown.Create(o, dependencies)
 			for _, val in ipairs(newValues) do
 				values[#values + 1] = val
 			end
-			idx = 1
 		end
 		rebuildOptions()
 		visual()
@@ -974,41 +763,32 @@ function Dropdown.Create(o, dependencies)
 		setOpen(state and true or false)
 	end
 
-	-- Multi-select specific methods
+	-- Multi-select methods
 	dropdownAPI.SelectAll = function(_)
-		if multiSelect then
-			selectedValues = {}
-			for _, val in ipairs(values) do
-				table.insert(selectedValues, val)
-			end
-			updateButtonText()
-			updateHighlight()
-			if o.OnChanged then
-				task.spawn(o.OnChanged, selectedValues)
-			end
-			if o.Flag then RvrseUI:_autoSave() end
+		selectedValues = {}
+		for _, val in ipairs(values) do
+			table.insert(selectedValues, val)
 		end
+		updateButtonText()
+		updateHighlight()
+		if o.OnChanged then
+			task.spawn(o.OnChanged, selectedValues)
+		end
+		if o.Flag then RvrseUI:_autoSave() end
 	end
 
 	dropdownAPI.ClearAll = function(_)
-		if multiSelect then
-			selectedValues = {}
-			updateButtonText()
-			updateHighlight()
-			if o.OnChanged then
-				task.spawn(o.OnChanged, selectedValues)
-			end
-			if o.Flag then RvrseUI:_autoSave() end
+		selectedValues = {}
+		updateButtonText()
+		updateHighlight()
+		if o.OnChanged then
+			task.spawn(o.OnChanged, selectedValues)
 		end
+		if o.Flag then RvrseUI:_autoSave() end
 	end
 
-	dropdownAPI.IsMultiSelect = function()
-		return multiSelect
-	end
-
-	-- Add CurrentOption property (Rayfield compatibility)
-	-- This returns the current selection as a table (like Rayfield)
-	dropdownAPI.CurrentOption = multiSelect and selectedValues or (values[idx] and {values[idx]} or {})
+	-- Always returns selected values as table
+	dropdownAPI.CurrentOption = selectedValues
 
 	if o.Flag then
 		RvrseUI.Flags[o.Flag] = dropdownAPI

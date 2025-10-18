@@ -85,7 +85,6 @@ local moduleOrder = {
 	"src/Elements/Button.lua",
 	"src/Elements/Toggle.lua",
 	"src/Elements/Dropdown.lua",
-	"src/Elements/DropdownLegacy.lua",
 	"src/Elements/Slider.lua",
 	"src/Elements/Keybind.lua",
 	"src/Elements/TextBox.lua",
@@ -196,8 +195,7 @@ Elements = {
 	ColorPicker = ColorPicker,
 	Label = Label,
 	Paragraph = Paragraph,
-	Divider = Divider,
-	DropdownLegacy = DropdownLegacy
+	Divider = Divider
 }
 
 RvrseUI.NotificationsEnabled = true

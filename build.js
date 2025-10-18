@@ -6,18 +6,18 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 RvrseUI v4.0.3 Build Script');
+console.log('🔨 RvrseUI v4.1.0 Build Script');
 console.log('='.repeat(52));
 
 // Header for compiled file
-const header = `-- RvrseUI v4.0.3 | Cyberpunk Neon UI Framework
+const header = `-- RvrseUI v4.1.0 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
--- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
--- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
--- Extras: Notify system, Theme switcher, LockGroup system, Drag-to-move, Auto-scaling
+-- Features: Unified Multi-Select Dropdowns, Advanced ColorPicker, Key System, Spring Animations
+-- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
+-- Extras: Notify system, Theme switcher, LockGroup system, Drag-to-move, Config persistence
 
--- 🏗️ ARCHITECTURE: This file is compiled from 26 modular files
+-- 🏗️ ARCHITECTURE: This file is compiled from 27 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 
@@ -70,7 +70,6 @@ const moduleOrder = [
 	'src/Elements/Button.lua',
 	'src/Elements/Toggle.lua',
 	'src/Elements/Dropdown.lua',
-	'src/Elements/DropdownLegacy.lua',
 	'src/Elements/Slider.lua',
 	'src/Elements/Keybind.lua',
 	'src/Elements/TextBox.lua',
@@ -180,8 +179,7 @@ Elements = {
 	ColorPicker = ColorPicker,
 	Label = Label,
 	Paragraph = Paragraph,
-	Divider = Divider,
-	DropdownLegacy = DropdownLegacy
+	Divider = Divider
 }
 
 RvrseUI.NotificationsEnabled = true

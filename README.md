@@ -1,8 +1,8 @@
-# RvrseUI v4.0.4
+# RvrseUI v4.1.0
 
-**Modern, Production-Ready Roblox UI Library** with Advanced ColorPicker, Multi-Select Dropdowns, Key System, and 100% Rayfield API Compatibility
+**Modern, Production-Ready Roblox UI Library** with Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
 
-![Version](https://img.shields.io/badge/version-4.0.4-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-260KB-orange)
+![Version](https://img.shields.io/badge/version-4.1.0-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-246KB-orange)
 
 ---
 
@@ -59,7 +59,6 @@ Window:Show()  -- This loads saved config THEN shows UI
 7. [API Reference](#-api-reference)
 8. [Troubleshooting](#-troubleshooting)
 9. [Examples](#-examples)
-10. [Rayfield Migration](#-rayfield-migration-guide)
 
 ---
 
@@ -69,7 +68,7 @@ Window:Show()  -- This loads saved config THEN shows UI
 - **Button** - Click actions with ripple effects
 - **Toggle** - On/off switches with lock groups
 - **Slider** - Numeric values with live preview
-- **Dropdown** - Single OR multi-select lists
+- **Dropdown** - Modern multi-select lists (select one or multiple items)
 - **ColorPicker** - RGB/HSV/Hex OR simple presets
 - **Keybind** - Capture keyboard inputs
 - **TextBox** - Text input fields
@@ -310,66 +309,46 @@ local value = mySlider:Get()          -- Get current value
 
 ### 4. Dropdown
 
-**What it does:** List of options (single OR multiple selection)
+**What it does:** Multi-select list of options (users can select one or multiple items)
 
-#### Single-Select (Standard)
+**Modern Multi-Select System** (unified as of v4.1.0)
+
 ```lua
 local myDropdown = Section:CreateDropdown({
-    Text = "Select Weapon",
+    Text = "Select Weapons",
     Values = {"Sword", "Bow", "Staff", "Axe"},
 
-    CurrentOption = {"Sword"},      -- Pre-select (optional)
-    MultiSelect = false,             -- Single-select mode (default)
-    Flag = "SelectedWeapon",         -- 🔑 Saves automatically!
+    CurrentOption = {"Sword"},      -- Pre-select items (optional)
+    Flag = "SelectedWeapons",        -- 🔑 Saves automatically!
     OnChanged = function(selected)
-        -- ALWAYS receives a table, even in single-select!
-        print("Weapon:", selected[1])  -- Access first item
-        -- Or use table.concat:
-        print("Weapon:", table.concat(selected, ", "))
-    end
-})
-
--- API Methods
-myDropdown:Set("Bow")                              -- Change selection
-myDropdown:Refresh({"New", "Options", "List"})     -- Update options
-local weapon = myDropdown:Get()                    -- Get selected value
-```
-
-#### Multi-Select
-```lua
-local multiDropdown = Section:CreateDropdown({
-    Text = "Select Game Modes",
-    Values = {"TDM", "CTF", "KotH", "FFA"},
-
-    CurrentOption = {"TDM", "FFA"},  -- Pre-select multiple!
-    MultiSelect = true,               -- Enable multi-select
-    TruncationMode = "singleLine",    -- "singleLine" (ellipsis) or "twoLine" (wrap)
-    Flag = "GameModes",               -- 🔑 Saves as array!
-    OnChanged = function(selected)
-        -- selected is an ARRAY: {"TDM", "FFA", "KotH"}
+        -- selected is ALWAYS a table: {"Sword", "Bow"}
         print("Selected:", table.concat(selected, ", "))
+
+        -- For single selection, just click one item:
+        if #selected == 1 then
+            print("Single weapon:", selected[1])
+        end
     end
 })
 
 -- API Methods
-multiDropdown:Set({"TDM", "CTF"})                 -- Set multiple
-multiDropdown:SelectAll()                          -- Select all options
-multiDropdown:ClearAll()                           -- Clear all selections
-local selected = multiDropdown:Get()               -- Returns array
-print(#selected, "modes selected")                 -- Count selections
+myDropdown:Set({"Bow", "Staff"})                  -- Set selections
+myDropdown:Refresh({"New", "Options", "List"})     -- Update options
+local weapons = myDropdown:Get()                   -- Returns array
+myDropdown:SelectAll()                             -- Select all options
+myDropdown:ClearAll()                              -- Clear all selections
+print(#weapons, "weapons selected")                -- Count selections
 ```
 
-**Use case:**
-- Single-select: Weapon, difficulty, game mode
-- Multi-select: Select multiple features to enable
+**Use cases:**
+- Select single item: Click once (e.g., weapon, difficulty, game mode)
+- Select multiple items: Click multiple times (e.g., enable multiple features)
 
-**TruncationMode (optional):**
-- `"singleLine"` (default) - Long labels truncate with ellipsis (...)
-- `"twoLine"` - Labels can wrap to 2 lines, then truncate
-
-This prevents long text from overlapping icons and cramming together.
-
-> **Note:** RvrseUI is Rayfield-compatible. Rayfield parameters `Options` and `MultipleOptions` also work.
+**Key Features:**
+- ✅ **Always returns a table** - `OnChanged` receives `{"Item1", "Item2"}`
+- ✅ **Checkbox interface** - Visual checkboxes for multi-selection
+- ✅ **Dynamic overlay** - Dropdown renders above all other UI elements
+- ✅ **No ZIndex issues** - Never renders behind panels
 
 ---
 
@@ -1016,11 +995,8 @@ Section:CreateDropdown({
     end
 })
 
--- ❌ WRONG - This creates single-select
-Section:CreateDropdown({
-    Values = {...},
-    -- Missing MultiSelect = true!
-})
+-- Note: All dropdowns are now multi-select by default (v4.1.0+)
+-- Users can select one item by clicking once, or multiple by clicking multiple times
 ```
 
 ### "ColorPicker panel not showing"
@@ -1169,12 +1145,6 @@ RvrseUI:Notify({
 
 ---
 
-## 🔄 Rayfield Compatibility
-
-**Migrating from Rayfield?** RvrseUI is 100% API-compatible. Your existing Rayfield code will work as-is - just change the loadstring URL.
-
----
-
 ## 📚 Additional Resources
 
 - **[Developer Notes](DEV_NOTES.md)** - Version history, changelog, and technical notes
@@ -1215,4 +1185,4 @@ MIT License - See [LICENSE](LICENSE) file
 
 **Made with ❤️ by CoderRvrse**
 
-**Version 4.0.4** • **Build 260KB** • **28 Modules** • **Production Ready**
+**Version 4.1.0** • **Build 246KB** • **27 Modules** • **Production Ready**
