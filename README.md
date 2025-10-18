@@ -321,8 +321,11 @@ local myDropdown = Section:CreateDropdown({
     CurrentOption = {"Sword"},      -- Pre-select (optional)
     MultiSelect = false,             -- Single-select mode (default)
     Flag = "SelectedWeapon",         -- 🔑 Saves automatically!
-    OnChanged = function(value)
-        print("Weapon:", value)      -- Returns single value
+    OnChanged = function(selected)
+        -- ALWAYS receives a table, even in single-select!
+        print("Weapon:", selected[1])  -- Access first item
+        -- Or use table.concat:
+        print("Weapon:", table.concat(selected, ", "))
     end
 })
 

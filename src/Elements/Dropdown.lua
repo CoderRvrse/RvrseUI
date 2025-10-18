@@ -95,14 +95,27 @@ function Dropdown.Create(o, dependencies)
 
 		local hostGui = fallbackOverlayGui
 		if not hostGui or not hostGui.Parent then
+			-- Calculate highest DisplayOrder to ensure dropdown is on top
+			local maxDisplayOrder = 0
+			for _, gui in ipairs(playerGui:GetChildren()) do
+				if gui:IsA("ScreenGui") then
+					maxDisplayOrder = math.max(maxDisplayOrder, gui.DisplayOrder)
+				end
+			end
+
 			hostGui = Instance.new("ScreenGui")
 			hostGui.Name = "RvrseUI_DropdownHost"
 			hostGui.ResetOnSpawn = false
 			hostGui.IgnoreGuiInset = true
 			hostGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-			hostGui.DisplayOrder = 2000000
+			hostGui.DisplayOrder = maxDisplayOrder + 1000  -- Always on top
 			hostGui.Parent = playerGui
 			fallbackOverlayGui = hostGui
+
+			if dependencies.Debug and dependencies.Debug.IsEnabled() then
+				dependencies.Debug.printf("[Dropdown] Created fallback ScreenGui with DisplayOrder=%d (max was %d)",
+					hostGui.DisplayOrder, maxDisplayOrder)
+			end
 		end
 
 		local layerFrame = fallbackOverlayLayer
@@ -392,10 +405,26 @@ function Dropdown.Create(o, dependencies)
 		layer = layer or currentOverlayLayer()
 		local overlayBaseZ = layer and layer.ZIndex or 0
 		local blockerZ = overlayBlocker and overlayBlocker.ZIndex or overlayBaseZ
-		local dropdownZ = math.max(overlayBaseZ + 2, blockerZ + 1, DROPDOWN_BASE_Z)
+
+		-- Find maximum ZIndex in the layer to ensure dropdown is on top
+		local maxZInLayer = overlayBaseZ
+		if layer then
+			for _, child in ipairs(layer:GetDescendants()) do
+				if child:IsA("GuiObject") then
+					maxZInLayer = math.max(maxZInLayer, child.ZIndex)
+				end
+			end
+		end
+
+		local dropdownZ = math.max(maxZInLayer + 10, overlayBaseZ + 2, blockerZ + 1, DROPDOWN_BASE_Z)
 		dropdownList.ZIndex = dropdownZ
 		dropdownScroll.ZIndex = dropdownZ + 1
 		updateOptionZIndices(dropdownScroll.ZIndex + 1)
+
+		if dependencies.Debug and dependencies.Debug.IsEnabled() then
+			dependencies.Debug.printf("[Dropdown] Applied overlay ZIndex: dropdown=%d, scroll=%d (max in layer was %d)",
+				dropdownZ, dropdownZ + 1, maxZInLayer)
+		end
 	end
 
 	local function positionDropdown(width, height, skipCreate)
@@ -617,7 +646,12 @@ function Dropdown.Create(o, dependencies)
 					setOpen(false)
 
 					if o.OnChanged then
-						task.spawn(o.OnChanged, value)
+						-- Normalize to table format for API consistency (Rayfield compatible)
+						local normalizedValue = {value}
+						if dependencies.Debug and dependencies.Debug.IsEnabled() then
+							dependencies.Debug.printf("[Dropdown] OnChanged (single-select): value='%s', normalized to table", value)
+						end
+						task.spawn(o.OnChanged, normalizedValue)
 					end
 					if o.Flag then RvrseUI:_autoSave() end
 				end
@@ -740,6 +774,28 @@ function Dropdown.Create(o, dependencies)
 
 			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)  -- Minimum 150px width
 			positionDropdown(targetWidth, dropdownHeight)
+
+			-- Diagnostic logging for render order debugging
+			if dependencies.Debug and dependencies.Debug.IsEnabled() then
+				local parent = dropdownList
+				local clipPath = {}
+				while parent do
+					if parent:IsA("ScreenGui") then
+						dependencies.Debug.printf("[Dropdown] ScreenGui '%s': DisplayOrder=%d", parent.Name, parent.DisplayOrder)
+						break
+					elseif parent:IsA("GuiObject") then
+						table.insert(clipPath, string.format("%s (ZIndex=%d, Clips=%s)",
+							parent.Name, parent.ZIndex, tostring(parent.ClipsDescendants)))
+					end
+					parent = parent.Parent
+				end
+				if #clipPath > 0 then
+					dependencies.Debug.printf("[Dropdown] Hierarchy: %s", table.concat(clipPath, " → "))
+				end
+				dependencies.Debug.printf("[Dropdown] List ZIndex=%d, Scroll ZIndex=%d, Blocker ZIndex=%d",
+					dropdownList.ZIndex, dropdownScroll.ZIndex,
+					overlayBlocker and overlayBlocker.ZIndex or 0)
+			end
 
 			dropdownList.Visible = true
 			dropdownScroll.CanvasPosition = Vector2.new(0, 0)
@@ -880,7 +936,9 @@ function Dropdown.Create(o, dependencies)
 			visual()
 
 			if not suppressCallback and o.OnChanged and values[idx] then
-				task.spawn(o.OnChanged, values[idx])
+				-- Normalize to table format for API consistency
+				local normalizedValue = {values[idx]}
+				task.spawn(o.OnChanged, normalizedValue)
 			end
 		end
 	end
