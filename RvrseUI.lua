@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.3 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T14:10:40.090Z
+-- Compiled from modular architecture on 2025-10-18T14:18:22.293Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -7205,6 +7205,7 @@ do
 		local dragging, activeDragInput
 		local dragPointerOffset  -- Offset from pointer to window TOP-LEFT (accounting for AnchorPoint)
 		local headerLastPointer
+		local isAnimating = false  -- ✅ FORWARD DECLARE: Blocks drag during minimize/restore animations
 		local hostScreenGui = typeof(windowHost) == "Instance"
 			and windowHost:IsA("ScreenGui")
 			and windowHost
@@ -7260,6 +7261,12 @@ do
 	
 		header.InputBegan:Connect(function(io)
 			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+				-- ✅ CRITICAL: Block drag during minimize/restore animations
+				if isAnimating then
+					Debug.printf("[DRAG] ⚠️ Drag blocked - animation in progress")
+					return
+				end
+	
 				dragging = true
 				activeDragInput = io
 				local pointer = getPointerPosition(io)
@@ -8024,6 +8031,7 @@ do
 		end
 	
 		local isMinimized = false
+		-- isAnimating already declared at top with drag variables (line 330)
 	
 		-- Prevent content from spilling outside the window shell while the minimize/restore
 		-- animation runs (the Profiles tab previously leaked the body frame when shrinking).
@@ -8040,8 +8048,9 @@ do
 		end
 	
 		local function minimizeWindow()
-			if isMinimized then return end
+			if isMinimized or isAnimating then return end
 			isMinimized = true
+			isAnimating = true  -- ✅ LOCK drag during animation
 			if Overlay then
 				Overlay:HideBlocker(true)
 			end
@@ -8085,15 +8094,23 @@ do
 				controllerChip.Visible = true
 				controllerChip.Size = UDim2.new(0, 0, 0, 0)
 	
-				Animator:Tween(controllerChip, {
+				local chipGrowTween = Animator:Tween(controllerChip, {
 					Size = UDim2.new(0, 50, 0, 50)
 				}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+	
+				-- ✅ UNLOCK drag after chip growth completes
+				chipGrowTween.Completed:Wait()
+				isAnimating = false
+				Debug.printf("[MINIMIZE] ✅ Animation complete - drag unlocked")
+			else
+				isAnimating = false
 			end
 		end
 	
 		local function restoreWindow()
-			if not isMinimized then return end
+			if not isMinimized or isAnimating then return end
 			isMinimized = false
+			isAnimating = true  -- ✅ LOCK drag during animation
 			applyMinimizeClipping()
 			Animator:Ripple(controllerChip, 25, 25)
 	
@@ -8134,7 +8151,7 @@ do
 			root.Rotation = -180
 			root.BackgroundTransparency = 1
 	
-			Animator:Tween(root, {
+			local restoreTween = Animator:Tween(root, {
 				Size = targetSize,
 				Position = targetPos,
 				BackgroundTransparency = 1,  -- KEEP TRANSPARENT!
@@ -8145,7 +8162,13 @@ do
 				snapshotLayout("post-restore")
 			end)
 	
-			task.delay(0.65, restoreDefaultClipping)
+			-- ✅ UNLOCK drag after restore completes
+			restoreTween.Completed:Wait()
+			task.wait(0.05)  -- Small buffer for tween to fully settle
+			isAnimating = false
+			Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
+	
+			task.delay(0.05, restoreDefaultClipping)
 		end
 	
 		minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
@@ -8196,6 +8219,12 @@ do
 		-- Start chip drag
 		controllerChip.InputBegan:Connect(function(io)
 			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+				-- ✅ CRITICAL: Block drag during minimize/restore animations
+				if isAnimating then
+					Debug.printf("[CHIP DRAG] ⚠️ Drag blocked - animation in progress")
+					return
+				end
+	
 				chipDragging = true
 				chipWasDragged = false
 				chipDragThreshold = false
