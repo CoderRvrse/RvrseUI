@@ -246,6 +246,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Root window
 	local root = Instance.new("Frame")
 	root.Name = Obfuscation.getObfuscatedName("window")
+	root.AnchorPoint = Vector2.new(0, 0)  -- ✅ EXPLICIT top-left anchor (never assume default)
 	root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
 
 	local screenSize = workspace.CurrentCamera.ViewportSize
@@ -1286,6 +1287,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local chipActiveDragInput = nil
 	local chipInitialPointer = nil
 	local chipLastPointer = nil
+	local chipLockedSize = nil  -- ✅ NEW: Stores size before drag to restore after
+	local CHIP_BASE_SIZE = 50   -- ✅ NEW: Constant base size for offset calculation
 
 	-- Restore window on click (only if not dragged)
 	controllerChip.MouseButton1Click:Connect(function()
@@ -1295,17 +1298,21 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		chipWasDragged = false
 	end)
 
-	-- Hover effects
+	-- Hover effects (disabled during drag to prevent size changes)
 	controllerChip.MouseEnter:Connect(function()
-		Animator:Tween(controllerChip, {
-			Size = UDim2.new(0, 60, 0, 60)
-		}, Animator.Spring.Fast)
+		if not chipDragging then  -- ✅ NEW: Don't scale during drag
+			Animator:Tween(controllerChip, {
+				Size = UDim2.new(0, 60, 0, 60)
+			}, Animator.Spring.Fast)
+		end
 	end)
 
 	controllerChip.MouseLeave:Connect(function()
-		Animator:Tween(controllerChip, {
-			Size = UDim2.new(0, 50, 0, 50)
-		}, Animator.Spring.Fast)
+		if not chipDragging then  -- ✅ NEW: Don't scale during drag
+			Animator:Tween(controllerChip, {
+				Size = UDim2.new(0, 50, 0, 50)
+			}, Animator.Spring.Fast)
+		end
 	end)
 
 	-- Start chip drag
@@ -1316,26 +1323,28 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			chipDragThreshold = false
 			chipActiveDragInput = io
 
+			-- ✅ CRITICAL FIX: Lock size to base BEFORE calculating offset
+			chipLockedSize = controllerChip.Size  -- Save current size (might be 60x60 from hover)
+			controllerChip.Size = UDim2.new(0, CHIP_BASE_SIZE, 0, CHIP_BASE_SIZE)  -- Force to 50x50
+
 			local pointer = getPointerPosition(io)
 			chipInitialPointer = pointer
 			chipLastPointer = pointer
 
-			-- Calculate chip center accounting for AnchorPoint (0.5, 0.5)
-			local chipTopLeft = controllerChip.AbsolutePosition
-			local chipSize = controllerChip.AbsoluteSize
-			local chipAnchor = controllerChip.AnchorPoint
+			-- ✅ Calculate center using LOCKED base size (guaranteed 50x50)
+			local halfSize = CHIP_BASE_SIZE / 2
 			local chipCenter = Vector2.new(
-				chipTopLeft.X + (chipSize.X * chipAnchor.X),
-				chipTopLeft.Y + (chipSize.Y * chipAnchor.Y)
+				controllerChip.AbsolutePosition.X + halfSize,
+				controllerChip.AbsolutePosition.Y + halfSize
 			)
 
-			-- CRITICAL: Calculate offset from pointer to center AT MOUSE DOWN (not on first movement!)
+			-- ✅ Offset from pointer to center (now stable - size won't change during drag)
 			chipCenterOffset = pointer - chipCenter
 
+			Debug.printf("[CHIP DRAG] 🔒 Size locked: %.0f x %.0f (was %s)",
+				CHIP_BASE_SIZE, CHIP_BASE_SIZE, tostring(chipLockedSize))
 			Debug.printf("[CHIP DRAG] Mouse down at: (%.1f, %.1f)", pointer.X, pointer.Y)
-			Debug.printf("[CHIP DRAG] Chip AbsPos: (%.1f, %.1f), AbsSize: (%.1f, %.1f), AnchorPoint: (%.2f, %.2f)",
-				chipTopLeft.X, chipTopLeft.Y, chipSize.X, chipSize.Y, chipAnchor.X, chipAnchor.Y)
-			Debug.printf("[CHIP DRAG] Calculated chipCenter: (%.1f, %.1f)", chipCenter.X, chipCenter.Y)
+			Debug.printf("[CHIP DRAG] Chip center (locked): (%.1f, %.1f)", chipCenter.X, chipCenter.Y)
 			Debug.printf("[CHIP DRAG] Cached grab offset: X=%.2f, Y=%.2f", chipCenterOffset.X, chipCenterOffset.Y)
 			Debug.printf("[CHIP DRAG] Started - input type: %s", tostring(io.UserInputType))
 		end
@@ -1350,6 +1359,13 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				chipCenterOffset = nil
 				chipInitialPointer = nil
 				chipLastPointer = nil
+
+				-- ✅ CRITICAL FIX: Restore original size (might have been 60x60 from hover)
+				if chipLockedSize then
+					controllerChip.Size = chipLockedSize
+					Debug.printf("[CHIP DRAG] 🔓 Size restored to: %s", tostring(chipLockedSize))
+					chipLockedSize = nil
+				end
 
 				-- Save final position
 				RvrseUI._controllerChipPosition = {
