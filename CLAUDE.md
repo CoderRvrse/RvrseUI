@@ -78,6 +78,90 @@ end
 
 ---
 
+## 🚨 CRITICAL WARNING #3: Lua Closure Upvalue Capture Bug
+
+### **NEVER define wrapper functions that capture forward-declared variables!**
+
+**What happened in v4.0.3:**
+- Multi-select dropdown blocker would NOT close when clicking outside
+- Blocker click event fired, but `setOpen` was `nil` inside the handler
+- **ROOT CAUSE:** Lua closures capture variable VALUES at definition time, NOT references!
+
+**The Bug:**
+```lua
+local setOpen  -- Forward declaration (setOpen = nil at this point)
+
+-- ❌ BROKEN - closeDropdown captures setOpen's CURRENT value (nil)
+local function closeDropdown()
+    if setOpen then  -- This captures nil from line above!
+        setOpen(false)
+    end
+end
+
+-- Later...
+setOpen = function(state)  -- Assigned here, but closeDropdown already has nil!
+    showOverlayBlocker()
+    overlayBlocker.MouseButton1Click:Connect(closeDropdown)  -- Handler has nil!
+end
+```
+
+**Evidence from logs:**
+```
+06:05:56 -- setOpen exists: true (type: function)  ← When connecting handler
+06:06:01 -- setOpen type: nil                      ← When handler fires! BUG!
+```
+
+**The Fix - Use Inline Anonymous Functions:**
+```lua
+local setOpen  -- Forward declaration
+
+setOpen = function(state)
+    showOverlayBlocker()
+
+    -- ✅ CORRECT - Create closure at connection point, INSIDE setOpen body
+    overlayBlocker.MouseButton1Click:Connect(function()
+        if setOpen then  -- Captures setOpen from CURRENT scope (exists!)
+            setOpen(false)
+        end
+    end)
+end
+```
+
+**Why This Works:**
+1. The inline `function()` is created at line where `Connect()` is called
+2. `Connect()` is called INSIDE `setOpen` function body
+3. At that point, `setOpen` variable EXISTS in the current scope
+4. The inline closure captures the CURRENT scope (setOpen = function)
+5. When clicked, closure looks up `setOpen` and finds the function!
+
+**Proof it's fixed:**
+```
+06:24:25 -- setOpen type at click time: function  ← FIXED!
+06:24:25 -- setOpen exists: true
+06:24:25 -- [DROPDOWN] ✅ setOpen EXISTS! Calling setOpen(false)...
+06:24:25 -- [DROPDOWN] ✅ Dropdown closed successfully!
+```
+
+**Rules:**
+- ❌ **NEVER** define wrapper functions early that reference forward-declared variables
+- ✅ **ALWAYS** use inline anonymous functions created at the connection point
+- ✅ **ALWAYS** create closures INSIDE the function body where the variable is assigned
+- 🔍 **TEST** by logging variable type at definition time vs. call time
+
+**Files Affected:**
+- `src/Elements/Dropdown.lua:267` - Fallback blocker handler (inline function)
+- `src/Elements/Dropdown.lua:605` - Overlay blocker handler (inline function)
+
+**Never Repeat This Pattern:**
+```lua
+local myVar
+local function wrapper() return myVar end  -- ❌ Captures nil!
+myVar = "value"
+wrapper()  -- Returns nil, not "value"!
+```
+
+---
+
 ## 🏗️ Architecture Overview
 
 ### File Structure

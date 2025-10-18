@@ -63,10 +63,41 @@ Window:Show()  -- This loads saved config THEN shows UI
 
 ---
 
-## ✨ What's New in v4.0.2 (Latest)
+## ✨ What's New in v4.0.3 (Latest)
 
-### 🐛 CRITICAL FIX: Multi-Select Dropdown Blocker Crash
-- **Fixed Modern Dropdown** - Multi-select now closes properly when clicking outside
+### 🎉 CRITICAL FIX: Multi-Select Dropdown Blocker Now Works!
+- **Fixed Modern Dropdown** - Multi-select now closes properly when clicking outside! ✅
+- **Root Cause:** **Lua closure upvalue capture bug** - closures capture VALUES not references
+- **The Bug:** Wrapper function `closeDropdown()` captured `setOpen` as `nil` at definition time
+- **The Fix:** Use inline anonymous functions created at connection point (inside `setOpen` body)
+- **Evidence:** Logs showed `setOpen` was `function` when connecting, but `nil` when handler fired!
+- **Result:** Dropdown blocker now works perfectly - clicks close the dropdown as expected
+
+**Before (Broken):**
+```lua
+local setOpen
+local function closeDropdown() return setOpen end  -- Captures nil!
+setOpen = function() end  -- Too late, closeDropdown has nil
+```
+
+**After (Fixed):**
+```lua
+local setOpen
+setOpen = function()
+    Connect(function() return setOpen end)  -- Captures current scope!
+end
+```
+
+### 🧪 Test Multi-Select Dropdown
+Run this test to verify multi-select works:
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/examples/test-dropdown-simple.lua"))()
+```
+✅ Select multiple colors
+✅ Click outside the dropdown (on dimmed area)
+✅ Dropdown closes successfully!
+
+### Previous Fixes (v4.0.2)
 - **Error Fixed:** `:3853: attempt to call a nil value` when closing multi-select dropdown
 - **Root Cause:** Function scoping issue - `setOpen()` called before being declared
 - **Solution:** Added forward declaration `local setOpen` before blocker creation
