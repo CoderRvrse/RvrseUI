@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.0.1)
+# RvrseUI – Maintainer Notes (v4.0.2)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -35,6 +35,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Alternative:** Use `stroke()` for visual definition on overlay panels.
 
 **Full Documentation:** [docs/UI-ARCHITECTURE.md](docs/UI-ARCHITECTURE.md#-critical-ui-helper-restrictions)
+
+---
+
+## 🚨 CRITICAL WARNING #2: Function Forward-Declaration Required
+
+### **ALWAYS forward-declare functions used in closures/callbacks!**
+
+**What happened in v4.0.2:**
+- Dropdown.lua's `setOpen()` function was called in blocker click handler
+- But `setOpen` wasn't defined until 346 lines later!
+- Multi-select dropdown crashed when clicking blocker: `:3853: attempt to call a nil value`
+
+**The Fix:**
+```lua
+-- ✅ CORRECT - Forward declare before use
+local setOpen  -- Forward declaration
+
+local function showOverlayBlocker()
+    overlayBlocker.MouseButton1Click:Connect(function()
+        setOpen(false)  -- ✅ OK! Variable exists in scope
+    end)
+end
+
+setOpen = function(state)  -- Assign to forward-declared variable
+    -- ...
+end
+
+// ❌ WRONG - Function doesn't exist yet
+local function showOverlayBlocker()
+    overlayBlocker.MouseButton1Click:Connect(function()
+        setOpen(false)  -- ❌ nil! setOpen doesn't exist yet
+    end)
+end
+
+function setOpen(state)  -- Too late! Closure already has nil reference
+    -- ...
+end
+```
+
+**Rule:** If Function A creates a closure that calls Function B, and Function B is defined AFTER Function A, you MUST forward-declare Function B!
 
 ---
 

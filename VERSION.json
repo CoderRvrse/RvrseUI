@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 0,
-    "patch": 1,
-    "full": "4.0.1",
+    "patch": 2,
+    "full": "4.0.2",
     "build": "20251017",
-    "hash": "C9P2X5L8",
+    "hash": "D3F7K9M2",
     "channel": "Stable"
   },
   "release": {
@@ -40,6 +40,19 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.0.2": {
+      "date": "2025-10-17",
+      "hash": "D3F7K9M2",
+      "changes": [
+        "🐛 CRITICAL FIX: Modern Dropdown multi-select blocker close crash",
+        "🔧 Fixed forward-declaration scoping issue in Dropdown.lua",
+        "⚡ Added 'local setOpen' forward declaration before showOverlayBlocker()",
+        "✅ Multi-select dropdowns now close properly when clicking outside",
+        "📝 Documented that DropdownLegacy does NOT support multi-select",
+        "🧪 Updated test suite to reflect Legacy Dropdown limitations",
+        "🚨 Error fixed: ':3853: attempt to call a nil value' when closing multi-select"
+      ]
+    },
     "4.0.1": {
       "date": "2025-10-17",
       "hash": "C9P2X5L8",

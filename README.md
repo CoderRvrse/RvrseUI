@@ -1,8 +1,8 @@
-# RvrseUI v4.0.1
+# RvrseUI v4.0.2
 
 **Modern, Production-Ready Roblox UI Library** with RGB/HSV ColorPicker, Multi-Select Dropdowns, and 100% Rayfield API Compatibility
 
-![Version](https://img.shields.io/badge/version-4.0.1-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-228KB-orange)
+![Version](https://img.shields.io/badge/version-4.0.2-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-228KB-orange)
 
 ---
 
@@ -63,13 +63,19 @@ Window:Show()  -- This loads saved config THEN shows UI
 
 ---
 
-## ✨ What's New in v4.0.1 (Latest)
+## ✨ What's New in v4.0.2 (Latest)
 
-### 🚨 CRITICAL BUG FIX: Shadow Helper Blocking Overlays
+### 🐛 CRITICAL FIX: Multi-Select Dropdown Blocker Crash
+- **Fixed Modern Dropdown** - Multi-select now closes properly when clicking outside
+- **Error Fixed:** `:3853: attempt to call a nil value` when closing multi-select dropdown
+- **Root Cause:** Function scoping issue - `setOpen()` called before being declared
+- **Solution:** Added forward declaration `local setOpen` before blocker creation
+- **DropdownLegacy Note:** Does NOT support multi-select (single-select only)
+
+### 🚨 v4.0.1: Shadow Helper Blocking Overlays
 - **Fixed ColorPicker** - Removed shadow() causing gray box to cover entire screen
 - **Fixed Dropdown (both versions)** - Removed shadow() on dropdown menus
 - **Root Cause:** `UIHelpers.shadow()` creates ImageLabel 40px larger than parent
-- **Impact:** Overlay panels (ColorPicker, Dropdown) were completely unusable
 - **Solution:** Disabled shadow() for ALL overlay elements, use stroke() instead
 
 ### Phase 2 Features (v4.0)
@@ -126,7 +132,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 ### Method 2: Version-Specific
 ```lua
-local version = "v4.0.1"
+local version = "v4.0.2"
 local url = string.format("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua", version)
 local RvrseUI = loadstring(game:HttpGet(url))()
 ```
