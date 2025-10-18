@@ -42,6 +42,8 @@ function Dropdown.Create(o, dependencies)
 	local itemHeight = 40
 	local placeholder = o.PlaceholderText or "Select items"
 	local DROPDOWN_BASE_Z = 3000
+	local minDropdownWidth = 200  -- Minimum dropdown width
+	local maxDropdownWidth = 400  -- Maximum dropdown width
 	local fallbackOverlayLayer
 	local fallbackOverlayGui
 
@@ -366,6 +368,35 @@ function Dropdown.Create(o, dependencies)
 		dropdownList.Size = UDim2.new(0, inlineWidth, 0, dropdownList.Size.Y.Offset)
 	end
 
+	local function calculateOptimalWidth()
+		-- Create a temporary TextLabel to measure text width
+		local tempLabel = Instance.new("TextLabel")
+		tempLabel.Font = Enum.Font.GothamMedium
+		tempLabel.TextSize = 14
+		tempLabel.Text = ""
+		tempLabel.Parent = nil
+
+		local maxTextWidth = 0
+
+		-- Measure all values
+		for _, value in ipairs(values) do
+			tempLabel.Text = tostring(value)
+			local textBounds = tempLabel.TextBounds
+			maxTextWidth = math.max(maxTextWidth, textBounds.X)
+		end
+
+		tempLabel:Destroy()
+
+		-- Calculate total width needed:
+		-- 4px (left padding) + 32px (checkbox) + 8px (spacing) + text + 12px (right padding)
+		local totalWidth = 4 + 32 + 8 + maxTextWidth + 12
+
+		-- Clamp between min and max
+		totalWidth = math.clamp(totalWidth, minDropdownWidth, maxDropdownWidth)
+
+		return totalWidth
+	end
+
 	local function applyOverlayZIndex(layer)
 		layer = layer or currentOverlayLayer()
 		local overlayBaseZ = layer and layer.ZIndex or 0
@@ -394,7 +425,11 @@ function Dropdown.Create(o, dependencies)
 
 	local function positionDropdown(width, height, skipCreate)
 		height = height or dropdownHeight
-		width = width or math.max(btn.AbsoluteSize.X, inlineWidth)
+		-- Use calculated optimal width if not provided
+		if not width then
+			local optimalWidth = calculateOptimalWidth()
+			width = math.max(btn.AbsoluteSize.X, inlineWidth, optimalWidth)
+		end
 
 		local layer = skipCreate and currentOverlayLayer() or resolveOverlayLayer()
 
@@ -580,7 +615,8 @@ function Dropdown.Create(o, dependencies)
 
 		if state == dropdownOpen then
 			if state then
-				positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, 150), dropdownHeight, true)
+				local optimalWidth = calculateOptimalWidth()
+				positionDropdown(math.max(btn.AbsoluteSize.X, inlineWidth, optimalWidth), dropdownHeight, true)
 			end
 			return
 		end
@@ -607,7 +643,9 @@ function Dropdown.Create(o, dependencies)
 			showOverlayBlocker()
 			connectBlockerHandler()
 
-			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, 150)
+			-- Calculate optimal width based on content
+			local optimalWidth = calculateOptimalWidth()
+			local targetWidth = math.max(btn.AbsoluteSize.X, inlineWidth, optimalWidth)
 			positionDropdown(targetWidth, dropdownHeight)
 
 			-- Diagnostic logging for render order debugging
