@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.3 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T14:18:22.293Z
+-- Compiled from modular architecture on 2025-10-18T14:32:30.458Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -7195,188 +7195,67 @@ do
 		local defaultContentClip = content.ClipsDescendants
 	
 		-- ═══════════════════════════════════════════════════════════════
-		-- ADVANCED CURSOR-LOCKED DRAG SYSTEM - Window Header
-		-- ═══════════════════════════════════════════════════════════════
-		-- Ensures the cursor stays perfectly glued to the exact grab point
-		-- during the entire drag operation. Handles GUI inset, touch, and
-		-- mouse input with sub-pixel precision.
+		-- SIMPLE DRAG SYSTEM - Window Header (Classic Roblox Pattern)
 		-- ═══════════════════════════════════════════════════════════════
 	
-		local dragging, activeDragInput
-		local dragPointerOffset  -- Offset from pointer to window TOP-LEFT (accounting for AnchorPoint)
-		local headerLastPointer
-		local isAnimating = false  -- ✅ FORWARD DECLARE: Blocks drag during minimize/restore animations
-		local hostScreenGui = typeof(windowHost) == "Instance"
-			and windowHost:IsA("ScreenGui")
-			and windowHost
-		if hostScreenGui and hostScreenGui.ZIndexBehavior ~= Enum.ZIndexBehavior.Global then
-			Debug.printf("[DRAG] Enforcing Global ZIndexBehavior on host ScreenGui")
-			hostScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-		end
-		local hostIgnoresInset = hostScreenGui and windowHost.IgnoreGuiInset == true
+		local dragging = false
+		local dragInput = nil
+		local dragStart = nil
+		local startPos = nil
+		local isAnimating = false  -- Blocks drag during minimize/restore animations
 	
-		-- Get current pointer position in screen space (touch or mouse)
-		local function getPointerPosition(inputObject)
-			if inputObject and inputObject.UserInputType == Enum.UserInputType.Touch then
-				return Vector2.new(inputObject.Position.X, inputObject.Position.Y)
-			end
-			return UIS:GetMouseLocation()
-		end
-	
-		-- Get GUI inset offset vector
-		local function getGuiInset()
-			if hostScreenGui and hostIgnoresInset then
-				return Vector2.new(0, 0)
-			end
-	
-			local inset = GuiService:GetGuiInset()
-			return Vector2.new(inset.X, inset.Y)
-		end
-	
-		-- Finish drag and save final position
-		local function finishDrag()
-			if not dragging then
-				return
-			end
-	
-			dragging = false
-			activeDragInput = nil
-			dragPointerOffset = nil
-			headerLastPointer = nil
-	
-			-- Save absolute position for restoration
-			RvrseUI._lastWindowPosition = {
-				XScale = 0,
-				XOffset = root.AbsolutePosition.X,
-				YScale = 0,
-				YOffset = root.AbsolutePosition.Y
-			}
-	
-			Debug.printf("[DRAG] Finished - saved position: X=%d, Y=%d",
-				root.AbsolutePosition.X, root.AbsolutePosition.Y)
+		-- Helper to update window position
+		local function updateWindowPosition(input)
+			local delta = input.Position - dragStart
+			root.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
 		end
 	
 		-- Start dragging when header is clicked
 		header.Active = true
 	
-		header.InputBegan:Connect(function(io)
-			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-				-- ✅ CRITICAL: Block drag during minimize/restore animations
+		header.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or
+			   input.UserInputType == Enum.UserInputType.Touch then
+	
+				-- Block drag during animations
 				if isAnimating then
 					Debug.printf("[DRAG] ⚠️ Drag blocked - animation in progress")
 					return
 				end
 	
 				dragging = true
-				activeDragInput = io
-				local pointer = getPointerPosition(io)
+				dragStart = input.Position
+				startPos = root.Position
 	
-				-- Calculate the top-left position accounting for AnchorPoint
-				local topLeft = Vector2.new(
-					root.AbsolutePosition.X - (root.AnchorPoint.X * root.AbsoluteSize.X),
-					root.AbsolutePosition.Y - (root.AnchorPoint.Y * root.AbsoluteSize.Y)
-				)
+				Debug.printf("[DRAG] Started - mouse: (%.1f, %.1f), window: %s",
+					input.Position.X, input.Position.Y, tostring(root.Position))
 	
-				-- Offset from pointer to top-left corner
-				dragPointerOffset = pointer - topLeft
-				headerLastPointer = pointer
-	
-				Debug.printf("[DRAG] Mouse down at: (%.1f, %.1f)", pointer.X, pointer.Y)
-				Debug.printf("[DRAG] Root AbsPos: (%.1f, %.1f), AbsSize: (%.1f, %.1f), AnchorPoint: (%.2f, %.2f)",
-					root.AbsolutePosition.X, root.AbsolutePosition.Y,
-					root.AbsoluteSize.X, root.AbsoluteSize.Y,
-					root.AnchorPoint.X, root.AnchorPoint.Y)
-				Debug.printf("[DRAG] Calculated topLeft: (%.1f, %.1f)", topLeft.X, topLeft.Y)
-				Debug.printf("[DRAG] Cached offset: X=%.2f, Y=%.2f", dragPointerOffset.X, dragPointerOffset.Y)
-				Debug.printf("[DRAG] Started - input type: %s", tostring(io.UserInputType))
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+						Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
+					end
+				end)
 			end
 		end)
 	
-		-- End drag when released on header
-		header.InputEnded:Connect(function(io)
-			if io == activeDragInput then
-				finishDrag()
+		-- Track input changes
+		header.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or
+			   input.UserInputType == Enum.UserInputType.Touch then
+				dragInput = input
 			end
 		end)
 	
-		-- Main drag update loop - maintains cursor lock
-		UIS.InputChanged:Connect(function(io)
-			if not dragging then
-				return
-			end
-	
-			-- CRITICAL: Only process drag if offset was calculated (prevents jump bugs)
-			if not dragPointerOffset then
-				Debug.printf("[DRAG] WARNING: dragPointerOffset is nil during drag - ignoring movement")
-				return
-			end
-	
-			-- Check if this is our active drag input
-			local isMouseDrag = io.UserInputType == Enum.UserInputType.MouseMovement
-				and activeDragInput
-				and activeDragInput.UserInputType == Enum.UserInputType.MouseButton1
-			local isTouchDrag = io == activeDragInput
-	
-			if not isMouseDrag and not isTouchDrag then
-				return
-			end
-	
-			local pointerPosition = getPointerPosition(io)
-			local previousPointer = headerLastPointer or pointerPosition
-			headerLastPointer = pointerPosition
-	
-			-- Calculate target top-left using cached delta
-			local targetTopLeftX = pointerPosition.X - dragPointerOffset.X
-			local targetTopLeftY = pointerPosition.Y - dragPointerOffset.Y
-	
-			-- Get screen bounds for clamping
-			local currentCamera = workspace.CurrentCamera
-			local screenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
-			local inset = getGuiInset()
-			local windowWidth = root.AbsoluteSize.X
-			local headerHeight = 52
-	
-			-- Clamp to keep window mostly on screen
-			local effectiveWidth = hostIgnoresInset and screenSize.X or (screenSize.X + inset.X)
-			local effectiveHeight = hostIgnoresInset and screenSize.Y or (screenSize.Y + inset.Y)
-			local minTopLeftX = -(windowWidth - 100)
-			local maxTopLeftX = effectiveWidth - 100
-			local minTopLeftY = hostIgnoresInset and 0 or inset.Y
-			local maxTopLeftY = effectiveHeight - headerHeight
-	
-			targetTopLeftX = math.clamp(targetTopLeftX, minTopLeftX, maxTopLeftX)
-			targetTopLeftY = math.clamp(targetTopLeftY, minTopLeftY, maxTopLeftY)
-	
-			local finalX = targetTopLeftX
-			local finalY = targetTopLeftY
-			if not hostIgnoresInset then
-				finalX -= inset.X
-				finalY -= inset.Y
-			end
-	
-			root.Position = UDim2.fromOffset(
-				math.floor(finalX + 0.5),
-				math.floor(finalY + 0.5)
-			)
-	
-			if Debug:IsEnabled() then
-				local gluePoint = Vector2.new(targetTopLeftX + dragPointerOffset.X, targetTopLeftY + dragPointerOffset.Y)
-				local pointerDelta = pointerPosition - previousPointer
-				local distance = pointerDelta.Magnitude
-				Debug.printf("[DRAG][Header] pointer=(%.1f, %.1f) prev=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
-					pointerPosition.X, pointerPosition.Y,
-					previousPointer.X, previousPointer.Y,
-					gluePoint.X, gluePoint.Y,
-					pointerDelta.X, pointerDelta.Y,
-					distance
-				)
-			end
-		end)
-	
-		-- Global input end handler (in case release happens outside header)
-		UIS.InputEnded:Connect(function(io)
-			if io == activeDragInput then
-				finishDrag()
+		-- Update position during drag
+		UIS.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				updateWindowPosition(input)
 			end
 		end)
 	
@@ -8174,22 +8053,25 @@ do
 		minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
 	
 		-- ═══════════════════════════════════════════════════════════════
-		-- ADVANCED CURSOR-LOCKED DRAG SYSTEM - Controller Chip
-		-- ═══════════════════════════════════════════════════════════════
-		-- Ensures the cursor stays perfectly glued to the exact grab point
-		-- on the chip. Uses AnchorPoint (0.5, 0.5) so chip rotates around
-		-- center, and maintains sub-pixel precision during drag.
+		-- SIMPLE DRAG SYSTEM - Controller Chip (Classic Roblox Pattern)
 		-- ═══════════════════════════════════════════════════════════════
 	
 		local chipDragging = false
 		local chipWasDragged = false
-		local chipDragThreshold = false
-		local chipCenterOffset = nil  -- Offset from pointer to chip center at grab time
-		local chipActiveDragInput = nil
-		local chipInitialPointer = nil
-		local chipLastPointer = nil
-		local chipLockedSize = nil  -- ✅ NEW: Stores size before drag to restore after
-		local CHIP_BASE_SIZE = 50   -- ✅ NEW: Constant base size for offset calculation
+		local chipDragInput = nil
+		local chipDragStart = nil
+		local chipStartPos = nil
+	
+		-- Helper to update chip position
+		local function updateChipPosition(input)
+			local delta = input.Position - chipDragStart
+			controllerChip.Position = UDim2.new(
+				chipStartPos.X.Scale,
+				chipStartPos.X.Offset + delta.X,
+				chipStartPos.Y.Scale,
+				chipStartPos.Y.Offset + delta.Y
+			)
+		end
 	
 		-- Restore window on click (only if not dragged)
 		controllerChip.MouseButton1Click:Connect(function()
@@ -8199,27 +8081,12 @@ do
 			chipWasDragged = false
 		end)
 	
-		-- Hover effects (disabled during drag to prevent size changes)
-		controllerChip.MouseEnter:Connect(function()
-			if not chipDragging then  -- ✅ NEW: Don't scale during drag
-				Animator:Tween(controllerChip, {
-					Size = UDim2.new(0, 60, 0, 60)
-				}, Animator.Spring.Fast)
-			end
-		end)
-	
-		controllerChip.MouseLeave:Connect(function()
-			if not chipDragging then  -- ✅ NEW: Don't scale during drag
-				Animator:Tween(controllerChip, {
-					Size = UDim2.new(0, 50, 0, 50)
-				}, Animator.Spring.Fast)
-			end
-		end)
-	
 		-- Start chip drag
-		controllerChip.InputBegan:Connect(function(io)
-			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-				-- ✅ CRITICAL: Block drag during minimize/restore animations
+		controllerChip.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or
+			   input.UserInputType == Enum.UserInputType.Touch then
+	
+				-- Block drag during animations
 				if isAnimating then
 					Debug.printf("[CHIP DRAG] ⚠️ Drag blocked - animation in progress")
 					return
@@ -8227,154 +8094,43 @@ do
 	
 				chipDragging = true
 				chipWasDragged = false
-				chipDragThreshold = false
-				chipActiveDragInput = io
+				chipDragStart = input.Position
+				chipStartPos = controllerChip.Position
 	
-				-- ✅ CRITICAL FIX: Lock size to base BEFORE calculating offset
-				chipLockedSize = controllerChip.Size  -- Save current size (might be 60x60 from hover)
-				controllerChip.Size = UDim2.new(0, CHIP_BASE_SIZE, 0, CHIP_BASE_SIZE)  -- Force to 50x50
+				Debug.printf("[CHIP DRAG] Started - mouse: (%.1f, %.1f), chip: %s",
+					input.Position.X, input.Position.Y, tostring(controllerChip.Position))
 	
-				local pointer = getPointerPosition(io)
-				chipInitialPointer = pointer
-				chipLastPointer = pointer
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						chipDragging = false
 	
-				-- ✅ Calculate center using LOCKED base size (guaranteed 50x50)
-				local halfSize = CHIP_BASE_SIZE / 2
-				local chipCenter = Vector2.new(
-					controllerChip.AbsolutePosition.X + halfSize,
-					controllerChip.AbsolutePosition.Y + halfSize
-				)
+						-- Save final position
+						RvrseUI._controllerChipPosition = {
+							XScale = controllerChip.Position.X.Scale,
+							XOffset = controllerChip.Position.X.Offset,
+							YScale = controllerChip.Position.Y.Scale,
+							YOffset = controllerChip.Position.Y.Offset
+						}
 	
-				-- ✅ Offset from pointer to center (now stable - size won't change during drag)
-				chipCenterOffset = pointer - chipCenter
-	
-				Debug.printf("[CHIP DRAG] 🔒 Size locked: %.0f x %.0f (was %s)",
-					CHIP_BASE_SIZE, CHIP_BASE_SIZE, tostring(chipLockedSize))
-				Debug.printf("[CHIP DRAG] Mouse down at: (%.1f, %.1f)", pointer.X, pointer.Y)
-				Debug.printf("[CHIP DRAG] Chip center (locked): (%.1f, %.1f)", chipCenter.X, chipCenter.Y)
-				Debug.printf("[CHIP DRAG] Cached grab offset: X=%.2f, Y=%.2f", chipCenterOffset.X, chipCenterOffset.Y)
-				Debug.printf("[CHIP DRAG] Started - input type: %s", tostring(io.UserInputType))
-			end
-		end)
-	
-		-- End chip drag and save position
-		controllerChip.InputEnded:Connect(function(io)
-			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
-				if chipDragging and io == chipActiveDragInput then
-					chipDragging = false
-					chipActiveDragInput = nil
-					chipCenterOffset = nil
-					chipInitialPointer = nil
-					chipLastPointer = nil
-	
-					-- ✅ CRITICAL FIX: Restore original size (might have been 60x60 from hover)
-					if chipLockedSize then
-						controllerChip.Size = chipLockedSize
-						Debug.printf("[CHIP DRAG] 🔓 Size restored to: %s", tostring(chipLockedSize))
-						chipLockedSize = nil
+						Debug.printf("[CHIP DRAG] Finished - chip: %s", tostring(controllerChip.Position))
 					end
-	
-					-- Save final position
-					RvrseUI._controllerChipPosition = {
-						XScale = controllerChip.Position.X.Scale,
-						XOffset = controllerChip.Position.X.Offset,
-						YScale = controllerChip.Position.Y.Scale,
-						YOffset = controllerChip.Position.Y.Offset
-					}
-	
-					Debug.printf("[CHIP DRAG] Finished - saved position: X=%d, Y=%d",
-						controllerChip.AbsolutePosition.X, controllerChip.AbsolutePosition.Y)
-				end
+				end)
 			end
 		end)
 	
-		-- Main chip drag update loop - maintains cursor lock
-		UIS.InputChanged:Connect(function(io)
-			if not chipDragging or not controllerChip.Visible then
-				return
+		-- Track input changes
+		controllerChip.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or
+			   input.UserInputType == Enum.UserInputType.Touch then
+				chipDragInput = input
 			end
+		end)
 	
-			-- CRITICAL: Only process drag if offset was calculated (prevents jump bugs)
-			if not chipCenterOffset then
-				Debug.printf("[CHIP DRAG] WARNING: chipCenterOffset is nil during drag - ignoring movement")
-				return
-			end
-	
-			-- Check if this is our active drag input
-			local isMouseDrag = io.UserInputType == Enum.UserInputType.MouseMovement
-				and chipActiveDragInput
-				and chipActiveDragInput.UserInputType == Enum.UserInputType.MouseButton1
-			local isTouchDrag = io == chipActiveDragInput
-	
-			if not isMouseDrag and not isTouchDrag then
-				return
-			end
-	
-			-- Get current pointer position in UI space
-			local pointer = getPointerPosition(io)
-			local previousPointer = chipLastPointer or pointer
-			chipLastPointer = pointer
-			local inset = getGuiInset()
-	
-			local chipSize = controllerChip.AbsoluteSize
-	
-			-- Check if we've moved enough to activate dragging (prevents accidental drags)
-			if not chipDragThreshold then
-				local dragDistance = (pointer - chipInitialPointer).Magnitude
-				if dragDistance > 5 then
-					chipDragThreshold = true
-					chipWasDragged = true
-					Debug.printf("[CHIP DRAG] Threshold exceeded - drag activated")
-				else
-					return  -- Don't move yet
-				end
-			end
-	
-			local chipWidth = chipSize.X
-			local chipHeight = chipSize.Y
-			local halfWidth = chipWidth / 2
-			local halfHeight = chipHeight / 2
-	
-			-- Calculate target center: pointer - cached offset
-			local targetCenterX = pointer.X - chipCenterOffset.X
-			local targetCenterY = pointer.Y - chipCenterOffset.Y
-	
-			-- Get screen bounds and clamp center to keep chip fully on screen
-			local currentCamera = workspace.CurrentCamera
-			local screenSize = currentCamera and currentCamera.ViewportSize or Vector2.new(1920, 1080)
-			local effectiveWidth = hostIgnoresInset and screenSize.X or (screenSize.X + inset.X)
-			local effectiveHeight = hostIgnoresInset and screenSize.Y or (screenSize.Y + inset.Y)
-			local minCenterX = (hostIgnoresInset and 0 or inset.X) + halfWidth
-			local maxCenterX = effectiveWidth - halfWidth
-			local minCenterY = (hostIgnoresInset and 0 or inset.Y) + halfHeight
-			local maxCenterY = effectiveHeight - halfHeight
-	
-			targetCenterX = math.clamp(targetCenterX, minCenterX, maxCenterX)
-			targetCenterY = math.clamp(targetCenterY, minCenterY, maxCenterY)
-	
-			local finalCenterX = targetCenterX
-			local finalCenterY = targetCenterY
-			if not hostIgnoresInset then
-				finalCenterX -= inset.X
-				finalCenterY -= inset.Y
-			end
-	
-			controllerChip.Position = UDim2.fromOffset(
-				math.floor(finalCenterX + 0.5),
-				math.floor(finalCenterY + 0.5)
-			)
-	
-			if Debug:IsEnabled() then
-				local gluePoint = Vector2.new(targetCenterX + chipCenterOffset.X, targetCenterY + chipCenterOffset.Y)
-				local pointerDelta = pointer - previousPointer
-				local distance = pointerDelta.Magnitude
-				Debug.printf("[DRAG][Chip] pointer=(%.1f, %.1f) prev=(%.1f, %.1f) glue=(%.1f, %.1f) delta=(%.2f, %.2f) dist=%.2f",
-					pointer.X, pointer.Y,
-					previousPointer.X, previousPointer.Y,
-					gluePoint.X, gluePoint.Y,
-					pointerDelta.X, pointerDelta.Y,
-					distance
-				)
+		-- Update position during drag
+		UIS.InputChanged:Connect(function(input)
+			if input == chipDragInput and chipDragging then
+				chipWasDragged = true  -- Mark as dragged so click doesn't restore
+				updateChipPosition(input)
 			end
 		end)
 	
