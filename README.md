@@ -316,13 +316,13 @@ local value = mySlider:Get()          -- Get current value
 ```lua
 local myDropdown = Section:CreateDropdown({
     Text = "Select Weapon",
-    Options = {"Sword", "Bow", "Staff", "Axe"},    -- Options list
+    Values = {"Sword", "Bow", "Staff", "Axe"},
 
-    CurrentOption = {"Sword"},                      -- Pre-select (optional)
-    MultipleOptions = false,                        -- Single-select mode (default)
-    Flag = "SelectedWeapon",                        -- 🔑 Saves automatically!
+    CurrentOption = {"Sword"},      -- Pre-select (optional)
+    MultiSelect = false,             -- Single-select mode (default)
+    Flag = "SelectedWeapon",         -- 🔑 Saves automatically!
     OnChanged = function(value)
-        print("Weapon:", value)  -- Returns single value
+        print("Weapon:", value)      -- Returns single value
     end
 })
 
@@ -330,17 +330,17 @@ local myDropdown = Section:CreateDropdown({
 myDropdown:Set("Bow")                              -- Change selection
 myDropdown:Refresh({"New", "Options", "List"})     -- Update options
 local weapon = myDropdown:Get()                    -- Get selected value
-print(myDropdown.CurrentOption[1])                 -- Rayfield compatibility
 ```
 
 #### Multi-Select
 ```lua
 local multiDropdown = Section:CreateDropdown({
     Text = "Select Game Modes",
-    Options = {"TDM", "CTF", "KotH", "FFA"},       -- Options
-    CurrentOption = {"TDM", "FFA"},                 -- Pre-select multiple!
-    MultipleOptions = true,                         -- Multi-select mode
-    Flag = "GameModes",                             -- 🔑 Saves as array!
+    Values = {"TDM", "CTF", "KotH", "FFA"},
+
+    CurrentOption = {"TDM", "FFA"},  -- Pre-select multiple!
+    MultiSelect = true,               -- Enable multi-select
+    Flag = "GameModes",               -- 🔑 Saves as array!
     OnChanged = function(selected)
         -- selected is an ARRAY: {"TDM", "FFA", "KotH"}
         print("Selected:", table.concat(selected, ", "))
@@ -358,6 +358,8 @@ print(#selected, "modes selected")                 -- Count selections
 **Use case:**
 - Single-select: Weapon, difficulty, game mode
 - Multi-select: Select multiple features to enable
+
+> **Note:** RvrseUI is Rayfield-compatible. Rayfield parameters `Options` and `MultipleOptions` also work.
 
 ---
 
@@ -988,14 +990,14 @@ Window:Show()  -- This loads config THEN shows UI
 ### "Dropdown multi-select not working"
 
 **Problem:** Forgot to enable multi-select mode
-**Solution:** Set `MultipleOptions = true`:
+**Solution:** Set `MultiSelect = true`:
 
 ```lua
 -- ✅ CORRECT - Multi-select dropdown
 Section:CreateDropdown({
     Text = "Select Items",
-    Options = {"Item1", "Item2", "Item3"},
-    MultipleOptions = true,  -- MUST BE TRUE for multi-select!
+    Values = {"Item1", "Item2", "Item3"},
+    MultiSelect = true,      -- MUST BE TRUE for multi-select!
     CurrentOption = {"Item1"},
     Flag = "MyDropdown",
     OnChanged = function(selected)
@@ -1006,8 +1008,8 @@ Section:CreateDropdown({
 
 -- ❌ WRONG - This creates single-select
 Section:CreateDropdown({
-    Options = {...},
-    -- Missing MultipleOptions = true!
+    Values = {...},
+    -- Missing MultiSelect = true!
 })
 ```
 
@@ -1157,32 +1159,9 @@ RvrseUI:Notify({
 
 ---
 
-## 🤝 Rayfield Migration Guide
+## 🔄 Rayfield Compatibility
 
-**Switching from Rayfield? Good news: You don't need to change your code!**
-
-RvrseUI is 100% compatible with Rayfield's API:
-
-```lua
--- This Rayfield code works as-is in RvrseUI:
-local Dropdown = Tab:CreateDropdown({
-   Name = "Dropdown Example",           -- RvrseUI uses "Text" but accepts "Name"
-   Options = {"Option 1","Option 2"},   -- ✅ Supported
-   CurrentOption = {"Option 1"},        -- ✅ Supported
-   MultipleOptions = false,             -- ✅ Supported
-   Flag = "Dropdown1",
-   Callback = function(Options)         -- ✅ Supported
-      print(Options[1])
-   end,
-})
-
--- All Rayfield methods work:
-Dropdown:Refresh({"New1", "New2"})      -- ✅ Works
-Dropdown:Set({"Option 2"})              -- ✅ Works
-print(Dropdown.CurrentOption[1])        -- ✅ Works
-```
-
-**Just change the library load line and you're done!**
+**Migrating from Rayfield?** RvrseUI is 100% API-compatible. Your existing Rayfield code will work as-is - just change the loadstring URL.
 
 ---
 

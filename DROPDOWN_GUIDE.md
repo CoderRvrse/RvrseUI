@@ -10,12 +10,12 @@
 ```lua
 Section:CreateDropdown({
     Text = "Select Weapon",
-    Options = {"Sword", "Bow", "Staff"},
-    CurrentOption = {"Sword"},           -- Pre-select (always use table format!)
-    MultipleOptions = false,             -- Single-select (this is the default)
+    Values = {"Sword", "Bow", "Staff"},
+    CurrentOption = {"Sword"},      -- Pre-select (always use table format!)
+    MultiSelect = false,             -- Single-select (this is the default)
     Flag = "WeaponChoice",
     OnChanged = function(value)
-        print("Selected:", value)        -- Returns single string value
+        print("Selected:", value)   -- Returns single string value
     end
 })
 ```
@@ -24,9 +24,9 @@ Section:CreateDropdown({
 ```lua
 Section:CreateDropdown({
     Text = "Select Items",
-    Options = {"Item1", "Item2", "Item3"},
+    Values = {"Item1", "Item2", "Item3"},
     CurrentOption = {"Item1", "Item2"},  -- Pre-select multiple (always table!)
-    MultipleOptions = true,              -- ✅ THIS ENABLES MULTI-SELECT!
+    MultiSelect = true,                   -- ✅ THIS ENABLES MULTI-SELECT!
     Flag = "SelectedItems",
     OnChanged = function(selected)
         -- selected is an ARRAY: {"Item1", "Item3"}
@@ -39,18 +39,18 @@ Section:CreateDropdown({
 
 ## 🔑 Key Rules
 
-### 1. Parameter Name: `MultipleOptions`
-- ✅ **CORRECT:** `MultipleOptions = true` (for multi-select)
-- ✅ **CORRECT:** `MultipleOptions = false` (for single-select, but optional since false is default)
-- ⚠️ **ALSO WORKS (but not recommended):** `MultiSelect = true` (legacy RvrseUI alias)
+### 1. Parameter Name: `MultiSelect`
+- ✅ **CORRECT:** `MultiSelect = true` (for multi-select)
+- ✅ **CORRECT:** `MultiSelect = false` (for single-select, but optional since false is default)
+- ⚠️ **ALSO WORKS:** `MultipleOptions = true` (Rayfield compatibility alias)
 
-**Use `MultipleOptions` for consistency with Rayfield API!**
+**Use `MultiSelect` - this is the RvrseUI native parameter!**
 
-### 2. Options List: `Options`
-- ✅ **CORRECT:** `Options = {"A", "B", "C"}`
-- ⚠️ **ALSO WORKS (but not recommended):** `Values = {"A", "B", "C"}` (legacy alias)
+### 2. Options List: `Values`
+- ✅ **CORRECT:** `Values = {"A", "B", "C"}`
+- ⚠️ **ALSO WORKS:** `Options = {"A", "B", "C"}` (Rayfield compatibility alias)
 
-**Use `Options` for consistency with Rayfield API!**
+**Use `Values` - this is the RvrseUI native parameter!**
 
 ### 3. CurrentOption Format
 - ✅ **ALWAYS use table format:** `CurrentOption = {"Option1"}`
@@ -78,12 +78,12 @@ Section:CreateDropdown({
 
 ## 🚫 Common Mistakes
 
-### ❌ WRONG: Mixing parameter names
+### ❌ WRONG: Using Rayfield parameter names
 ```lua
--- DON'T DO THIS!
+-- DON'T DO THIS! (This works but uses Rayfield aliases)
 Section:CreateDropdown({
-    Values = {...},           -- ❌ Use Options instead
-    MultiSelect = true,       -- ❌ Use MultipleOptions instead
+    Options = {...},           -- ❌ Use Values instead
+    MultipleOptions = true,    -- ❌ Use MultiSelect instead
 })
 ```
 
@@ -95,12 +95,12 @@ Section:CreateDropdown({
 })
 ```
 
-### ❌ WRONG: Forgetting MultipleOptions for multi-select
+### ❌ WRONG: Forgetting MultiSelect for multi-select
 ```lua
 -- DON'T DO THIS!
 Section:CreateDropdown({
-    Options = {"A", "B", "C"},
-    -- ❌ Missing MultipleOptions = true!
+    Values = {"A", "B", "C"},
+    -- ❌ Missing MultiSelect = true!
     -- This will be single-select by default!
 })
 ```
@@ -113,9 +113,9 @@ Section:CreateDropdown({
 ```lua
 local weaponDropdown = Section:CreateDropdown({
     Text = "Choose Weapon",
-    Options = {"Sword", "Bow", "Staff", "Axe"},
+    Values = {"Sword", "Bow", "Staff", "Axe"},
     CurrentOption = {"Sword"},
-    MultipleOptions = false,  -- Single-select (optional, false is default)
+    MultiSelect = false,  -- Single-select (optional, false is default)
     Flag = "PlayerWeapon",
     OnChanged = function(weapon)
         print("Equipped:", weapon)  -- "Sword"
@@ -131,9 +131,9 @@ weaponDropdown:Set("Bow")
 ```lua
 local modesDropdown = Section:CreateDropdown({
     Text = "Select Game Modes",
-    Options = {"TDM", "CTF", "King of the Hill", "FFA"},
+    Values = {"TDM", "CTF", "King of the Hill", "FFA"},
     CurrentOption = {"TDM", "FFA"},
-    MultipleOptions = true,  -- ✅ MULTI-SELECT ENABLED
+    MultiSelect = true,  -- ✅ MULTI-SELECT ENABLED
     Flag = "GameModes",
     OnChanged = function(modes)
         print("Modes:", table.concat(modes, ", "))  -- "TDM, FFA, CTF"
@@ -155,8 +155,8 @@ modesDropdown:Set({"TDM", "CTF"}) -- Set specific selections
 ```lua
 local playerDropdown = Section:CreateDropdown({
     Text = "Select Player",
-    Options = {},  -- Start empty
-    MultipleOptions = false,
+    Values = {},  -- Start empty
+    MultiSelect = false,
     Flag = "TargetPlayer"
 })
 
@@ -174,30 +174,7 @@ end)
 
 ## 🔄 Rayfield Compatibility
 
-**RvrseUI is 100% compatible with Rayfield dropdown syntax!**
-
-This Rayfield code works as-is in RvrseUI:
-
-```lua
--- Rayfield code (no changes needed!)
-local Dropdown = Tab:CreateDropdown({
-   Name = "Dropdown Example",          -- RvrseUI uses "Text" but accepts "Name"
-   Options = {"Option 1","Option 2"},  -- ✅ Supported
-   CurrentOption = {"Option 1"},       -- ✅ Supported
-   MultipleOptions = false,            -- ✅ Supported
-   Flag = "Dropdown1",
-   Callback = function(Options)        -- ✅ Supported (called "OnChanged" in RvrseUI)
-      print(Options[1])
-   end,
-})
-
--- All Rayfield methods work
-Dropdown:Refresh({"New1", "New2"})
-Dropdown:Set({"Option 2"})
-print(Dropdown.CurrentOption[1])
-```
-
-**Just change `loadstring()` URL and you're done!**
+**RvrseUI is 100% compatible with Rayfield.** Rayfield parameter names `Options` and `MultipleOptions` work as aliases, but we recommend using the native RvrseUI parameters (`Values` and `MultiSelect`) for consistency.
 
 ---
 
@@ -206,36 +183,36 @@ print(Dropdown.CurrentOption[1])
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `Text` | string | ✅ Yes | - | Dropdown label |
-| `Options` | table | ✅ Yes | `{}` | List of options |
+| `Values` | table | ✅ Yes | `{}` | List of options |
 | `CurrentOption` | table | ❌ No | `{}` | Pre-selected options (always table!) |
-| `MultipleOptions` | boolean | ❌ No | `false` | Enable multi-select mode |
+| `MultiSelect` | boolean | ❌ No | `false` | Enable multi-select mode |
 | `Flag` | string | ⚠️ Recommended | `nil` | Save/load identifier |
 | `OnChanged` | function | ⚠️ Recommended | `nil` | Callback when selection changes |
 | `MaxHeight` | number | ❌ No | `240` | Max dropdown menu height |
 | `PlaceholderText` | string | ❌ No | `"Select"` | Placeholder when nothing selected |
 | `Overlay` | boolean | ❌ No | `true` | Use overlay layer (recommended) |
 
-**Legacy aliases (not recommended but supported):**
-- `Values` → Use `Options` instead
-- `MultiSelect` → Use `MultipleOptions` instead
-- `Name` → Use `Text` instead (Rayfield compatibility)
-- `Callback` → Use `OnChanged` instead (Rayfield compatibility)
+**Rayfield compatibility aliases (supported but not recommended):**
+- `Options` → Native RvrseUI uses `Values`
+- `MultipleOptions` → Native RvrseUI uses `MultiSelect`
+- `Name` → Native RvrseUI uses `Text`
+- `Callback` → Native RvrseUI uses `OnChanged`
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Issue: "Multi-select not working, only selecting one item"
-**Solution:** You forgot `MultipleOptions = true`
+**Solution:** You forgot `MultiSelect = true`
 
 ### Issue: "CurrentOption not working, nothing pre-selected"
 **Solution:** Use table format: `CurrentOption = {"Value"}` not `CurrentOption = "Value"`
 
 ### Issue: "Callback receives table for single-select"
-**Solution:** Set `MultipleOptions = false` (or remove it, false is default)
+**Solution:** Set `MultiSelect = false` (or remove it, false is default)
 
 ### Issue: "Options not showing up"
-**Solution:** Ensure `Options` is a table of strings: `Options = {"A", "B", "C"}`
+**Solution:** Ensure `Values` is a table of strings: `Values = {"A", "B", "C"}`
 
 ---
 
@@ -243,10 +220,10 @@ print(Dropdown.CurrentOption[1])
 
 Before you create a dropdown, verify:
 
-- [ ] Using `Options` parameter (not `Values`)
-- [ ] Using `MultipleOptions` parameter (not `MultiSelect`)
+- [ ] Using `Values` parameter (RvrseUI native)
+- [ ] Using `MultiSelect` parameter (RvrseUI native)
 - [ ] `CurrentOption` is a **table** (not string)
-- [ ] `MultipleOptions = true` if you want multi-select
+- [ ] `MultiSelect = true` if you want multi-select
 - [ ] Callback handles correct type (string for single, array for multi)
 - [ ] Added `Flag` parameter for save/load functionality
 
