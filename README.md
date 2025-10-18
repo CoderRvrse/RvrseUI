@@ -340,6 +340,7 @@ local multiDropdown = Section:CreateDropdown({
 
     CurrentOption = {"TDM", "FFA"},  -- Pre-select multiple!
     MultiSelect = true,               -- Enable multi-select
+    TruncationMode = "singleLine",    -- "singleLine" (ellipsis) or "twoLine" (wrap)
     Flag = "GameModes",               -- 🔑 Saves as array!
     OnChanged = function(selected)
         -- selected is an ARRAY: {"TDM", "FFA", "KotH"}
@@ -358,6 +359,12 @@ print(#selected, "modes selected")                 -- Count selections
 **Use case:**
 - Single-select: Weapon, difficulty, game mode
 - Multi-select: Select multiple features to enable
+
+**TruncationMode (optional):**
+- `"singleLine"` (default) - Long labels truncate with ellipsis (...)
+- `"twoLine"` - Labels can wrap to 2 lines, then truncate
+
+This prevents long text from overlapping icons and cramming together.
 
 > **Note:** RvrseUI is Rayfield-compatible. Rayfield parameters `Options` and `MultipleOptions` also work.
 

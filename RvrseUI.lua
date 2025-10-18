@@ -1,5 +1,5 @@
 -- RvrseUI v4.0.3 | Cyberpunk Neon UI Framework
--- Compiled from modular architecture on 2025-10-18T18:27:02.424Z
+-- Compiled from modular architecture on 2025-10-18T21:48:37.864Z
 
 -- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
 -- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
@@ -3982,16 +3982,20 @@ do
 				if selected then
 					optionBtn.BackgroundColor3 = pal3.Accent
 					optionBtn.BackgroundTransparency = 0.8
-					optionBtn.TextColor3 = pal3.Accent
 				else
 					optionBtn.BackgroundColor3 = pal3.Card
 					optionBtn.BackgroundTransparency = 0
-					optionBtn.TextColor3 = pal3.Text
+				end
+	
+				-- Update text label color
+				local textLabel = optionBtn:FindFirstChild("TextLabel", true)  -- Recursive search
+				if textLabel then
+					textLabel.TextColor3 = selected and pal3.Accent or pal3.Text
 				end
 	
 				-- Update checkbox if multi-select
 				if multiSelect then
-					local checkbox = optionBtn:FindFirstChild("Checkbox")
+					local checkbox = optionBtn:FindFirstChild("Checkbox", true)  -- Recursive search
 					if checkbox then
 						checkbox.Text = selected and "☑" or "☐"
 						checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
@@ -4113,43 +4117,102 @@ do
 			end
 			updateButtonText()
 	
+			-- Truncation mode: "singleLine" (ellipsis) or "twoLine" (wrap up to 2 lines)
+			local truncationMode = o.TruncationMode or "singleLine"
+	
 			for i, value in ipairs(values) do
 				local optionBtn = Instance.new("TextButton")
 				optionBtn.Name = "Option_" .. i
-				optionBtn.Size = UDim2.new(1, -8, 0, 36)  -- Match itemHeight (40 - 4 for padding)
+				optionBtn.Size = UDim2.new(1, -8, 0, truncationMode == "twoLine" and 48 or 36)  -- Taller for two-line mode
 				local selected = isValueSelected(value)
 				optionBtn.BackgroundColor3 = selected and pal3.Accent or pal3.Card
 				optionBtn.BackgroundTransparency = selected and 0.8 or 0
 				optionBtn.BorderSizePixel = 0
-				optionBtn.Font = Enum.Font.GothamMedium  -- Changed to Medium for better readability
-				optionBtn.TextSize = 14  -- Increased from 13 to 14 for clarity
-				optionBtn.TextColor3 = selected and pal3.Accent or pal3.Text
-				optionBtn.Text = tostring(value)
-				optionBtn.TextXAlignment = multiSelect and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center
+				optionBtn.Text = ""  -- IMPORTANT: Clear text, we'll use a TextLabel child
 				optionBtn.AutoButtonColor = false
 				optionBtn.LayoutOrder = i
 				optionBtn.ZIndex = dropdownScroll.ZIndex + 1
 				optionBtn.Parent = dropdownScroll
 				corner(optionBtn, 6)
 	
-				-- Add checkbox for multi-select
+				-- Add horizontal layout for icon + text columns
 				if multiSelect then
+					-- Icon column (fixed width)
+					local iconFrame = Instance.new("Frame")
+					iconFrame.Name = "IconColumn"
+					iconFrame.BackgroundTransparency = 1
+					iconFrame.Size = UDim2.new(0, 32, 1, 0)  -- Fixed 32px width for icon
+					iconFrame.Position = UDim2.new(0, 4, 0, 0)
+					iconFrame.ZIndex = optionBtn.ZIndex + 1
+					iconFrame.Parent = optionBtn
+	
 					local checkbox = Instance.new("TextLabel")
 					checkbox.Name = "Checkbox"
 					checkbox.BackgroundTransparency = 1
-					checkbox.Size = UDim2.new(0, 24, 1, 0)
-					checkbox.Position = UDim2.new(0, 8, 0, 0)
+					checkbox.Size = UDim2.new(1, 0, 1, 0)
+					checkbox.Position = UDim2.new(0, 0, 0, 0)
 					checkbox.Font = Enum.Font.GothamBold
 					checkbox.TextSize = 16
 					checkbox.Text = selected and "☑" or "☐"
 					checkbox.TextColor3 = selected and pal3.Accent or pal3.TextSub
-					checkbox.ZIndex = optionBtn.ZIndex + 1
-					checkbox.Parent = optionBtn
+					checkbox.TextXAlignment = Enum.TextXAlignment.Center
+					checkbox.TextYAlignment = Enum.TextYAlignment.Center
+					checkbox.ZIndex = iconFrame.ZIndex + 1
+					checkbox.Parent = iconFrame
 	
-					-- Add padding for text after checkbox
-					local textPadding = Instance.new("UIPadding")
-					textPadding.PaddingLeft = UDim.new(0, 36)
-					textPadding.Parent = optionBtn
+					-- Text column (flexible width with constraints)
+					local textFrame = Instance.new("Frame")
+					textFrame.Name = "TextColumn"
+					textFrame.BackgroundTransparency = 1
+					textFrame.Size = UDim2.new(1, -44, 1, 0)  -- Full width minus icon (32) + padding (12)
+					textFrame.Position = UDim2.new(0, 40, 0, 0)  -- Start after icon + padding
+					textFrame.ZIndex = optionBtn.ZIndex + 1
+					textFrame.Parent = optionBtn
+	
+					local textLabel = Instance.new("TextLabel")
+					textLabel.Name = "TextLabel"
+					textLabel.BackgroundTransparency = 1
+					textLabel.Size = UDim2.new(1, 0, 1, 0)
+					textLabel.Position = UDim2.new(0, 0, 0, 0)
+					textLabel.Font = Enum.Font.GothamMedium
+					textLabel.TextSize = 14
+					textLabel.Text = tostring(value)
+					textLabel.TextColor3 = selected and pal3.Accent or pal3.Text
+					textLabel.TextXAlignment = Enum.TextXAlignment.Left
+					textLabel.TextYAlignment = Enum.TextYAlignment.Center
+					textLabel.ZIndex = textFrame.ZIndex + 1
+					textLabel.Parent = textFrame
+	
+					-- Apply truncation mode
+					if truncationMode == "singleLine" then
+						textLabel.TextTruncate = Enum.TextTruncate.AtEnd
+						textLabel.TextWrapped = false
+					else  -- twoLine
+						textLabel.TextWrapped = true
+						textLabel.TextTruncate = Enum.TextTruncate.AtEnd
+						-- Max 2 lines: each line ~18px (14px text + 4px spacing), limit to 2 lines
+						local padding = Instance.new("UIPadding")
+						padding.PaddingTop = UDim.new(0, 4)
+						padding.PaddingBottom = UDim.new(0, 4)
+						padding.Parent = textLabel
+					end
+				else
+					-- Single-select: centered text (no icon column)
+					local textLabel = Instance.new("TextLabel")
+					textLabel.Name = "TextLabel"
+					textLabel.BackgroundTransparency = 1
+					textLabel.Size = UDim2.new(1, -16, 1, 0)
+					textLabel.Position = UDim2.new(0, 8, 0, 0)
+					textLabel.Font = Enum.Font.GothamMedium
+					textLabel.TextSize = 14
+					textLabel.Text = tostring(value)
+					textLabel.TextColor3 = selected and pal3.Accent or pal3.Text
+					textLabel.TextXAlignment = Enum.TextXAlignment.Center
+					textLabel.TextYAlignment = Enum.TextYAlignment.Center
+					textLabel.TextTruncate = Enum.TextTruncate.AtEnd
+					textLabel.TextWrapped = false
+					textLabel.ZIndex = optionBtn.ZIndex + 1
+					textLabel.Parent = optionBtn
 				end
 	
 				optionBtn.MouseButton1Click:Connect(function()
