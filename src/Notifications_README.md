@@ -91,6 +91,8 @@ Creates and displays a notification toast.
 | `Title` | string | `"Notification"` | Notification title text |
 | `Message` | string | `nil` | Optional message body (supports multi-line) |
 | `Type` | string | `"info"` | Notification type: `"success"`, `"error"`, `"warn"`, `"info"` |
+| `Icon` | string\|number | `nil` | Icon identifier (`lucide://`, `icon://`, emoji, `rbxassetid://`, or Roblox asset ID) |
+| `IconColor` | Color3 | Accent color | Optional override for icon tint |
 | `Duration` | number | `3` | Auto-dismiss duration in seconds |
 | `Priority` | string | `"normal"` | Priority level: `"critical"`, `"high"`, `"normal"`, `"low"` |
 

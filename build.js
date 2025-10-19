@@ -224,7 +224,8 @@ Notifications:Initialize({
 	Theme = Theme,
 	Animator = Animator,
 	UIHelpers = UIHelpers,
-	RvrseUI = RvrseUI
+	RvrseUI = RvrseUI,
+	Icons = Icons
 })
 
 Hotkeys:Initialize({
@@ -274,6 +275,23 @@ RvrseUI.ConfigurationSaving = false
 RvrseUI.ConfigurationFileName = nil
 RvrseUI.ConfigurationFolderName = nil
 RvrseUI.AutoSaveEnabled = true
+
+local function isIconLike(value)
+	if typeof(value) == "string" then
+		if value:match("^lucide://") or value:match("^icon://") or value:match("^rbxassetid://") or value:match("^rbxasset://") then
+			return true
+		end
+
+		local success, length = pcall(utf8.len, value)
+		if success and length and length <= 2 then
+			return true
+		end
+	elseif typeof(value) == "number" then
+		return true
+	end
+
+	return false
+end
 
 -- Create Window (main entry point)
 function RvrseUI:CreateWindow(cfg)
@@ -333,7 +351,8 @@ function RvrseUI:CreateWindow(cfg)
 			Theme = Theme,
 			Animator = Animator,
 			UIHelpers = UIHelpers,
-			RvrseUI = RvrseUI
+			RvrseUI = RvrseUI,
+			Icons = Icons
 		})
 	end
 
@@ -341,9 +360,70 @@ function RvrseUI:CreateWindow(cfg)
 end
 
 -- Notifications
-function RvrseUI:Notify(options)
+function RvrseUI:Notify(options, message, duration, notifType)
 	if not self.NotificationsEnabled then return end
-	return Notifications:Notify(options)
+
+	local payload
+
+	if typeof(options) == "table" then
+		if table.clone then
+			payload = table.clone(options)
+		else
+			payload = {}
+			for k, v in pairs(options) do
+				payload[k] = v
+			end
+		end
+	else
+		payload = {}
+
+		if isIconLike(options) then
+			payload.Icon = options
+		elseif typeof(options) == "string" then
+			payload.Title = options
+		elseif typeof(options) == "number" then
+			payload.Duration = options
+		end
+
+		if typeof(message) == "table" then
+			for k, v in pairs(message) do
+				payload[k] = v
+			end
+		elseif typeof(message) == "string" then
+			if payload.Icon and not payload.Title then
+				payload.Title = message
+			elseif payload.Title then
+				payload.Message = message
+			else
+				payload.Title = message
+			end
+		elseif typeof(message) == "number" then
+			payload.Duration = message
+		end
+
+		if typeof(duration) == "number" then
+			payload.Duration = duration
+		elseif typeof(duration) == "string" then
+			payload.Type = duration
+		end
+
+		if typeof(notifType) == "string" then
+			payload.Type = notifType
+		elseif typeof(notifType) == "number" then
+			payload.Duration = notifType
+		end
+
+		if not payload.Title then
+			payload.Title = payload.Message or "Notification"
+			if payload.Message == payload.Title then
+				payload.Message = nil
+			end
+		end
+	end
+
+	payload.Type = payload.Type or "info"
+
+	return Notifications:Notify(payload)
 end
 
 -- Destroy all UI

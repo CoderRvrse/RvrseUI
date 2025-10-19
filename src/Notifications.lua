@@ -10,7 +10,7 @@ local Notifications = {}
 local corner, stroke
 
 -- Dependencies
-local Theme, Animator, host
+local Theme, Animator, host, Icons
 
 -- Module state
 local notifyRoot
@@ -25,6 +25,7 @@ function Notifications:Init(dependencies)
 	RvrseUI = dependencies.RvrseUI
 	corner = dependencies.corner
 	stroke = dependencies.stroke
+	Icons = dependencies.Icons
 
 	-- Obfuscated name generation (same as main module)
 	local obfuscatedName = "NotifyRoot_" .. tostring(math.random(10000, 99999))
@@ -56,6 +57,9 @@ function Notifications:Notify(opt)
 	if RvrseUI and not RvrseUI.NotificationsEnabled then return end
 
 	opt = opt or {}
+	if typeof(opt) ~= "table" then
+		opt = { Title = tostring(opt) }
+	end
 	local pal = Theme:Get()
 
 	-- Notification card
@@ -88,17 +92,64 @@ function Notifications:Notify(opt)
 	stripe.Parent = card
 	corner(stripe, 2)
 
-	-- Icon
-	local iconMap = { success = "✓", error = "✕", warn = "⚠", info = "ℹ" }
-	local iconText = Instance.new("TextLabel")
-	iconText.BackgroundTransparency = 1
-	iconText.Position = UDim2.new(0, 16, 0, 0)
-	iconText.Size = UDim2.new(0, 32, 0, 32)
-	iconText.Font = Enum.Font.GothamBold
-	iconText.TextSize = 18
-	iconText.Text = iconMap[opt.Type] or "ℹ"
-	iconText.TextColor3 = accentColor
-	iconText.Parent = card
+	-- Icon container
+	local iconHolder = Instance.new("Frame")
+	iconHolder.BackgroundTransparency = 1
+	iconHolder.Size = UDim2.new(0, 32, 0, 32)
+	iconHolder.AnchorPoint = Vector2.new(0, 0.5)
+	iconHolder.Position = UDim2.new(0, 16, 0.5, 0)
+	iconHolder.Parent = card
+
+	local iconColor = opt.IconColor or accentColor
+	local iconResolved = false
+
+	if opt.Icon and Icons then
+		local iconValue, iconType = Icons:Resolve(opt.Icon)
+
+		if iconType == "image" and type(iconValue) == "string" then
+			local iconImage = Instance.new("ImageLabel")
+			iconImage.BackgroundTransparency = 1
+			iconImage.Size = UDim2.new(1, 0, 1, 0)
+			iconImage.Image = iconValue
+			iconImage.ImageColor3 = iconColor
+			iconImage.Parent = iconHolder
+			iconResolved = true
+		elseif iconType == "sprite" and type(iconValue) == "table" then
+			local iconImage = Instance.new("ImageLabel")
+			iconImage.BackgroundTransparency = 1
+			iconImage.Size = UDim2.new(1, 0, 1, 0)
+			iconImage.Image = "rbxassetid://" .. iconValue.id
+			iconImage.ImageRectSize = iconValue.imageRectSize
+			iconImage.ImageRectOffset = iconValue.imageRectOffset
+			iconImage.ImageColor3 = iconColor
+			iconImage.Parent = iconHolder
+			iconResolved = true
+		elseif iconValue and iconType == "text" then
+			local iconText = Instance.new("TextLabel")
+			iconText.BackgroundTransparency = 1
+			iconText.Size = UDim2.new(1, 0, 1, 0)
+			iconText.Font = Enum.Font.GothamBold
+			iconText.TextSize = 18
+			iconText.Text = iconValue
+			iconText.TextColor3 = iconColor
+			iconText.Parent = iconHolder
+			iconResolved = true
+		end
+	end
+
+	if not iconResolved then
+		local iconMap = { success = "✓", error = "✕", warn = "⚠", info = "ℹ" }
+		local fallback = opt.Icon or iconMap[opt.Type] or "ℹ"
+
+		local iconText = Instance.new("TextLabel")
+		iconText.BackgroundTransparency = 1
+		iconText.Size = UDim2.new(1, 0, 1, 0)
+		iconText.Font = Enum.Font.GothamBold
+		iconText.TextSize = 18
+		iconText.Text = fallback
+		iconText.TextColor3 = iconColor
+		iconText.Parent = iconHolder
+	end
 
 	-- Title
 	local title = Instance.new("TextLabel")
@@ -192,7 +243,8 @@ function Notifications:Initialize(deps)
 		host = deps.host,
 		RvrseUI = deps.RvrseUI,
 		corner = cornerFn,
-		stroke = strokeFn
+		stroke = strokeFn,
+		Icons = deps.Icons
 	})
 end
 
