@@ -35,10 +35,7 @@ local OverviewTab = Window:CreateTab({
 	Icon = "lucide://info"
 })
 
-local IntroSection = OverviewTab:CreateSection({
-	Title = "Quick Start",
-	Side = "Left"
-})
+local IntroSection = OverviewTab:CreateSection("Quick Start")
 
 IntroSection:CreateLabel({
 	Text = "This harness loads lucide:// icons across Tabs, Buttons, Labels, and Notifications.",
@@ -64,10 +61,7 @@ IntroSection:CreateButton({
 	end
 })
 
-local DocsSection = OverviewTab:CreateSection({
-	Title = "Icon Formats",
-	Side = "Right"
-})
+local DocsSection = OverviewTab:CreateSection("Icon Formats")
 
 local iconFormats = {
 	{ label = "Lucide (sprite)", icon = "lucide://home" },
@@ -90,10 +84,7 @@ local QATab = Window:CreateTab({
 	Icon = "lucide://layout-dashboard"
 })
 
-local ButtonSection = QATab:CreateSection({
-	Title = "Button Alignment (icon left, text offset)",
-	Side = "Left"
-})
+local ButtonSection = QATab:CreateSection("Button Alignment (icon left, text offset)")
 
 local buttonSamples = {
 	{
@@ -136,10 +127,7 @@ for _, sample in ipairs(buttonSamples) do
 	})
 end
 
-local LabelSection = QATab:CreateSection({
-	Title = "Label Alignment (icons + text wrap)",
-	Side = "Right"
-})
+local LabelSection = QATab:CreateSection("Label Alignment (icons + text wrap)")
 
 local labelSamples = {
 	{
@@ -181,10 +169,7 @@ local GalleryTab = Window:CreateTab({
 	Icon = "lucide://grid-3x3"
 })
 
-local GallerySection = GalleryTab:CreateSection({
-	Title = "Popular Icons",
-	Side = "Left"
-})
+local GallerySection = GalleryTab:CreateSection("Popular Icons")
 
 local galleryIcons = {
 	{ "lucide://home", "Home" },
@@ -222,10 +207,7 @@ local InteractionsTab = Window:CreateTab({
 	Icon = "lucide://sliders-horizontal"
 })
 
-local InteractionSection = InteractionsTab:CreateSection({
-	Title = "Element Coverage",
-	Side = "Left"
-})
+local InteractionSection = InteractionsTab:CreateSection("Element Coverage")
 
 InteractionSection:CreateToggle({
 	Text = "Enable Notifications",

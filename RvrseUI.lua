@@ -8,6 +8,7 @@
 -- 🏗️ ARCHITECTURE: This file is compiled from 30 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
+-- QA Update: Lucide button/label alignment harness refreshed (2025-10-19)
 
 
 local TweenService = game:GetService("TweenService")
