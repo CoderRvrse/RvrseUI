@@ -47,18 +47,31 @@ function Button.Create(o, dependencies)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, 0, 1, 0)
 	btn.BackgroundTransparency = 1
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 15
-	btn.TextXAlignment = Enum.TextXAlignment.Left
-	btn.TextColor3 = pal3.TextBright
-	btn.Text = o.Text or "Button"
 	btn.AutoButtonColor = false
+	btn.Text = ""
 	btn.Parent = f
 
-	local padding = Instance.new("UIPadding")
-	padding.PaddingLeft = UDim.new(0, 0)
-	padding.PaddingRight = UDim.new(0, 12)
-	padding.Parent = btn
+	local contentFrame = Instance.new("Frame")
+	contentFrame.Name = "Content"
+	contentFrame.BackgroundTransparency = 1
+	contentFrame.Size = UDim2.new(1, 0, 1, 0)
+	contentFrame.Parent = btn
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Name = "ButtonLabel"
+	textLabel.BackgroundTransparency = 1
+	textLabel.Size = UDim2.new(1, -8, 1, 0)
+	textLabel.Position = UDim2.new(0, 4, 0, 0)
+	textLabel.Font = Enum.Font.GothamBold
+	textLabel.TextSize = 15
+	textLabel.TextXAlignment = Enum.TextXAlignment.Left
+	textLabel.TextColor3 = o.TextColor or pal3.TextBright
+	textLabel.Text = o.Text or "Button"
+	textLabel.TextWrapped = false
+	textLabel.Parent = contentFrame
+
+	local cardPadding = f:FindFirstChildOfClass("UIPadding")
+	local basePadLeft = cardPadding and cardPadding.PaddingLeft.Offset or 0
 
 	local ICON_MARGIN = 12
 	local ICON_SIZE = 24
@@ -67,20 +80,28 @@ function Button.Create(o, dependencies)
 	iconHolder.BackgroundTransparency = 1
 	iconHolder.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 	iconHolder.AnchorPoint = Vector2.new(0, 0.5)
-	iconHolder.Position = UDim2.new(0, ICON_MARGIN, 0.5, 0)
+	iconHolder.Position = UDim2.new(0, math.max(0, ICON_MARGIN - basePadLeft), 0.5, 0)
 	iconHolder.ClipsDescendants = true
 	iconHolder.Visible = false
-	iconHolder.Parent = btn
+	iconHolder.ZIndex = textLabel.ZIndex + 1
+	iconHolder.Parent = contentFrame
 
 	local iconInstance = nil
 	local defaultIconColor = o.IconColor or pal3.TextBright
+	local defaultTextColor = textLabel.TextColor3
+	local currentIcon = o.Icon
+	local currentText = textLabel.Text
+	local isHovering = false
 
-	local function setIconPadding(hasIcon)
+	local function updateTextPadding(hasIcon)
 		if hasIcon then
 			local leftInset = ICON_MARGIN + ICON_SIZE + 6
-			padding.PaddingLeft = UDim.new(0, leftInset)
+			local relativeOffset = math.max(0, leftInset - basePadLeft)
+			textLabel.Position = UDim2.new(0, relativeOffset, 0, 0)
+			textLabel.Size = UDim2.new(1, -(relativeOffset + 8), 1, 0)
 		else
-			padding.PaddingLeft = UDim.new(0, 0)
+			textLabel.Position = UDim2.new(0, 4, 0, 0)
+			textLabel.Size = UDim2.new(1, -8, 1, 0)
 		end
 	end
 
@@ -93,7 +114,7 @@ function Button.Create(o, dependencies)
 			child:Destroy()
 		end
 		iconHolder.Visible = false
-		setIconPadding(false)
+		updateTextPadding(false)
 	end
 
 	local function tweenIconColor(color, spring)
@@ -133,6 +154,7 @@ function Button.Create(o, dependencies)
 			iconImage.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 			iconImage.Image = iconValue
 			iconImage.ImageColor3 = defaultIconColor
+			iconImage.ZIndex = iconHolder.ZIndex
 			iconImage.Parent = iconHolder
 			iconInstance = iconImage
 		elseif iconType == "sprite" and type(iconValue) == "table" then
@@ -145,6 +167,7 @@ function Button.Create(o, dependencies)
 			iconImage.ImageRectSize = iconValue.imageRectSize
 			iconImage.ImageRectOffset = iconValue.imageRectOffset
 			iconImage.ImageColor3 = defaultIconColor
+			iconImage.ZIndex = iconHolder.ZIndex
 			iconImage.Parent = iconHolder
 			iconInstance = iconImage
 		elseif iconValue and iconType == "text" then
@@ -160,22 +183,20 @@ function Button.Create(o, dependencies)
 			iconText.TextWrapped = false
 			iconText.TextXAlignment = Enum.TextXAlignment.Center
 			iconText.TextYAlignment = Enum.TextYAlignment.Center
+			iconText.ZIndex = iconHolder.ZIndex
 			iconText.Parent = iconHolder
 			iconInstance = iconText
 		end
 
 		if iconInstance then
 			iconHolder.Visible = true
-			setIconPadding(true)
+			updateTextPadding(true)
 		else
-			setIconPadding(false)
+			updateTextPadding(false)
 		end
 	end
 
-	local currentText = btn.Text
-	local currentIcon = o.Icon
-	local isHovering = false
-
+	updateTextPadding(false)
 	setIcon(currentIcon)
 
 	-- Click handler with enhanced effects
@@ -221,7 +242,7 @@ function Button.Create(o, dependencies)
 		}, Animator.Spring.Snappy)
 
 		-- Brighten text/icon
-		Animator:Tween(btn, {TextColor3 = pal3.Shimmer}, Animator.Spring.Lightning)
+		Animator:Tween(textLabel, {TextColor3 = pal3.Shimmer}, Animator.Spring.Lightning)
 		tweenIconColor(pal3.Shimmer, Animator.Spring.Lightning)
 
 		-- Add glow effect
@@ -244,7 +265,7 @@ function Button.Create(o, dependencies)
 		}, Animator.Spring.Snappy)
 
 		-- Restore text/icon color
-		Animator:Tween(btn, {TextColor3 = pal3.TextBright}, Animator.Spring.Snappy)
+		Animator:Tween(textLabel, {TextColor3 = defaultTextColor}, Animator.Spring.Snappy)
 		tweenIconColor(defaultIconColor, Animator.Spring.Snappy)
 	end)
 
@@ -254,7 +275,7 @@ function Button.Create(o, dependencies)
 
 		if locked then
 			-- Desaturate and dim
-			btn.TextTransparency = 0.5
+			textLabel.TextTransparency = 0.5
 			gradient.Transparency = NumberSequence.new{
 				NumberSequenceKeypoint.new(0, 0.9),
 				NumberSequenceKeypoint.new(1, 0.9),
@@ -263,7 +284,7 @@ function Button.Create(o, dependencies)
 			setIconTransparency(0.5)
 		else
 			-- Restore to normal or hover state
-			btn.TextTransparency = 0
+			textLabel.TextTransparency = 0
 			setIconTransparency(0)
 			if isHovering then
 				gradient.Transparency = NumberSequence.new{
@@ -273,8 +294,8 @@ function Button.Create(o, dependencies)
 				stroke.Transparency = 0.2
 			else
 				gradient.Transparency = NumberSequence.new{
-					ColorSequenceKeypoint.new(0, 0.7),
-					ColorSequenceKeypoint.new(1, 0.7),
+					NumberSequenceKeypoint.new(0, 0.7),
+					NumberSequenceKeypoint.new(1, 0.7),
 				}
 				stroke.Transparency = 0.5
 			end
@@ -288,14 +309,14 @@ function Button.Create(o, dependencies)
 			-- text: Main button text (required)
 			-- interactText: Optional secondary text (not used in current design)
 			if text then
-				btn.Text = text
+				textLabel.Text = text
 				currentText = text
 			end
 			-- interactText parameter reserved for future use (Rayfield compatibility)
 		end,
 		SetText = function(_, txt)
 			-- Legacy method - kept for backwards compatibility
-			btn.Text = txt
+			textLabel.Text = txt
 			currentText = txt
 		end,
 		SetVisible = function(_, visible)

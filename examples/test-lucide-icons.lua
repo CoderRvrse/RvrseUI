@@ -1,389 +1,273 @@
--- TEST: Lucide Icon Integration
--- Demonstrates the new lucide:// protocol for using Lucide icons in RvrseUI
--- https://lucide.dev/icons - Browse 500+ available icons
+-- Recompiled & Corrected: Lucide Icon Integration Test
+-- Focus: Buttons & Labels alignment (lucide:// sprites, Unicode fallbacks, emoji)
 
-local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+local SOURCE_URL = "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"
 
--- Enable debug mode to see Lucide icon resolution
+local success, RvrseUILib = pcall(function()
+	return loadstring(game:HttpGet(SOURCE_URL))()
+end)
+
+if not success then
+	warn("[Lucide Integration Test] Failed to load RvrseUI.lua:", RvrseUILib)
+	return
+end
+
+local RvrseUI = RvrseUILib
+
+-- Enable verbose logging so sprite sheet vs fallback resolution is obvious in the console
 RvrseUI:EnableDebug(true)
 
 local Window = RvrseUI:CreateWindow({
-	Title = "Lucide Icons Demo",
-	Icon = "lucide://sparkles",  -- ✨ Using Lucide icon for window!
-	Size = UDim2.new(0, 600, 0, 450),
+	Title = "Lucide Icon QA Harness",
+	Icon = "lucide://sparkles",
+	Size = UDim2.new(0, 640, 0, 520),
 	Theme = "Dark",
 	ConfigurationSaving = {
 		Enabled = false
 	}
 })
 
--- Tab 1: Icon Formats Comparison
-local Tab1 = Window:CreateTab({
-	Title = "Icon Formats",
-	Icon = "lucide://palette"  -- Using Lucide icon for tab
+local spriteStatus = _G.RvrseUI_LucideIconsData and "✅ Sprite sheet embedded" or "⚠️ Sprite sheet missing – Unicode fallbacks only"
+
+-- Overview Tab --------------------------------------------------------------
+local OverviewTab = Window:CreateTab({
+	Title = "Overview",
+	Icon = "lucide://info"
 })
 
-local Section1 = Tab1:CreateSection({
-	Title = "Icon Format Comparison",
+local IntroSection = OverviewTab:CreateSection({
+	Title = "Quick Start",
 	Side = "Left"
 })
 
-Section1:CreateLabel({
-	Text = "RvrseUI supports 4 icon formats:",
-	Color = Color3.fromRGB(255, 255, 255)
+IntroSection:CreateLabel({
+	Text = "This harness loads lucide:// icons across Tabs, Buttons, Labels, and Notifications.",
+	Icon = "lucide://book-open"
 })
 
--- 1. Lucide Icons (NEW!)
-Section1:CreateButton({
-	Text = "Lucide Icon (lucide://home)",
-	Icon = "lucide://home",
+IntroSection:CreateLabel({
+	Text = "Status: " .. spriteStatus,
+	Icon = _G.RvrseUI_LucideIconsData and "lucide://check-circle-2" or "lucide://alert-triangle",
+	Color = _G.RvrseUI_LucideIconsData and Color3.fromRGB(60, 220, 140) or Color3.fromRGB(255, 180, 90)
+})
+
+IntroSection:CreateButton({
+	Text = "Trigger Lucide Notification",
+	Icon = "lucide://bell",
 	Callback = function()
-		RvrseUI:Notify("Lucide Icon", "Using lucide:// protocol → Unicode fallback", 2)
+		RvrseUI:Notify({
+			Icon = "lucide://sparkles",
+			Title = "Lucide Notification",
+			Message = "Notifications now resolve lucide:// icons (sprites or Unicode fallback).",
+			Duration = 2.5
+		})
 	end
 })
 
-Section1:CreateButton({
-	Text = "Lucide Icon (lucide://settings)",
-	Icon = "lucide://settings",
-	Callback = function()
-		RvrseUI:Notify("Lucide Icon", "lucide://settings → ⚙", 2)
-	end
+local DocsSection = OverviewTab:CreateSection({
+	Title = "Icon Formats",
+	Side = "Right"
 })
 
-Section1:CreateButton({
-	Text = "Lucide Icon (lucide://arrow-right)",
-	Icon = "lucide://arrow-right",
-	Callback = function()
-		RvrseUI:Notify("Lucide Icon", "lucide://arrow-right → →", 2)
-	end
+local iconFormats = {
+	{ label = "Lucide (sprite)", icon = "lucide://home" },
+	{ label = "Lucide (fallback)", icon = "lucide://sparkles" },
+	{ label = "Unicode (icon://)", icon = "icon://trophy" },
+	{ label = "Direct Emoji", icon = "🔥" },
+	{ label = "Roblox asset id", icon = "rbxassetid://123456789" }
+}
+
+for _, format in ipairs(iconFormats) do
+	DocsSection:CreateLabel({
+		Text = format.label .. " → " .. format.icon,
+		Icon = format.icon
+	})
+end
+
+-- Buttons & Labels QA Tab ---------------------------------------------------
+local QATab = Window:CreateTab({
+	Title = "Buttons & Labels",
+	Icon = "lucide://layout-dashboard"
 })
 
--- 2. Unicode Icons (Built-in)
-Section1:CreateButton({
-	Text = "Unicode Icon (icon://trophy)",
-	Icon = "icon://trophy",
-	Callback = function()
-		RvrseUI:Notify("Unicode Icon", "Using icon:// protocol → 🏆", 2)
-	end
+local ButtonSection = QATab:CreateSection({
+	Title = "Button Alignment (icon left, text offset)",
+	Side = "Left"
 })
 
--- 3. Direct Emoji
-Section1:CreateButton({
-	Text = "Direct Emoji (🚀)",
-	Icon = "🚀",
-	Callback = function()
-		RvrseUI:Notify("Direct Emoji", "Passed through as-is", 2)
-	end
+local buttonSamples = {
+	{
+		text = "Lucide sprite · lucide://home",
+		icon = "lucide://home"
+	},
+	{
+		text = "Lucide sprite · long label to ensure padding stays intact even with wrapping enabled",
+		icon = "lucide://settings"
+	},
+	{
+		text = "Unicode fallback · icon://trophy",
+		icon = "icon://trophy"
+	},
+	{
+		text = "Emoji direct · 🚀",
+		icon = "🚀"
+	},
+	{
+		text = "No icon (control sample)",
+		icon = nil
+	}
+}
+
+for _, sample in ipairs(buttonSamples) do
+	local labelText = sample.text
+	local iconRef = sample.icon
+
+	ButtonSection:CreateButton({
+		Text = labelText,
+		Icon = iconRef,
+		Callback = function()
+			RvrseUI:Notify({
+				Title = "Button Clicked",
+				Message = labelText,
+				Icon = iconRef or "lucide://mouse-pointer-2",
+				Duration = 2
+			})
+		end
+	})
+end
+
+local LabelSection = QATab:CreateSection({
+	Title = "Label Alignment (icons + text wrap)",
+	Side = "Right"
 })
 
--- 4. Roblox Asset ID (if you upload custom icons)
-Section1:CreateButton({
-	Text = "Roblox Asset (rbxassetid://123456)",
-	Icon = "rbxassetid://123456789",  -- Example - won't load without valid ID
-	Callback = function()
-		RvrseUI:Notify("Asset ID", "Use for custom uploaded icons", 2)
-	end
-})
+local labelSamples = {
+	{
+		text = "Lucide sprite label (sparkles)",
+		icon = "lucide://sparkles",
+		color = Color3.fromRGB(180, 200, 255)
+	},
+	{
+		text = "Lucide fallback label (settings)",
+		icon = "lucide://settings",
+		color = Color3.fromRGB(150, 255, 200)
+	},
+	{
+		text = "Unicode label (icon://bell)",
+		icon = "icon://bell",
+		color = Color3.fromRGB(255, 220, 120)
+	},
+	{
+		text = "Emoji label (❤️)",
+		icon = "❤️"
+	},
+	{
+		text = "Plain label (no icon) to confirm padding resets",
+		icon = nil
+	}
+}
 
--- Tab 2: Lucide Icon Gallery
-local Tab2 = Window:CreateTab({
+for _, sample in ipairs(labelSamples) do
+	LabelSection:CreateLabel({
+		Text = sample.text,
+		Icon = sample.icon,
+		Color = sample.color
+	})
+end
+
+-- Gallery Tab ---------------------------------------------------------------
+local GalleryTab = Window:CreateTab({
 	Title = "Lucide Gallery",
 	Icon = "lucide://grid-3x3"
 })
 
-local Section2 = Tab2:CreateSection({
-	Title = "Popular Lucide Icons",
+local GallerySection = GalleryTab:CreateSection({
+	Title = "Popular Icons",
 	Side = "Left"
 })
 
-Section2:CreateLabel({
-	Text = "Navigation & UI",
-	Color = Color3.fromRGB(100, 180, 255)
-})
-
-local navIcons = {
-	{"lucide://home", "Home"},
-	{"lucide://menu", "Menu"},
-	{"lucide://search", "Search"},
-	{"lucide://settings", "Settings"},
-	{"lucide://x", "Close"},
-	{"lucide://check", "Check"},
+local galleryIcons = {
+	{ "lucide://home", "Home" },
+	{ "lucide://menu", "Menu" },
+	{ "lucide://search", "Search" },
+	{ "lucide://bell", "Notifications" },
+	{ "lucide://star", "Favorites" },
+	{ "lucide://user", "Profile" },
+	{ "lucide://settings", "Settings" },
+	{ "lucide://heart", "Likes" },
+	{ "lucide://lock", "Security" },
+	{ "lucide://activity", "Analytics" }
 }
 
-for _, iconData in ipairs(navIcons) do
-	Section2:CreateButton({
-		Text = iconData[2] .. " (" .. iconData[1] .. ")",
-		Icon = iconData[1],
+for _, entry in ipairs(galleryIcons) do
+	GallerySection:CreateButton({
+		Text = entry[2] .. " (" .. entry[1] .. ")",
+		Icon = entry[1],
 		Callback = function()
-			print("Clicked:", iconData[1])
+			print("[Lucide Gallery] Clicked:", entry[1])
 		end
 	})
 end
 
-Section2:CreateDivider()
+GallerySection:CreateDivider()
 
-Section2:CreateLabel({
-	Text = "Arrows & Directions",
-	Color = Color3.fromRGB(100, 255, 180)
+GallerySection:CreateLabel({
+	Text = "Add more with lucide.dev icons list. All entries support lucide://name syntax.",
+	Icon = "lucide://plus-circle"
 })
 
-local arrowIcons = {
-	{"lucide://arrow-up", "Arrow Up"},
-	{"lucide://arrow-down", "Arrow Down"},
-	{"lucide://arrow-left", "Arrow Left"},
-	{"lucide://arrow-right", "Arrow Right"},
-	{"lucide://chevron-up", "Chevron Up"},
-	{"lucide://chevron-down", "Chevron Down"},
-}
-
-for _, iconData in ipairs(arrowIcons) do
-	Section2:CreateButton({
-		Text = iconData[2],
-		Icon = iconData[1],
-		Callback = function()
-			print("Clicked:", iconData[1])
-		end
-	})
-end
-
--- Tab 3: Interactive Elements with Lucide Icons
-local Tab3 = Window:CreateTab({
-	Title = "Elements",
-	Icon = "lucide://box"
+-- Interactions Tab ----------------------------------------------------------
+local InteractionsTab = Window:CreateTab({
+	Title = "Interactive",
+	Icon = "lucide://sliders-horizontal"
 })
 
-local Section3 = Tab3:CreateSection({
-	Title = "UI Elements with Lucide Icons",
+local InteractionSection = InteractionsTab:CreateSection({
+	Title = "Element Coverage",
 	Side = "Left"
 })
 
-Section3:CreateToggle({
-	Text = "Notifications Enabled",
+InteractionSection:CreateToggle({
+	Text = "Enable Notifications",
 	Icon = "lucide://bell",
 	Default = true,
-	Callback = function(value)
-		RvrseUI:Notify(
-			value and "lucide://check" or "lucide://x",
-			"Notifications " .. (value and "enabled" or "disabled"),
-			2
-		)
+	Callback = function(enabled)
+		RvrseUI.NotificationsEnabled = enabled
+		RvrseUI:Notify({
+			Icon = enabled and "lucide://check" or "lucide://x",
+			Title = enabled and "Notifications Enabled" or "Notifications Disabled",
+			Message = "Toggles also support lucide:// icons.",
+			Duration = 2
+		})
 	end
 })
 
-Section3:CreateToggle({
-	Text = "Auto-Save Config",
-	Icon = "lucide://save",
-	Default = false,
-	Callback = function(value)
-		print("Auto-save:", value)
-	end
-})
-
-Section3:CreateToggle({
-	Text = "Show FPS Counter",
-	Icon = "lucide://activity",
-	Default = true,
-	Callback = function(value)
-		print("FPS counter:", value)
-	end
-})
-
-Section3:CreateDivider()
-
-Section3:CreateDropdown({
-	Text = "Select Theme",
+InteractionSection:CreateDropdown({
+	Text = "Choose Icon Theme",
 	Icon = "lucide://palette",
-	Options = {"Dark", "Light", "Midnight", "Ocean"},
-	Default = "Dark",
-	Callback = function(value)
-		RvrseUI:Notify("lucide://palette", "Theme: " .. value, 2)
+	Options = { "Lucide Sprites", "Unicode Fallbacks", "Emoji Mix" },
+	Default = "Lucide Sprites",
+	Callback = function(choice)
+		print("[Lucide Test] Selected:", choice)
 	end
 })
 
-Section3:CreateDropdown({
-	Text = "Server Region",
-	Icon = "lucide://globe",
-	Options = {"NA East", "NA West", "EU", "Asia", "Oceania"},
-	Default = "NA East",
-	Callback = function(value)
-		print("Region:", value)
-	end
-})
-
--- Tab 4: Icon Documentation
-local Tab4 = Window:CreateTab({
-	Title = "Documentation",
-	Icon = "lucide://book-open"
-})
-
-local Section4 = Tab4:CreateSection({
-	Title = "How to Use Lucide Icons",
-	Side = "Left"
-})
-
-Section4:CreateParagraph({
-	Title = "What are Lucide Icons?",
-	Content = [[
-Lucide is a beautiful, consistent icon set with 500+ icons. RvrseUI now supports Lucide icons via the lucide:// protocol.
-
-Browse all available icons at: https://lucide.dev/icons
-]]
-})
-
-Section4:CreateParagraph({
-	Title = "How to Use",
-	Content = [[
-1. Find an icon at https://lucide.dev/icons
-2. Copy the icon name (e.g., "home", "settings")
-3. Use it in RvrseUI with the lucide:// protocol:
-   Icon = "lucide://home"
-   Icon = "lucide://arrow-right"
-   Icon = "lucide://sparkles"
-]]
-})
-
-Section4:CreateParagraph({
-	Title = "How It Works",
-	Content = [[
-Lucide icons are SVG-based and not directly supported in Roblox. RvrseUI automatically converts them to:
-
-1. Unicode fallbacks (for common icons)
-2. Roblox asset IDs (if you upload custom assets)
-3. Or displays the icon name as text
-
-To use custom Lucide SVGs, upload them as Roblox ImageAssets and add them to LucideIcons.AssetMap in the source code.
-]]
-})
-
-Section4:CreateParagraph({
-	Title = "Icon Name Examples",
-	Content = [[
-lucide://home
-lucide://settings
-lucide://arrow-right
-lucide://check-circle
-lucide://alert-triangle
-lucide://user
-lucide://lock
-lucide://heart
-lucide://star
-lucide://trophy
-
-See full list: https://lucide.dev/icons
-]]
-})
-
-Section4:CreateDivider()
-
-Section4:CreateLabel({
-	Text = "For Developers: Custom Asset Mapping",
-	Color = Color3.fromRGB(255, 200, 100)
-})
-
-Section4:CreateParagraph({
-	Title = "Upload Custom Icons (Advanced)",
-	Content = [[
-To use actual Lucide SVGs instead of Unicode fallbacks:
-
-1. Download SVG from https://lucide.dev/icons
-2. Convert to PNG/JPEG (Roblox doesn't support SVG)
-3. Upload to Roblox as Decal/ImageAsset
-4. Edit src/LucideIcons.lua:
-
-LucideIcons.AssetMap = {
-    ["home"] = 123456789,  -- Your asset ID
-    ["settings"] = 987654321,
-}
-
-5. Rebuild: node build.js
-
-Now lucide://home will use your custom asset!
-]]
-})
-
--- Tab 5: Status & Alerts
-local Tab5 = Window:CreateTab({
-	Title = "Status",
-	Icon = "lucide://check-circle"
-})
-
-local Section5 = Tab5:CreateSection({
-	Title = "Status Indicators with Lucide Icons",
-	Side = "Left"
-})
-
-Section5:CreateButton({
-	Text = "Success Notification",
-	Icon = "lucide://check-circle",
+InteractionSection:CreateButton({
+	Text = "Dispatch Demo Notification Queue",
+	Icon = "lucide://inbox",
 	Callback = function()
-		RvrseUI:Notify("lucide://check-circle", "Operation successful!", 3)
+		local icons = { "lucide://check", "lucide://heart", "lucide://alert-triangle", "lucide://star" }
+
+		for _, iconRef in ipairs(icons) do
+			RvrseUI:Notify({
+				Icon = iconRef,
+				Title = "Notification",
+				Message = "Queued from test harness",
+				Duration = 1.75
+			})
+			task.wait(0.15)
+		end
 	end
 })
 
-Section5:CreateButton({
-	Text = "Warning Notification",
-	Icon = "lucide://alert-triangle",
-	Callback = function()
-		RvrseUI:Notify("lucide://alert-triangle", "Warning: Low health", 3)
-	end
-})
-
-Section5:CreateButton({
-	Text = "Error Notification",
-	Icon = "lucide://x-circle",
-	Callback = function()
-		RvrseUI:Notify("lucide://x-circle", "Error: Connection lost", 3)
-	end
-})
-
-Section5:CreateButton({
-	Text = "Info Notification",
-	Icon = "lucide://info",
-	Callback = function()
-		RvrseUI:Notify("lucide://info", "Server restart in 5 minutes", 3)
-	end
-})
-
-Section5:CreateDivider()
-
-Section5:CreateLabel({
-	Text = "User Actions",
-	Color = Color3.fromRGB(150, 200, 255)
-})
-
-Section5:CreateButton({
-	Text = "Download Data",
-	Icon = "lucide://download",
-	Callback = function()
-		RvrseUI:Notify("lucide://download", "Downloading...", 2)
-	end
-})
-
-Section5:CreateButton({
-	Text = "Upload Settings",
-	Icon = "lucide://upload",
-	Callback = function()
-		RvrseUI:Notify("lucide://upload", "Uploading...", 2)
-	end
-})
-
-Section5:CreateButton({
-	Text = "Refresh Data",
-	Icon = "lucide://refresh-cw",
-	Callback = function()
-		RvrseUI:Notify("lucide://refresh-cw", "Refreshing...", 2)
-	end
-})
-
-Section5:CreateButton({
-	Text = "Delete Account",
-	Icon = "lucide://trash",
-	Callback = function()
-		RvrseUI:Notify("lucide://trash", "Are you sure?", 2)
-	end
-})
-
-print("✨ Lucide Icons Demo loaded!")
-print("📚 Browse icons at: https://lucide.dev/icons")
-print("🎨 Total icons available: 500+")
-print("📦 Using Unicode fallbacks for compatibility")
+print("[Lucide Integration Test] Harness ready. Use tabs to validate icon rendering across components.")
