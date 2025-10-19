@@ -74,6 +74,17 @@ function TabBuilder.CreateTab(t, dependencies)
 			tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
 			tabIcon.ImageColor3 = pal2.TextSub
 			tabIcon.Parent = tabBtn
+		elseif iconType == "sprite" and iconAsset then
+			-- Lucide sprite sheet icon (pixel-perfect)
+			tabIcon = Instance.new("ImageLabel")
+			tabIcon.BackgroundTransparency = 1
+			tabIcon.Image = "rbxassetid://" .. iconAsset.id
+			tabIcon.ImageRectSize = iconAsset.imageRectSize
+			tabIcon.ImageRectOffset = iconAsset.imageRectOffset
+			tabIcon.Size = UDim2.new(0, 28, 0, 28)
+			tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
+			tabIcon.ImageColor3 = pal2.TextSub
+			tabIcon.Parent = tabBtn
 		elseif iconType == "text" then
 			-- Use emoji/text icon centered
 			tabBtn.Text = iconAsset
@@ -248,6 +259,17 @@ function TabBuilder.CreateTab(t, dependencies)
 			tabIcon = Instance.new("ImageLabel")
 			tabIcon.BackgroundTransparency = 1
 			tabIcon.Image = iconAsset
+			tabIcon.Size = UDim2.new(0, 28, 0, 28)
+			tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
+			tabIcon.ImageColor3 = pal.TextSub
+			tabIcon.Parent = tabBtn
+			tabBtn.Text = ""
+		elseif iconType == "sprite" and iconAsset then
+			tabIcon = Instance.new("ImageLabel")
+			tabIcon.BackgroundTransparency = 1
+			tabIcon.Image = "rbxassetid://" .. iconAsset.id
+			tabIcon.ImageRectSize = iconAsset.imageRectSize
+			tabIcon.ImageRectOffset = iconAsset.imageRectOffset
 			tabIcon.Size = UDim2.new(0, 28, 0, 28)
 			tabIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
 			tabIcon.ImageColor3 = pal.TextSub

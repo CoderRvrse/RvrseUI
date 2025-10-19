@@ -428,6 +428,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			img.ImageColor3 = pal.Accent
 			img.Parent = iconHolder
 			UIHelpers.corner(img, 8)
+		elseif iconType == "sprite" and iconAsset then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.Image = "rbxassetid://" .. iconAsset.id
+			img.ImageRectSize = iconAsset.imageRectSize
+			img.ImageRectOffset = iconAsset.imageRectOffset
+			img.Size = UDim2.new(1, 0, 1, 0)
+			img.ImageColor3 = pal.Accent
+			img.Parent = iconHolder
+			UIHelpers.corner(img, 8)
 		elseif iconType == "text" then
 			local iconTxt = Instance.new("TextLabel")
 			iconTxt.BackgroundTransparency = 1
@@ -1390,6 +1400,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			local img = Instance.new("ImageLabel")
 			img.BackgroundTransparency = 1
 			img.Image = iconAsset
+			img.Size = UDim2.new(1, 0, 1, 0)
+			img.ImageColor3 = pal.Accent
+			img.Parent = iconHolder
+			UIHelpers.corner(img, 8)
+		elseif iconType == "sprite" and iconAsset then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.Image = "rbxassetid://" .. iconAsset.id
+			img.ImageRectSize = iconAsset.imageRectSize
+			img.ImageRectOffset = iconAsset.imageRectOffset
 			img.Size = UDim2.new(1, 0, 1, 0)
 			img.ImageColor3 = pal.Accent
 			img.Parent = iconHolder
