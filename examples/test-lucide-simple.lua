@@ -18,10 +18,7 @@ local Tab = Window:CreateTab({
 	Icon = "lucide://home"  -- Should fallback to 🏠
 })
 
-local Section = Tab:CreateSection({
-	Title = "Lucide Icon Tests",
-	Side = "Left"
-})
+local Section = Tab:CreateSection("Lucide Icon Tests")
 
 Section:CreateLabel({
 	Text = "Testing lucide:// protocol",

@@ -116,10 +116,7 @@ local Tab1 = Window:CreateTab({
 print("\n📑 Tab created with icon: lucide://test-tube-2")
 
 for formatIndex, format in ipairs(iconFormats) do
-	local Section = Tab1:CreateSection({
-		Title = format.name,
-		Side = formatIndex % 2 == 1 and "Left" or "Right"
-	})
+	local Section = Tab1:CreateSection(format.name)
 
 	Section:CreateLabel({
 		Text = format.description,
@@ -161,15 +158,9 @@ local Tab2 = Window:CreateTab({
 	Icon = "lucide://layout"
 })
 
-local Section2L = Tab2:CreateSection({
-	Title = "Element Tests (Left)",
-	Side = "Left"
-})
+local Section2L = Tab2:CreateSection("Element Tests (Left)")
 
-local Section2R = Tab2:CreateSection({
-	Title = "Element Tests (Right)",
-	Side = "Right"
-})
+local Section2R = Tab2:CreateSection("Element Tests (Right)")
 
 Section2L:CreateLabel({
 	Text = "Testing all 10 UI elements with different icon formats:",
@@ -289,10 +280,7 @@ local Tab3 = Window:CreateTab({
 	Icon = "lucide://bug"
 })
 
-local Section3 = Tab3:CreateSection({
-	Title = "Edge Case Testing",
-	Side = "Left"
-})
+local Section3 = Tab3:CreateSection("Edge Case Testing")
 
 Section3:CreateLabel({
 	Text = "Testing invalid, empty, and unusual icon inputs:",
@@ -327,10 +315,7 @@ local Tab4 = Window:CreateTab({
 	Icon = "lucide://info"
 })
 
-local Section4 = Tab4:CreateSection({
-	Title = "Icon Resolution Process",
-	Side = "Left"
-})
+local Section4 = Tab4:CreateSection("Icon Resolution Process")
 
 Section4:CreateParagraph({
 	Title = "📚 How Icon Resolution Works",
@@ -416,10 +401,7 @@ local Tab5 = Window:CreateTab({
 	Icon = "lucide://check-circle-2"
 })
 
-local Section5 = Tab5:CreateSection({
-	Title = "Test Results & Observations",
-	Side = "Left"
-})
+local Section5 = Tab5:CreateSection("Test Results & Observations")
 
 Section5:CreateParagraph({
 	Title = "✅ What Should Work",
