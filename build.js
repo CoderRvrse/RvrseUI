@@ -17,7 +17,7 @@ const header = `-- RvrseUI v4.2.0 | Modern Professional UI Framework
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
 -- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
--- 🏗️ ARCHITECTURE: This file is compiled from 28 modular files
+-- 🏗️ ARCHITECTURE: This file is compiled from 30 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 
@@ -53,6 +53,7 @@ const moduleOrder = [
 	// Data
 	'src/Icons.lua',
 	'src/LucideIcons.lua',  // ⭐ NEW: Lucide icon library integration
+	'src/lucide-icons-data.lua',
 	'src/Theme.lua',
 
 	// Systems
@@ -92,9 +93,19 @@ const compiledModules = [];
 for (let i = 0; i < moduleOrder.length; i++) {
 	const modulePath = moduleOrder[i];
 	const fileName = path.basename(modulePath);
+	const moduleName = fileName.replace('.lua', '');
 	console.log(`  [${i + 1}/${moduleOrder.length}] ${fileName}`);
 
 	let content = fs.readFileSync(modulePath, 'utf8');
+
+	// Special handling for lucide sprite sheet data: inject as global table
+	if (fileName === 'lucide-icons-data.lua') {
+		const marker = `\n-- ========================\n-- ${moduleName} Module\n-- ========================\n`;
+		const sanitized = content.trim().replace(/return\s+/, '');
+		const globalAssignment = `\n-- Set Lucide sprite data as global for executor/monolith environments\n_G.RvrseUI_LucideIconsData = ${sanitized}\n`;
+		compiledModules.push(marker + globalAssignment);
+		continue;
+	}
 
 	// Remove module header comments (lines starting with --)
 	content = content.replace(/^--[^\n]*\n/gm, '');
@@ -113,7 +124,6 @@ for (let i = 0; i < moduleOrder.length; i++) {
 	content = content.replace(/\nreturn [A-Z][A-Za-z]+\n*$/g, '');
 
 	// Add module marker comment
-	const moduleName = fileName.replace('.lua', '');
 	const marker = `\n-- ========================\n-- ${moduleName} Module\n-- ========================\n`;
 
 	const indented = content
