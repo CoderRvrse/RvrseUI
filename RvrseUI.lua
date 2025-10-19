@@ -1,5 +1,5 @@
 -- RvrseUI v4.2.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-19T19:48:50.759Z
+-- Compiled from modular architecture on 2025-10-19T20:38:41.434Z
 
 -- Features: Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -8,7 +8,6 @@
 -- 🏗️ ARCHITECTURE: This file is compiled from 30 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
--- QA Update: Lucide button/label alignment harness refreshed (2025-10-19)
 
 
 local TweenService = game:GetService("TweenService")
@@ -419,6 +418,39 @@ do
 		["tag"] = "🏷",
 	}
 	
+	local function sanitizeAssetId(raw)
+		if not raw then
+			return nil
+		end
+	
+		-- Trim whitespace
+		local trimmed = raw:match("^%s*(.-)%s*$")
+		if not trimmed or trimmed == "" then
+			return nil
+		end
+	
+		local lower = trimmed:lower()
+	
+		-- Handle explicit protocol (rbxassetid://123456)
+		local id = lower:match("^rbxassetid://(%d+)$")
+		if id then
+			return "rbxassetid://" .. id
+		end
+	
+		-- Handle generic Roblox asset protocol (rbxasset://textures/... or numeric id)
+		local numeric = lower:match("^(%d+)$")
+		if numeric then
+			return "rbxassetid://" .. numeric
+		end
+	
+		-- Handle rbxasset://id or rbxasset://textures/Asset? we can still return raw (Roblox accepts)
+		if lower:match("^rbxasset://") then
+			return trimmed
+		end
+	
+		return nil
+	end
+	
 	function Icons:Resolve(icon)
 		-- If it's a number, it's a Roblox asset ID
 		if typeof(icon) == "number" then
@@ -427,8 +459,10 @@ do
 	
 		-- If it's a string
 		if typeof(icon) == "string" then
+			local lowerIcon = icon:lower()
+	
 			-- Check for lucide:// protocol (Rayfield hybrid pattern)
-			local lucideName = icon:match("^lucide://(.+)")
+			local lucideName = lowerIcon:match("^lucide://(.+)")
 			if lucideName and deps and deps.LucideIcons then
 				-- Resolve Lucide icon (returns sprite data table or Unicode fallback)
 				local lucideValue, lucideType = deps.LucideIcons:Get(lucideName)
@@ -444,14 +478,15 @@ do
 			end
 	
 			-- Check if it's a named icon from our Unicode library
-			local iconName = icon:lower():gsub("icon://", "")
+			local iconName = lowerIcon:gsub("^icon://", "")
 			if self.UnicodeIcons[iconName] then
 				return self.UnicodeIcons[iconName], "text"
 			end
 	
 			-- Check if it's already a rbxassetid
-			if icon:match("^rbxassetid://") then
-				return icon, "image"
+			local assetId = sanitizeAssetId(icon)
+			if assetId then
+				return assetId, "image"
 			end
 	
 			-- Otherwise, treat as emoji/text (user provided)

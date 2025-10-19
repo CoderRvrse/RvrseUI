@@ -68,7 +68,7 @@ local iconFormats = {
 	{ label = "Lucide (fallback)", icon = "lucide://sparkles" },
 	{ label = "Unicode (icon://)", icon = "icon://trophy" },
 	{ label = "Direct Emoji", icon = "🔥" },
-	{ label = "Roblox asset id", icon = "rbxassetid://123456789" }
+	{ label = "Roblox asset id", icon = "rbxassetid://6031068421" } -- Valid Roblox icon asset
 }
 
 for _, format in ipairs(iconFormats) do

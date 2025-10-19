@@ -206,6 +206,39 @@ Icons.UnicodeIcons = {
 --   - "lucide://name": Lucide sprite sheet icon → returns {sprite data}, "sprite" or fallback
 --   - "rbxassetid://123": Direct Roblox asset URL → returns "rbxassetid://123", "image"
 --   - "emoji" or "text": Direct emoji/text pass-through → returns "text", "text"
+local function sanitizeAssetId(raw)
+	if not raw then
+		return nil
+	end
+
+	-- Trim whitespace
+	local trimmed = raw:match("^%s*(.-)%s*$")
+	if not trimmed or trimmed == "" then
+		return nil
+	end
+
+	local lower = trimmed:lower()
+
+	-- Handle explicit protocol (rbxassetid://123456)
+	local id = lower:match("^rbxassetid://(%d+)$")
+	if id then
+		return "rbxassetid://" .. id
+	end
+
+	-- Handle generic Roblox asset protocol (rbxasset://textures/... or numeric id)
+	local numeric = lower:match("^(%d+)$")
+	if numeric then
+		return "rbxassetid://" .. numeric
+	end
+
+	-- Handle rbxasset://id or rbxasset://textures/Asset? we can still return raw (Roblox accepts)
+	if lower:match("^rbxasset://") then
+		return trimmed
+	end
+
+	return nil
+end
+
 function Icons:Resolve(icon)
 	-- If it's a number, it's a Roblox asset ID
 	if typeof(icon) == "number" then
@@ -214,8 +247,10 @@ function Icons:Resolve(icon)
 
 	-- If it's a string
 	if typeof(icon) == "string" then
+		local lowerIcon = icon:lower()
+
 		-- Check for lucide:// protocol (Rayfield hybrid pattern)
-		local lucideName = icon:match("^lucide://(.+)")
+		local lucideName = lowerIcon:match("^lucide://(.+)")
 		if lucideName and deps and deps.LucideIcons then
 			-- Resolve Lucide icon (returns sprite data table or Unicode fallback)
 			local lucideValue, lucideType = deps.LucideIcons:Get(lucideName)
@@ -231,14 +266,15 @@ function Icons:Resolve(icon)
 		end
 
 		-- Check if it's a named icon from our Unicode library
-		local iconName = icon:lower():gsub("icon://", "")
+		local iconName = lowerIcon:gsub("^icon://", "")
 		if self.UnicodeIcons[iconName] then
 			return self.UnicodeIcons[iconName], "text"
 		end
 
 		-- Check if it's already a rbxassetid
-		if icon:match("^rbxassetid://") then
-			return icon, "image"
+		local assetId = sanitizeAssetId(icon)
+		if assetId then
+			return assetId, "image"
 		end
 
 		-- Otherwise, treat as emoji/text (user provided)
