@@ -57,14 +57,18 @@ function Button.Create(o, dependencies)
 
 	local padding = Instance.new("UIPadding")
 	padding.PaddingLeft = UDim.new(0, 0)
-	padding.PaddingRight = UDim.new(0, 4)
+	padding.PaddingRight = UDim.new(0, 12)
 	padding.Parent = btn
+
+	local ICON_MARGIN = 12
+	local ICON_SIZE = 24
 
 	local iconHolder = Instance.new("Frame")
 	iconHolder.BackgroundTransparency = 1
-	iconHolder.Size = UDim2.new(0, 22, 0, 22)
+	iconHolder.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 	iconHolder.AnchorPoint = Vector2.new(0, 0.5)
-	iconHolder.Position = UDim2.new(0, 0, 0.5, 0)
+	iconHolder.Position = UDim2.new(0, ICON_MARGIN, 0.5, 0)
+	iconHolder.ClipsDescendants = true
 	iconHolder.Visible = false
 	iconHolder.Parent = btn
 
@@ -72,7 +76,12 @@ function Button.Create(o, dependencies)
 	local defaultIconColor = o.IconColor or pal3.TextBright
 
 	local function setIconPadding(hasIcon)
-		padding.PaddingLeft = hasIcon and UDim.new(0, 28) or UDim.new(0, 0)
+		if hasIcon then
+			local leftInset = ICON_MARGIN + ICON_SIZE + 6
+			padding.PaddingLeft = UDim.new(0, leftInset)
+		else
+			padding.PaddingLeft = UDim.new(0, 0)
+		end
 	end
 
 	local function destroyIcon()
@@ -119,7 +128,9 @@ function Button.Create(o, dependencies)
 		if iconType == "image" and type(iconValue) == "string" then
 			local iconImage = Instance.new("ImageLabel")
 			iconImage.BackgroundTransparency = 1
-			iconImage.Size = UDim2.new(1, 0, 1, 0)
+			iconImage.AnchorPoint = Vector2.new(0.5, 0.5)
+			iconImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+			iconImage.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 			iconImage.Image = iconValue
 			iconImage.ImageColor3 = defaultIconColor
 			iconImage.Parent = iconHolder
@@ -127,7 +138,9 @@ function Button.Create(o, dependencies)
 		elseif iconType == "sprite" and type(iconValue) == "table" then
 			local iconImage = Instance.new("ImageLabel")
 			iconImage.BackgroundTransparency = 1
-			iconImage.Size = UDim2.new(1, 0, 1, 0)
+			iconImage.AnchorPoint = Vector2.new(0.5, 0.5)
+			iconImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+			iconImage.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 			iconImage.Image = "rbxassetid://" .. iconValue.id
 			iconImage.ImageRectSize = iconValue.imageRectSize
 			iconImage.ImageRectOffset = iconValue.imageRectOffset
@@ -137,12 +150,16 @@ function Button.Create(o, dependencies)
 		elseif iconValue and iconType == "text" then
 			local iconText = Instance.new("TextLabel")
 			iconText.BackgroundTransparency = 1
-			iconText.Size = UDim2.new(1, 0, 1, 0)
+			iconText.AnchorPoint = Vector2.new(0.5, 0.5)
+			iconText.Position = UDim2.new(0.5, 0, 0.5, 0)
+			iconText.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 			iconText.Font = Enum.Font.GothamBold
 			iconText.TextSize = 18
 			iconText.TextColor3 = defaultIconColor
 			iconText.Text = tostring(iconValue)
 			iconText.TextWrapped = false
+			iconText.TextXAlignment = Enum.TextXAlignment.Center
+			iconText.TextYAlignment = Enum.TextYAlignment.Center
 			iconText.Parent = iconHolder
 			iconInstance = iconText
 		end
@@ -150,6 +167,8 @@ function Button.Create(o, dependencies)
 		if iconInstance then
 			iconHolder.Visible = true
 			setIconPadding(true)
+		else
+			setIconPadding(false)
 		end
 	end
 

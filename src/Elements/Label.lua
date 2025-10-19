@@ -27,11 +27,15 @@ function Label.Create(o, dependencies)
 	lbl.TextWrapped = true
 	lbl.Parent = f
 
+	local ICON_MARGIN = 12
+	local ICON_SIZE = 24
+
 	local iconHolder = Instance.new("Frame")
 	iconHolder.BackgroundTransparency = 1
-	iconHolder.Size = UDim2.new(0, 22, 0, 22)
+	iconHolder.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 	iconHolder.AnchorPoint = Vector2.new(0, 0.5)
-	iconHolder.Position = UDim2.new(0, 0, 0.5, 0)
+	iconHolder.Position = UDim2.new(0, ICON_MARGIN, 0.5, 0)
+	iconHolder.ClipsDescendants = true
 	iconHolder.Visible = false
 	iconHolder.Parent = f
 
@@ -41,8 +45,9 @@ function Label.Create(o, dependencies)
 
 	local function updateLabelPadding(hasIcon)
 		if hasIcon then
-			lbl.Position = UDim2.new(0, 32, 0, 0)
-			lbl.Size = UDim2.new(1, -36, 1, 0)
+			local leftInset = ICON_MARGIN + ICON_SIZE + 6
+			lbl.Position = UDim2.new(0, leftInset, 0, 0)
+			lbl.Size = UDim2.new(1, -(leftInset + 4), 1, 0)
 		else
 			lbl.Position = UDim2.new(0, 4, 0, 0)
 			lbl.Size = UDim2.new(1, -8, 1, 0)
@@ -75,7 +80,9 @@ function Label.Create(o, dependencies)
 		if iconType == "image" and type(iconValue) == "string" then
 			local img = Instance.new("ImageLabel")
 			img.BackgroundTransparency = 1
-			img.Size = UDim2.new(1, 0, 1, 0)
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.Position = UDim2.new(0.5, 0, 0.5, 0)
+			img.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 			img.Image = iconValue
 			img.ImageColor3 = defaultIconColor
 			img.Parent = iconHolder
@@ -83,7 +90,9 @@ function Label.Create(o, dependencies)
 		elseif iconType == "sprite" and type(iconValue) == "table" then
 			local img = Instance.new("ImageLabel")
 			img.BackgroundTransparency = 1
-			img.Size = UDim2.new(1, 0, 1, 0)
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.Position = UDim2.new(0.5, 0, 0.5, 0)
+			img.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 			img.Image = "rbxassetid://" .. iconValue.id
 			img.ImageRectSize = iconValue.imageRectSize
 			img.ImageRectOffset = iconValue.imageRectOffset
@@ -93,11 +102,15 @@ function Label.Create(o, dependencies)
 		elseif iconValue and iconType == "text" then
 			local txt = Instance.new("TextLabel")
 			txt.BackgroundTransparency = 1
-			txt.Size = UDim2.new(1, 0, 1, 0)
+			txt.AnchorPoint = Vector2.new(0.5, 0.5)
+			txt.Position = UDim2.new(0.5, 0, 0.5, 0)
+			txt.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 			txt.Font = Enum.Font.GothamBold
 			txt.TextSize = 18
 			txt.TextColor3 = defaultIconColor
 			txt.Text = tostring(iconValue)
+			txt.TextXAlignment = Enum.TextXAlignment.Center
+			txt.TextYAlignment = Enum.TextYAlignment.Center
 			txt.Parent = iconHolder
 			iconInstance = txt
 		end

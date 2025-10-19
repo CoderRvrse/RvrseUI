@@ -1,5 +1,5 @@
 -- RvrseUI v4.2.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-19T18:40:05.527Z
+-- Compiled from modular architecture on 2025-10-19T18:55:24.583Z
 
 -- Features: Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -4236,14 +4236,18 @@ do
 	
 		local padding = Instance.new("UIPadding")
 		padding.PaddingLeft = UDim.new(0, 0)
-		padding.PaddingRight = UDim.new(0, 4)
+		padding.PaddingRight = UDim.new(0, 12)
 		padding.Parent = btn
+	
+		local ICON_MARGIN = 12
+		local ICON_SIZE = 24
 	
 		local iconHolder = Instance.new("Frame")
 		iconHolder.BackgroundTransparency = 1
-		iconHolder.Size = UDim2.new(0, 22, 0, 22)
+		iconHolder.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 		iconHolder.AnchorPoint = Vector2.new(0, 0.5)
-		iconHolder.Position = UDim2.new(0, 0, 0.5, 0)
+		iconHolder.Position = UDim2.new(0, ICON_MARGIN, 0.5, 0)
+		iconHolder.ClipsDescendants = true
 		iconHolder.Visible = false
 		iconHolder.Parent = btn
 	
@@ -4251,7 +4255,12 @@ do
 		local defaultIconColor = o.IconColor or pal3.TextBright
 	
 		local function setIconPadding(hasIcon)
-			padding.PaddingLeft = hasIcon and UDim.new(0, 28) or UDim.new(0, 0)
+			if hasIcon then
+				local leftInset = ICON_MARGIN + ICON_SIZE + 6
+				padding.PaddingLeft = UDim.new(0, leftInset)
+			else
+				padding.PaddingLeft = UDim.new(0, 0)
+			end
 		end
 	
 		local function destroyIcon()
@@ -4298,7 +4307,9 @@ do
 			if iconType == "image" and type(iconValue) == "string" then
 				local iconImage = Instance.new("ImageLabel")
 				iconImage.BackgroundTransparency = 1
-				iconImage.Size = UDim2.new(1, 0, 1, 0)
+				iconImage.AnchorPoint = Vector2.new(0.5, 0.5)
+				iconImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+				iconImage.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 				iconImage.Image = iconValue
 				iconImage.ImageColor3 = defaultIconColor
 				iconImage.Parent = iconHolder
@@ -4306,7 +4317,9 @@ do
 			elseif iconType == "sprite" and type(iconValue) == "table" then
 				local iconImage = Instance.new("ImageLabel")
 				iconImage.BackgroundTransparency = 1
-				iconImage.Size = UDim2.new(1, 0, 1, 0)
+				iconImage.AnchorPoint = Vector2.new(0.5, 0.5)
+				iconImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+				iconImage.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 				iconImage.Image = "rbxassetid://" .. iconValue.id
 				iconImage.ImageRectSize = iconValue.imageRectSize
 				iconImage.ImageRectOffset = iconValue.imageRectOffset
@@ -4316,12 +4329,16 @@ do
 			elseif iconValue and iconType == "text" then
 				local iconText = Instance.new("TextLabel")
 				iconText.BackgroundTransparency = 1
-				iconText.Size = UDim2.new(1, 0, 1, 0)
+				iconText.AnchorPoint = Vector2.new(0.5, 0.5)
+				iconText.Position = UDim2.new(0.5, 0, 0.5, 0)
+				iconText.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 				iconText.Font = Enum.Font.GothamBold
 				iconText.TextSize = 18
 				iconText.TextColor3 = defaultIconColor
 				iconText.Text = tostring(iconValue)
 				iconText.TextWrapped = false
+				iconText.TextXAlignment = Enum.TextXAlignment.Center
+				iconText.TextYAlignment = Enum.TextYAlignment.Center
 				iconText.Parent = iconHolder
 				iconInstance = iconText
 			end
@@ -4329,6 +4346,8 @@ do
 			if iconInstance then
 				iconHolder.Visible = true
 				setIconPadding(true)
+			else
+				setIconPadding(false)
 			end
 		end
 	
@@ -6927,11 +6946,15 @@ do
 		lbl.TextWrapped = true
 		lbl.Parent = f
 	
+		local ICON_MARGIN = 12
+		local ICON_SIZE = 24
+	
 		local iconHolder = Instance.new("Frame")
 		iconHolder.BackgroundTransparency = 1
-		iconHolder.Size = UDim2.new(0, 22, 0, 22)
+		iconHolder.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 		iconHolder.AnchorPoint = Vector2.new(0, 0.5)
-		iconHolder.Position = UDim2.new(0, 0, 0.5, 0)
+		iconHolder.Position = UDim2.new(0, ICON_MARGIN, 0.5, 0)
+		iconHolder.ClipsDescendants = true
 		iconHolder.Visible = false
 		iconHolder.Parent = f
 	
@@ -6941,8 +6964,9 @@ do
 	
 		local function updateLabelPadding(hasIcon)
 			if hasIcon then
-				lbl.Position = UDim2.new(0, 32, 0, 0)
-				lbl.Size = UDim2.new(1, -36, 1, 0)
+				local leftInset = ICON_MARGIN + ICON_SIZE + 6
+				lbl.Position = UDim2.new(0, leftInset, 0, 0)
+				lbl.Size = UDim2.new(1, -(leftInset + 4), 1, 0)
 			else
 				lbl.Position = UDim2.new(0, 4, 0, 0)
 				lbl.Size = UDim2.new(1, -8, 1, 0)
@@ -6975,7 +6999,9 @@ do
 			if iconType == "image" and type(iconValue) == "string" then
 				local img = Instance.new("ImageLabel")
 				img.BackgroundTransparency = 1
-				img.Size = UDim2.new(1, 0, 1, 0)
+				img.AnchorPoint = Vector2.new(0.5, 0.5)
+				img.Position = UDim2.new(0.5, 0, 0.5, 0)
+				img.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 				img.Image = iconValue
 				img.ImageColor3 = defaultIconColor
 				img.Parent = iconHolder
@@ -6983,7 +7009,9 @@ do
 			elseif iconType == "sprite" and type(iconValue) == "table" then
 				local img = Instance.new("ImageLabel")
 				img.BackgroundTransparency = 1
-				img.Size = UDim2.new(1, 0, 1, 0)
+				img.AnchorPoint = Vector2.new(0.5, 0.5)
+				img.Position = UDim2.new(0.5, 0, 0.5, 0)
+				img.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 				img.Image = "rbxassetid://" .. iconValue.id
 				img.ImageRectSize = iconValue.imageRectSize
 				img.ImageRectOffset = iconValue.imageRectOffset
@@ -6993,11 +7021,15 @@ do
 			elseif iconValue and iconType == "text" then
 				local txt = Instance.new("TextLabel")
 				txt.BackgroundTransparency = 1
-				txt.Size = UDim2.new(1, 0, 1, 0)
+				txt.AnchorPoint = Vector2.new(0.5, 0.5)
+				txt.Position = UDim2.new(0.5, 0, 0.5, 0)
+				txt.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 				txt.Font = Enum.Font.GothamBold
 				txt.TextSize = 18
 				txt.TextColor3 = defaultIconColor
 				txt.Text = tostring(iconValue)
+				txt.TextXAlignment = Enum.TextXAlignment.Center
+				txt.TextYAlignment = Enum.TextYAlignment.Center
 				txt.Parent = iconHolder
 				iconInstance = txt
 			end
