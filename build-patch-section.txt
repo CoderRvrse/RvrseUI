@@ -1,0 +1,20 @@
+	// Add module marker comment
+	const moduleName = fileName.replace('.lua', '');
+	const marker = `\n-- ========================\n-- ${moduleName} Module\n-- ========================\n`;
+
+	// Special handling for lucide-icons-data.lua - set as global instead of wrapping
+	if (fileName === 'lucide-icons-data.lua') {
+		const globalAssignment = `\n-- Set Lucide sprite data as global for executor/monolith environments\n_G.RvrseUI_LucideIconsData = ${content}\n`;
+		compiledModules.push(marker + globalAssignment);
+	} else {
+		const indented = content
+			.replace(/\s+$/, '') // trim trailing whitespace to keep wrapping clean
+			.split('\n')
+			.map(line => '\t' + line)
+			.join('\n');
+
+		const wrapped = `\ndo\n${indented}\nend\n`;
+
+		compiledModules.push(marker + wrapped);
+	}
+}

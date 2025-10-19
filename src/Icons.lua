@@ -195,13 +195,17 @@ Icons.UnicodeIcons = {
 
 -- Resolves an icon input to its display format and type
 -- @param icon: string (icon name/emoji/rbxassetid/lucide) or number (Roblox asset ID)
--- @return iconValue: string (unicode char or asset URL), iconType: string ("text" or "image")
+-- @return iconValue: (string | table), iconType: string
+-- Return types:
+--   - "text": iconValue is string (Unicode character or text)
+--   - "image": iconValue is string (rbxassetid://123)
+--   - "sprite": iconValue is table {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}
 -- Supported formats:
---   - Number: Roblox asset ID (e.g., 123456789)
---   - "icon://name": Unicode icon from library (e.g., "icon://home")
---   - "lucide://name": Lucide icon (e.g., "lucide://home", "lucide://arrow-right")
---   - "rbxassetid://123": Direct Roblox asset URL
---   - "emoji" or "text": Direct emoji/text pass-through
+--   - Number: Roblox asset ID (e.g., 123456789) → returns "rbxassetid://123", "image"
+--   - "icon://name": Unicode icon from library (e.g., "icon://home") → returns "🏠", "text"
+--   - "lucide://name": Lucide sprite sheet icon → returns {sprite data}, "sprite" or fallback
+--   - "rbxassetid://123": Direct Roblox asset URL → returns "rbxassetid://123", "image"
+--   - "emoji" or "text": Direct emoji/text pass-through → returns "text", "text"
 function Icons:Resolve(icon)
 	-- If it's a number, it's a Roblox asset ID
 	if typeof(icon) == "number" then
@@ -210,15 +214,19 @@ function Icons:Resolve(icon)
 
 	-- If it's a string
 	if typeof(icon) == "string" then
-		-- Check for lucide:// protocol
+		-- Check for lucide:// protocol (Rayfield hybrid pattern)
 		local lucideName = icon:match("^lucide://(.+)")
 		if lucideName and deps and deps.LucideIcons then
-			-- Resolve Lucide icon (returns asset ID or Unicode fallback)
+			-- Resolve Lucide icon (returns sprite data table or Unicode fallback)
 			local lucideValue, lucideType = deps.LucideIcons:Get(lucideName)
-			if lucideType == "image" then
-				return "rbxassetid://" .. lucideValue, "image"
+
+			-- Return based on type:
+			-- "sprite" → lucideValue is {id, imageRectSize, imageRectOffset}
+			-- "text" → lucideValue is Unicode string
+			if lucideType == "sprite" then
+				return lucideValue, "sprite"  -- Return sprite data table as-is
 			else
-				return lucideValue, "text"
+				return lucideValue, "text"  -- Return Unicode fallback
 			end
 		end
 
