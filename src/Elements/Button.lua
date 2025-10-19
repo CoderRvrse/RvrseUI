@@ -14,6 +14,7 @@ function Button.Create(o, dependencies)
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
 	local Theme = dependencies.Theme
+	local Icons = dependencies.Icons
 
 	-- Create container with gradient background
 	local f = card(48) -- Slightly taller for modern look
@@ -48,13 +49,115 @@ function Button.Create(o, dependencies)
 	btn.BackgroundTransparency = 1
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 15
+	btn.TextXAlignment = Enum.TextXAlignment.Left
 	btn.TextColor3 = pal3.TextBright
 	btn.Text = o.Text or "Button"
 	btn.AutoButtonColor = false
 	btn.Parent = f
 
+	local padding = Instance.new("UIPadding")
+	padding.PaddingLeft = UDim.new(0, 0)
+	padding.PaddingRight = UDim.new(0, 4)
+	padding.Parent = btn
+
+	local iconHolder = Instance.new("Frame")
+	iconHolder.BackgroundTransparency = 1
+	iconHolder.Size = UDim2.new(0, 22, 0, 22)
+	iconHolder.AnchorPoint = Vector2.new(0, 0.5)
+	iconHolder.Position = UDim2.new(0, 0, 0.5, 0)
+	iconHolder.Visible = false
+	iconHolder.Parent = btn
+
+	local iconInstance = nil
+	local defaultIconColor = o.IconColor or pal3.TextBright
+
+	local function setIconPadding(hasIcon)
+		padding.PaddingLeft = hasIcon and UDim.new(0, 28) or UDim.new(0, 0)
+	end
+
+	local function destroyIcon()
+		if iconInstance then
+			iconInstance:Destroy()
+			iconInstance = nil
+		end
+		for _, child in ipairs(iconHolder:GetChildren()) do
+			child:Destroy()
+		end
+		iconHolder.Visible = false
+		setIconPadding(false)
+	end
+
+	local function tweenIconColor(color, spring)
+		if not iconInstance then return end
+		local props
+		if iconInstance:IsA("ImageLabel") then
+			props = {ImageColor3 = color}
+		else
+			props = {TextColor3 = color}
+		end
+		Animator:Tween(iconInstance, props, spring)
+	end
+
+	local function setIconTransparency(amount)
+		if not iconInstance then return end
+		if iconInstance:IsA("ImageLabel") then
+			iconInstance.ImageTransparency = amount
+		else
+			iconInstance.TextTransparency = amount
+		end
+	end
+
+	local function setIcon(icon)
+		currentIcon = icon
+		o.Icon = icon
+		destroyIcon()
+		if not icon or not Icons then
+			return
+		end
+
+		local iconValue, iconType = Icons:Resolve(icon)
+		if iconType == "image" and type(iconValue) == "string" then
+			local iconImage = Instance.new("ImageLabel")
+			iconImage.BackgroundTransparency = 1
+			iconImage.Size = UDim2.new(1, 0, 1, 0)
+			iconImage.Image = iconValue
+			iconImage.ImageColor3 = defaultIconColor
+			iconImage.Parent = iconHolder
+			iconInstance = iconImage
+		elseif iconType == "sprite" and type(iconValue) == "table" then
+			local iconImage = Instance.new("ImageLabel")
+			iconImage.BackgroundTransparency = 1
+			iconImage.Size = UDim2.new(1, 0, 1, 0)
+			iconImage.Image = "rbxassetid://" .. iconValue.id
+			iconImage.ImageRectSize = iconValue.imageRectSize
+			iconImage.ImageRectOffset = iconValue.imageRectOffset
+			iconImage.ImageColor3 = defaultIconColor
+			iconImage.Parent = iconHolder
+			iconInstance = iconImage
+		elseif iconValue and iconType == "text" then
+			local iconText = Instance.new("TextLabel")
+			iconText.BackgroundTransparency = 1
+			iconText.Size = UDim2.new(1, 0, 1, 0)
+			iconText.Font = Enum.Font.GothamBold
+			iconText.TextSize = 18
+			iconText.TextColor3 = defaultIconColor
+			iconText.Text = tostring(iconValue)
+			iconText.TextWrapped = false
+			iconText.Parent = iconHolder
+			iconInstance = iconText
+		end
+
+		if iconInstance then
+			iconHolder.Visible = true
+			setIconPadding(true)
+		end
+	end
+
 	local currentText = btn.Text
+	local currentIcon = o.Icon
 	local isHovering = false
+
+	setIcon(currentIcon)
 
 	-- Click handler with enhanced effects
 	btn.MouseButton1Click:Connect(function()
@@ -98,8 +201,9 @@ function Button.Create(o, dependencies)
 			Transparency = 0.2
 		}, Animator.Spring.Snappy)
 
-		-- Brighten text
+		-- Brighten text/icon
 		Animator:Tween(btn, {TextColor3 = pal3.Shimmer}, Animator.Spring.Lightning)
+		tweenIconColor(pal3.Shimmer, Animator.Spring.Lightning)
 
 		-- Add glow effect
 		Animator:Glow(f, 0.3, 0.4, Theme)
@@ -120,8 +224,9 @@ function Button.Create(o, dependencies)
 			Transparency = 0.5
 		}, Animator.Spring.Snappy)
 
-		-- Restore text color
+		-- Restore text/icon color
 		Animator:Tween(btn, {TextColor3 = pal3.TextBright}, Animator.Spring.Snappy)
+		tweenIconColor(defaultIconColor, Animator.Spring.Snappy)
 	end)
 
 	-- Lock state listener with visual feedback
@@ -136,9 +241,11 @@ function Button.Create(o, dependencies)
 				NumberSequenceKeypoint.new(1, 0.9),
 			}
 			stroke.Transparency = 0.8
+			setIconTransparency(0.5)
 		else
 			-- Restore to normal or hover state
 			btn.TextTransparency = 0
+			setIconTransparency(0)
 			if isHovering then
 				gradient.Transparency = NumberSequence.new{
 					NumberSequenceKeypoint.new(0, 0.4),
@@ -180,6 +287,14 @@ function Button.Create(o, dependencies)
 			if o.Callback and not RvrseUI.Store:IsLocked(o.RespectLock) then
 				task.spawn(o.Callback)
 			end
+		end,
+		SetIcon = function(_, icon)
+			currentIcon = icon
+			setIcon(icon)
+			return currentIcon
+		end,
+		GetIcon = function()
+			return currentIcon
 		end,
 		CurrentValue = currentText
 	}

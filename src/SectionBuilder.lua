@@ -106,6 +106,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 			Animator = dependencies.Animator,
 			RvrseUI = RvrseUI,
 			UIS = dependencies.UIS,
+			Icons = dependencies.Icons,
 			gradient = gradient,
 			shadow = shadow,
 			OverlayLayer = overlayLayer,
