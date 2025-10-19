@@ -1,5 +1,5 @@
 -- RvrseUI v4.2.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-19T18:55:24.583Z
+-- Compiled from modular architecture on 2025-10-19T19:25:29.968Z
 
 -- Features: Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -6934,6 +6934,9 @@ do
 	
 		local f = card(36) -- Slightly taller
 	
+		local cardPadding = f:FindFirstChildOfClass("UIPadding")
+		local basePadLeft = cardPadding and cardPadding.PaddingLeft.Offset or 0
+	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
 		lbl.Size = UDim2.new(1, -8, 1, 0)
@@ -6941,8 +6944,8 @@ do
 		lbl.Font = Enum.Font.GothamMedium
 		lbl.TextSize = 14
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
-		lbl.TextColor3 = pal3.TextSub -- Subtle color for labels
-		lbl.Text = o.Text or "Label"
+		lbl.TextColor3 = o.Color or pal3.TextSub -- Allow caller override
+		lbl.Text = tostring(o.Text or "Label")
 		lbl.TextWrapped = true
 		lbl.Parent = f
 	
@@ -6953,20 +6956,34 @@ do
 		iconHolder.BackgroundTransparency = 1
 		iconHolder.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
 		iconHolder.AnchorPoint = Vector2.new(0, 0.5)
-		iconHolder.Position = UDim2.new(0, ICON_MARGIN, 0.5, 0)
+		iconHolder.Position = UDim2.new(0, math.max(0, ICON_MARGIN - basePadLeft), 0.5, 0)
 		iconHolder.ClipsDescendants = true
 		iconHolder.Visible = false
+		iconHolder.ZIndex = lbl.ZIndex + 1
+		iconHolder.Name = "IconHolder"
 		iconHolder.Parent = f
 	
 		local iconInstance = nil
 		local defaultIconColor = o.IconColor or pal3.TextSub
 		local currentIcon = o.Icon
 	
+		local function applyIconColor(color)
+			if not iconInstance then
+				return
+			end
+			if iconInstance:IsA("ImageLabel") then
+				iconInstance.ImageColor3 = color
+			else
+				iconInstance.TextColor3 = color
+			end
+		end
+	
 		local function updateLabelPadding(hasIcon)
 			if hasIcon then
 				local leftInset = ICON_MARGIN + ICON_SIZE + 6
-				lbl.Position = UDim2.new(0, leftInset, 0, 0)
-				lbl.Size = UDim2.new(1, -(leftInset + 4), 1, 0)
+				local relativeOffset = math.max(0, leftInset - basePadLeft)
+				lbl.Position = UDim2.new(0, relativeOffset, 0, 0)
+				lbl.Size = UDim2.new(1, -(relativeOffset + 4), 1, 0)
 			else
 				lbl.Position = UDim2.new(0, 4, 0, 0)
 				lbl.Size = UDim2.new(1, -8, 1, 0)
@@ -7035,6 +7052,8 @@ do
 			end
 	
 			if iconInstance then
+				iconInstance.ZIndex = iconHolder.ZIndex
+				applyIconColor(defaultIconColor)
 				iconHolder.Visible = true
 				updateLabelPadding(true)
 			end
@@ -7045,7 +7064,7 @@ do
 	
 		local labelAPI = {
 			Set = function(_, txt)
-				lbl.Text = txt
+				lbl.Text = tostring(txt)
 			end,
 			Get = function()
 				return lbl.Text
@@ -7056,6 +7075,17 @@ do
 			SetIcon = function(_, icon)
 				setIcon(icon)
 				return currentIcon
+			end,
+			SetIconColor = function(_, color)
+				if color then
+					defaultIconColor = color
+					applyIconColor(color)
+				end
+			end,
+			SetTextColor = function(_, color)
+				if color then
+					lbl.TextColor3 = color
+				end
 			end,
 			GetIcon = function()
 				return currentIcon
