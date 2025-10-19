@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 1,
+    "minor": 2,
     "patch": 0,
-    "full": "4.1.0",
-    "build": "20251018b",
-    "hash": "U7M5D3W9",
+    "full": "4.2.0",
+    "build": "20251018c",
+    "hash": "S9P7B3N4",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-18",
-    "name": "Unified Dropdown System",
-    "codename": "Simplicity",
-    "notes": "Complete dropdown system unification - removed legacy dual-mode system, eliminated 1,459 lines of code, removed all Rayfield compatibility code. Modern multi-select dropdown is now the only system (users can select one or multiple items). Clean, maintainable, production-ready."
+    "name": "Organic Particle System",
+    "codename": "Spore Bubble",
+    "notes": "Complete particle system rewrite with Perlin noise-driven organic motion. Replaces linear tween-based particles with GPU-efficient floaty bubbles using object pooling, adaptive density (FPS-based), and heartbeat-driven updates. Particles drift with lateral curl, varied sizes (3-28px), cubic easing, and soft bloom effects. Zero per-frame allocation, <0.8ms render budget."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,6 +40,28 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.2.0": {
+      "date": "2025-10-18",
+      "hash": "S9P7B3N4",
+      "changes": [
+        "✨ ORGANIC PARTICLE SYSTEM - 'Spore Bubble' floating particles with Perlin noise drift!",
+        "🎨 NEW: Particles.lua module (698 lines) - Complete Perlin noise implementation for organic motion",
+        "🌊 Perlin noise 3D with octave layering - particles drift with lateral curl (no straight lines)",
+        "🫧 Size distribution: 60% small (3-8px), 30% medium (9-16px), 10% large (18-28px bubbles)",
+        "🎭 Opacity range: 0.15-0.35 base with cubic easing (in: t³, out: 1-(1-t)³)",
+        "⏱️ Lifetime: 2.8-5.2s random, fade in 120-180ms, fade out 180-220ms",
+        "🎯 Motion: Base upward 20-45 px/s + Perlin lateral drift ±8-18 px/s + vertical noise ±6 px/s",
+        "🎨 HSL color jitter: ±6° hue, ±8% lightness from theme accent for variety",
+        "♻️ Object pooling: Zero per-frame allocation, particles reused from pool",
+        "📊 Adaptive density: 40-80 desktop, 20-40 mobile, auto-reduces if FPS < 50",
+        "🎬 State-driven spawning: 'expand' (+30% burst), 'idle' (10% trickle), 'dragging' (50% throttle)",
+        "⚡ RunService heartbeat updates - <0.8ms render budget per frame",
+        "🔧 Configurable: Particles.Enabled, Density (low/med/high), Blend (alpha/additive)",
+        "🪟 Integrated with WindowBuilder: plays on show/restore, stops on minimize, throttles on drag",
+        "📦 Module count: 28 (up from 27) +1 Particles module",
+        "📈 File size: 264 KB (up from 247 KB, +17 KB for complete Perlin noise system)"
+      ]
+    },
     "4.1.0": {
       "date": "2025-10-18",
       "hash": "U7M5D3W9",
@@ -230,7 +252,7 @@
   },
   "download": {
     "url": "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua",
-    "size_kb": 246,
+    "size_kb": 264,
     "format": "lua"
   },
   "repository": {

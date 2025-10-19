@@ -1,11 +1,11 @@
--- RvrseUI v4.1.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-18T23:39:41.896Z
+-- RvrseUI v4.2.0 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-10-19T00:44:22.542Z
 
--- Features: Unified Multi-Select Dropdowns, Advanced ColorPicker, Key System, Spring Animations
+-- Features: Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
--- Extras: Notify system, Theme switcher, LockGroup system, Drag-to-move, Config persistence
+-- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
--- 🏗️ ARCHITECTURE: This file is compiled from 27 modular files
+-- 🏗️ ARCHITECTURE: This file is compiled from 28 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 
@@ -34,11 +34,11 @@ do
 	
 	Version.Data = {
 		Major = 4,
-		Minor = 1,
+		Minor = 2,
 		Patch = 0,
-		Build = "20251018b",  -- YYYYMMDD format
-		Full = "4.1.0",
-		Hash = "U7M5D3W9",  -- Release hash for integrity verification
+		Build = "20251018c",  -- YYYYMMDD format
+		Full = "4.2.0",
+		Hash = "S9P7B3N4",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
@@ -3206,6 +3206,562 @@ do
 		end
 	
 		return passthrough
+	end
+end
+
+
+-- ========================
+-- Particles Module
+-- ========================
+
+do
+	
+	Particles = {}
+	local deps
+	
+	local Config = {
+		Enabled = true,
+		Density = "med", -- "low" | "med" | "high"
+		Blend = "alpha", -- "alpha" | "additive"
+		DebugLog = false,
+	}
+	
+	local particlePool = {}
+	local activeParticles = {}
+	local particleLayer = nil
+	local updateConnection = nil
+	local isPlaying = false
+	local currentState = "idle" -- "idle" | "expand" | "collapse" | "dragging"
+	
+	local lastFPS = 60
+	local lastFrameTime = 0
+	local adaptiveDensityMultiplier = 1
+	
+	PerlinNoise = {}
+	local permutation = {}
+	
+	local function initPerlin()
+		-- Standard Perlin permutation
+		local p = {
+			151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,
+			8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,
+			35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,
+			134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,
+			55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,
+			18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,
+			250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,
+			189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,
+			172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,
+			228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,
+			107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,
+			138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180
+		}
+	
+		-- Duplicate the permutation table
+		for i = 0, 255 do
+			permutation[i] = p[i + 1]
+			permutation[i + 256] = p[i + 1]
+		end
+	end
+	
+	local function fade(t)
+		return t * t * t * (t * (t * 6 - 15) + 10)
+	end
+	
+	local function lerp(t, a, b)
+		return a + t * (b - a)
+	end
+	
+	local function grad(hash, x, y, z)
+		local h = hash % 16
+		local u = h < 8 and x or y
+		local v = h < 4 and y or (h == 12 or h == 14) and x or z
+		return ((h % 2 == 0) and u or -u) + ((h % 4 < 2) and v or -v)
+	end
+	
+	function PerlinNoise.noise(x, y, z)
+		-- Find unit cube that contains point
+		local X = math.floor(x) % 256
+		local Y = math.floor(y) % 256
+		local Z = math.floor(z) % 256
+	
+		-- Find relative x, y, z of point in cube
+		x = x - math.floor(x)
+		y = y - math.floor(y)
+		z = z - math.floor(z)
+	
+		-- Compute fade curves
+		local u = fade(x)
+		local v = fade(y)
+		local w = fade(z)
+	
+		-- Hash coordinates of cube corners
+		local A = permutation[X] + Y
+		local AA = permutation[A] + Z
+		local AB = permutation[A + 1] + Z
+		local B = permutation[X + 1] + Y
+		local BA = permutation[B] + Z
+		local BB = permutation[B + 1] + Z
+	
+		-- Blend results from 8 corners
+		return lerp(w,
+			lerp(v,
+				lerp(u, grad(permutation[AA], x, y, z), grad(permutation[BA], x - 1, y, z)),
+				lerp(u, grad(permutation[AB], x, y - 1, z), grad(permutation[BB], x - 1, y - 1, z))
+			),
+			lerp(v,
+				lerp(u, grad(permutation[AA + 1], x, y, z - 1), grad(permutation[BA + 1], x - 1, y, z - 1)),
+				lerp(u, grad(permutation[AB + 1], x, y - 1, z - 1), grad(permutation[BB + 1], x - 1, y - 1, z - 1))
+			)
+		)
+	end
+	
+	function PerlinNoise.octave(x, y, z, octaves, persistence)
+		local total = 0
+		local frequency = 1
+		local amplitude = 1
+		local maxValue = 0
+	
+		for i = 1, octaves do
+			total = total + PerlinNoise.noise(x * frequency, y * frequency, z * frequency) * amplitude
+			maxValue = maxValue + amplitude
+			amplitude = amplitude * persistence
+			frequency = frequency * 2
+		end
+	
+		return total / maxValue
+	end
+	
+	local function randomParticleSize()
+		local roll = math.random()
+		if roll < 0.6 then
+			-- Small: 3-8px
+			return math.random(3, 8)
+		elseif roll < 0.9 then
+			-- Medium: 9-16px
+			return math.random(9, 16)
+		else
+			-- Large: 18-28px
+			return math.random(18, 28)
+		end
+	end
+	
+	local function hslToRgb(h, s, l)
+		local r, g, b
+	
+		if s == 0 then
+			r, g, b = l, l, l
+		else
+			local function hue2rgb(p, q, t)
+				if t < 0 then t = t + 1 end
+				if t > 1 then t = t - 1 end
+				if t < 1/6 then return p + (q - p) * 6 * t end
+				if t < 1/2 then return q end
+				if t < 2/3 then return p + (q - p) * (2/3 - t) * 6 end
+				return p
+			end
+	
+			local q = l < 0.5 and l * (1 + s) or l + s - l * s
+			local p = 2 * l - q
+			r = hue2rgb(p, q, h + 1/3)
+			g = hue2rgb(p, q, h)
+			b = hue2rgb(p, q, h - 1/3)
+		end
+	
+		return Color3.new(r, g, b)
+	end
+	
+	local function rgbToHsl(color)
+		local r, g, b = color.R, color.G, color.B
+		local max = math.max(r, g, b)
+		local min = math.min(r, g, b)
+		local h, s, l = 0, 0, (max + min) / 2
+	
+		if max ~= min then
+			local d = max - min
+			s = l > 0.5 and d / (2 - max - min) or d / (max + min)
+	
+			if max == r then
+				h = (g - b) / d + (g < b and 6 or 0)
+			elseif max == g then
+				h = (b - r) / d + 2
+			else
+				h = (r - g) / d + 4
+			end
+	
+			h = h / 6
+		end
+	
+		return h, s, l
+	end
+	
+	local function jitterColor(baseColor)
+		local h, s, l = rgbToHsl(baseColor)
+	
+		-- Jitter hue ±6° (±6/360 = ±0.01667)
+		h = h + (math.random() * 0.03334 - 0.01667)
+		if h < 0 then h = h + 1 end
+		if h > 1 then h = h - 1 end
+	
+		-- Jitter lightness ±8%
+		l = math.clamp(l + (math.random() * 0.16 - 0.08), 0, 1)
+	
+		return hslToRgb(h, s, l)
+	end
+	
+	local function createParticleInstance()
+		local particle = Instance.new("Frame")
+		particle.BorderSizePixel = 0
+		particle.BackgroundTransparency = 1
+		particle.ZIndex = 50 -- Below content (100+) but above glass background
+	
+		-- Rounded corners
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(1, 0) -- Perfect circle
+		corner.Parent = particle
+	
+		-- Optional gradient for larger particles (soft bloom)
+		local gradient = Instance.new("UIGradient")
+		gradient.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.3), -- Center more opaque
+			NumberSequenceKeypoint.new(1, 1)    -- Edges transparent (bloom effect)
+		})
+		gradient.Parent = particle
+	
+		return particle
+	end
+	
+	local function acquireParticle()
+		local particle
+		if #particlePool > 0 then
+			particle = table.remove(particlePool)
+		else
+			particle = createParticleInstance()
+		end
+		return particle
+	end
+	
+	local function releaseParticle(particle)
+		if particle and particle.Parent then
+			particle.Parent = nil
+			particle.BackgroundTransparency = 1
+			table.insert(particlePool, particle)
+		end
+	end
+	
+	local function spawnParticle(bounds)
+		if not particleLayer or not particleLayer.Parent then return end
+	
+		local particle = acquireParticle()
+		if not particle then return end
+	
+		-- Random size with distribution
+		local size = randomParticleSize()
+	
+		-- Random spawn position (padding 12-16px inside bounds)
+		local padding = math.random(12, 16)
+		local x = math.random(padding, bounds.X - padding - size)
+		local y = bounds.Y - padding - size -- Start near bottom
+	
+		-- Particle data
+		local data = {
+			instance = particle,
+			size = size,
+			x = x,
+			y = y,
+			lifetime = math.random() * (5.2 - 2.8) + 2.8, -- 2.8-5.2s
+			age = 0,
+	
+			-- Velocity (upward with noise)
+			baseVelY = -(math.random() * (45 - 20) + 20), -- -20 to -45 px/s (negative = up)
+			velX = 0,
+			velY = 0,
+	
+			-- Noise offsets (for Perlin)
+			noiseOffsetX = math.random() * 1000,
+			noiseOffsetY = math.random() * 1000,
+			noiseOffsetZ = math.random() * 1000,
+	
+			-- Opacity (0.15-0.35 base)
+			baseOpacity = math.random() * (0.35 - 0.15) + 0.15,
+			currentOpacity = 0,
+	
+			-- Color with jitter
+			color = jitterColor(deps.Theme:Get().Accent),
+	
+			-- Easing timings
+			fadeInDuration = math.random() * (0.18 - 0.12) + 0.12, -- 120-180ms
+			fadeOutDuration = math.random() * (0.22 - 0.18) + 0.18, -- 180-220ms
+		}
+	
+		-- Setup instance
+		particle.Size = UDim2.new(0, size, 0, size)
+		particle.Position = UDim2.new(0, x, 0, y)
+		particle.BackgroundColor3 = data.color
+		particle.BackgroundTransparency = 1 - data.currentOpacity
+		particle.Parent = particleLayer
+	
+		table.insert(activeParticles, data)
+	end
+	
+	local function updateParticles(dt)
+		if not particleLayer or not particleLayer.Parent then return end
+	
+		local bounds = particleLayer.AbsoluteSize
+		local time = tick()
+	
+		-- Track FPS for adaptive density
+		if lastFrameTime > 0 then
+			local frameDelta = time - lastFrameTime
+			lastFPS = 1 / frameDelta
+	
+			-- Reduce density if FPS drops below 50
+			if lastFPS < 50 then
+				adaptiveDensityMultiplier = math.max(0.3, adaptiveDensityMultiplier - 0.01)
+			elseif lastFPS > 55 then
+				adaptiveDensityMultiplier = math.min(1.0, adaptiveDensityMultiplier + 0.005)
+			end
+		end
+		lastFrameTime = time
+	
+		-- Update each particle
+		for i = #activeParticles, 1, -1 do
+			local data = activeParticles[i]
+			data.age = data.age + dt
+	
+			-- Remove expired particles
+			if data.age >= data.lifetime then
+				releaseParticle(data.instance)
+				table.remove(activeParticles, i)
+			else
+				-- Perlin noise for lateral curl (scale time for smooth motion)
+				local noiseScale = 0.5 -- Lower = smoother, larger waves
+				local noiseTime = time * noiseScale
+	
+				local noiseX = PerlinNoise.octave(
+					data.noiseOffsetX + noiseTime,
+					data.noiseOffsetY,
+					data.noiseOffsetZ,
+					2, -- 2 octaves
+					0.5 -- persistence
+				)
+	
+				local noiseY = PerlinNoise.octave(
+					data.noiseOffsetX,
+					data.noiseOffsetY + noiseTime,
+					data.noiseOffsetZ,
+					2,
+					0.5
+				)
+	
+				-- Apply noise to velocity (±8-18 px/s lateral, ±6 px/s vertical)
+				data.velX = noiseX * (math.random() * (18 - 8) + 8)
+				data.velY = data.baseVelY + noiseY * 6
+	
+				-- Update position
+				data.x = data.x + data.velX * dt
+				data.y = data.y + data.velY * dt
+	
+				-- Wrap horizontally if out of bounds
+				if data.x < -data.size then
+					data.x = bounds.X + data.size
+				elseif data.x > bounds.X + data.size then
+					data.x = -data.size
+				end
+	
+				-- Opacity easing (cubic in on spawn, cubic out on death)
+				local opacityAlpha
+				if data.age < data.fadeInDuration then
+					-- Fade in (cubic in: t^3)
+					local t = data.age / data.fadeInDuration
+					opacityAlpha = t * t * t
+				elseif data.age > data.lifetime - data.fadeOutDuration then
+					-- Fade out (cubic out: 1 - (1-t)^3)
+					local t = (data.lifetime - data.age) / data.fadeOutDuration
+					opacityAlpha = 1 - (1 - t) * (1 - t) * (1 - t)
+				else
+					-- Full opacity
+					opacityAlpha = 1
+				end
+	
+				data.currentOpacity = data.baseOpacity * opacityAlpha
+	
+				-- Update instance
+				data.instance.Position = UDim2.new(0, data.x, 0, data.y)
+				data.instance.BackgroundTransparency = 1 - data.currentOpacity
+	
+				-- Additive blend (brighten color for additive effect)
+				if Config.Blend == "additive" then
+					local bright = 1.3
+					data.instance.BackgroundColor3 = Color3.new(
+						math.min(1, data.color.R * bright),
+						math.min(1, data.color.G * bright),
+						math.min(1, data.color.B * bright)
+					)
+				else
+					data.instance.BackgroundColor3 = data.color
+				end
+			end
+		end
+	end
+	
+	local function calculateParticleCount(state)
+		if not particleLayer or not particleLayer.Parent then return 0 end
+	
+		local bounds = particleLayer.AbsoluteSize
+		local pixelArea = bounds.X * bounds.Y
+	
+		-- Base density (particles per 100,000 pixels)
+		local densityMap = {
+			low = 0.5,
+			med = 1.0,
+			high = 1.5
+		}
+	
+		local density = densityMap[Config.Density] or 1.0
+		local baseCount = math.floor((pixelArea / 100000) * density * 60) -- 60 particles at med density for ~600x400 window
+	
+		-- State multipliers
+		local stateMultiplier = 1.0
+		if state == "expand" then
+			stateMultiplier = 1.3 -- +30% burst on expand
+		elseif state == "dragging" then
+			stateMultiplier = 0.5 -- 50% throttle during drag
+		elseif state == "idle" then
+			stateMultiplier = 0.1 -- 10% trickle while idle
+		end
+	
+		-- Apply adaptive density (reduces if FPS drops)
+		local finalCount = math.floor(baseCount * stateMultiplier * adaptiveDensityMultiplier)
+	
+		-- Clamp (40-80 desktop, 20-40 mobile approximation)
+		local isMobile = pixelArea < 300000 -- Rough mobile detection
+		local minCount = isMobile and 20 or 40
+		local maxCount = isMobile and 40 or 80
+	
+		return math.clamp(finalCount, minCount, maxCount)
+	end
+	
+	local spawnTimer = 0
+	local spawnRate = 0.05 -- Spawn every 50ms
+	
+	local function spawnLoop(dt)
+		if not isPlaying or not particleLayer or not particleLayer.Parent then return end
+	
+		spawnTimer = spawnTimer + dt
+	
+		if spawnTimer >= spawnRate then
+			spawnTimer = 0
+	
+			local bounds = particleLayer.AbsoluteSize
+			local targetCount = calculateParticleCount(currentState)
+	
+			-- Spawn particles to reach target count
+			if #activeParticles < targetCount then
+				local toSpawn = math.min(3, targetCount - #activeParticles) -- Spawn up to 3 per tick
+				for i = 1, toSpawn do
+					spawnParticle(bounds)
+				end
+			end
+		end
+	end
+	
+	local function onHeartbeat(dt)
+		if not Config.Enabled or not isPlaying then return end
+	
+		spawnLoop(dt)
+		updateParticles(dt)
+	end
+	
+	function Particles:Initialize(dependencies)
+		deps = dependencies
+		initPerlin()
+	
+		if Config.DebugLog then
+			print("[Particles] Initialized with Perlin noise")
+		end
+	end
+	
+	function Particles:SetLayer(layer)
+		particleLayer = layer
+	
+		if Config.DebugLog then
+			print("[Particles] Layer set:", layer and "active" or "nil")
+		end
+	end
+	
+	function Particles:Play(state)
+		if not Config.Enabled then return end
+	
+		currentState = state or "idle"
+		isPlaying = true
+	
+		-- Start update loop if not already running
+		if not updateConnection then
+			updateConnection = deps.RunService.Heartbeat:Connect(onHeartbeat)
+		end
+	
+		if Config.DebugLog then
+			local count = calculateParticleCount(currentState)
+			print(string.format("[Particles] Playing - State: %s | Target count: %d | FPS: %.1f",
+				currentState, count, lastFPS))
+		end
+	end
+	
+	function Particles:Stop(fastFade)
+		isPlaying = false
+	
+		-- Fast fade: reduce lifetime to trigger fade-out
+		if fastFade then
+			for _, data in ipairs(activeParticles) do
+				data.lifetime = math.min(data.lifetime, data.age + data.fadeOutDuration)
+			end
+		end
+	
+		-- Clear all particles after fade
+		task.delay(fastFade and 0.25 or 0, function()
+			for i = #activeParticles, 1, -1 do
+				releaseParticle(activeParticles[i].instance)
+				table.remove(activeParticles, i)
+			end
+		end)
+	
+		if Config.DebugLog then
+			print("[Particles] Stopped - Fast fade:", fastFade or false)
+		end
+	end
+	
+	function Particles:SetState(state)
+		currentState = state or "idle"
+	
+		if Config.DebugLog then
+			print("[Particles] State changed:", currentState)
+		end
+	end
+	
+	function Particles:SetConfig(key, value)
+		if Config[key] ~= nil then
+			Config[key] = value
+	
+			if Config.DebugLog then
+				print("[Particles] Config updated:", key, "=", value)
+			end
+		end
+	end
+	
+	function Particles:GetConfig(key)
+		return Config[key]
+	end
+	
+	function Particles:GetStats()
+		return {
+			activeCount = #activeParticles,
+			pooledCount = #particlePool,
+			fps = lastFPS,
+			densityMultiplier = adaptiveDensityMultiplier,
+			state = currentState,
+			isPlaying = isPlaying
+		}
 	end
 end
 
@@ -6418,9 +6974,9 @@ do
 	WindowBuilder = {}
 	
 	local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
-	local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem
+	local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles
 	
-	local UIS, GuiService, RS, PlayerGui, HttpService
+	local UIS, GuiService, RS, PlayerGui, HttpService, RunService
 	
 	function WindowBuilder:Initialize(deps)
 		-- Inject all dependencies
@@ -6442,6 +6998,7 @@ do
 		OverlayLayer = deps.OverlayLayer
 		Overlay = deps.Overlay
 		KeySystem = deps.KeySystem
+		Particles = deps.Particles
 	
 		-- Services
 		UIS = deps.UIS
@@ -6449,6 +7006,7 @@ do
 		RS = deps.RS
 		PlayerGui = deps.PlayerGui
 		HttpService = deps.HttpService
+		RunService = deps.RunService
 	end
 	
 	function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
@@ -6673,6 +7231,22 @@ do
 		UIHelpers.corner(root, 16)
 		UIHelpers.stroke(root, pal.Accent, 2)
 	
+		-- Particle background layer (below content, above glass)
+		local particleLayer = Instance.new("Frame")
+		particleLayer.Name = "ParticleLayer"
+		particleLayer.BackgroundTransparency = 1
+		particleLayer.BorderSizePixel = 0
+		particleLayer.Size = UDim2.new(1, 0, 1, 0)
+		particleLayer.Position = UDim2.new(0, 0, 0, 0)
+		particleLayer.ZIndex = 50 -- Below content (100+), above root background
+		particleLayer.ClipsDescendants = false -- Allow particles to drift freely
+		particleLayer.Parent = root
+	
+		-- Initialize particle system for this window
+		if Particles then
+			Particles:SetLayer(particleLayer)
+		end
+	
 		-- Header bar with gloss effect
 		local header = Instance.new("Frame")
 		header.Size = UDim2.new(1, 0, 0, 52)
@@ -6764,12 +7338,23 @@ do
 				dragStart = input.Position
 				startPos = root.Position
 	
+				-- Throttle particles during drag
+				if Particles and not isMinimized then
+					Particles:SetState("dragging")
+				end
+	
 				Debug.printf("[DRAG] Started - mouse: (%.1f, %.1f), window: %s",
 					input.Position.X, input.Position.Y, tostring(root.Position))
 	
 				input.Changed:Connect(function()
 					if input.UserInputState == Enum.UserInputState.End then
 						dragging = false
+	
+						-- Restore idle particles after drag
+						if Particles and not isMinimized then
+							Particles:SetState("idle")
+						end
+	
 						Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
 					end
 				end)
@@ -7248,6 +7833,18 @@ do
 			end
 	
 			root.Visible = true
+	
+			-- Start particle system with expand burst on initial show
+			if Particles then
+				Particles:Play("expand")
+				-- Transition to idle after burst (300-450ms)
+				task.delay(math.random() * (0.45 - 0.3) + 0.3, function()
+					if Particles then
+						Particles:SetState("idle")
+					end
+				end)
+			end
+	
 			task.defer(function()
 				snapshotLayout("post-show")
 			end)
@@ -7469,6 +8066,11 @@ do
 			Animator:Ripple(minimizeBtn, 16, 12)
 			snapshotLayout("pre-minimize")
 	
+			-- Stop particle system with fast fade
+			if Particles then
+				Particles:Stop(true) -- Fast fade (220ms)
+			end
+	
 			local screenSize = workspace.CurrentCamera.ViewportSize
 			local chipTargetPos = UDim2.new(0.5, 0, 0.5, 0)
 			if RvrseUI._controllerChipPosition then
@@ -7541,6 +8143,11 @@ do
 			local windowCenterX = centerX + (targetWidth / 2)
 			local windowCenterY = centerY + (targetHeight / 2)
 	
+			-- Start particle system with expand burst
+			if Particles then
+				Particles:Play("expand")
+			end
+	
 			createParticleFlow(
 				{X = chipCenterX, Y = chipCenterY},
 				{X = windowCenterX, Y = windowCenterY},
@@ -7578,6 +8185,13 @@ do
 			task.wait(0.05)  -- Small buffer for tween to fully settle
 			isAnimating = false
 			Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
+	
+			-- Transition particles to idle mode after expand burst (300-450ms delay)
+			task.delay(math.random() * (0.45 - 0.3) + 0.3, function()
+				if Particles and not isMinimized then
+					Particles:SetState("idle")
+				end
+			end)
 	
 			task.delay(0.05, restoreDefaultClipping)
 		end
@@ -8275,6 +8889,11 @@ KeySystem:Initialize({
 	Obfuscation = Obfuscation
 })
 
+Particles:Initialize({
+	Theme = Theme,
+	RunService = RS
+})
+
 
 -- ============================================
 -- MAIN RVRSEUI TABLE & PUBLIC API
@@ -8315,6 +8934,7 @@ function RvrseUI:CreateWindow(cfg)
 		Notifications = Notifications,
 		Overlay = Overlay,  -- ⭐ CRITICAL: Pass Overlay service!
 		KeySystem = KeySystem,
+		Particles = Particles,  -- ⭐ NEW: Organic particle system
 		Debug = Debug,
 		Obfuscation = Obfuscation,
 		Hotkeys = Hotkeys,
@@ -8324,6 +8944,7 @@ function RvrseUI:CreateWindow(cfg)
 		UIS = UIS,
 		GuiService = GuiService,
 		RS = RS,
+		RunService = RS,  -- Alias for compatibility
 		PlayerGui = PlayerGui,
 		HttpService = game:GetService("HttpService")
 	}

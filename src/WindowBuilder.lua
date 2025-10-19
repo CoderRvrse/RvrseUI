@@ -6,10 +6,10 @@ local WindowBuilder = {}
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
-local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem
+local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles
 
 -- Roblox services (will be injected)
-local UIS, GuiService, RS, PlayerGui, HttpService
+local UIS, GuiService, RS, PlayerGui, HttpService, RunService
 
 function WindowBuilder:Initialize(deps)
 	-- Inject all dependencies
@@ -31,6 +31,7 @@ function WindowBuilder:Initialize(deps)
 	OverlayLayer = deps.OverlayLayer
 	Overlay = deps.Overlay
 	KeySystem = deps.KeySystem
+	Particles = deps.Particles
 
 	-- Services
 	UIS = deps.UIS
@@ -38,6 +39,7 @@ function WindowBuilder:Initialize(deps)
 	RS = deps.RS
 	PlayerGui = deps.PlayerGui
 	HttpService = deps.HttpService
+	RunService = deps.RunService
 end
 
 -- Extract all the CreateWindow logic from RvrseUI.lua lines 1293-3922
@@ -263,6 +265,22 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Accent, 2)
 
+	-- Particle background layer (below content, above glass)
+	local particleLayer = Instance.new("Frame")
+	particleLayer.Name = "ParticleLayer"
+	particleLayer.BackgroundTransparency = 1
+	particleLayer.BorderSizePixel = 0
+	particleLayer.Size = UDim2.new(1, 0, 1, 0)
+	particleLayer.Position = UDim2.new(0, 0, 0, 0)
+	particleLayer.ZIndex = 50 -- Below content (100+), above root background
+	particleLayer.ClipsDescendants = false -- Allow particles to drift freely
+	particleLayer.Parent = root
+
+	-- Initialize particle system for this window
+	if Particles then
+		Particles:SetLayer(particleLayer)
+	end
+
 	-- Header bar with gloss effect
 	local header = Instance.new("Frame")
 	header.Size = UDim2.new(1, 0, 0, 52)
@@ -354,12 +372,23 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			dragStart = input.Position
 			startPos = root.Position
 
+			-- Throttle particles during drag
+			if Particles and not isMinimized then
+				Particles:SetState("dragging")
+			end
+
 			Debug.printf("[DRAG] Started - mouse: (%.1f, %.1f), window: %s",
 				input.Position.X, input.Position.Y, tostring(root.Position))
 
 			input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
 					dragging = false
+
+					-- Restore idle particles after drag
+					if Particles and not isMinimized then
+						Particles:SetState("idle")
+					end
+
 					Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
 				end
 			end)
@@ -838,6 +867,18 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		root.Visible = true
+
+		-- Start particle system with expand burst on initial show
+		if Particles then
+			Particles:Play("expand")
+			-- Transition to idle after burst (300-450ms)
+			task.delay(math.random() * (0.45 - 0.3) + 0.3, function()
+				if Particles then
+					Particles:SetState("idle")
+				end
+			end)
+		end
+
 		task.defer(function()
 			snapshotLayout("post-show")
 		end)
@@ -1059,6 +1100,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		Animator:Ripple(minimizeBtn, 16, 12)
 		snapshotLayout("pre-minimize")
 
+		-- Stop particle system with fast fade
+		if Particles then
+			Particles:Stop(true) -- Fast fade (220ms)
+		end
+
 		local screenSize = workspace.CurrentCamera.ViewportSize
 		local chipTargetPos = UDim2.new(0.5, 0, 0.5, 0)
 		if RvrseUI._controllerChipPosition then
@@ -1131,6 +1177,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local windowCenterX = centerX + (targetWidth / 2)
 		local windowCenterY = centerY + (targetHeight / 2)
 
+		-- Start particle system with expand burst
+		if Particles then
+			Particles:Play("expand")
+		end
+
 		createParticleFlow(
 			{X = chipCenterX, Y = chipCenterY},
 			{X = windowCenterX, Y = windowCenterY},
@@ -1168,6 +1219,13 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		task.wait(0.05)  -- Small buffer for tween to fully settle
 		isAnimating = false
 		Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
+
+		-- Transition particles to idle mode after expand burst (300-450ms delay)
+		task.delay(math.random() * (0.45 - 0.3) + 0.3, function()
+			if Particles and not isMinimized then
+				Particles:SetState("idle")
+			end
+		end)
 
 		task.delay(0.05, restoreDefaultClipping)
 	end

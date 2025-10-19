@@ -6,18 +6,18 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 RvrseUI v4.1.0 Build Script');
+console.log('🔨 RvrseUI v4.2.0 Build Script');
 console.log('='.repeat(52));
 
 // Header for compiled file
-const header = `-- RvrseUI v4.1.0 | Modern Professional UI Framework
+const header = `-- RvrseUI v4.2.0 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
--- Features: Unified Multi-Select Dropdowns, Advanced ColorPicker, Key System, Spring Animations
+-- Features: Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
--- Extras: Notify system, Theme switcher, LockGroup system, Drag-to-move, Config persistence
+-- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
--- 🏗️ ARCHITECTURE: This file is compiled from 27 modular files
+-- 🏗️ ARCHITECTURE: This file is compiled from 28 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 
@@ -65,6 +65,7 @@ const moduleOrder = [
 	'src/Notifications.lua',
 	'src/Overlay.lua',  // ⭐ CRITICAL: Must be included for ColorPicker!
 	'src/KeySystem.lua',
+	'src/Particles.lua',  // ⭐ NEW: Organic particle system with Perlin noise
 
 	// Elements
 	'src/Elements/Button.lua',
@@ -230,6 +231,11 @@ KeySystem:Initialize({
 	Debug = Debug,
 	Obfuscation = Obfuscation
 })
+
+Particles:Initialize({
+	Theme = Theme,
+	RunService = RS
+})
 `;
 
 finalCode += initSection + '\n';
@@ -275,6 +281,7 @@ function RvrseUI:CreateWindow(cfg)
 		Notifications = Notifications,
 		Overlay = Overlay,  -- ⭐ CRITICAL: Pass Overlay service!
 		KeySystem = KeySystem,
+		Particles = Particles,  -- ⭐ NEW: Organic particle system
 		Debug = Debug,
 		Obfuscation = Obfuscation,
 		Hotkeys = Hotkeys,
@@ -284,6 +291,7 @@ function RvrseUI:CreateWindow(cfg)
 		UIS = UIS,
 		GuiService = GuiService,
 		RS = RS,
+		RunService = RS,  -- Alias for compatibility
 		PlayerGui = PlayerGui,
 		HttpService = game:GetService("HttpService")
 	}

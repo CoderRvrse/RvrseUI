@@ -30,6 +30,7 @@ local Notifications = require(script.src.Notifications)
 local Hotkeys = require(script.src.Hotkeys)
 local KeySystem = require(script.src.KeySystem)
 local WindowManager = require(script.src.WindowManager)
+local Particles = require(script.src.Particles)
 local TabBuilder = require(script.src.TabBuilder)
 local SectionBuilder = require(script.src.SectionBuilder)
 local WindowBuilder = require(script.src.WindowBuilder)
@@ -133,6 +134,12 @@ KeySystem:Initialize({
 	Obfuscation = Obfuscation
 })
 
+-- Initialize Particles (needs Theme and RunService)
+Particles:Initialize({
+	Theme = Theme,
+	RunService = RunService
+})
+
 -- Prepare dependency injection object
 local deps = {
 	Theme = Theme,
@@ -146,6 +153,7 @@ local deps = {
 	WindowManager = WindowManager,
 	Notifications = Notifications,
 	KeySystem = KeySystem,
+	Particles = Particles,
 	Debug = Debug,
 	Obfuscation = Obfuscation,
 	Hotkeys = Hotkeys,
@@ -158,6 +166,7 @@ local deps = {
 	UIS = UserInputService,
 	GuiService = GuiService,
 	RS = RunService,
+	RunService = RunService,
 	PlayerGui = PlayerGui,
 	HttpService = HttpService,
 	TweenService = TweenService

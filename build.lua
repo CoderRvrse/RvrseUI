@@ -79,7 +79,9 @@ local moduleOrder = {
 	"src/WindowManager.lua",
 	"src/Hotkeys.lua",
 	"src/Notifications.lua",
+	"src/Overlay.lua",
 	"src/KeySystem.lua",
+	"src/Particles.lua",
 
 	-- Elements
 	"src/Elements/Button.lua",
