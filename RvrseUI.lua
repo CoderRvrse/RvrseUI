@@ -1,5 +1,5 @@
 -- RvrseUI v4.2.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-19T00:44:22.542Z
+-- Compiled from modular architecture on 2025-10-19T00:51:53.393Z
 
 -- Features: Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -7929,6 +7929,18 @@ do
 			end
 		end)
 	
+		-- Particle background layer for controller chip (circular, behind icon)
+		local chipParticleLayer = Instance.new("Frame")
+		chipParticleLayer.Name = "ChipParticleLayer"
+		chipParticleLayer.BackgroundTransparency = 1
+		chipParticleLayer.BorderSizePixel = 0
+		chipParticleLayer.Size = UDim2.new(1, 0, 1, 0)
+		chipParticleLayer.Position = UDim2.new(0, 0, 0, 0)
+		chipParticleLayer.ZIndex = 190 -- Below chip content (200), above background
+		chipParticleLayer.ClipsDescendants = true -- Clip to circular chip boundary
+		chipParticleLayer.Parent = controllerChip
+		UIHelpers.corner(chipParticleLayer, 25) -- Match chip corner radius
+	
 		-- Enhanced particle flow system for minimize/restore transitions
 		local function createParticleFlow(startPos, endPos, count, duration, flowType)
 			for i = 1, count do
@@ -8107,6 +8119,12 @@ do
 				controllerChip.Visible = true
 				controllerChip.Size = UDim2.new(0, 0, 0, 0)
 	
+				-- Switch particles to chip layer and start idle animation
+				if Particles then
+					Particles:SetLayer(chipParticleLayer)
+					Particles:Play("idle")
+				end
+	
 				local chipGrowTween = Animator:Tween(controllerChip, {
 					Size = UDim2.new(0, 50, 0, 50)
 				}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
@@ -8143,9 +8161,9 @@ do
 			local windowCenterX = centerX + (targetWidth / 2)
 			local windowCenterY = centerY + (targetHeight / 2)
 	
-			-- Start particle system with expand burst
+			-- Stop chip particles and prepare for window restore
 			if Particles then
-				Particles:Play("expand")
+				Particles:Stop(true) -- Fast fade chip particles
 			end
 	
 			createParticleFlow(
@@ -8162,6 +8180,12 @@ do
 	
 			task.wait(0.3)
 			controllerChip.Visible = false
+	
+			-- Switch particles back to window layer and start expand burst
+			if Particles then
+				Particles:SetLayer(particleLayer)
+				Particles:Play("expand")
+			end
 	
 			root.Visible = true
 			root.Size = UDim2.new(0, 0, 0, 0)
@@ -8243,12 +8267,22 @@ do
 				chipDragStart = input.Position
 				chipStartPos = controllerChip.Position
 	
+				-- Throttle particles during chip drag
+				if Particles and isMinimized then
+					Particles:SetState("dragging")
+				end
+	
 				Debug.printf("[CHIP DRAG] Started - mouse: (%.1f, %.1f), chip: %s",
 					input.Position.X, input.Position.Y, tostring(controllerChip.Position))
 	
 				input.Changed:Connect(function()
 					if input.UserInputState == Enum.UserInputState.End then
 						chipDragging = false
+	
+						-- Restore idle particles after drag
+						if Particles and isMinimized then
+							Particles:SetState("idle")
+						end
 	
 						-- Save final position
 						RvrseUI._controllerChipPosition = {
