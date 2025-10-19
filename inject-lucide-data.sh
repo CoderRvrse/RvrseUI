@@ -17,7 +17,10 @@ INJECTION="
 -- ========================
 -- 500+ Lucide icons via sprite sheets (145KB)
 -- Set as global for LucideIcons module to access
-_G.RvrseUI_LucideIconsData = $LUCIDE_DATA
+local function __loadLucideSpriteData()
+$LUCIDE_DATA
+end
+_G.RvrseUI_LucideIconsData = __loadLucideSpriteData()
 "
 
 # 4. Find the line number where modules start (after RvrseUI = {})
