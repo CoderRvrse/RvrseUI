@@ -46,6 +46,7 @@ local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RS = game:GetService("RunService")
 local GuiService = game:GetService("GuiService")
+local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 
 local LP = Players.LocalPlayer
@@ -67,6 +68,7 @@ local moduleOrder = {
 
 	-- Data
 	"src/Icons.lua",
+	"src/LucideIcons.lua",  -- ⭐ NEW: Lucide icon library integration
 	"src/Theme.lua",
 
 	-- Systems
@@ -185,7 +187,14 @@ UIHelpers:Initialize({
 	PlayerGui = PlayerGui
 })
 
-Icons:Initialize()
+LucideIcons:Initialize({
+	HttpService = HttpService,
+	Debug = Debug
+})
+
+Icons:Initialize({
+	LucideIcons = LucideIcons
+})
 
 Elements = {
 	Button = Button,

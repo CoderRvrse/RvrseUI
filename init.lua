@@ -26,6 +26,7 @@ local State = require(script.src.State)
 local Config = require(script.src.Config)
 local UIHelpers = require(script.src.UIHelpers)
 local Icons = require(script.src.Icons)
+local LucideIcons = require(script.src.LucideIcons)
 local Notifications = require(script.src.Notifications)
 local Hotkeys = require(script.src.Hotkeys)
 local KeySystem = require(script.src.KeySystem)
@@ -90,8 +91,16 @@ UIHelpers:Initialize({
 	PlayerGui = PlayerGui
 })
 
--- Initialize Icons
-Icons:Initialize()
+-- Initialize LucideIcons (needs HttpService for fetching SVGs)
+LucideIcons:Initialize({
+	HttpService = HttpService,
+	Debug = Debug
+})
+
+-- Initialize Icons (needs LucideIcons for lucide:// protocol)
+Icons:Initialize({
+	LucideIcons = LucideIcons
+})
 
 -- Create host ScreenGui for notifications and windows
 local host = Instance.new("ScreenGui")

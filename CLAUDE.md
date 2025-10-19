@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.1.0)
+# RvrseUI – Maintainer Notes (v4.2.0)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -622,6 +622,31 @@ git push origin main
 - The overlay layer is kept transparent and hidden when idle; dropdowns show/hide it as needed.
 - When adding new overlay elements, use `deps.OverlayLayer` (from WindowBuilder) to ensure consistent z-ordering.
 
+### Lucide Icon System (`src/LucideIcons.lua` + `src/Icons.lua`) - v4.2.0 NEW!
+- **Lucide library integration** provides access to 500+ professional icons from https://lucide.dev
+- Use `lucide://` protocol in Icon parameters: `Icon = "lucide://home"`, `Icon = "lucide://arrow-right"`
+- **Critical limitation**: Roblox does NOT support SVG rendering natively
+- **Solution**: LucideIcons automatically provides Unicode fallbacks for common icons
+- **Advanced usage**: Upload Lucide SVGs as Roblox ImageAssets and map them in `LucideIcons.AssetMap`
+  ```lua
+  LucideIcons.AssetMap = {
+      ["home"] = 123456789,  -- Your uploaded Roblox asset ID
+      ["settings"] = 987654321,
+  }
+  ```
+- **Icon resolution order**:
+  1. Check `LucideIcons.AssetMap` for user-uploaded assets
+  2. Fall back to `LucideIcons.UnicodeFallbacks` (100+ common icons mapped)
+  3. Display icon name as text if no fallback exists
+- **Supported icon formats** (all elements):
+  - `"lucide://home"` → Lucide icon (Unicode fallback or asset)
+  - `"icon://home"` → Built-in Unicode library (190+ icons)
+  - `"🏠"` → Direct emoji pass-through
+  - `"rbxassetid://123"` → Direct Roblox asset URL
+  - `123456789` → Roblox asset ID (number)
+- **HttpService dependency**: LucideIcons requires HttpService for SVG fetching (currently unused but prepared for future)
+- **Examples**: See `examples/test-lucide-icons.lua` for comprehensive demo
+
 ### Monolith Build Pipeline
 - `build.js` / `build.lua` wrap each module in a `do ... end` scope with tab indentation before concatenation.
 - Bootstrap logic from `init.lua` is embedded into the monolith (lines 138-232 of build scripts):
@@ -884,13 +909,13 @@ git push origin main
 
 ## 📊 Module Statistics
 
-- **Total Modules:** 25 (not 26 - documentation error in older versions)
+- **Total Modules:** 29 (includes LucideIcons as of v4.2.0)
   - Foundation: 3 (Version, Debug, Obfuscation)
-  - Data: 2 (Icons, Theme)
+  - Data: 3 (Icons, LucideIcons, Theme)
   - Systems: 3 (Animator, State, UIHelpers)
-  - Services: 5 (Config, WindowManager, Hotkeys, Notifications, Overlay)
+  - Services: 7 (Config, WindowManager, Hotkeys, Notifications, Overlay, KeySystem, Particles)
   - Elements: 10 (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider)
   - Builders: 3 (SectionBuilder, TabBuilder, WindowBuilder)
-- **Element Count:** 10 UI elements (not 12 - documentation referenced future elements)
-- **Total Lines (compiled):** ~5,500 lines in RvrseUI.lua
-- **File Size:** ~166 KB (RvrseUI.lua monolith)
+- **Element Count:** 10 UI elements
+- **Total Lines (compiled):** ~6,000 lines in RvrseUI.lua
+- **File Size:** ~272 KB (RvrseUI.lua monolith)

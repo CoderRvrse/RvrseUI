@@ -1,8 +1,12 @@
 -- Icons.lua
 -- Unicode icon library and resolution system for RvrseUI
 -- Extracted from RvrseUI.lua (lines 548-756)
+-- Now supports Lucide icons via lucide:// protocol
 
 local Icons = {}
+
+-- Dependencies (injected via Initialize)
+local deps
 
 -- Complete Unicode icon library with named aliases
 Icons.UnicodeIcons = {
@@ -190,8 +194,14 @@ Icons.UnicodeIcons = {
 }
 
 -- Resolves an icon input to its display format and type
--- @param icon: string (icon name/emoji/rbxassetid) or number (Roblox asset ID)
+-- @param icon: string (icon name/emoji/rbxassetid/lucide) or number (Roblox asset ID)
 -- @return iconValue: string (unicode char or asset URL), iconType: string ("text" or "image")
+-- Supported formats:
+--   - Number: Roblox asset ID (e.g., 123456789)
+--   - "icon://name": Unicode icon from library (e.g., "icon://home")
+--   - "lucide://name": Lucide icon (e.g., "lucide://home", "lucide://arrow-right")
+--   - "rbxassetid://123": Direct Roblox asset URL
+--   - "emoji" or "text": Direct emoji/text pass-through
 function Icons:Resolve(icon)
 	-- If it's a number, it's a Roblox asset ID
 	if typeof(icon) == "number" then
@@ -200,6 +210,18 @@ function Icons:Resolve(icon)
 
 	-- If it's a string
 	if typeof(icon) == "string" then
+		-- Check for lucide:// protocol
+		local lucideName = icon:match("^lucide://(.+)")
+		if lucideName and deps and deps.LucideIcons then
+			-- Resolve Lucide icon (returns asset ID or Unicode fallback)
+			local lucideValue, lucideType = deps.LucideIcons:Get(lucideName)
+			if lucideType == "image" then
+				return "rbxassetid://" .. lucideValue, "image"
+			else
+				return lucideValue, "text"
+			end
+		end
+
 		-- Check if it's a named icon from our Unicode library
 		local iconName = icon:lower():gsub("icon://", "")
 		if self.UnicodeIcons[iconName] then
@@ -219,9 +241,11 @@ function Icons:Resolve(icon)
 end
 
 -- Initialize method (called by init.lua)
-function Icons:Initialize()
-	-- Icons table is ready to use, no initialization needed
+function Icons:Initialize(dependencies)
+	deps = dependencies
+	-- Icons table is ready to use
 	-- UnicodeIcons are defined at module load time
+	-- Lucide icons require LucideIcons module to be initialized
 end
 
 -- Helper function for compatibility (dot notation, lowercase)
