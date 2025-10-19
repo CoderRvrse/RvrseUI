@@ -264,8 +264,21 @@ local function spawnParticle(bounds)
 
 	-- Random spawn position (padding 12-16px inside bounds)
 	local padding = math.random(12, 16)
-	local x = math.random(padding, bounds.X - padding - size)
-	local y = bounds.Y - padding - size -- Start near bottom
+
+	-- Validate bounds are large enough for particles
+	local minX = padding
+	local maxX = bounds.X - padding - size
+	local minY = padding
+	local maxY = bounds.Y - padding - size
+
+	-- Skip spawning if bounds are too small (e.g., during animations)
+	if maxX <= minX or maxY <= minY then
+		releaseParticle(particle)
+		return
+	end
+
+	local x = math.random(minX, maxX)
+	local y = maxY -- Start near bottom
 
 	-- Particle data
 	local data = {
