@@ -51,6 +51,14 @@ config.local.lua
 secrets.lua
 .claude/
 
+# Private lessons and learning materials (DO NOT COMMIT!)
+LESSON*.txt
+LESSON*.md
+*_lesson.lua
+*_LESSON.lua
+GLOBALHOOK*
+*getgenv*
+
 # Node modules (if using any JS tools)
 node_modules/
 

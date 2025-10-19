@@ -265,6 +265,99 @@ wrapper()  -- Returns nil, not "value"!
 
 ---
 
+## 🚨 CRITICAL WARNING #5: NEVER Use `_G` - Executor Safety
+
+### **ALWAYS use `local` or `getgenv()` - NEVER `_G`!**
+
+**Why This Matters:**
+- RvrseUI is designed for **executor safety** and **detection avoidance**
+- Using `_G` makes your scripts **easily detectable** by anti-cheat systems
+- Roblox can monitor and log `_G` usage globally
+
+**What is `_G`?**
+- `_G` is Roblox's global environment shared across ALL scripts
+- Anti-cheat systems monitor it for suspicious activity
+- **NEVER use it for exploits, hubs, or executors!**
+
+**The Safe Alternatives:**
+
+### ✅ CORRECT - Use Local Variables (Recommended)
+```lua
+-- ✅ SAFE - Script-scoped, not detectable
+local RvrseUI = loadstring(game:HttpGet(...))()
+local Window = RvrseUI:CreateWindow({
+    Name = "My Hub"
+})
+
+local enabled = true
+local looping = false
+```
+
+### ✅ CORRECT - Use getgenv() for Persistent State
+```lua
+-- ✅ SAFE - Executor-private global (NOT Roblox's _G!)
+if not getgenv().RvrseUI then
+    getgenv().RvrseUI = loadstring(game:HttpGet(...))()
+end
+
+local RvrseUI = getgenv().RvrseUI
+
+-- Store toggles in getgenv() (NOT _G!)
+getgenv().loopEnabled = true
+
+while getgenv().loopEnabled do
+    task.wait()
+    -- Your loop logic
+end
+
+-- To stop:
+getgenv().loopEnabled = false
+```
+
+### ❌ WRONG - NEVER Do This
+```lua
+-- ❌ DETECTED - Do NOT use _G!
+_G.RvrseUI = loadstring(game:HttpGet(...))()
+_G.Window = _G.RvrseUI:CreateWindow(...)
+_G.enabled = true
+_G.looping = false
+
+-- Roblox can detect and flag all of these!
+```
+
+**Key Differences:**
+
+| Storage | Scope | Detection Risk | Use Case |
+|---------|-------|----------------|----------|
+| `local` | Script-only | None | Most data (recommended) |
+| `getgenv()` | Executor-private | None | Persistent toggles/state |
+| `_G` | Roblox-global | **HIGH** | **NEVER use!** |
+
+**Rules - NO EXCEPTIONS:**
+- ✅ **RvrseUI internally uses ZERO `_G` references** - Verified in build scripts
+- ✅ **All examples use `local` variables** - Safe by default
+- ✅ **Use `getgenv()` for persistent state** - Executor-private, not detectable
+- ❌ **NEVER use `_G` in production scripts** - Instant red flag for anti-cheat
+- ❌ **NEVER store UI references in `_G`** - Use local or getgenv()
+
+**Verification:**
+```bash
+# RvrseUI has ZERO _G usage:
+grep -r "_G\." src/ init.lua
+# (Returns no results - verified clean)
+```
+
+**Full Documentation:**
+See [docs/SECURITY.md](docs/SECURITY.md) for complete security best practices, common mistakes, and advanced patterns.
+
+**If you add ANY code that touches `_G`:**
+1. **STOP** - You're introducing detection risk
+2. **Re-read this section** - Use `getgenv()` instead
+3. **Ask yourself:** "Can this be `local` instead?"
+4. **Test:** Verify anti-cheat doesn't flag it
+
+---
+
 ## 🏗️ Architecture Overview
 
 ### File Structure
