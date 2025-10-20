@@ -265,6 +265,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Accent, 2)
 
+	local lastWindowSize = root.Size
+	local lastWindowPosition = root.Position
+
 	-- Inner mask to control clipping during minimize animations
 	local panelMask = Instance.new("Frame")
 	panelMask.Name = "PanelMask"
@@ -368,6 +371,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			startPos.Y.Scale,
 			startPos.Y.Offset + delta.Y
 		)
+		lastWindowPosition = root.Position
 	end
 
 	-- Start dragging when header is clicked
@@ -405,6 +409,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 
 					Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
+					lastWindowPosition = root.Position
 				end
 			end)
 		end
@@ -1135,6 +1140,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		if isMinimized or isAnimating then return end
 		isMinimized = true
 		isAnimating = true  -- ✅ LOCK drag during animation
+		lastWindowSize = root.Size
+		lastWindowPosition = root.Position
 		if Overlay then
 			Overlay:HideBlocker(true)
 		end
@@ -1209,13 +1216,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		shrinkTween.Completed:Wait()
 		controllerChip.Visible = false
 
-		local targetSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
-		local targetWidth = isMobile and 380 or baseWidth
-		local targetHeight = isMobile and 520 or baseHeight
+		local fallbackSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
 		local screenSize = workspace.CurrentCamera.ViewportSize
-		local centerX = (screenSize.X - targetWidth) / 2
-		local centerY = (screenSize.Y - targetHeight) / 2
-		local targetPos = UDim2.fromOffset(centerX, centerY)
+		local fallbackWidth = fallbackSize.X.Offset
+		local fallbackHeight = fallbackSize.Y.Offset
+		local centerX = (screenSize.X - fallbackWidth) / 2
+		local centerY = (screenSize.Y - fallbackHeight) / 2
+		local fallbackPos = UDim2.fromOffset(centerX, centerY)
+
+		local targetSize = lastWindowSize or fallbackSize
+		local targetPos = lastWindowPosition or fallbackPos
 
 		root.Visible = true
 		root.Size = UDim2.new(0, 0, 0, 0)
@@ -1233,7 +1243,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Position = targetPos,
 			BackgroundTransparency = 1,
 			Rotation = 0
-		}, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+		}, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
 
 		task.defer(function()
 			snapshotLayout("post-restore")
@@ -1242,6 +1252,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		restoreTween.Completed:Wait()
 		task.wait(0.05)
 		isAnimating = false
+		lastWindowSize = targetSize
+		lastWindowPosition = targetPos
 		Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
 
 		task.delay(0.25, function()
