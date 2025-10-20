@@ -1,5 +1,7 @@
 # RvrseUI v4.3.0
 
+![RvrseUI Banner](assets/banner.png)
+
 **Modern, Production-Ready Roblox UI Library** with Lucide Icon System, Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
 
 ![Version](https://img.shields.io/badge/version-4.3.0-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-434KB-orange)
