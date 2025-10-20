@@ -1143,6 +1143,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		snapshotLayout("pre-minimize")
 
 		if Particles then
+			Particles:EmitFlightBurst({
+				mode = "collapse",
+				layer = particleLayer,
+				boundsFrame = panelMask
+			})
 			Particles:Stop(true)
 		end
 
@@ -1180,6 +1185,12 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		if Particles then
 			Particles:SetLayer(chipParticleLayer)
 			Particles:Play("idle")
+			Particles:EmitFlightBurst({
+				mode = "chip",
+				layer = chipParticleLayer,
+				boundsFrame = controllerChip,
+				count = 6
+			})
 		end
 
 		local chipGrowTween = Animator:Tween(controllerChip, {
@@ -1225,6 +1236,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		if Particles then
 			Particles:SetLayer(particleLayer)
+			Particles:EmitFlightBurst({
+				mode = "expand",
+				layer = particleLayer,
+				boundsFrame = panelMask
+			})
 			Particles:Play("expand")
 		end
 

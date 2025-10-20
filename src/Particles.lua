@@ -4,6 +4,7 @@
 
 local Particles = {}
 local deps
+local TweenService
 
 -- Configuration
 local Config = {
@@ -169,6 +170,15 @@ local function hslToRgb(h, s, l)
 	return Color3.new(r, g, b)
 end
 
+local function lerpColor(a, b, alpha)
+	alpha = math.clamp(alpha or 0.5, 0, 1)
+	return Color3.new(
+		a.R + (b.R - a.R) * alpha,
+		a.G + (b.G - a.G) * alpha,
+		a.B + (b.B - a.B) * alpha
+	)
+end
+
 -- RGB to HSL conversion
 local function rgbToHsl(color)
 	local r, g, b = color.R, color.G, color.B
@@ -229,7 +239,45 @@ local function createParticleInstance()
 	})
 	gradient.Parent = particle
 
+	local stroke = Instance.new("UIStroke")
+	stroke.Thickness = 1
+	stroke.Transparency = 0.65
+	stroke.Parent = particle
+
 	return particle
+end
+
+local function createBurstBubble(themePalette, zIndex)
+	local bubble = Instance.new("Frame")
+	bubble.Name = "FlightBubble"
+	bubble.AnchorPoint = Vector2.new(0.5, 0.5)
+	bubble.BackgroundTransparency = 1
+	bubble.BorderSizePixel = 0
+	bubble.ZIndex = (zIndex or 50) + 5
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = bubble
+
+	local gradient = Instance.new("UIGradient")
+	gradient.Rotation = math.random(0, 360)
+	gradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, themePalette.Accent),
+		ColorSequenceKeypoint.new(1, lerpColor(themePalette.Accent, themePalette.Secondary, 0.35))
+	})
+	gradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.15),
+		NumberSequenceKeypoint.new(1, 0.95)
+	})
+	gradient.Parent = bubble
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = lerpColor(themePalette.Accent, themePalette.BorderGlow or themePalette.Secondary, 0.2)
+	stroke.Thickness = 1
+	stroke.Transparency = 0.25
+	stroke.Parent = bubble
+
+	return bubble, gradient, stroke
 end
 
 -- Get particle from pool or create new one
@@ -290,7 +338,7 @@ local function spawnParticle(bounds)
 		age = 0,
 
 		-- Velocity (upward with noise)
-		baseVelY = -(math.random() * (45 - 20) + 20), -- -20 to -45 px/s (negative = up)
+		baseVelY = -math.random(12, 28), -- gentler float speed
 		velX = 0,
 		velY = 0,
 
@@ -314,8 +362,15 @@ local function spawnParticle(bounds)
 	-- Setup instance
 	particle.Size = UDim2.new(0, size, 0, size)
 	particle.Position = UDim2.new(0, x, 0, y)
-	particle.BackgroundColor3 = data.color
+	particle.BackgroundColor3 = lerpColor(data.color, deps.Theme:Get().Primary or data.color, 0.2)
 	particle.BackgroundTransparency = 1 - data.currentOpacity
+
+	local stroke = particle:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Thickness = data.size <= 10 and 0.75 or (data.size <= 18 and 1 or 1.25)
+		stroke.Transparency = 0.45
+		stroke.Color = lerpColor(data.color, deps.Theme:Get().BorderGlow or data.color, 0.35)
+	end
 	particle.Parent = particleLayer
 
 	table.insert(activeParticles, data)
@@ -408,6 +463,16 @@ local function updateParticles(dt)
 			data.instance.Position = UDim2.new(0, data.x, 0, data.y)
 			data.instance.BackgroundTransparency = 1 - data.currentOpacity
 
+			local stroke = data.instance:FindFirstChildOfClass("UIStroke")
+			if stroke then
+				stroke.Transparency = math.clamp(0.2 + (1 - opacityAlpha) * 0.8, 0.2, 1)
+			end
+
+			local gradient = data.instance:FindFirstChildOfClass("UIGradient")
+			if gradient then
+				gradient.Rotation = (gradient.Rotation + data.velX * dt * 1.8) % 360
+			end
+
 			-- Additive blend (brighten color for additive effect)
 			if Config.Blend == "additive" then
 				local bright = 1.3
@@ -486,6 +551,156 @@ local function spawnLoop(dt)
 	end
 end
 
+-- Decorative burst used for window open/close transitions
+local function emitFlightBurst(options)
+	if not TweenService then
+		return
+	end
+
+	options = options or {}
+	local layer = options.layer or particleLayer
+	local boundsFrame = options.boundsFrame or layer
+
+	if not layer or not layer.Parent or not boundsFrame or not boundsFrame.Parent then
+		return
+	end
+
+	local palette = deps.Theme:Get()
+	local absBoundsSize = boundsFrame.AbsoluteSize
+
+	if absBoundsSize.X < 8 or absBoundsSize.Y < 8 then
+		return
+	end
+
+	local layerOrigin = layer.AbsolutePosition
+	local boundsOrigin = boundsFrame.AbsolutePosition
+
+	local mode = options.mode or "expand"
+	local count = options.count or (mode == "expand" and 14 or 10)
+	local durationMin = options.durationMin or 0.85
+	local durationMax = options.durationMax or 1.2
+	local verticalTravel = absBoundsSize.Y * (mode == "collapse" and 0.35 or 0.55)
+
+	if mode == "chip" then
+		count = options.count or 8
+		durationMin = options.durationMin or 0.7
+		durationMax = options.durationMax or 1.05
+		verticalTravel = absBoundsSize.Y * 0.6
+	end
+
+	for _ = 1, count do
+		local bubble, gradient, stroke = createBurstBubble(palette, layer.ZIndex)
+
+		local baseSize = math.random(9, 22)
+		if mode == "expand" then
+			baseSize = baseSize + math.random(-2, 6)
+		else
+			baseSize = baseSize + math.random(-4, 2)
+		end
+
+		local startX = boundsOrigin.X + math.random() * absBoundsSize.X
+		local startY
+		if mode == "collapse" then
+			startY = boundsOrigin.Y + math.random() * (absBoundsSize.Y * 0.6)
+		elseif mode == "chip" then
+			startY = boundsOrigin.Y + math.random() * absBoundsSize.Y * 0.8
+		else
+			startY = boundsOrigin.Y + absBoundsSize.Y - math.random() * (absBoundsSize.Y * 0.25)
+		end
+
+		local relativeStartX = startX - layerOrigin.X
+		local relativeStartY = startY - layerOrigin.Y
+
+		bubble.Size = UDim2.fromOffset(baseSize, baseSize)
+		bubble.Position = UDim2.fromOffset(relativeStartX, relativeStartY)
+		bubble.BackgroundTransparency = 1
+		bubble.Parent = layer
+
+		local accent = palette.Accent or Color3.fromRGB(255, 255, 255)
+		local secondary = palette.Secondary or accent
+		local glow = palette.BorderGlow or accent
+
+		if gradient then
+			gradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, accent),
+				ColorSequenceKeypoint.new(1, lerpColor(accent, secondary, 0.4))
+			})
+			gradient.Rotation = math.random(0, 360)
+		end
+
+		if stroke then
+			stroke.Thickness = baseSize <= 12 and 0.8 or (baseSize <= 18 and 1 or 1.35)
+			stroke.Transparency = 0.15
+			stroke.Color = lerpColor(accent, glow, 0.35)
+		end
+
+		local driftX = (math.random() - 0.5) * absBoundsSize.X * 0.18
+		local driftY = -verticalTravel - math.random(28, 72)
+		if mode == "collapse" then
+			driftX = driftX * 0.6
+			driftY = driftY * 0.7
+		elseif mode == "chip" then
+			driftX = driftX * 0.4
+			driftY = driftY * 0.5
+		end
+
+		local endPosition = UDim2.fromOffset(relativeStartX + driftX, relativeStartY + driftY)
+		local endSize
+		if mode == "expand" then
+			endSize = UDim2.fromOffset(baseSize * 1.2, baseSize * 1.4)
+		elseif mode == "chip" then
+			endSize = UDim2.fromOffset(baseSize * 1.05, baseSize * 1.15)
+		else
+			endSize = UDim2.fromOffset(baseSize * 1.2, baseSize * 1.15)
+		end
+		local motionDuration = math.random() * (durationMax - durationMin) + durationMin
+
+		local fadeIn = TweenService:Create(bubble, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundTransparency = 0.35
+		})
+
+		local moveTween = TweenService:Create(bubble, TweenInfo.new(motionDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+			Position = endPosition,
+			Size = endSize
+		})
+
+		local fadeOutDelay = motionDuration * 0.55
+		local fadeOutDuration = motionDuration - fadeOutDelay
+
+		local fadeOut = TweenService:Create(bubble, TweenInfo.new(fadeOutDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, fadeOutDelay), {
+			BackgroundTransparency = 1
+		})
+
+		local strokeFade
+		if stroke then
+			strokeFade = TweenService:Create(stroke, TweenInfo.new(fadeOutDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, fadeOutDelay), {
+				Transparency = 1
+			})
+		end
+
+		fadeIn:Play()
+		moveTween:Play()
+		fadeOut:Play()
+		if strokeFade then
+			strokeFade:Play()
+		end
+
+		if gradient then
+			local rotationTarget = gradient.Rotation + math.random(-35, 35)
+			local rotationTween = TweenService:Create(gradient, TweenInfo.new(motionDuration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {
+				Rotation = rotationTarget
+			})
+			rotationTween:Play()
+		end
+
+		moveTween.Completed:Connect(function()
+			if bubble then
+				bubble:Destroy()
+			end
+		end)
+	end
+end
+
 -- Main update loop (RunService heartbeat)
 local function onHeartbeat(dt)
 	if not Config.Enabled or not isPlaying then return end
@@ -497,6 +712,7 @@ end
 -- Public API
 function Particles:Initialize(dependencies)
 	deps = dependencies
+	TweenService = dependencies.TweenService or game:GetService("TweenService")
 	initPerlin()
 
 	if Config.DebugLog then
@@ -510,6 +726,10 @@ function Particles:SetLayer(layer)
 	if Config.DebugLog then
 		print("[Particles] Layer set:", layer and "active" or "nil")
 	end
+end
+
+function Particles:EmitFlightBurst(options)
+	emitFlightBurst(options)
 end
 
 function Particles:Play(state)

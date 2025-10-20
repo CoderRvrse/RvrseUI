@@ -254,7 +254,8 @@ KeySystem:Initialize({
 
 Particles:Initialize({
 	Theme = Theme,
-	RunService = RS
+	RunService = RS,
+	TweenService = TweenService
 })
 `;
 
