@@ -259,17 +259,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return Vector2.new(baseWidth, baseHeight)
 	end
 
-	local function clampWindowPosition(size, position)
-		local viewport = getViewportSize()
-		local width = size.X.Offset
-		local height = size.Y.Offset
-		local maxX = math.max(0, viewport.X - width)
-		local maxY = math.max(0, viewport.Y - height)
-		local clampedX = math.clamp(position.X.Offset, 0, maxX)
-		local clampedY = math.clamp(position.Y.Offset, 0, maxY)
-		return UDim2.new(position.X.Scale, clampedX, position.Y.Scale, clampedY)
-	end
-
 	local function getCenteredPosition(size)
 		local viewport = getViewportSize()
 		local width = size.X.Offset
@@ -396,7 +385,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			startPos.Y.Scale,
 			startPos.Y.Offset + delta.Y
 		)
-		newPos = clampWindowPosition(root.Size, newPos)
 		root.Position = newPos
 		lastWindowPosition = newPos
 	end
@@ -433,16 +421,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					-- Restore idle particles after drag
 					if Particles and not isMinimized then
 						Particles:SetState("idle")
-					end
+						end
 
-					Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
-					local clamped = clampWindowPosition(root.Size, root.Position)
-					root.Position = clamped
-					lastWindowPosition = clamped
-				end
-			end)
-		end
-	end)
+						Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
+						lastWindowPosition = root.Position
+					end
+				end)
+			end
+		end)
 
 	-- Track input changes
 	header.InputChanged:Connect(function(input)
@@ -927,11 +913,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		root.Visible = true
-		local clamped = clampWindowPosition(root.Size, root.Position)
-		if clamped ~= root.Position then
-			root.Position = clamped
-			lastWindowPosition = clamped
-		end
 
 		-- Start particle system with expand burst on initial show
 		if Particles then
@@ -1254,8 +1235,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local fallbackPos = getCenteredPosition(fallbackSize)
 
 		local targetSize = lastWindowSize or fallbackSize
-		local targetPos = lastWindowPosition or fallbackPos
-		targetPos = clampWindowPosition(targetSize, targetPos)
+		local targetPos = getCenteredPosition(targetSize)
 
 		root.Visible = true
 		root.Size = UDim2.new(0, 0, 0, 0)
