@@ -1589,17 +1589,19 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					return list, warning
 				end
 
-				local function refreshProfiles(target, opts)
-					opts = opts or {}
-					local list, warning = gatherProfiles()
-					lastProfileList = list
-					print(string.format("[Profiles] refresh count=%d", #list))
-					profilesDropdown:Refresh(list)
-					if warning and not opts.suppressWarning and managerOptions.SuppressWarnings ~= true then
-						safeNotify("Profiles", tostring(warning), "warning")
-					end
+					local function refreshProfiles(target, opts)
+						opts = opts or {}
+						local list, warning = gatherProfiles()
+						lastProfileList = list
+						print(string.format("[Profiles] refresh count=%d", #list))
+						if profilesDropdown then
+							profilesDropdown:Refresh(list)
+						end
+						if warning and not opts.suppressWarning and managerOptions.SuppressWarnings ~= true then
+							safeNotify("Profiles", tostring(warning), "warning")
+						end
 
-					local resolveTarget = target
+						local resolveTarget = target
 					if resolveTarget and not containsValue(list, resolveTarget) then
 						resolveTarget = nil
 					end
@@ -1611,12 +1613,12 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 
 					selectedProfile = resolveTarget
-					if resolveTarget then
+						if resolveTarget and profilesDropdown then
 							profilesDropdown:Set({resolveTarget}, true)
-						updateLabels(resolveTarget)
-					else
-						updateLabels(nil)
-					end
+							updateLabels(resolveTarget)
+						else
+							updateLabels(nil)
+						end
 
 					return list
 				end
@@ -1677,7 +1679,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 								return
 							end
 
-							if applyProfile(chosen) then
+							if applyProfile(chosen) and profilesDropdown then
 								profilesDropdown:Set({chosen}, true)
 								profilesDropdown:SetOpen(false)
 							end

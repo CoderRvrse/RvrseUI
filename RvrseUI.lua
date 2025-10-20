@@ -1,5 +1,5 @@
 -- RvrseUI v4.3.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-20T11:05:16.803Z
+-- Compiled from modular architecture on 2025-10-20T11:19:26.391Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -9313,17 +9313,19 @@ do
 						return list, warning
 					end
 	
-					local function refreshProfiles(target, opts)
-						opts = opts or {}
-						local list, warning = gatherProfiles()
-						lastProfileList = list
-						print(string.format("[Profiles] refresh count=%d", #list))
-						profilesDropdown:Refresh(list)
-						if warning and not opts.suppressWarning and managerOptions.SuppressWarnings ~= true then
-							safeNotify("Profiles", tostring(warning), "warning")
-						end
+						local function refreshProfiles(target, opts)
+							opts = opts or {}
+							local list, warning = gatherProfiles()
+							lastProfileList = list
+							print(string.format("[Profiles] refresh count=%d", #list))
+							if profilesDropdown then
+								profilesDropdown:Refresh(list)
+							end
+							if warning and not opts.suppressWarning and managerOptions.SuppressWarnings ~= true then
+								safeNotify("Profiles", tostring(warning), "warning")
+							end
 	
-						local resolveTarget = target
+							local resolveTarget = target
 						if resolveTarget and not containsValue(list, resolveTarget) then
 							resolveTarget = nil
 						end
@@ -9335,12 +9337,12 @@ do
 						end
 	
 						selectedProfile = resolveTarget
-						if resolveTarget then
+							if resolveTarget and profilesDropdown then
 								profilesDropdown:Set({resolveTarget}, true)
-							updateLabels(resolveTarget)
-						else
-							updateLabels(nil)
-						end
+								updateLabels(resolveTarget)
+							else
+								updateLabels(nil)
+							end
 	
 						return list
 					end
@@ -9401,7 +9403,7 @@ do
 									return
 								end
 	
-								if applyProfile(chosen) then
+								if applyProfile(chosen) and profilesDropdown then
 									profilesDropdown:Set({chosen}, true)
 									profilesDropdown:SetOpen(false)
 								end
