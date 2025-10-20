@@ -251,10 +251,35 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.AnchorPoint = Vector2.new(0, 0)  -- ✅ EXPLICIT top-left anchor (never assume default)
 	root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
 
-	local screenSize = workspace.CurrentCamera.ViewportSize
-	local centerX = (screenSize.X - baseWidth) / 2
-	local centerY = (screenSize.Y - baseHeight) / 2
-	root.Position = UDim2.fromOffset(centerX, centerY)
+	local function getViewportSize()
+		local camera = workspace.CurrentCamera
+		if camera and camera.ViewportSize then
+			return camera.ViewportSize
+		end
+		return Vector2.new(baseWidth, baseHeight)
+	end
+
+	local function clampWindowPosition(size, position)
+		local viewport = getViewportSize()
+		local width = size.X.Offset
+		local height = size.Y.Offset
+		local maxX = math.max(0, viewport.X - width)
+		local maxY = math.max(0, viewport.Y - height)
+		local clampedX = math.clamp(position.X.Offset, 0, maxX)
+		local clampedY = math.clamp(position.Y.Offset, 0, maxY)
+		return UDim2.new(position.X.Scale, clampedX, position.Y.Scale, clampedY)
+	end
+
+	local function getCenteredPosition(size)
+		local viewport = getViewportSize()
+		local width = size.X.Offset
+		local height = size.Y.Offset
+		local centerX = math.max(0, math.floor((viewport.X - width) / 2))
+		local centerY = math.max(0, math.floor((viewport.Y - height) / 2))
+		return UDim2.fromOffset(centerX, centerY)
+	end
+
+	root.Position = getCenteredPosition(root.Size)
 	root.BackgroundColor3 = pal.Bg
 	root.BackgroundTransparency = 1  -- TRANSPARENT - let children show through
 	root.BorderSizePixel = 0
@@ -272,7 +297,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local panelMask = Instance.new("Frame")
 	panelMask.Name = "PanelMask"
 	panelMask.BackgroundColor3 = pal.Card
-	panelMask.BackgroundTransparency = 0
+	panelMask.BackgroundTransparency = 0.2
 	panelMask.BorderSizePixel = 0
 	panelMask.Size = UDim2.new(1, 0, 1, 0)
 	panelMask.Position = UDim2.new(0, 0, 0, 0)
@@ -365,13 +390,15 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Helper to update window position
 	local function updateWindowPosition(input)
 		local delta = input.Position - dragStart
-		root.Position = UDim2.new(
+		local newPos = UDim2.new(
 			startPos.X.Scale,
 			startPos.X.Offset + delta.X,
 			startPos.Y.Scale,
 			startPos.Y.Offset + delta.Y
 		)
-		lastWindowPosition = root.Position
+		newPos = clampWindowPosition(root.Size, newPos)
+		root.Position = newPos
+		lastWindowPosition = newPos
 	end
 
 	-- Start dragging when header is clicked
@@ -409,7 +436,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 
 					Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
-					lastWindowPosition = root.Position
+					local clamped = clampWindowPosition(root.Size, root.Position)
+					root.Position = clamped
+					lastWindowPosition = clamped
 				end
 			end)
 		end
@@ -898,6 +927,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		root.Visible = true
+		local clamped = clampWindowPosition(root.Size, root.Position)
+		if clamped ~= root.Position then
+			root.Position = clamped
+			lastWindowPosition = clamped
+		end
 
 		-- Start particle system with expand burst on initial show
 		if Particles then
@@ -1217,15 +1251,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		controllerChip.Visible = false
 
 		local fallbackSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
-		local screenSize = workspace.CurrentCamera.ViewportSize
-		local fallbackWidth = fallbackSize.X.Offset
-		local fallbackHeight = fallbackSize.Y.Offset
-		local centerX = (screenSize.X - fallbackWidth) / 2
-		local centerY = (screenSize.Y - fallbackHeight) / 2
-		local fallbackPos = UDim2.fromOffset(centerX, centerY)
+		local fallbackPos = getCenteredPosition(fallbackSize)
 
 		local targetSize = lastWindowSize or fallbackSize
 		local targetPos = lastWindowPosition or fallbackPos
+		targetPos = clampWindowPosition(targetSize, targetPos)
 
 		root.Visible = true
 		root.Size = UDim2.new(0, 0, 0, 0)
