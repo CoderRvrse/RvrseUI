@@ -265,6 +265,19 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Accent, 2)
 
+	-- Inner mask to control clipping during minimize animations
+	local panelMask = Instance.new("Frame")
+	panelMask.Name = "PanelMask"
+	panelMask.BackgroundColor3 = pal.Card
+	panelMask.BackgroundTransparency = 0
+	panelMask.BorderSizePixel = 0
+	panelMask.Size = UDim2.new(1, 0, 1, 0)
+	panelMask.Position = UDim2.new(0, 0, 0, 0)
+	panelMask.ZIndex = 100
+	panelMask.ClipsDescendants = false
+	panelMask.Parent = root
+	UIHelpers.corner(panelMask, 16)
+
 	-- Particle background layer (below content, above glass)
 	local particleLayer = Instance.new("Frame")
 	particleLayer.Name = "ParticleLayer"
@@ -274,7 +287,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	particleLayer.Position = UDim2.new(0, 0, 0, 0)
 	particleLayer.ZIndex = 50 -- Below content (100+), above root background
 	particleLayer.ClipsDescendants = false -- Allow particles to drift freely
-	particleLayer.Parent = root
+	particleLayer.Parent = panelMask
 
 	-- Initialize particle system for this window
 	if Particles then
@@ -287,7 +300,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	header.BackgroundColor3 = pal.Card
 	header.BackgroundTransparency = 0
 	header.BorderSizePixel = 0
-	header.Parent = root
+	header.Parent = panelMask
 	UIHelpers.addGloss(header, Theme)
 	UIHelpers.corner(header, 16)
 
@@ -328,11 +341,13 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	content.BorderSizePixel = 0
 	content.Position = UDim2.new(0, 0, 0, header.Size.Y.Offset)
 	content.Size = UDim2.new(1, 0, 1, -header.Size.Y.Offset)
-	content.Parent = root
+	content.Parent = panelMask
 	content.ClipsDescendants = false
 
 	local defaultRootClip = root.ClipsDescendants
+	local defaultPanelClip = panelMask.ClipsDescendants
 	local defaultContentClip = content.ClipsDescendants
+	local defaultParticleClip = particleLayer.ClipsDescendants
 
 	-- ═══════════════════════════════════════════════════════════════
 	-- SIMPLE DRAG SYSTEM - Window Header (Classic Roblox Pattern)
@@ -790,6 +805,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		Debug.printf("[LAYOUT] --- %s ---", stage)
 		describeFrame("root", root)
+		describeFrame("panelMask", panelMask)
 		describeFrame("header", header)
 		describeFrame("content", content)
 		describeFrame("tabRail", tabBar)
@@ -1101,13 +1117,17 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- animation runs (the Profiles tab previously leaked the body frame when shrinking).
 	local function applyMinimizeClipping()
 		root.ClipsDescendants = true
+		panelMask.ClipsDescendants = true
 		content.ClipsDescendants = true
+		particleLayer.ClipsDescendants = true
 	end
 
 	local function restoreDefaultClipping()
 		if not isMinimized then
 			root.ClipsDescendants = defaultRootClip
+			panelMask.ClipsDescendants = defaultPanelClip
 			content.ClipsDescendants = defaultContentClip
+			particleLayer.ClipsDescendants = defaultParticleClip
 		end
 	end
 
@@ -1791,7 +1811,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		syncPillFromTheme()
 
-		root.BackgroundColor3 = newPal.Card
+		panelMask.BackgroundColor3 = newPal.Card
 		UIHelpers.stroke(root, newPal.Border, 1.5)
 
 		header.BackgroundColor3 = newPal.Elevated
