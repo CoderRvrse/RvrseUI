@@ -1707,43 +1707,46 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				})
 
 				local newProfileName = ""
-				local nameInput = profileSection:CreateTextBox({
-					Text = "New Profile",
-					Placeholder = profilePlaceholder,
-					OnChanged = function(value)
-						newProfileName = trim(value or "")
-					end
-				})
+					local nameInput = profileSection:CreateTextBox({
+						Text = "New Profile",
+						Placeholder = profilePlaceholder,
+						OnChanged = function(value)
+							newProfileName = trim(value or "")
+						end
+					})
 
-				profileSection:CreateButton({
-					Text = "🔄 Refresh Profiles",
-					Callback = function()
-						refreshProfiles(selectedProfile)
-						safeNotify("Profiles", "Profile list refreshed", "info")
-					end
-				})
+					profileSection:CreateButton({
+						Text = "Refresh Profiles",
+						Icon = "lucide://refresh-ccw",
+						Callback = function()
+							refreshProfiles(selectedProfile)
+							safeNotify("Profiles", "Profile list refreshed", "info")
+						end
+					})
 
-				profileSection:CreateButton({
-					Text = "💾 Save Current",
-					Callback = function()
-						local okSave, saveMsg = RvrseUI:SaveConfiguration()
-						if okSave then
-							local active = RvrseUI.ConfigurationFileName or selectedProfile
-							safeNotify("Profiles", "Saved to " .. tostring(active or "config"), "success")
+					profileSection:CreateButton({
+						Text = "Save Current",
+						Icon = "lucide://save",
+						Callback = function()
+							local okSave, saveMsg = RvrseUI:SaveConfiguration()
+							if okSave then
+								local active = RvrseUI.ConfigurationFileName or selectedProfile
+								safeNotify("Profiles", "Saved to " .. tostring(active or "config"), "success")
 							refreshProfiles(active, {suppressWarning = true})
 						else
 							safeNotify("Profiles", "Save failed: " .. tostring(saveMsg), "error")
 						end
 					end
-				})
+					})
 
-				profileSection:CreateButton({
-					Text = "📁 Save As",
-					Callback = function()
-						local trimmed = trim(newProfileName)
-						if trimmed == "" then
-							safeNotify("Profiles", "Enter a profile name first", "warning")
-							return
+					profileSection:CreateButton({
+						Text = "Save As",
+						Icon = "lucide://folder-plus",
+						Callback = function()
+							local trimmed = trim(newProfileName)
+							if trimmed == "" then
+								safeNotify("Profiles", "Enter a profile name first", "warning")
+								return
 						end
 						local okSaveAs, saveAsMsg = RvrseUI:SaveConfigAs(trimmed)
 						if okSaveAs then
@@ -1758,25 +1761,27 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 							safeNotify("Profiles", "Save As failed: " .. tostring(saveAsMsg), "error")
 						end
 					end
-				})
+					})
 
-				profileSection:CreateButton({
-					Text = "↻ Load Selected",
-					Callback = function()
-						if not selectedProfile then
-							safeNotify("Profiles", "No profile selected", "warning")
-							return
-						end
+					profileSection:CreateButton({
+						Text = "Load Selected",
+						Icon = "lucide://download",
+						Callback = function()
+							if not selectedProfile then
+								safeNotify("Profiles", "No profile selected", "warning")
+								return
+							end
 						applyProfile(selectedProfile, {muteNotify = false})
 					end
-				})
+					})
 
-				profileSection:CreateButton({
-					Text = "🗑️ Delete Profile",
-					Callback = function()
-						if not selectedProfile then
-							safeNotify("Profiles", "No profile selected", "warning")
-							return
+					profileSection:CreateButton({
+						Text = "Delete Profile",
+						Icon = "lucide://trash-2",
+						Callback = function()
+							if not selectedProfile then
+								safeNotify("Profiles", "No profile selected", "warning")
+								return
 						end
 						local base = selectedProfile:gsub("%.json$", "")
 						local okDelete, deleteMsg = RvrseUI:DeleteProfile(base)
