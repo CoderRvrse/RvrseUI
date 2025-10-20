@@ -4,15 +4,15 @@
     "minor": 3,
     "patch": 0,
     "full": "4.3.0",
-    "build": "20251020a",
-    "hash": "P7R1L8Z3",
+    "build": "20251020b",
+    "hash": "Q9T2F5D1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-20",
     "name": "Lucide Icon System Refresh",
     "codename": "Neon Atlas",
-    "notes": "Lucide sprite sheet embedded everywhere: Tabs, Notifications, Buttons, Labels, and docs demos render pixel-perfect icons with automatic Unicode fallbacks. Adds rbxassetid image support to the icon resolver and refreshes README/CLAUDE guidance for the end-to-end workflow."
+    "notes": "Lucide sprite sheet embedded everywhere: Tabs, Notifications, Buttons, Labels, and docs demos render pixel-perfect icons with automatic Unicode fallbacks. Adds rbxassetid image support to the icon resolver and refreshes README/CLAUDE guidance for the end-to-end workflow. Profiles manager now runs on the modern dropdown system with a dedicated QA harness."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -52,7 +52,9 @@
         "🧪 Refreshed examples/test-lucide-icons.lua to showcase Buttons, Labels, Notifications, and Roblox asset icons in one scene.",
         "📚 README.md now ships with a dedicated Lucide Icon System section, updated quick-start badges, and direct example links.",
         "🗒️ CLAUDE.md gains a developer log plus advanced guidance for regenerating lucide sprites and wiring new icons.",
-        "🔖 VERSION metadata updated for v4.3.0 (build 20251020a, codename \"Neon Atlas\")."
+        "🔖 VERSION metadata updated for v4.3.0 (build 20251020b, codename \"Neon Atlas\").",
+        "🪟 Minimize/restore flow tweaked so the window reopens from the controller chip at the exact saved position.",
+        "🧰 Profiles tab now leverages the modern dropdown with single-select guards and ships with `examples/test-config-profiles.lua` for regression testing."
       ]
     },
     "4.2.0": {
