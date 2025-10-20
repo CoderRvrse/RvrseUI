@@ -147,8 +147,7 @@ KeySystem:Initialize({
 -- Initialize Particles (needs Theme and RunService)
 Particles:Initialize({
 	Theme = Theme,
-	RunService = RunService,
-	TweenService = TweenService
+	RunService = RunService
 })
 
 -- Prepare dependency injection object
