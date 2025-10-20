@@ -209,6 +209,9 @@ RvrseUI._savedTheme = nil
 RvrseUI._lastWindowPosition = nil
 RvrseUI._controllerChipPosition = nil
 RvrseUI._obfuscatedNames = Obfuscation.getObfuscatedNames()
+RvrseUI._tokenIcon = "lucide://gamepad-2"
+RvrseUI._tokenIconColor = nil
+RvrseUI._tokenIconFallback = "🎮"
 
 -- Configuration settings
 RvrseUI.ConfigurationSaving = false
@@ -307,6 +310,69 @@ function RvrseUI:Notify(options, message, duration, notifType)
 	payload.Type = payload.Type or "info"
 
 	return Notifications:Notify(payload)
+end
+
+function RvrseUI:SetTokenIcon(icon, opts)
+	opts = opts or {}
+
+	if opts.Reset then
+		self._tokenIcon = "lucide://gamepad-2"
+		self._tokenIconColor = nil
+		self._tokenIconFallback = "🎮"
+	else
+		if icon ~= nil then
+			self._tokenIcon = icon
+		end
+
+		if opts.Color ~= nil then
+			if opts.Color == false then
+				self._tokenIconColor = nil
+			else
+				self._tokenIconColor = opts.Color
+			end
+		end
+
+		if opts.UseThemeColor then
+			self._tokenIconColor = nil
+		end
+
+		if opts.Fallback ~= nil then
+			self._tokenIconFallback = opts.Fallback
+		end
+	end
+
+	for _, window in ipairs(self._windows) do
+		if window and window.SetTokenIcon then
+			local windowIcon = self._tokenIcon
+			if windowIcon == nil then
+				windowIcon = nil
+			elseif windowIcon == false then
+				windowIcon = false
+			end
+
+			local windowOpts = {
+				Fallback = self._tokenIconFallback
+			}
+
+			if opts.Reset then
+				windowOpts.Reset = true
+			end
+
+			if self._tokenIconColor then
+				windowOpts.Color = self._tokenIconColor
+			else
+				windowOpts.UseThemeColor = true
+			end
+
+			window:SetTokenIcon(windowIcon, windowOpts)
+		end
+	end
+
+	return self._tokenIcon, self._tokenIconColor, self._tokenIconFallback
+end
+
+function RvrseUI:GetTokenIcon()
+	return self._tokenIcon, self._tokenIconColor, self._tokenIconFallback
 end
 
 -- Destroy all UI

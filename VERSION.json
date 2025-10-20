@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 0,
-    "full": "4.3.0",
-    "build": "20251020b",
-    "hash": "Q9T2F5D1",
+    "patch": 1,
+    "full": "4.3.1",
+    "build": "20251020c",
+    "hash": "V6N8R1C7",
     "channel": "Stable"
   },
   "release": {
@@ -41,6 +41,17 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.1": {
+      "date": "2025-10-20",
+      "hash": "V6N8R1C7",
+      "changes": [
+        "🎮 Controller chip now uses the Lucide icon resolver—supports `lucide://`, emoji, `rbxassetid://`, or numeric IDs with automatic Unicode fallback.",
+        "🪄 New APIs: `RvrseUI:SetTokenIcon` / `GetTokenIcon` and `Window:SetTokenIcon` / `GetTokenIcon` for per-hub or per-window customization.",
+        "🎨 Theme-friendly tinting with optional color overrides; fallbacks remain visible even if the sprite sheet fails to load.",
+        "📘 README updated with token customization examples plus refreshed badges/build stats.",
+        "🧾 Version metadata bumped to v4.3.1 (build 20251020c) for release tracking."
+      ]
+    },
     "4.3.0": {
       "date": "2025-10-20",
       "hash": "P7R1L8Z3",

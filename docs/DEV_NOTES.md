@@ -9,6 +9,16 @@ For build system and architecture, see [CLAUDE.md](CLAUDE.md).
 
 ## 📋 Version History & Changelog
 
+### v4.3.1 (2025-10-20)
+
+#### 🎮 Token Icon Customization (Controller Chip)
+- **What's new:** The minimize chip uses the shared Lucide resolver and exposes full customization hooks.
+- **Global API:** `RvrseUI:SetTokenIcon(icon, opts)` / `GetTokenIcon()` – update color, fallback glyph, or reset to defaults without touching source.
+- **Per-window API:** `Window:SetTokenIcon(icon, opts)` / `GetTokenIcon()` – override icons on a per-hub basis (e.g., themed executors).
+- **Config keys:** `TokenIcon`, `TokenIconColor`, and `TokenIconFallback` (aliases `ControllerIcon*`) can be passed to `CreateWindow`.
+- **Theme aware:** When `UseThemeColor` or no color override is provided, the chip auto-adopts the active accent on theme switches.
+- **QA checklist:** Rebuild (`node build.js`), run `examples/test-lucide-icons.lua`, minimize/restore to verify sprite + fallback, then test `RvrseUI:SetTokenIcon("lucide://sparkles")` in Studio.
+
 ### v4.3.0 (2025-10-20)
 
 #### 🚨 Critical Alert: Lucide Sprite Sheet Load Failure

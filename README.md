@@ -1,10 +1,10 @@
-# RvrseUI v4.3.0
+# RvrseUI v4.3.1
 
 ![RvrseUI Banner](assets/banner.png)
 
 **Modern, Production-Ready Roblox UI Library** with Lucide Icon System, Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
 
-![Version](https://img.shields.io/badge/version-4.3.0-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-434KB-orange)
+![Version](https://img.shields.io/badge/version-4.3.1-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-442KB-orange)
 
 ---
 
@@ -87,6 +87,7 @@ Window:Show()  -- This loads saved config THEN shows UI
 - **✅ Lock Groups** - Master/slave control relationships
 - **✅ Spring Animations** - Smooth, physics-based motion
 - **✅ Mobile Support** - Responsive design + controller chip
+- **✅ Customizable Token Icon** - Swap the minimize chip sprite/emoji via API
 - **✅ Flag System** - Direct element value access
 - **✅ Key System** - Built-in authentication with HWID/User ID validation
 
@@ -101,7 +102,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 ### Method 2: Version-Specific
 ```lua
-local version = "v4.3.0"
+local version = "v4.3.1"
 local url = string.format("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua", version)
 local RvrseUI = loadstring(game:HttpGet(url))()
 ```
@@ -922,6 +923,8 @@ RvrseUI:SaveConfiguration()           -- Manual save
 RvrseUI:LoadConfiguration()           -- Manual load
 RvrseUI:SetTheme("Dark"/"Light")     -- Switch theme
 RvrseUI:SetAutoSaveEnabled(bool)     -- Toggle auto-save
+RvrseUI:SetTokenIcon(icon, opts)     -- Change minimize token icon (lucide://, emoji, asset)
+RvrseUI:GetTokenIcon()               -- Read current token icon, color override, fallback
 RvrseUI:EnableDebug(true)            -- Enable debug logging
 RvrseUI:GetVersionInfo()             -- Get version info
 RvrseUI.Flags                        -- Access all flagged elements
@@ -929,9 +932,38 @@ RvrseUI.Flags                        -- Access all flagged elements
 
 ---
 
+### 🎮 Minimize Token & Controller Chip
+
+The controller chip (the little token you minimize into) now uses the same Lucide-aware resolver as the rest of the UI. You can swap it globally **without editing core files** or override it per window.
+
+```lua
+-- Global defaults (applies to every future window)
+RvrseUI:SetTokenIcon("lucide://sparkles", {
+    Color = Color3.fromRGB(255, 180, 255), -- optional tint (omit for theme accent)
+    Fallback = "✨"                         -- shown if sprite sheet missing
+})
+
+-- Per-window override at creation time
+local Window = RvrseUI:CreateWindow({
+    Name = "Dashboard",
+    TokenIcon = "lucide://settings",        -- or ControllerIcon = ...
+    TokenIconColor = Color3.fromRGB(115, 194, 251),
+    TokenIconFallback = "⚙️"
+})
+
+-- Adjust an existing window after build
+Window:SetTokenIcon("lucide://gamepad-2", { UseThemeColor = true })
+```
+
+**Supported icon formats:** `lucide://name`, `icon://unicode-name`, direct emoji (`"🔥"`), `rbxassetid://12345678`, or a plain numeric asset ID. Pass `false` as the icon to hide the sprite and rely purely on the fallback glyph.
+
+`RvrseUI:SetTokenIcon(nil, { Reset = true })` restores the default (`lucide://gamepad-2` with a 🎮 fallback) alongside theme-driven coloring.
+
+---
+
 ## ✨ Lucide Icon System
 
-RvrseUI v4.3.0 ships with a unified icon pipeline that keeps every element in sync—tabs, notifications, buttons, labels, and doc demos all pull from the same resolver.
+RvrseUI v4.3.1 ships with a unified icon pipeline that keeps every element in sync—tabs, notifications, buttons, labels, and doc demos all pull from the same resolver.
 
 - **Supported schemes:** `lucide://home`, `icon://⭐`, direct emoji (`"🔥"`), `rbxassetid://16364871493`, or plain asset IDs (`"16364871493"`).
 - **Sprite sheet first:** `lucide://` icons render from the embedded Lucide atlas (`_G.RvrseUI_LucideIconsData`) with themed tinting and automatic Unicode fallbacks.
@@ -1210,7 +1242,7 @@ RvrseUI:Notify({
 - Script: `examples/test-lucide-icons.lua`
 - Showcases: Tabs, Notifications, Buttons, Labels, and Roblox asset icons using `lucide://`, `icon://`, emoji, and `rbxassetid://` schemes.
 - Usage: Drop into Roblox Studio or your executor to verify `_G.RvrseUI_LucideIconsData` is loading (watch the console for `[LUCIDE]` logs).
-- Tip: If you see fallback glyphs, make sure you're running the latest `RvrseUI.lua` build for v4.3.0.
+- Tip: If you see fallback glyphs, make sure you're running the latest `RvrseUI.lua` build for v4.3.1.
 
 ---
 
@@ -1255,4 +1287,4 @@ MIT License - See [LICENSE](LICENSE) file
 
 **Made with ❤️ by CoderRvrse**
 
-**Version 4.3.0** • **Build 434KB** • **30 Modules** • **Production Ready**
+**Version 4.3.1** • **Build 442KB** • **30 Modules** • **Production Ready**

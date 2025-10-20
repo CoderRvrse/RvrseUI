@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.3.0)
+# RvrseUI – Maintainer Notes (v4.3.1)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -357,6 +357,28 @@ See [docs/SECURITY.md](docs/SECURITY.md) for complete security best practices, c
 4. **Test:** Verify anti-cheat doesn't flag it
 
 ---
+
+## 🗒️ Developer Log – v4.3.1 Token Icon Customization
+
+**Date:** 2025-10-20  
+**Summary:** The controller chip (minimize token) now uses the shared Lucide icon resolver. Both the global API and per-window API can swap the token icon, tint color, and fallback glyph without touching core source.
+
+- Added `RvrseUI:SetTokenIcon` / `GetTokenIcon` for global overrides that cascade to existing windows.
+- Added `Window:SetTokenIcon` / `GetTokenIcon` for per-window adjustments (friendly for executor UIs that want to theme chips independently).
+- Controller chip rendering now instantiates the same sprite/text pipeline used by the header buttons; fallbacks show automatically if the Lucide sheet is missing.
+- Theme switching re-applies the active token icon color when `UseThemeColor` is true (the default).
+- README updated with usage examples; VERSION metadata bumped to v4.3.1 (build 20251020c).
+
+**Regression test checklist**
+1. Build with `node build.js` (or `lua build.lua`) and confirm `RvrseUI.lua` header shows v4.3.1.
+2. Run `examples/test-lucide-icons.lua` – minimize/restore and verify the token icon matches the chosen Lucide glyph (check `[LUCIDE]` logs).
+3. In Studio or executor, run:
+   ```lua
+   RvrseUI:SetTokenIcon("lucide://sparkles", { Color = Color3.fromRGB(255, 200, 255) })
+   local win = RvrseUI:CreateWindow({ Name = "Themed", TokenIcon = "lucide://flame" })
+   win:SetTokenIcon(false, { Fallback = "🔥" })
+   ```
+   Ensure fallback emoji shows when passing `false`, and that theme toggles recolor chips using the accent palette.
 
 ## 🗒️ Developer Log – v4.3.0 Lucide Icon Refresh
 
@@ -947,7 +969,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2025-10-20 (v4.3.0 - Lucide Icon Refresh)
+**Last Updated:** 2025-10-20 (v4.3.1 - Token Icon Customization)
 
 ---
 

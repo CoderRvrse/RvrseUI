@@ -6,11 +6,11 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 RvrseUI v4.3.0 Build Script');
+console.log('🔨 RvrseUI v4.3.1 Build Script');
 console.log('='.repeat(52));
 
 // Header for compiled file
-const header = `-- RvrseUI v4.3.0 | Modern Professional UI Framework
+const header = `-- RvrseUI v4.3.1 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations

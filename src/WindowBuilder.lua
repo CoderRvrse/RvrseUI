@@ -322,14 +322,40 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local iconInstance = nil
 		local currentColor = opts.color or pal.Accent
 		local currentIcon = nil
+		local fallbackText = opts.fallbackText
+		local fallbackColor = opts.fallbackColor
 
-		local function destroyIcon()
+		local function clearIcon()
 			if iconInstance then
 				iconInstance:Destroy()
 				iconInstance = nil
 			end
 			for _, child in ipairs(holder:GetChildren()) do
 				child:Destroy()
+			end
+		end
+
+		local function showFallback()
+			if fallbackText then
+				button.Text = fallbackText
+				button.TextColor3 = fallbackColor or currentColor
+			else
+				button.Text = ""
+			end
+		end
+
+		local function hideFallback()
+			button.Text = ""
+		end
+
+		local function setFallback(text, color)
+			fallbackText = text
+			if color ~= nil then
+				fallbackColor = color
+			end
+
+			if not iconInstance then
+				showFallback()
 			end
 		end
 
@@ -341,6 +367,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				else
 					iconInstance.TextColor3 = currentColor
 				end
+			else
+				if fallbackText then
+					button.TextColor3 = fallbackColor or currentColor
+				end
 			end
 		end
 
@@ -350,9 +380,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			end
 			currentIcon = icon
 
-			destroyIcon()
+			clearIcon()
 
 			if not Icons or not icon then
+				iconInstance = nil
+				showFallback()
 				return
 			end
 
@@ -391,11 +423,20 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			else
 				currentIcon = nil
 			end
+
+			if iconInstance then
+				hideFallback()
+			else
+				showFallback()
+			end
 		end
+
+		setFallback(fallbackText, fallbackColor)
 
 		return {
 			SetIcon = applyIcon,
 			SetColor = applyColor,
+			SetFallback = setFallback,
 			GetIcon = function() return currentIcon end,
 			GetHolder = function() return holder end
 		}
@@ -1109,10 +1150,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Gaming Controller Minimize Chip
 	local controllerChip = Instance.new("TextButton")
 	controllerChip.Name = Obfuscation.getObfuscatedName("chip")
-	controllerChip.Text = "🎮"
 	controllerChip.Font = Enum.Font.GothamBold
 	controllerChip.TextSize = 20
-	controllerChip.TextColor3 = pal.Accent
 	controllerChip.BackgroundColor3 = pal.Card
 	controllerChip.BackgroundTransparency = 0.1
 	controllerChip.Size = UDim2.new(0, 50, 0, 50)
@@ -1122,8 +1161,94 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	controllerChip.ZIndex = 200
 	controllerChip.Parent = host
 	UIHelpers.corner(controllerChip, 25)
-	UIHelpers.stroke(controllerChip, pal.Accent, 2)
-	UIHelpers.addGlow(controllerChip, pal.Accent, 4)
+
+	local chipIconFallback = cfg.ControllerIconFallback or cfg.TokenIconFallback or RvrseUI._tokenIconFallback or "🎮"
+	local chipIconOverrideColor = cfg.ControllerIconColor or cfg.TokenIconColor or RvrseUI._tokenIconColor
+
+	local function resolveConfigTokenIcon()
+		if cfg.ControllerIcon ~= nil then
+			return cfg.ControllerIcon
+		end
+		if cfg.TokenIcon ~= nil then
+			return cfg.TokenIcon
+		end
+		if RvrseUI._tokenIcon ~= nil then
+			return RvrseUI._tokenIcon
+		end
+		return nil
+	end
+
+	local chipIconRequested = resolveConfigTokenIcon()
+	if chipIconRequested == nil then
+		chipIconRequested = "lucide://gamepad-2"
+	end
+	local function resolveChipColor()
+		return chipIconOverrideColor or Theme:Get().Accent
+	end
+
+	controllerChip.Text = chipIconFallback
+	controllerChip.TextColor3 = resolveChipColor()
+
+	local chipStroke = UIHelpers.stroke(controllerChip, resolveChipColor(), 2)
+	local chipGlow = UIHelpers.addGlow(controllerChip, resolveChipColor(), 4)
+
+	local controllerChipIcon = createHeaderIcon(controllerChip, {
+		size = 26,
+		textSize = 22,
+		color = resolveChipColor(),
+		fallbackText = chipIconFallback,
+		fallbackColor = chipIconOverrideColor
+	})
+
+	local chipIconState = {
+		icon = chipIconRequested,
+		colorOverride = chipIconOverrideColor,
+		fallback = chipIconFallback
+	}
+
+	local function applyControllerChipVisuals()
+		local color = chipIconState.colorOverride or Theme:Get().Accent
+		controllerChipIcon.SetFallback(chipIconState.fallback, chipIconState.colorOverride or color)
+		controllerChipIcon.SetIcon(chipIconState.icon, color)
+		controllerChipIcon.SetColor(color)
+		controllerChip.TextColor3 = color
+		if chipStroke then
+			chipStroke.Color = color
+		end
+		if chipGlow and chipGlow.Parent then
+			chipGlow.Color = color
+		end
+	end
+
+	local function setChipIcon(icon, opts)
+		opts = opts or {}
+
+		if icon ~= nil then
+			if icon == false then
+				chipIconState.icon = nil
+			else
+				chipIconState.icon = icon
+			end
+		end
+
+		if opts.UseThemeColor then
+			chipIconState.colorOverride = nil
+		elseif opts.Color ~= nil then
+			chipIconState.colorOverride = opts.Color
+		end
+
+		if opts.Fallback ~= nil then
+			chipIconState.fallback = opts.Fallback
+		end
+
+		applyControllerChipVisuals()
+	end
+
+	setChipIcon(chipIconRequested, {
+		Color = chipIconOverrideColor,
+		Fallback = chipIconFallback,
+		UseThemeColor = chipIconOverrideColor == nil
+	})
 
 	-- Add rotating shine effect
 	local chipShine = Instance.new("Frame")
@@ -1590,6 +1715,46 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end
 
+	function WindowAPI:SetTokenIcon(tokenIcon, opts)
+		opts = opts or {}
+
+		if opts.Reset then
+			local resetIcon = RvrseUI._tokenIcon
+			if resetIcon == nil then
+				resetIcon = "lucide://gamepad-2"
+			end
+			setChipIcon(resetIcon, {
+				Color = RvrseUI._tokenIconColor,
+				Fallback = RvrseUI._tokenIconFallback,
+				UseThemeColor = RvrseUI._tokenIconColor == nil
+			})
+		else
+			local applyOpts = {}
+
+			if opts.Color == false then
+				applyOpts.UseThemeColor = true
+			elseif opts.Color ~= nil then
+				applyOpts.Color = opts.Color
+			end
+
+			if opts.UseThemeColor then
+				applyOpts.UseThemeColor = true
+			end
+
+			if opts.Fallback ~= nil then
+				applyOpts.Fallback = opts.Fallback
+			end
+
+			setChipIcon(tokenIcon, applyOpts)
+		end
+
+		return chipIconState.icon, chipIconState.colorOverride, chipIconState.fallback
+	end
+
+	function WindowAPI:GetTokenIcon()
+		return chipIconState.icon, chipIconState.colorOverride, chipIconState.fallback
+	end
+
 	function WindowAPI:Destroy()
 		if Overlay then
 			Overlay:HideBlocker(true)
@@ -2022,11 +2187,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		UIHelpers.stroke(closeBtn, newPal.Border, 1)
 
 		controllerChip.BackgroundColor3 = newPal.Card
-		controllerChip.TextColor3 = newPal.Accent
-		UIHelpers.stroke(controllerChip, newPal.Accent, 2)
-		if controllerChip:FindFirstChild("Glow") then
-			controllerChip.Glow.Color = newPal.Accent
-		end
+		applyControllerChipVisuals()
 
 		tabBar.BackgroundColor3 = newPal.Card
 		UIHelpers.stroke(tabBar, newPal.Border, 1)

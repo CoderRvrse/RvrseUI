@@ -3,7 +3,7 @@
 -- Compiles all modular files from src/ into a single RvrseUI.lua file
 -- Usage: lua build.lua
 
-print("🔨 RvrseUI v4.3.0 Build Script")
+print("🔨 RvrseUI v4.3.1 Build Script")
 print("=" .. string.rep("=", 50))
 
 local function readFile(path)
@@ -26,7 +26,7 @@ local function writeFile(path, content)
 end
 
 -- Header for compiled file
-local header = [[-- RvrseUI v4.3.0 | Modern Professional UI Framework
+local header = [[-- RvrseUI v4.3.1 | Modern Professional UI Framework
 -- Compiled from modular architecture on ]] .. os.date("%Y-%m-%d %H:%M:%S") .. [[
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
