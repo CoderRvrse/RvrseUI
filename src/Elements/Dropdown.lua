@@ -46,6 +46,7 @@ function Dropdown.Create(o, dependencies)
 	local maxDropdownWidth = 500  -- Maximum dropdown width (increased for very long labels)
 	local fallbackOverlayLayer
 	local fallbackOverlayGui
+	local f
 
 	local function currentOverlayLayer()
 		if baseOverlayLayer and baseOverlayLayer.Parent then
@@ -57,8 +58,34 @@ function Dropdown.Create(o, dependencies)
 		return nil
 	end
 
-	local function resolveOverlayLayer()
+	local function ancestorClips()
+		if not f then
+			return false
+		end
+		local current = f.Parent
+		while current do
+			if current:IsA("GuiObject") then
+				if current.ClipsDescendants or current:IsA("ScrollingFrame") then
+					return true
+				end
+			end
+			current = current.Parent
+		end
+		return false
+	end
+
+	local function shouldUseOverlay()
+		if o.ForceInline then
+			return false
+		end
 		if o.Overlay == false then
+			return ancestorClips()
+		end
+		return true
+	end
+
+	local function resolveOverlayLayer(force)
+		if not force and not shouldUseOverlay() then
 			return nil
 		end
 
@@ -134,7 +161,7 @@ function Dropdown.Create(o, dependencies)
 	end
 
 	-- Base card
-	local f = card(48)
+	f = card(48)
 	f.ClipsDescendants = false
 
 	-- Label
@@ -240,6 +267,10 @@ function Dropdown.Create(o, dependencies)
 	end
 
 	local function showOverlayBlocker()
+		if not shouldUseOverlay() then
+			return
+		end
+
 		if OverlayService then
 			overlayBlocker = OverlayService:ShowBlocker({
 				Transparency = 0.45,
@@ -247,7 +278,7 @@ function Dropdown.Create(o, dependencies)
 				Modal = false,
 			})
 		else
-			local layer = resolveOverlayLayer()
+			local layer = resolveOverlayLayer(true)
 			if not layer then
 				return
 			end
@@ -436,7 +467,13 @@ function Dropdown.Create(o, dependencies)
 			width = math.max(btn.AbsoluteSize.X, inlineWidth, optimalWidth)
 		end
 
-		local layer = skipCreate and currentOverlayLayer() or resolveOverlayLayer()
+		local layer = nil
+		if shouldUseOverlay() then
+			layer = skipCreate and currentOverlayLayer() or resolveOverlayLayer(false)
+			if not layer and not skipCreate then
+				layer = resolveOverlayLayer(true)
+			end
+		end
 
 		if layer then
 			dropdownList.Parent = layer

@@ -1,5 +1,5 @@
 -- RvrseUI v4.3.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-20T11:30:18.101Z
+-- Compiled from modular architecture on 2025-10-20T11:51:10.152Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -4833,6 +4833,7 @@ do
 		local maxDropdownWidth = 500  -- Maximum dropdown width (increased for very long labels)
 		local fallbackOverlayLayer
 		local fallbackOverlayGui
+		local f
 	
 		local function currentOverlayLayer()
 			if baseOverlayLayer and baseOverlayLayer.Parent then
@@ -4844,8 +4845,34 @@ do
 			return nil
 		end
 	
-		local function resolveOverlayLayer()
+		local function ancestorClips()
+			if not f then
+				return false
+			end
+			local current = f.Parent
+			while current do
+				if current:IsA("GuiObject") then
+					if current.ClipsDescendants or current:IsA("ScrollingFrame") then
+						return true
+					end
+				end
+				current = current.Parent
+			end
+			return false
+		end
+	
+		local function shouldUseOverlay()
+			if o.ForceInline then
+				return false
+			end
 			if o.Overlay == false then
+				return ancestorClips()
+			end
+			return true
+		end
+	
+		local function resolveOverlayLayer(force)
+			if not force and not shouldUseOverlay() then
 				return nil
 			end
 	
@@ -4921,7 +4948,7 @@ do
 		end
 	
 		-- Base card
-		local f = card(48)
+		f = card(48)
 		f.ClipsDescendants = false
 	
 		-- Label
@@ -5027,6 +5054,10 @@ do
 		end
 	
 		local function showOverlayBlocker()
+			if not shouldUseOverlay() then
+				return
+			end
+	
 			if OverlayService then
 				overlayBlocker = OverlayService:ShowBlocker({
 					Transparency = 0.45,
@@ -5034,7 +5065,7 @@ do
 					Modal = false,
 				})
 			else
-				local layer = resolveOverlayLayer()
+				local layer = resolveOverlayLayer(true)
 				if not layer then
 					return
 				end
@@ -5223,7 +5254,13 @@ do
 				width = math.max(btn.AbsoluteSize.X, inlineWidth, optimalWidth)
 			end
 	
-			local layer = skipCreate and currentOverlayLayer() or resolveOverlayLayer()
+			local layer = nil
+			if shouldUseOverlay() then
+				layer = skipCreate and currentOverlayLayer() or resolveOverlayLayer(false)
+				if not layer and not skipCreate then
+					layer = resolveOverlayLayer(true)
+				end
+			end
 	
 			if layer then
 				dropdownList.Parent = layer
