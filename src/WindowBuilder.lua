@@ -1142,64 +1142,53 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		Animator:Ripple(minimizeBtn, 16, 12)
 		snapshotLayout("pre-minimize")
 
-		-- Stop particle system with fast fade
 		if Particles then
-			Particles:Stop(true) -- Fast fade (220ms)
+			Particles:Stop(true)
 		end
 
-		local screenSize = workspace.CurrentCamera.ViewportSize
 		local chipTargetPos = UDim2.new(0.5, 0, 0.5, 0)
 		if RvrseUI._controllerChipPosition then
 			local saved = RvrseUI._controllerChipPosition
 			chipTargetPos = UDim2.new(saved.XScale, saved.XOffset, saved.YScale, saved.YOffset)
 		end
 
-		local chipTargetX = chipTargetPos.X.Scale * screenSize.X + chipTargetPos.X.Offset
-		local chipTargetY = chipTargetPos.Y.Scale * screenSize.Y + chipTargetPos.Y.Offset
+		controllerChip.Position = chipTargetPos
 
-		local rootPos = root.AbsolutePosition
-		local rootSize = root.AbsoluteSize
-		local windowCenterX = rootPos.X + (rootSize.X / 2)
-		local windowCenterY = rootPos.Y + (rootSize.Y / 2)
-
-		createParticleFlow(
-			{X = windowCenterX, Y = windowCenterY},
-			{X = chipTargetX, Y = chipTargetY},
-			120,
-			1.2,
-			"gather"
-		)
-
-		Animator:Tween(root, {
-			Size = UDim2.new(0, 0, 0, 0),
+		local minimizeTween = Animator:Tween(root, {
+			Size = UDim2.new(0, 20, 0, 20),
 			Position = chipTargetPos,
 			BackgroundTransparency = 1,
-			Rotation = 180
-		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In))
+			Rotation = 0
+		}, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
 
-		task.wait(0.6)
-		if isMinimized then
-			root.Visible = false
-			controllerChip.Visible = true
-			controllerChip.Size = UDim2.new(0, 0, 0, 0)
+		minimizeTween.Completed:Wait()
 
-			-- Switch particles to chip layer and start idle animation
-			if Particles then
-				Particles:SetLayer(chipParticleLayer)
-				Particles:Play("idle")
-			end
-
-			local chipGrowTween = Animator:Tween(controllerChip, {
-				Size = UDim2.new(0, 50, 0, 50)
-			}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
-
-			-- ✅ UNLOCK drag after chip growth completes
-			chipGrowTween.Completed:Wait()
+		if not isMinimized then
+			restoreDefaultClipping()
 			isAnimating = false
-			Debug.printf("[MINIMIZE] ✅ Animation complete - drag unlocked")
-		else
-			isAnimating = false
+			return
 		end
+
+		root.Visible = false
+		root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
+		root.Position = chipTargetPos
+		root.Rotation = 0
+
+		controllerChip.Visible = true
+		controllerChip.Size = UDim2.new(0, 0, 0, 0)
+
+		if Particles then
+			Particles:SetLayer(chipParticleLayer)
+			Particles:Play("idle")
+		end
+
+		local chipGrowTween = Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 50, 0, 50)
+		}, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+
+		chipGrowTween.Completed:Wait()
+		isAnimating = false
+		Debug.printf("[MINIMIZE] ✅ Animation complete - drag unlocked")
 	end
 
 	local function restoreWindow()
@@ -1209,73 +1198,53 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		applyMinimizeClipping()
 		Animator:Ripple(controllerChip, 25, 25)
 
-		local screenSize = workspace.CurrentCamera.ViewportSize
-		local chipPos = controllerChip.AbsolutePosition
-		local chipCenterX = chipPos.X + 25
-		local chipCenterY = chipPos.Y + 25
+		if Particles then
+			Particles:Stop(true)
+		end
+
+		local shrinkTween = Animator:Tween(controllerChip, {
+			Size = UDim2.new(0, 0, 0, 0)
+		}, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
+
+		shrinkTween.Completed:Wait()
+		controllerChip.Visible = false
 
 		local targetSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
-		-- ALWAYS center the window when restoring from minimize (ignore _lastWindowPosition)
 		local targetWidth = isMobile and 380 or baseWidth
 		local targetHeight = isMobile and 520 or baseHeight
+		local screenSize = workspace.CurrentCamera.ViewportSize
 		local centerX = (screenSize.X - targetWidth) / 2
 		local centerY = (screenSize.Y - targetHeight) / 2
 		local targetPos = UDim2.fromOffset(centerX, centerY)
 
-		local windowCenterX = centerX + (targetWidth / 2)
-		local windowCenterY = centerY + (targetHeight / 2)
+		root.Visible = true
+		root.Size = UDim2.new(0, 0, 0, 0)
+		root.Position = controllerChip.Position
+		root.Rotation = 0
+		root.BackgroundTransparency = 1
 
-		-- Stop chip particles and prepare for window restore
-		if Particles then
-			Particles:Stop(true) -- Fast fade chip particles
-		end
-
-		createParticleFlow(
-			{X = chipCenterX, Y = chipCenterY},
-			{X = windowCenterX, Y = windowCenterY},
-			120,
-			1.2,
-			"spread"
-		)
-
-		Animator:Tween(controllerChip, {
-			Size = UDim2.new(0, 0, 0, 0)
-		}, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In))
-
-		task.wait(0.3)
-		controllerChip.Visible = false
-
-		-- Switch particles back to window layer and start expand burst
 		if Particles then
 			Particles:SetLayer(particleLayer)
 			Particles:Play("expand")
 		end
 
-		root.Visible = true
-		root.Size = UDim2.new(0, 0, 0, 0)
-		root.Position = controllerChip.Position
-		root.Rotation = -180
-		root.BackgroundTransparency = 1
-
 		local restoreTween = Animator:Tween(root, {
 			Size = targetSize,
 			Position = targetPos,
-			BackgroundTransparency = 1,  -- KEEP TRANSPARENT!
+			BackgroundTransparency = 1,
 			Rotation = 0
-		}, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+		}, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 
 		task.defer(function()
 			snapshotLayout("post-restore")
 		end)
 
-		-- ✅ UNLOCK drag after restore completes
 		restoreTween.Completed:Wait()
-		task.wait(0.05)  -- Small buffer for tween to fully settle
+		task.wait(0.05)
 		isAnimating = false
 		Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
 
-		-- Transition particles to idle mode after expand burst (300-450ms delay)
-		task.delay(math.random() * (0.45 - 0.3) + 0.3, function()
+		task.delay(0.25, function()
 			if Particles and not isMinimized then
 				Particles:SetState("idle")
 			end
