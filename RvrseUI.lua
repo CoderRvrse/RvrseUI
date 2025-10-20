@@ -1,5 +1,5 @@
 -- RvrseUI v4.3.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-20T10:27:53.319Z
+-- Compiled from modular architecture on 2025-10-20T10:36:01.568Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -7992,6 +7992,24 @@ do
 			return UDim2.fromOffset(centerX, centerY)
 		end
 	
+		local function clampWindowPosition(size, position)
+			local viewport = getViewportSize()
+			local width = size.X.Offset
+			local height = size.Y.Offset
+			local maxX = math.max(0, viewport.X - width)
+			local maxY = math.max(0, viewport.Y - height)
+			local clampedX = math.clamp(position.X.Offset, 0, maxX)
+			local clampedY = math.clamp(position.Y.Offset, 0, maxY)
+			return UDim2.new(position.X.Scale, clampedX, position.Y.Scale, clampedY)
+		end
+	
+		local function toScreenOffset(udim)
+			local viewport = getViewportSize()
+			local x = math.floor((udim.X.Scale or 0) * viewport.X + udim.X.Offset)
+			local y = math.floor((udim.Y.Scale or 0) * viewport.Y + udim.Y.Offset)
+			return UDim2.fromOffset(x, y)
+		end
+	
 		root.Position = getCenteredPosition(root.Size)
 		root.BackgroundColor3 = pal.Bg
 		root.BackgroundTransparency = 1  -- TRANSPARENT - let children show through
@@ -8145,12 +8163,15 @@ do
 						-- Restore idle particles after drag
 						if Particles and not isMinimized then
 							Particles:SetState("idle")
-							end
-	
-							Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
-							lastWindowPosition = root.Position
 						end
-					end)
+	
+						local clamped = clampWindowPosition(root.Size, root.Position)
+						root.Position = clamped
+						lastWindowPosition = clamped
+	
+						Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
+					end
+				end)
 				end
 			end)
 	
@@ -8638,6 +8659,12 @@ do
 	
 			root.Visible = true
 	
+			local clamped = clampWindowPosition(root.Size, root.Position)
+			if clamped ~= root.Position then
+				root.Position = clamped
+				lastWindowPosition = clamped
+			end
+	
 			-- Start particle system with expand burst on initial show
 			if Particles then
 				Particles:Play("expand")
@@ -8880,7 +8907,7 @@ do
 			isMinimized = true
 			isAnimating = true  -- ✅ LOCK drag during animation
 			lastWindowSize = root.Size
-			lastWindowPosition = root.Position
+			lastWindowPosition = clampWindowPosition(root.Size, root.Position)
 			if Overlay then
 				Overlay:HideBlocker(true)
 			end
@@ -8898,11 +8925,13 @@ do
 				chipTargetPos = UDim2.new(saved.XScale, saved.XOffset, saved.YScale, saved.YOffset)
 			end
 	
+			local chipTargetOffset = toScreenOffset(chipTargetPos)
+	
 			controllerChip.Position = chipTargetPos
 	
 			local minimizeTween = Animator:Tween(root, {
 				Size = UDim2.new(0, 20, 0, 20),
-				Position = chipTargetPos,
+				Position = chipTargetOffset,
 				BackgroundTransparency = 1,
 				Rotation = 0
 			}, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
@@ -8917,7 +8946,7 @@ do
 	
 			root.Visible = false
 			root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
-			root.Position = chipTargetPos
+			root.Position = chipTargetOffset
 			root.Rotation = 0
 	
 			controllerChip.Visible = true
@@ -8948,6 +8977,8 @@ do
 				Particles:Stop(true)
 			end
 	
+			local chipRestoreOffset = toScreenOffset(controllerChip.Position)
+	
 			local shrinkTween = Animator:Tween(controllerChip, {
 				Size = UDim2.new(0, 0, 0, 0)
 			}, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
@@ -8959,11 +8990,12 @@ do
 			local fallbackPos = getCenteredPosition(fallbackSize)
 	
 			local targetSize = lastWindowSize or fallbackSize
-			local targetPos = getCenteredPosition(targetSize)
+			local targetPos = lastWindowPosition or fallbackPos
+			targetPos = clampWindowPosition(targetSize, targetPos)
 	
 			root.Visible = true
 			root.Size = UDim2.new(0, 0, 0, 0)
-			root.Position = controllerChip.Position
+			root.Position = chipRestoreOffset
 			root.Rotation = 0
 			root.BackgroundTransparency = 1
 	
