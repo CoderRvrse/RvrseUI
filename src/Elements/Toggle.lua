@@ -17,6 +17,7 @@ function Toggle.Create(o, dependencies)
 	local Theme = dependencies.Theme
 
 	local f = card(48) -- Taller for modern look
+	local fireOnConfigLoad = o.FireOnConfigLoad ~= false
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
@@ -192,17 +193,29 @@ function Toggle.Create(o, dependencies)
 	table.insert(RvrseUI._lockListeners, visual)
 
 	local toggleAPI = {
-		Set = function(_, v)
+		Set = function(_, v, fireCallback)
 			state = v and true or false
 			visual()
 			if controlsGroup then
 				RvrseUI.Store:SetLocked(controlsGroup, state)
+			end
+			if fireCallback and o.OnChanged then
+				task.spawn(o.OnChanged, state)
 			end
 		end,
 		Get = function() return state end,
 		Refresh = visual,
 		SetVisible = function(_, visible)
 			f.Visible = visible
+		end,
+		Hydrate = function(_, overrideState)
+			if not fireOnConfigLoad then
+				return
+			end
+			if o.OnChanged then
+				local final = overrideState ~= nil and (overrideState and true or false) or state
+				task.spawn(o.OnChanged, final)
+			end
 		end,
 		CurrentValue = state
 	}

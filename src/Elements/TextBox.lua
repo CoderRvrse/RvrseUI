@@ -17,6 +17,7 @@ function TextBox.Create(o, dependencies)
 	local Theme = dependencies.Theme
 
 	local f = card(52) -- Taller for modern look
+	local fireOnConfigLoad = o.FireOnConfigLoad ~= false
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
@@ -136,15 +137,27 @@ function TextBox.Create(o, dependencies)
 	end)
 
 	local textboxAPI = {
-		Set = function(_, txt)
-			inputBox.Text = txt
-			currentValue = txt
-		end,
+	Set = function(_, txt, fireCallback)
+		local textValue = txt ~= nil and tostring(txt) or ""
+		inputBox.Text = textValue
+		currentValue = textValue
+		if fireCallback and o.OnChanged then
+			task.spawn(o.OnChanged, currentValue, false)
+		end
+	end,
 		Get = function()
 			return currentValue
 		end,
 		SetVisible = function(_, visible)
 			f.Visible = visible
+		end,
+		Hydrate = function(_, overrideValue)
+			if not fireOnConfigLoad then
+				return
+			end
+			if o.OnChanged then
+				task.spawn(o.OnChanged, overrideValue or currentValue, false)
+			end
 		end,
 		CurrentValue = currentValue
 	}

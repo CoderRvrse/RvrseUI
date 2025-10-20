@@ -326,6 +326,7 @@ function Config:LoadConfiguration(context)
 	dprintf("Config loaded, checking for _RvrseUI_Theme...")
 
 	local loadedCount = 0
+	local hydrationQueue = {}
 	local flagSource = {}
 	if context and context.Flags then
 		flagSource = context.Flags
@@ -351,10 +352,24 @@ function Config:LoadConfiguration(context)
 				end
 			end
 		elseif flagSource[flagName] and flagSource[flagName].Set then
-			local setSuccess = pcall(flagSource[flagName].Set, flagSource[flagName], value)
-			if setSuccess then
+			local element = flagSource[flagName]
+			local okSet, errSet = pcall(element.Set, element, value)
+			if okSet then
 				loadedCount = loadedCount + 1
+				if element.Hydrate then
+					hydrationQueue[#hydrationQueue + 1] = { element = element, value = value }
+				end
+			elseif dprintf then
+				dprintf(string.format("[Config] Flag '%s' set failed: %s", flagName, tostring(errSet)))
 			end
+		end
+	end
+
+	for _, item in ipairs(hydrationQueue) do
+		local element = item.element
+		local okHydrate, errHydrate = pcall(element.Hydrate, element, item.value)
+		if not okHydrate and dprintf then
+			dprintf(string.format("[Config] Hydrate failed: %s", tostring(errHydrate)))
 		end
 	end
 

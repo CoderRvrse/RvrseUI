@@ -17,7 +17,7 @@ function Keybind.Create(o, dependencies)
 	local UIS = dependencies.UIS
 	local Theme = dependencies.Theme
 
-	local f = card(48) -- Taller for modern look
+local f = card(48) -- Taller for modern look
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1

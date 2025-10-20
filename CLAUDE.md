@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.3.1)
+# RvrseUI – Maintainer Notes (v4.3.2)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -370,7 +370,7 @@ See [docs/SECURITY.md](docs/SECURITY.md) for complete security best practices, c
 - README updated with usage examples; VERSION metadata bumped to v4.3.1 (build 20251020c).
 
 **Regression test checklist**
-1. Build with `node build.js` (or `lua build.lua`) and confirm `RvrseUI.lua` header shows v4.3.1.
+1. Build with `node build.js` (or `lua build.lua`) and confirm `RvrseUI.lua` header shows v4.3.2.
 2. Run `examples/test-lucide-icons.lua` – minimize/restore and verify the token icon matches the chosen Lucide glyph (check `[LUCIDE]` logs).
 3. In Studio or executor, run:
    ```lua
@@ -969,7 +969,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2025-10-20 (v4.3.1 - Token Icon Customization)
+**Last Updated:** 2025-10-21 (v4.3.2 - Config Hydration)
 
 ---
 

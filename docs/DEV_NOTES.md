@@ -19,6 +19,25 @@ For build system and architecture, see [CLAUDE.md](CLAUDE.md).
 - **Theme aware:** When `UseThemeColor` or no color override is provided, the chip auto-adopts the active accent on theme switches.
 - **QA checklist:** Rebuild (`node build.js`), run `examples/test-lucide-icons.lua`, minimize/restore to verify sprite + fallback, then test `RvrseUI:SetTokenIcon("lucide://sparkles")` in Studio.
 
+### v4.3.2 (2025-10-21)
+
+#### 💾 Auto Hydration of Config Flags
+- **Problem solved:** Saved configs restored UI values but did not re-run `OnChanged` callbacks, forcing
+  every script to write bespoke hydration logic.
+- **Core change:** `Config:LoadConfiguration` now queues each restored flag and calls the element’s
+  new `Hydrate(value)` helper once the load finishes.
+- **Elements updated:** Slider, Toggle, ColorPicker, TextBox (with optional `FireOnConfigLoad = false`
+  escape hatch). Additional elements can adopt the same pattern over time.
+- **Docs & tooling:** README updated with guidance; `examples/test-config-hydration.lua` showcases the
+  flow; AGENTS.md quality gate now reminds authors to opt out only when they plan to manually hydrate.
+- **QA checklist:**
+  1. Run the hydration example, adjust values, `SaveConfiguration`, restart, and confirm printed
+     callbacks fire immediately on load.
+  2. Verify opt-out (`FireOnConfigLoad = false`) skips the automatic callback and that scripts reapply
+     state manually when doing so.
+  3. Confirm no duplicate callback is fired when users adjust values post-load (Set with silent update
+     remains default).
+
 ### v4.3.0 (2025-10-20)
 
 #### 🚨 Critical Alert: Lucide Sprite Sheet Load Failure

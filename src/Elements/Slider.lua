@@ -29,6 +29,7 @@ function Slider.Create(o, dependencies)
 	local baseLabelText = o.Text or "Slider"
 
 	local f = card(64) -- Taller for modern layout
+	local fireOnConfigLoad = o.FireOnConfigLoad ~= false
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
@@ -237,8 +238,14 @@ function Slider.Create(o, dependencies)
 	end
 
 	sliderAPI = {
-		Set = function(_, v)
-			setValueDirect(v)
+	Set = function(_, v, fireCallback)
+		if v == nil then
+			return
+		end
+		setValueDirect(v)
+			if fireCallback and o.OnChanged then
+				task.spawn(o.OnChanged, sliderAPI.CurrentValue)
+			end
 		end,
 		SetRange = function(_, newMin, newMax, newStep)
 			-- Rayfield-compatible SetRange method
@@ -263,6 +270,14 @@ function Slider.Create(o, dependencies)
 		Get = function() return value end,
 		SetVisible = function(_, visible)
 			f.Visible = visible
+		end,
+		Hydrate = function(_, overrideValue)
+			if not fireOnConfigLoad then
+				return
+			end
+			if o.OnChanged then
+				task.spawn(o.OnChanged, overrideValue ~= nil and overrideValue or sliderAPI.CurrentValue)
+			end
 		end,
 		CurrentValue = value
 	}

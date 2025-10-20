@@ -672,8 +672,13 @@ function ColorPicker.Create(o, dependencies)
 	end)
 
 	-- API
+	local fireOnConfigLoad = o.FireOnConfigLoad ~= false
+
 	local colorpickerAPI = {
-		Set = function(_, color)
+	Set = function(_, color, fireCallback)
+		if not color then
+			return
+		end
 			if advancedMode and rSlider then
 				updatingSliders = true
 
@@ -698,6 +703,9 @@ function ColorPicker.Create(o, dependencies)
 				currentColor = color
 				preview.BackgroundColor3 = color
 			end
+			if fireCallback and o.OnChanged then
+				task.spawn(o.OnChanged, currentColor)
+			end
 		end,
 		Get = function()
 			return currentColor
@@ -705,6 +713,15 @@ function ColorPicker.Create(o, dependencies)
 		SetVisible = function(_, visible)
 			f.Visible = visible
 		end,
+	Hydrate = function(_, overrideColor)
+		if not fireOnConfigLoad then
+			return
+		end
+		local target = overrideColor or currentColor
+		if o.OnChanged and target then
+			task.spawn(o.OnChanged, target)
+		end
+	end,
 		CurrentValue = currentColor
 	}
 

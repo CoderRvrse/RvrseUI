@@ -1,5 +1,5 @@
--- RvrseUI v4.3.1 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-20T15:29:21.753Z
+-- RvrseUI v4.3.2 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-10-20T21:08:15.006Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -36,10 +36,10 @@ do
 	Version.Data = {
 		Major = 4,
 		Minor = 3,
-		Patch = 1,
-		Build = "20251020c",  -- YYYYMMDD format
-		Full = "4.3.1",
-		Hash = "V6N8R1C7",  -- Release hash for integrity verification
+		Patch = 2,
+		Build = "20251021a",  -- YYYYMMDD format
+		Full = "4.3.2",
+		Hash = "S3L9T0Q5",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
@@ -1756,6 +1756,7 @@ do
 		dprintf("Config loaded, checking for _RvrseUI_Theme...")
 	
 		local loadedCount = 0
+		local hydrationQueue = {}
 		local flagSource = {}
 		if context and context.Flags then
 			flagSource = context.Flags
@@ -1781,10 +1782,24 @@ do
 					end
 				end
 			elseif flagSource[flagName] and flagSource[flagName].Set then
-				local setSuccess = pcall(flagSource[flagName].Set, flagSource[flagName], value)
-				if setSuccess then
+				local element = flagSource[flagName]
+				local okSet, errSet = pcall(element.Set, element, value)
+				if okSet then
 					loadedCount = loadedCount + 1
+					if element.Hydrate then
+						hydrationQueue[#hydrationQueue + 1] = { element = element, value = value }
+					end
+				elseif dprintf then
+					dprintf(string.format("[Config] Flag '%s' set failed: %s", flagName, tostring(errSet)))
 				end
+			end
+		end
+	
+		for _, item in ipairs(hydrationQueue) do
+			local element = item.element
+			local okHydrate, errHydrate = pcall(element.Hydrate, element, item.value)
+			if not okHydrate and dprintf then
+				dprintf(string.format("[Config] Hydrate failed: %s", tostring(errHydrate)))
 			end
 		end
 	
@@ -4584,6 +4599,7 @@ do
 		local Theme = dependencies.Theme
 	
 		local f = card(48) -- Taller for modern look
+		local fireOnConfigLoad = o.FireOnConfigLoad ~= false
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
@@ -4759,17 +4775,29 @@ do
 		table.insert(RvrseUI._lockListeners, visual)
 	
 		local toggleAPI = {
-			Set = function(_, v)
+			Set = function(_, v, fireCallback)
 				state = v and true or false
 				visual()
 				if controlsGroup then
 					RvrseUI.Store:SetLocked(controlsGroup, state)
+				end
+				if fireCallback and o.OnChanged then
+					task.spawn(o.OnChanged, state)
 				end
 			end,
 			Get = function() return state end,
 			Refresh = visual,
 			SetVisible = function(_, visible)
 				f.Visible = visible
+			end,
+			Hydrate = function(_, overrideState)
+				if not fireOnConfigLoad then
+					return
+				end
+				if o.OnChanged then
+					local final = overrideState ~= nil and (overrideState and true or false) or state
+					task.spawn(o.OnChanged, final)
+				end
 			end,
 			CurrentValue = state
 		}
@@ -5699,6 +5727,7 @@ do
 		local baseLabelText = o.Text or "Slider"
 	
 		local f = card(64) -- Taller for modern layout
+		local fireOnConfigLoad = o.FireOnConfigLoad ~= false
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
@@ -5907,8 +5936,14 @@ do
 		end
 	
 		sliderAPI = {
-			Set = function(_, v)
-				setValueDirect(v)
+		Set = function(_, v, fireCallback)
+			if v == nil then
+				return
+			end
+			setValueDirect(v)
+				if fireCallback and o.OnChanged then
+					task.spawn(o.OnChanged, sliderAPI.CurrentValue)
+				end
 			end,
 			SetRange = function(_, newMin, newMax, newStep)
 				-- Rayfield-compatible SetRange method
@@ -5933,6 +5968,14 @@ do
 			Get = function() return value end,
 			SetVisible = function(_, visible)
 				f.Visible = visible
+			end,
+			Hydrate = function(_, overrideValue)
+				if not fireOnConfigLoad then
+					return
+				end
+				if o.OnChanged then
+					task.spawn(o.OnChanged, overrideValue ~= nil and overrideValue or sliderAPI.CurrentValue)
+				end
 			end,
 			CurrentValue = value
 		}
@@ -5967,7 +6010,7 @@ do
 		local UIS = dependencies.UIS
 		local Theme = dependencies.Theme
 	
-		local f = card(48) -- Taller for modern look
+	local f = card(48) -- Taller for modern look
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
@@ -6151,6 +6194,7 @@ do
 		local Theme = dependencies.Theme
 	
 		local f = card(52) -- Taller for modern look
+		local fireOnConfigLoad = o.FireOnConfigLoad ~= false
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
@@ -6270,15 +6314,27 @@ do
 		end)
 	
 		local textboxAPI = {
-			Set = function(_, txt)
-				inputBox.Text = txt
-				currentValue = txt
-			end,
+		Set = function(_, txt, fireCallback)
+			local textValue = txt ~= nil and tostring(txt) or ""
+			inputBox.Text = textValue
+			currentValue = textValue
+			if fireCallback and o.OnChanged then
+				task.spawn(o.OnChanged, currentValue, false)
+			end
+		end,
 			Get = function()
 				return currentValue
 			end,
 			SetVisible = function(_, visible)
 				f.Visible = visible
+			end,
+			Hydrate = function(_, overrideValue)
+				if not fireOnConfigLoad then
+					return
+				end
+				if o.OnChanged then
+					task.spawn(o.OnChanged, overrideValue or currentValue, false)
+				end
 			end,
 			CurrentValue = currentValue
 		}
@@ -6964,8 +7020,13 @@ do
 		end)
 	
 		-- API
+		local fireOnConfigLoad = o.FireOnConfigLoad ~= false
+	
 		local colorpickerAPI = {
-			Set = function(_, color)
+		Set = function(_, color, fireCallback)
+			if not color then
+				return
+			end
 				if advancedMode and rSlider then
 					updatingSliders = true
 	
@@ -6990,6 +7051,9 @@ do
 					currentColor = color
 					preview.BackgroundColor3 = color
 				end
+				if fireCallback and o.OnChanged then
+					task.spawn(o.OnChanged, currentColor)
+				end
 			end,
 			Get = function()
 				return currentColor
@@ -6997,6 +7061,15 @@ do
 			SetVisible = function(_, visible)
 				f.Visible = visible
 			end,
+		Hydrate = function(_, overrideColor)
+			if not fireOnConfigLoad then
+				return
+			end
+			local target = overrideColor or currentColor
+			if o.OnChanged and target then
+				task.spawn(o.OnChanged, target)
+			end
+		end,
 			CurrentValue = currentColor
 		}
 	

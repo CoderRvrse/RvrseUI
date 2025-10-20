@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 1,
-    "full": "4.3.1",
-    "build": "20251020c",
-    "hash": "V6N8R1C7",
+    "patch": 2,
+    "full": "4.3.2",
+    "build": "20251021a",
+    "hash": "S3L9T0Q5",
     "channel": "Stable"
   },
   "release": {
@@ -303,3 +303,14 @@
     "license": "MIT"
   }
 }
+    "4.3.2": {
+      "date": "2025-10-21",
+      "hash": "S3L9T0Q5",
+      "changes": [
+        "💾 Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
+        "🛠️ Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
+        "🧪 New example: examples/test-config-hydration.lua demonstrates the zero-boilerplate workflow.",
+        "📚 README/AGENTS/DEV_NOTES refreshed to explain hydration behavior and opt-out strategy.",
+        "🧱 Internal Set APIs accept a fireCallback flag so programmatic updates stay silent unless explicitly fired."
+      ]
+    },
