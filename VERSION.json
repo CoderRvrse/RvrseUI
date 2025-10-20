@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 2,
+    "minor": 3,
     "patch": 0,
-    "full": "4.2.0",
-    "build": "20251018d",
-    "hash": "L6I9C3U5",
+    "full": "4.3.0",
+    "build": "20251020a",
+    "hash": "P7R1L8Z3",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-18",
-    "name": "Lucide Icon Library Integration",
-    "codename": "Icon Storm",
-    "notes": "Complete Lucide icon library integration (500+ icons) via lucide:// protocol. Automatic Unicode fallbacks for compatibility. Advanced asset mapping support for pixel-perfect custom icons. Works across all UI elements with zero setup required."
+    "date": "2025-10-20",
+    "name": "Lucide Icon System Refresh",
+    "codename": "Neon Atlas",
+    "notes": "Lucide sprite sheet embedded everywhere: Tabs, Notifications, Buttons, Labels, and docs demos render pixel-perfect icons with automatic Unicode fallbacks. Adds rbxassetid image support to the icon resolver and refreshes README/CLAUDE guidance for the end-to-end workflow."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,20 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.0": {
+      "date": "2025-10-20",
+      "hash": "P7R1L8Z3",
+      "changes": [
+        "🪄 Lucide icons now render across ALL UI elements (Tabs, Notifications, Buttons, Labels) with consistent spacing and dedicated icon holders.",
+        "🖼️ Added rbxassetid:// image support to IconResolver so Roblox-hosted sprites render alongside lucide:// and emoji schemes.",
+        "🧩 Buttons and Labels reserve a 24px icon lane with dynamic padding that prevents overlap when fallbacks or emojis are used.",
+        "🧵 Lucide sprite data is embedded into RvrseUI.lua and init build so executors load the sheet without extra HTTP calls.",
+        "🧪 Refreshed examples/test-lucide-icons.lua to showcase Buttons, Labels, Notifications, and Roblox asset icons in one scene.",
+        "📚 README.md now ships with a dedicated Lucide Icon System section, updated quick-start badges, and direct example links.",
+        "🗒️ CLAUDE.md gains a developer log plus advanced guidance for regenerating lucide sprites and wiring new icons.",
+        "🔖 VERSION metadata updated for v4.3.0 (build 20251020a, codename \"Neon Atlas\")."
+      ]
+    },
     "4.2.0": {
       "date": "2025-10-18",
       "hash": "L6I9C3U5",
@@ -267,7 +281,7 @@
   },
   "download": {
     "url": "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua",
-    "size_kb": 272,
+    "size_kb": 434,
     "format": "lua"
   },
   "repository": {

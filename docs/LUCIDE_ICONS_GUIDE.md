@@ -1,6 +1,6 @@
 # Lucide Icons Integration Guide
 
-**Version:** 4.2.0
+**Version:** 4.3.0
 **Added:** 2025-10-18
 **Icons Available:** 500+
 **Website:** https://lucide.dev/icons
@@ -16,17 +16,17 @@ RvrseUI now supports **Lucide icons** - a beautiful, consistent icon library wit
 ```lua
 local Window = RvrseUI:CreateWindow({
     Title = "My Window",
-    Icon = "lucide://home"  -- 🏠 Uses Unicode fallback
+    Icon = "lucide://home"  -- 🏠 Renders Lucide sprite (Unicode fallback if missing)
 })
 
 local Tab = Window:CreateTab({
     Title = "Settings",
-    Icon = "lucide://settings"  -- ⚙ Uses Unicode fallback
+    Icon = "lucide://settings"  -- ⚙ Sprite with themed tint
 })
 
 Section:CreateButton({
     Text = "Download",
-    Icon = "lucide://download",  -- ⬇ Uses Unicode fallback
+    Icon = "lucide://download",  -- ⬇ Sprite lane reserved in buttons
     Callback = function()
         print("Downloading...")
     end
@@ -336,7 +336,7 @@ A: It displays the icon name as text (e.g., "my-icon" if no fallback).
 
 ## 🎉 Summary
 
-RvrseUI v4.2.0 brings **500+ Lucide icons** to your UI with a simple `lucide://` protocol:
+RvrseUI v4.3.0 brings **500+ Lucide icons** to your UI with a simple `lucide://` protocol:
 
 ✅ **Easy to use** - Just add `Icon = "lucide://name"`
 ✅ **Zero setup** - Works immediately with Unicode fallbacks

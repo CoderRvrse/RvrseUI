@@ -3,7 +3,7 @@
 -- Compiles all modular files from src/ into a single RvrseUI.lua file
 -- Usage: lua build.lua
 
-print("🔨 RvrseUI v4.0.3 Build Script")
+print("🔨 RvrseUI v4.3.0 Build Script")
 print("=" .. string.rep("=", 50))
 
 local function readFile(path)
@@ -26,14 +26,14 @@ local function writeFile(path, content)
 end
 
 -- Header for compiled file
-local header = [[-- RvrseUI v4.0.2 | Cyberpunk Neon UI Framework
+local header = [[-- RvrseUI v4.3.0 | Modern Professional UI Framework
 -- Compiled from modular architecture on ]] .. os.date("%Y-%m-%d %H:%M:%S") .. [[
 
--- Features: Glassmorphism, Spring Animations, Mobile-First Responsive, Touch-Optimized
--- API: CreateWindow → CreateTab → CreateSection → {All 12 Elements}
--- Extras: Notify system, Theme switcher, LockGroup system, Drag-to-move, Auto-scaling
+-- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
+-- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
+-- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
--- 🏗️ ARCHITECTURE: This file is compiled from 26 modular files
+-- 🏗️ ARCHITECTURE: This file is compiled from 30 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 

@@ -6,14 +6,14 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 RvrseUI v4.2.0 Build Script');
+console.log('🔨 RvrseUI v4.3.0 Build Script');
 console.log('='.repeat(52));
 
 // Header for compiled file
-const header = `-- RvrseUI v4.2.0 | Modern Professional UI Framework
+const header = `-- RvrseUI v4.3.0 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
--- Features: Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
+-- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
 -- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 

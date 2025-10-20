@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.2.0)
+# RvrseUI – Maintainer Notes (v4.3.0)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -358,6 +358,33 @@ See [docs/SECURITY.md](docs/SECURITY.md) for complete security best practices, c
 
 ---
 
+## 🗒️ Developer Log – v4.3.0 Lucide Icon Refresh
+
+- Buttons and labels now share the same icon lane logic as tabs/notifications, so `lucide://`, `icon://`, emoji, and `rbxassetid://` inputs render without overlap.
+- `IconResolver` gained an image branch for Roblox assets; when a scheme begins with `rbxassetid://` or is numeric, we instantiate an `ImageLabel` instead of a text node.
+- The monolith build embeds `_G.RvrseUI_LucideIconsData`, ensuring executors load the sprite atlas even when HttpService is sandboxed.
+- Example coverage consolidated into `examples/test-lucide-icons.lua`, which exercises each element using mixed icon sources for fast regression checks.
+- README and CLAUDE were refreshed to document the pipeline and provide explicit guidance for regenerating the Lucide dataset.
+
+**Verification checklist**
+- ✅ Run `examples/test-lucide-icons.lua` in Studio or your executor (watch for `[LUCIDE]` logs confirming the sprite sheet load).
+- ✅ Trigger notifications via the example to ensure toast icons honor the same resolver.
+- ✅ Confirm `_G.RvrseUI_LucideIconsData` exists in the global environment when loading the monolith (only during runtime; we do not depend on `_G` for configuration).
+
+---
+
+## 🧠 Advanced: Lucide Icon Pipeline
+
+1. **Source data** lives in `src/lucide-icons-data.lua` – generated JSON describing glyphs, sprite UVs, and fallbacks. Treat it as build output; regenerate via `lua tools/generate-lucide-data.lua` when adding SVGs.
+2. **Resolver logic** resides in `src/LucideIcons.lua` and `src/Icons.lua`. `LucideIcons.Resolve()` returns sprite metadata or unicode, while `Icons.ResolveIconPayload()` orchestrates the different schemes.
+3. **Build step** (`node build.js` or `lua build.lua`) loads `lucide-icons-data.lua`, serializes it, and injects `_G.RvrseUI_LucideIconsData` into `RvrseUI.lua` / `init.lua`. This keeps executors offline-friendly.
+4. **Element factories** (Button/Label/Notification/Tab) call `Icons.AttachIcon(holder, payload, themeColor)` to create either an ImageLabel (sprites/assets) or TextLabel (emoji/fallbacks) pre-sized with 24px padding.
+5. **Testing**: `examples/test-lucide-icons.lua` should be exercised any time icon-related code changes. It covers lucide sprites, unicode fallbacks, emoji, and Roblox assets across tabs, buttons, labels, and notifications.
+
+> **Pro tip:** When importing new Lucide SVGs, resize them to 24×24, run the generator, rebuild the monolith, and double-check the atlas hash in the `[LUCIDE]` console logs to ensure the sprite sheet updated.
+
+---
+
 ## 🏗️ Architecture Overview
 
 ### File Structure
@@ -370,18 +397,21 @@ RvrseUI/
 │   ├── Theme.lua             # Dark/Light palettes
 │   ├── Animator.lua          # Spring animations
 │   ├── State.lua             # Global state management
-│   ├── Config.lua            # Persistence system
-│   ├── Icons.lua             # Icon library
 │   ├── UIHelpers.lua         # UI utility functions
-│   ├── Notifications.lua     # Toast notification system
-│   ├── Hotkeys.lua           # Global hotkey management
-│   ├── KeySystem.lua         # 🔐 NEW! Advanced key validation system
+│   ├── Icons.lua             # Legacy emoji/icon resolver + helpers
+│   ├── LucideIcons.lua       # Lucide sprite resolver + Unicode fallbacks
+│   ├── lucide-icons-data.lua # Generated Lucide atlas metadata (auto-built)
+│   ├── Config.lua            # Persistence system
 │   ├── WindowManager.lua     # Multi-window coordination
 │   ├── Overlay.lua           # Overlay layer management (dropdowns, blockers)
-│   ├── WindowBuilder.lua     # Main window construction
-│   ├── TabBuilder.lua        # Tab construction
+│   ├── Notifications.lua     # Toast notification system
+│   ├── Hotkeys.lua           # Global hotkey management
+│   ├── KeySystem.lua         # 🔐 Advanced key validation system
+│   ├── Particles.lua         # Organic particle effects
 │   ├── SectionBuilder.lua    # Section construction
-│   └── Elements/             # All 10 UI elements
+│   ├── TabBuilder.lua        # Tab construction
+│   ├── WindowBuilder.lua     # Main window construction
+│   └── Elements/             # All UI elements
 │       ├── Button.lua
 │       ├── Toggle.lua
 │       ├── Dropdown.lua
@@ -421,7 +451,7 @@ RvrseUI/
 
 **`build.js` / `build.lua` perform these steps:**
 
-1. **Read all modules** from `src/` in dependency order (25 modules total)
+1. **Read all modules** from `src/` in dependency order (30 modules total)
 2. **Strip module headers** (comment lines starting with `--`)
 3. **Convert local declarations to globals**: `local Module = {}` → `Module = {}`
 4. **Remove shadowing declarations**: Any `local RvrseUI` that would conflict
@@ -434,14 +464,15 @@ RvrseUI/
 **Exact module compilation order:**
 ```
 Foundation: Version → Debug → Obfuscation
-Data: Icons → Theme
-Systems: Animator → State → UIHelpers
-Services: Config → WindowManager → Hotkeys → Notifications → KeySystem
+Visual Data: Theme → Icons → LucideIcons → (lucide-icons-data injected by build)
+Core Systems: Animator → State → UIHelpers
+Services: Config → WindowManager → Hotkeys → Notifications → KeySystem → Overlay
+Visual FX: Particles
 Elements: Button → Toggle → Dropdown → Slider → Keybind → TextBox → ColorPicker → Label → Paragraph → Divider
 Builders: SectionBuilder → TabBuilder → WindowBuilder
 ```
 
-**Module count: 27 total** (was 26 before KeySystem)
+**Module count: 30 total** (includes LucideIcons + Particles pipeline)
 
 ### Critical Build Rules
 
@@ -622,30 +653,25 @@ git push origin main
 - The overlay layer is kept transparent and hidden when idle; dropdowns show/hide it as needed.
 - When adding new overlay elements, use `deps.OverlayLayer` (from WindowBuilder) to ensure consistent z-ordering.
 
-### Lucide Icon System (`src/LucideIcons.lua` + `src/Icons.lua`) - v4.2.0 NEW!
-- **Lucide library integration** provides access to 500+ professional icons from https://lucide.dev
-- Use `lucide://` protocol in Icon parameters: `Icon = "lucide://home"`, `Icon = "lucide://arrow-right"`
-- **Critical limitation**: Roblox does NOT support SVG rendering natively
-- **Solution**: LucideIcons automatically provides Unicode fallbacks for common icons
-- **Advanced usage**: Upload Lucide SVGs as Roblox ImageAssets and map them in `LucideIcons.AssetMap`
+### Lucide Icon System (`src/LucideIcons.lua` + `src/Icons.lua`) - v4.3.0
+- **Atlas-backed sprites**: `lucide://` icons resolve through `_G.RvrseUI_LucideIconsData` injected at build time, so executors load the sheet without extra HTTP calls.
+- **Unified spacing**: Buttons, labels, tabs, and notifications reserve a 24px lane for sprites/fallbacks—no more text overlap when Unicode glyphs are used.
+- **Asset overrides**: Map uploaded Roblox images via `LucideIcons.AssetMap` to swap any Lucide glyph for a bespoke asset.
   ```lua
   LucideIcons.AssetMap = {
-      ["home"] = 123456789,  -- Your uploaded Roblox asset ID
-      ["settings"] = 987654321,
+      ["sparkles"] = 16364871493,  -- Roblox `rbxassetid://` id
+      ["home"] = "rbxassetid://123456789"
   }
   ```
-- **Icon resolution order**:
-  1. Check `LucideIcons.AssetMap` for user-uploaded assets
-  2. Fall back to `LucideIcons.UnicodeFallbacks` (100+ common icons mapped)
-  3. Display icon name as text if no fallback exists
-- **Supported icon formats** (all elements):
-  - `"lucide://home"` → Lucide icon (Unicode fallback or asset)
-  - `"icon://home"` → Built-in Unicode library (190+ icons)
-  - `"🏠"` → Direct emoji pass-through
-  - `"rbxassetid://123"` → Direct Roblox asset URL
-  - `123456789` → Roblox asset ID (number)
-- **HttpService dependency**: LucideIcons requires HttpService for SVG fetching (currently unused but prepared for future)
-- **Examples**: See `examples/test-lucide-icons.lua` for comprehensive demo
+- **Resolution order**:
+  1. `rbxassetid://` or numeric asset → ImageLabel (no fallback)
+  2. `LucideIcons.AssetMap` override → ImageLabel
+  3. Lucide atlas glyph → ImageLabel with theme tinting
+  4. Unicode fallback → TextLabel (icon://, emoji, or configured fallback)
+  5. Raw text → When nothing else matches
+- **Supported schemes** (all elements): `lucide://home`, `icon://star`, `"🔥"`, `rbxassetid://16364871493`, `"16364871493"`.
+- **Testing**: `examples/test-lucide-icons.lua` exercises tabs, notifications, buttons, and labels with all schemes. Run it after any icon-related change.
+- **Maintenance**: Regenerate `src/lucide-icons-data.lua` via `tools/generate-lucide-data.lua` whenever new SVGs are imported; rebuild the monolith immediately after.
 
 ### Monolith Build Pipeline
 - `build.js` / `build.lua` wrap each module in a `do ... end` scope with tab indentation before concatenation.
@@ -903,19 +929,20 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2025-10-10 (v3.0.4 - Cursor-Locked Drag Release)
+**Last Updated:** 2025-10-20 (v4.3.0 - Lucide Icon Refresh)
 
 ---
 
 ## 📊 Module Statistics
 
-- **Total Modules:** 29 (includes LucideIcons as of v4.2.0)
+- **Total Modules:** 30 (Lucide + Particles pipeline finalized in v4.3.0)
   - Foundation: 3 (Version, Debug, Obfuscation)
-  - Data: 3 (Icons, LucideIcons, Theme)
-  - Systems: 3 (Animator, State, UIHelpers)
-  - Services: 7 (Config, WindowManager, Hotkeys, Notifications, Overlay, KeySystem, Particles)
+  - Visual Data: 4 (Theme, Icons, LucideIcons, lucide-icons-data)
+  - Core Systems: 3 (Animator, State, UIHelpers)
+  - Services: 6 (Config, WindowManager, Overlay, Notifications, Hotkeys, KeySystem)
+  - Visual FX: 1 (Particles)
   - Elements: 10 (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider)
   - Builders: 3 (SectionBuilder, TabBuilder, WindowBuilder)
 - **Element Count:** 10 UI elements
 - **Total Lines (compiled):** ~6,000 lines in RvrseUI.lua
-- **File Size:** ~272 KB (RvrseUI.lua monolith)
+- **File Size:** ~434 KB (RvrseUI.lua monolith)

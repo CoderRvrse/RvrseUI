@@ -1,8 +1,8 @@
-# RvrseUI v4.1.0
+# RvrseUI v4.3.0
 
-**Modern, Production-Ready Roblox UI Library** with Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
+**Modern, Production-Ready Roblox UI Library** with Lucide Icon System, Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
 
-![Version](https://img.shields.io/badge/version-4.1.0-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-246KB-orange)
+![Version](https://img.shields.io/badge/version-4.3.0-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-434KB-orange)
 
 ---
 
@@ -57,8 +57,9 @@ Window:Show()  -- This loads saved config THEN shows UI
 5. [Advanced Features](#-advanced-features)
 6. [Dynamic Updates](#-dynamic-updates--element-api-methods)
 7. [API Reference](#-api-reference)
-8. [Troubleshooting](#-troubleshooting)
-9. [Examples](#-examples)
+8. [Lucide Icon System](#-lucide-icon-system)
+9. [Troubleshooting](#-troubleshooting)
+10. [Examples](#-examples)
 
 ---
 
@@ -77,6 +78,7 @@ Window:Show()  -- This loads saved config THEN shows UI
 - **Divider** - Visual separators
 
 ### System Features
+- **✅ Lucide Icons** - Sprite sheet + Unicode fallbacks across all elements
 - **✅ Configuration Persistence** - Auto-save/load with profiles
 - **✅ Theme System** - Dark/Light modes with smooth transitions
 - **✅ Notification System** - Toast messages with priorities
@@ -98,7 +100,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 ### Method 2: Version-Specific
 ```lua
-local version = "v4.0.4"
+local version = "v4.3.0"
 local url = string.format("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua", version)
 local RvrseUI = loadstring(game:HttpGet(url))()
 ```
@@ -917,6 +919,43 @@ RvrseUI.Flags                        -- Access all flagged elements
 
 ---
 
+## ✨ Lucide Icon System
+
+RvrseUI v4.3.0 ships with a unified icon pipeline that keeps every element in sync—tabs, notifications, buttons, labels, and doc demos all pull from the same resolver.
+
+- **Supported schemes:** `lucide://home`, `icon://⭐`, direct emoji (`"🔥"`), `rbxassetid://16364871493`, or plain asset IDs (`"16364871493"`).
+- **Sprite sheet first:** `lucide://` icons render from the embedded Lucide atlas (`_G.RvrseUI_LucideIconsData`) with themed tinting and automatic Unicode fallbacks.
+- **Zero overlap:** Buttons and labels reserve a 24px icon lane, so fallback glyphs never collide with text.
+- **Roblox assets:** `rbxassetid://` routes through an ImageLabel so custom uploads appear exactly where lucide sprites would.
+
+### Quick Demo
+
+```lua
+local docs = Window:CreateTab({ Title = "Docs", Icon = "lucide://library" })
+local section = docs:CreateSection("Lucide Icons")
+
+section:CreateButton({
+    Text = "Open Config",
+    Icon = "lucide://settings",
+    OnClick = function() print("Settings clicked") end
+})
+
+section:CreateLabel({
+    Text = "Roblox asset id",
+    Icon = "rbxassetid://16364871493"
+})
+```
+
+> **Try it live:** `examples/test-lucide-icons.lua` walks through Tabs, Notifications, Buttons, and Labels with mixed icon sources. Drop it into your executor or Studio to verify the sprite sheet is loading correctly.
+
+### Extending the Library
+
+- Icon metadata lives in `src/lucide-icons-data.lua`. Regenerate it with `tools/generate-lucide-data.lua` when you add new SVGs.
+- The monolith embed happens during `node build.js` (or `lua build.lua`); both scripts inject `_G.RvrseUI_LucideIconsData` automatically.
+- Need a custom fallback? Update `IconResolver.Fallbacks` in `src/Icons.lua` and rebuild—no other wiring required.
+
+---
+
 ## 🐛 Troubleshooting
 
 ### "My settings aren't saving!"
@@ -1145,10 +1184,20 @@ RvrseUI:Notify({
 
 ---
 
+### Lucide Icon Integration Test
+
+- Script: `examples/test-lucide-icons.lua`
+- Showcases: Tabs, Notifications, Buttons, Labels, and Roblox asset icons using `lucide://`, `icon://`, emoji, and `rbxassetid://` schemes.
+- Usage: Drop into Roblox Studio or your executor to verify `_G.RvrseUI_LucideIconsData` is loading (watch the console for `[LUCIDE]` logs).
+- Tip: If you see fallback glyphs, make sure you're running the latest `RvrseUI.lua` build for v4.3.0.
+
+---
+
 ## 📚 Additional Resources
 
 - **[Developer Notes](DEV_NOTES.md)** - Version history, changelog, and technical notes
 - **[Build System Documentation](CLAUDE.md)** - Architecture and maintainer guide
+- **[Lucide Icon Guide](docs/LUCIDE_ICONS_GUIDE.md)** - Full protocol support, fallbacks, and regeneration steps
 - **[GitHub Repository](https://github.com/CoderRvrse/RvrseUI)** - Source code and issues
 
 ---
@@ -1185,4 +1234,4 @@ MIT License - See [LICENSE](LICENSE) file
 
 **Made with ❤️ by CoderRvrse**
 
-**Version 4.1.0** • **Build 246KB** • **27 Modules** • **Production Ready**
+**Version 4.3.0** • **Build 434KB** • **30 Modules** • **Production Ready**
