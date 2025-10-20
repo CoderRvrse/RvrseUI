@@ -371,6 +371,24 @@ See [docs/SECURITY.md](docs/SECURITY.md) for complete security best practices, c
 - ✅ Trigger notifications via the example to ensure toast icons honor the same resolver.
 - ✅ Confirm `_G.RvrseUI_LucideIconsData` exists in the global environment when loading the monolith (only during runtime; we do not depend on `_G` for configuration).
 
+### 🚨 Critical Lucide Failure Playbook
+
+If you ever see console output like:
+
+```
+⚠️ [RvrseUI] ❌ Failed to load Lucide icons sprite sheet
+[LUCIDE] ⚠️ Sprite sheet not loaded, using fallback for: sparkles
+```
+
+take the following steps before shipping anything:
+
+1. **Rebuild the bundle.** Run `node build.js` (or `lua build.lua`). Missing `_G.RvrseUI_LucideIconsData` embeds are the root cause 99% of the time.
+2. **Sanity-check the output.** Open the regenerated `RvrseUI.lua` and confirm both the v4.3.0 header and the embedded `_G.RvrseUI_LucideIconsData` block exist.
+3. **Run the Lucide smoke test.** Execute `examples/test-lucide-icons.lua` in Studio/executor. Expect `[LUCIDE] ✅ Sprite sheet data loaded successfully` with no fallback spam.
+4. **Commit source + monolith together.** Always push the changed `src/` files *and* the rebuilt `RvrseUI.lua`. Skipping one is how this bug resurfaced three times.
+
+Treat this failure as a release blocker. If the test script shows fallbacks, halt the deployment and resolve it immediately.
+
 ---
 
 ## 🧠 Advanced: Lucide Icon Pipeline

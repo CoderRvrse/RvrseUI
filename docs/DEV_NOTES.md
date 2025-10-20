@@ -9,6 +9,18 @@ For build system and architecture, see [CLAUDE.md](CLAUDE.md).
 
 ## 📋 Version History & Changelog
 
+### v4.3.0 (2025-10-20)
+
+#### 🚨 Critical Alert: Lucide Sprite Sheet Load Failure
+- **Symptom:** Console shows `❌ Failed to load Lucide icons sprite sheet` followed by repeated `[LUCIDE] ⚠️ Sprite sheet not loaded, using fallback...`
+- **Cause:** `RvrseUI.lua` was rebuilt without embedding `_G.RvrseUI_LucideIconsData` (usually because the build script was skipped or an older bundle was pushed).
+- **Fix Workflow (DO NOT SKIP):**
+  1. Run `node build.js` (or `lua build.lua`) from repo root to regenerate `RvrseUI.lua`.
+  2. Open the output and confirm the header reads v4.3.0+ and that `_G.RvrseUI_LucideIconsData` appears near the bottom.
+  3. Execute `examples/test-lucide-icons.lua`; expect `[LUCIDE] ✅ Sprite sheet data loaded successfully` with zero fallback warnings.
+  4. Commit the updated `src/` files *and* `RvrseUI.lua`, then push. Never ship source-only or bundle-only changes.
+- **Reminder:** This outage already occurred three times. Treat the error as a release blocker—halt merges until the checklist passes.
+
 ### v4.0.4 (2025-10-18)
 
 #### 🎯 CRITICAL FIX: Complete Drag System Rewrite - Back to Basics!

@@ -24,8 +24,7 @@ local Window = RvrseUI:CreateWindow({
     }
 })
 
--- Create a tab
-local Tab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
+local Tab = Window:CreateTab({ Title = "Main", Icon = "lucide://home" })
 local Section = Tab:CreateSection("Player")
 
 -- Add a slider that SAVES automatically
@@ -66,19 +65,19 @@ Window:Show()  -- This loads saved config THEN shows UI
 ## 🎯 Features
 
 ### UI Elements (10 Total)
-- **Button** - Click actions with ripple effects
+- **Button** - Click actions with ripple effects + left-aligned Lucide icon slot
 - **Toggle** - On/off switches with lock groups
 - **Slider** - Numeric values with live preview
 - **Dropdown** - Modern multi-select lists (select one or multiple items)
 - **ColorPicker** - RGB/HSV/Hex OR simple presets
 - **Keybind** - Capture keyboard inputs
 - **TextBox** - Text input fields
-- **Label** - Static text
+- **Label** - Static text with Lucide/emoji/icon prefix support
 - **Paragraph** - Multi-line text blocks
 - **Divider** - Visual separators
 
 ### System Features
-- **✅ Lucide Icons** - Sprite sheet + Unicode fallbacks across all elements
+- **✅ Lucide Icons** - Sprite sheet + Unicode fallbacks across tabs, buttons, labels, notifications
 - **✅ Configuration Persistence** - Auto-save/load with profiles
 - **✅ Theme System** - Dark/Light modes with smooth transitions
 - **✅ Notification System** - Toast messages with priorities
@@ -237,9 +236,12 @@ RvrseUI:SetAutoSaveEnabled(true)   -- Resume auto-save
 
 **What it does:** Clickable button that triggers a callback
 
+**Lucide ready:** Pass `Icon = "lucide://sparkles"` (or emoji / `rbxassetid://123`) to render a 24px icon left of the text. Icons auto-space from the label, so fallbacks never overlap.
+
 ```lua
 local myButton = Section:CreateButton({
     Text = "Click Me",                  -- Button label
+    Icon = "lucide://flash",            -- Optional Lucide/emoji/asset icon
     Callback = function()
         print("Button clicked!")
     end
@@ -458,11 +460,14 @@ local text = myTextBox:Get()                       -- Get current text
 
 ### 8. Label
 
-**What it does:** Static text display
+**What it does:** Static text display with optional icon prefix
+
+**Lucide ready:** Use `Icon = "lucide://sparkles"` (or emoji / `rbxassetid://123`) to place a 24px icon to the left of the label while keeping text aligned.
 
 ```lua
 local myLabel = Section:CreateLabel({
-    Text = "Status: Ready"
+    Text = "Status: Ready",
+    Icon = "lucide://check-circle"                -- Optional icon
 })
 
 -- API Methods
@@ -722,7 +727,8 @@ RvrseUI:Notify({
     Title = "Success!",
     Message = "Action completed",
     Duration = 3,                    -- Seconds (optional, default: 4)
-    Type = "success"                 -- "success", "info", "warn", "error"
+    Type = "success",                -- "success", "info", "warn", "error"
+    Icon = "lucide://bell-ring"      -- Optional: lucide/emoji/asset icon
 })
 
 -- With priority
@@ -740,6 +746,8 @@ RvrseUI:Notify({
 - `info` - Blue, info icon
 - `warn` - Yellow, warning icon
 - `error` - Red, error icon
+
+**Lucide ready:** Provide `Icon = "lucide://..."` (or emoji / `rbxassetid://...`) to show a custom notification glyph. Icons share the same 24px lane used by tabs/buttons/labels.
 
 ---
 
@@ -865,10 +873,10 @@ local resetButton = Section:CreateButton({
 local Window = RvrseUI:CreateWindow(config)
 
 -- Methods
-Window:CreateTab({ Title = "Main", Icon = "⚙" })
+Window:CreateTab({ Title = "Main", Icon = "lucide://layout-dashboard" })  -- Icon accepts lucide://, emoji, asset IDs
 Window:Show()                        -- CRITICAL: Call this LAST!
 Window:SetTitle("New Title")
-Window:SetIcon("🎮")
+Window:SetIcon("lucide://sparkles")  -- Window icon also supports Lucide sprites
 Window:Destroy()
 ```
 
@@ -953,6 +961,17 @@ section:CreateLabel({
 - Icon metadata lives in `src/lucide-icons-data.lua`. Regenerate it with `tools/generate-lucide-data.lua` when you add new SVGs.
 - The monolith embed happens during `node build.js` (or `lua build.lua`); both scripts inject `_G.RvrseUI_LucideIconsData` automatically.
 - Need a custom fallback? Update `IconResolver.Fallbacks` in `src/Icons.lua` and rebuild—no other wiring required.
+
+### 🚨 Critical Troubleshooting
+
+If you see console output like:
+
+```
+⚠️ [RvrseUI] ❌ Failed to load Lucide icons sprite sheet
+[LUCIDE] ⚠️ Sprite sheet not loaded, using fallback for: sparkles
+```
+
+stop and run `node build.js` (or `lua build.lua`), verify `_G.RvrseUI_LucideIconsData` exists in the regenerated `RvrseUI.lua`, and rerun `examples/test-lucide-icons.lua` until `[LUCIDE] ✅ Sprite sheet data loaded successfully` appears. Commit the rebuilt monolith alongside your source changes—this regression hit three times when rebuild steps were skipped.
 
 ---
 

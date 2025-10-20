@@ -303,6 +303,24 @@ loadstring(game:HttpGet(
 ))()
 ```
 
+## 🚨 Critical Failure Troubleshooting
+
+If your console prints:
+
+```
+⚠️ [RvrseUI] ❌ Failed to load Lucide icons sprite sheet
+[LUCIDE] ⚠️ Sprite sheet not loaded, using fallback for: sparkles
+```
+
+then the monolith is missing `_G.RvrseUI_LucideIconsData`. Fix it by:
+
+1. Running `node build.js` (or `lua build.lua`) to regenerate `RvrseUI.lua`.
+2. Opening the output to confirm the v4.3.0 header and embedded `_G.RvrseUI_LucideIconsData`.
+3. Executing `examples/test-lucide-icons.lua` and verifying the log `[LUCIDE] ✅ Sprite sheet data loaded successfully`.
+4. Committing and pushing both `src/` changes and the rebuilt monolith.
+
+Do not ship while fallback warnings persist—this regression has already occurred multiple times when rebuild steps were skipped.
+
 ## ❓ FAQ
 
 **Q: Why not render SVGs directly?**

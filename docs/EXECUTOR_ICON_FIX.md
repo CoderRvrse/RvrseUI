@@ -6,6 +6,8 @@
 
 ---
 
+> **Critical Reminder:** If you ever see `❌ Failed to load Lucide icons sprite sheet` in logs, rebuild the monolith (`node build.js`), confirm `_G.RvrseUI_LucideIconsData` exists, run `examples/test-lucide-icons.lua`, then commit the refreshed `RvrseUI.lua`. Do not skip these steps—this regression has already resurfaced multiple times.
+
 ## 🐛 The Problem
 
 User reported: **"none of the test displayed a icon no errors but no icons either"**

@@ -27,6 +27,26 @@ This document provides a **step-by-step workflow** for debugging GUI issues in R
 
 ---
 
+## 🚨 Critical Alert: Lucide Sprite Sheet Not Loading
+
+If testers report logs like:
+
+```
+⚠️ [RvrseUI] ❌ Failed to load Lucide icons sprite sheet
+[LUCIDE] ⚠️ Sprite sheet not loaded, using fallback for: sparkles
+```
+
+execute this fix immediately:
+
+1. Run `node build.js` (or `lua build.lua`) in the repo root to regenerate `RvrseUI.lua`. The build injects `_G.RvrseUI_LucideIconsData`; without it, every icon falls back to text.
+2. Inspect the regenerated `RvrseUI.lua` and confirm both the v4.3.0 header and the `_G.RvrseUI_LucideIconsData` blob exist.
+3. Launch `examples/test-lucide-icons.lua` in Studio/executor and watch the console. Only proceed if you see `[LUCIDE] ✅ Sprite sheet data loaded successfully`.
+4. Commit and push the updated monolith together with any source changes.
+
+Do **not** allow a release to proceed while the console still shows fallback warnings—this issue has already resurfaced three times when rebuild steps were skipped.
+
+---
+
 ## 📋 Debugging ColorPicker Panel (Current Issue)
 
 ### Step 1: Load Test Script
