@@ -1661,30 +1661,50 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 							refreshProfiles(selectedProfile, {suppressWarning = true})
 						end,
 						OnChanged = function(values)
-							if type(values) ~= "table" or #values == 0 then
-								return
-							end
+						if type(values) ~= "table" or #values == 0 then
+							return
+						end
 
-							local chosen = values[1]
-							if #values > 1 then
-								profilesDropdown:Set({chosen}, true)
-							end
+						local chosen = values[#values]
+						if chosen == nil then
+							return
+						end
 
-							if not containsValue(lastProfileList, chosen) then
-								return
-							end
-
-							if chosen == selectedProfile then
-								updateLabels(chosen)
-								return
-							end
-
-							if applyProfile(chosen) and profilesDropdown then
-								profilesDropdown:Set({chosen}, true)
-								profilesDropdown:SetOpen(false)
+						-- If the last value matches the previous selection, look for another candidate
+						if chosen == selectedProfile and #values > 1 then
+							for _, candidate in ipairs(values) do
+								if candidate ~= selectedProfile then
+									chosen = candidate
+									break
+								end
 							end
 						end
-					})
+
+						-- Collapse the multi-select array down to the resolved choice
+						profilesDropdown:Set({chosen}, true)
+
+						if not containsValue(lastProfileList, chosen) then
+							return
+						end
+
+						if chosen == selectedProfile then
+							updateLabels(chosen)
+							return
+						end
+
+						if applyProfile(chosen) and profilesDropdown then
+							profilesDropdown:Set({chosen}, true)
+							profilesDropdown:SetOpen(false)
+						else
+							-- Revert visual selection on failure
+							if selectedProfile then
+								profilesDropdown:Set({selectedProfile}, true)
+							else
+								profilesDropdown:ClearAll()
+							end
+						end
+					end
+				})
 
 				local newProfileName = ""
 				local nameInput = profileSection:CreateTextBox({
