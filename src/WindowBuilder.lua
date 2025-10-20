@@ -289,6 +289,118 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local lastWindowSize = root.Size
 	local lastWindowPosition = root.Position
 
+	local function rememberWindowPosition(pos)
+		if typeof(pos) ~= "UDim2" then
+			return
+		end
+		lastWindowPosition = pos
+		RvrseUI._lastWindowPosition = pos
+	end
+
+	if typeof(RvrseUI._lastWindowPosition) == "UDim2" then
+		root.Position = RvrseUI._lastWindowPosition
+		rememberWindowPosition(root.Position)
+	else
+		rememberWindowPosition(lastWindowPosition)
+	end
+
+	local function createHeaderIcon(button, opts)
+		opts = opts or {}
+
+		button.Text = ""
+
+		local holder = Instance.new("Frame")
+		holder.Name = "Icon"
+		holder.BackgroundTransparency = 1
+		holder.AnchorPoint = Vector2.new(0.5, 0.5)
+		holder.Position = UDim2.new(0.5, 0, 0.5, 0)
+		holder.Size = UDim2.new(0, opts.size or 18, 0, opts.size or 18)
+		holder.ZIndex = (button.ZIndex or 1) + 1
+		holder.ClipsDescendants = true
+		holder.Parent = button
+
+		local iconInstance = nil
+		local currentColor = opts.color or pal.Accent
+		local currentIcon = nil
+
+		local function destroyIcon()
+			if iconInstance then
+				iconInstance:Destroy()
+				iconInstance = nil
+			end
+			for _, child in ipairs(holder:GetChildren()) do
+				child:Destroy()
+			end
+		end
+
+		local function applyColor(color)
+			currentColor = color or currentColor
+			if iconInstance then
+				if iconInstance:IsA("ImageLabel") then
+					iconInstance.ImageColor3 = currentColor
+				else
+					iconInstance.TextColor3 = currentColor
+				end
+			end
+		end
+
+		local function applyIcon(icon, color)
+			if color then
+				currentColor = color
+			end
+			currentIcon = icon
+
+			destroyIcon()
+
+			if not Icons or not icon then
+				return
+			end
+
+			local iconValue, iconType = Icons:Resolve(icon)
+			if iconType == "image" and typeof(iconValue) == "string" then
+				local img = Instance.new("ImageLabel")
+				img.BackgroundTransparency = 1
+				img.Size = UDim2.new(1, 0, 1, 0)
+				img.Image = iconValue
+				img.ImageColor3 = currentColor
+				img.Parent = holder
+				iconInstance = img
+			elseif iconType == "sprite" and typeof(iconValue) == "table" then
+				local img = Instance.new("ImageLabel")
+				img.BackgroundTransparency = 1
+				img.Size = UDim2.new(1, 0, 1, 0)
+				img.Image = "rbxassetid://" .. iconValue.id
+				img.ImageRectSize = iconValue.imageRectSize
+				img.ImageRectOffset = iconValue.imageRectOffset
+				img.ImageColor3 = currentColor
+				img.Parent = holder
+				iconInstance = img
+			elseif iconValue and iconType == "text" then
+				local lbl = Instance.new("TextLabel")
+				lbl.BackgroundTransparency = 1
+				lbl.Size = UDim2.new(1, 0, 1, 0)
+				lbl.Font = Enum.Font.GothamBold
+				lbl.TextScaled = false
+				lbl.TextSize = opts.textSize or 16
+				lbl.TextColor3 = currentColor
+				lbl.Text = tostring(iconValue)
+				lbl.TextXAlignment = Enum.TextXAlignment.Center
+				lbl.TextYAlignment = Enum.TextYAlignment.Center
+				lbl.Parent = holder
+				iconInstance = lbl
+			else
+				currentIcon = nil
+			end
+		end
+
+		return {
+			SetIcon = applyIcon,
+			SetColor = applyColor,
+			GetIcon = function() return currentIcon end,
+			GetHolder = function() return holder end
+		}
+	end
+
 	-- Inner mask to control clipping during minimize animations
 	local panelMask = Instance.new("Frame")
 	panelMask.Name = "PanelMask"
@@ -393,7 +505,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			startPos.Y.Offset + delta.Y
 		)
 		root.Position = newPos
-		lastWindowPosition = newPos
+		rememberWindowPosition(newPos)
 	end
 
 	-- Start dragging when header is clicked
@@ -431,7 +543,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 
 					Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
-					lastWindowPosition = root.Position
+					rememberWindowPosition(root.Position)
 				end
 			end)
 		end
@@ -515,12 +627,18 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	closeBtn.BorderSizePixel = 0
 	closeBtn.Font = Enum.Font.GothamBold
 	closeBtn.TextSize = 18
-	closeBtn.Text = "❌"
+	closeBtn.Text = ""
 	closeBtn.TextColor3 = pal.Error
 	closeBtn.AutoButtonColor = false
 	closeBtn.Parent = header
 	UIHelpers.corner(closeBtn, 8)
 	UIHelpers.stroke(closeBtn, pal.Error, 1)
+
+	local closeIcon = createHeaderIcon(closeBtn, {
+		size = 18,
+		color = pal.Error
+	})
+	closeIcon.SetIcon("lucide://x", pal.Error)
 
 	local closeTooltip = UIHelpers.createTooltip(closeBtn, "Close UI")
 
@@ -571,15 +689,45 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	bellToggle.BorderSizePixel = 0
 	bellToggle.Font = Enum.Font.GothamBold
 	bellToggle.TextSize = 14
-	bellToggle.Text = "🔔"
+	bellToggle.Text = ""
 	bellToggle.TextColor3 = pal.Success
 	bellToggle.AutoButtonColor = false
 	bellToggle.Parent = header
 	UIHelpers.corner(bellToggle, 12)
 	UIHelpers.stroke(bellToggle, pal.Border, 1)
-	UIHelpers.addGlow(bellToggle, pal.Success, 1.5)
 
 	local bellTooltip = UIHelpers.createTooltip(bellToggle, "Notifications: ON")
+
+	local bellIcon = createHeaderIcon(bellToggle, {
+		size = 18,
+		color = pal.Success
+	})
+
+	if RvrseUI.NotificationsEnabled == nil then
+		RvrseUI.NotificationsEnabled = true
+	end
+
+	local function syncBellIcon()
+		local currentPal = Theme:Get()
+		if bellToggle:FindFirstChild("Glow") then
+			bellToggle.Glow:Destroy()
+		end
+
+		if RvrseUI.NotificationsEnabled then
+			bellIcon.SetIcon("lucide://bell", currentPal.Success)
+			bellIcon.SetColor(currentPal.Success)
+			bellToggle.TextColor3 = currentPal.Success
+			bellTooltip.Text = "  Notifications: ON  "
+			UIHelpers.addGlow(bellToggle, currentPal.Success, 1.5)
+		else
+			bellIcon.SetIcon("lucide://bell-off", currentPal.Error)
+			bellIcon.SetColor(currentPal.Error)
+			bellToggle.TextColor3 = currentPal.Error
+			bellTooltip.Text = "  Notifications: OFF  "
+		end
+	end
+
+	syncBellIcon()
 
 	bellToggle.MouseEnter:Connect(function()
 		bellTooltip.Visible = true
@@ -593,24 +741,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end)
 
 	bellToggle.MouseButton1Click:Connect(function()
-		local currentPal = Theme:Get()
 		RvrseUI.NotificationsEnabled = not RvrseUI.NotificationsEnabled
-		if RvrseUI.NotificationsEnabled then
-			bellToggle.Text = "🔔"
-			bellToggle.TextColor3 = currentPal.Success
-			bellTooltip.Text = "  Notifications: ON  "
-			if bellToggle:FindFirstChild("Glow") then
-				bellToggle.Glow:Destroy()
-			end
-			UIHelpers.addGlow(bellToggle, currentPal.Success, 1.5)
-		else
-			bellToggle.Text = "🔕"
-			bellToggle.TextColor3 = currentPal.Error
-			bellTooltip.Text = "  Notifications: OFF  "
-			if bellToggle:FindFirstChild("Glow") then
-				bellToggle.Glow:Destroy()
-			end
-		end
+		syncBellIcon()
 		Animator:Ripple(bellToggle, 25, 12)
 	end)
 
@@ -624,12 +756,18 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	minimizeBtn.BorderSizePixel = 0
 	minimizeBtn.Font = Enum.Font.GothamBold
 	minimizeBtn.TextSize = 18
-	minimizeBtn.Text = "➖"
+	minimizeBtn.Text = ""
 	minimizeBtn.TextColor3 = pal.Accent
 	minimizeBtn.AutoButtonColor = false
 	minimizeBtn.Parent = header
 	UIHelpers.corner(minimizeBtn, 12)
 	UIHelpers.stroke(minimizeBtn, pal.Border, 1)
+
+	local minimizeIcon = createHeaderIcon(minimizeBtn, {
+		size = 18,
+		color = pal.Accent
+	})
+	minimizeIcon.SetIcon("lucide://minus", pal.Accent)
 
 	local minimizeTooltip = UIHelpers.createTooltip(minimizeBtn, "Minimize to Controller")
 
@@ -654,12 +792,17 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	themeToggle.BorderSizePixel = 0
 	themeToggle.Font = Enum.Font.GothamBold
 	themeToggle.TextSize = 14
-	themeToggle.Text = Theme.Current == "Dark" and "🌙" or "🌞"
+	themeToggle.Text = ""
 	themeToggle.TextColor3 = pal.Accent
 	themeToggle.AutoButtonColor = false
 	themeToggle.Parent = header
 	UIHelpers.corner(themeToggle, 12)
 	UIHelpers.stroke(themeToggle, pal.Border, 1)
+
+	local themeIcon = createHeaderIcon(themeToggle, {
+		size = 18,
+		color = pal.Accent
+	})
 
 	local themeTooltip = UIHelpers.createTooltip(themeToggle, "Theme: " .. Theme.Current)
 
@@ -1163,7 +1306,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		isMinimized = true
 		isAnimating = true  -- ✅ LOCK drag during animation
 		lastWindowSize = root.Size
-		lastWindowPosition = root.Position
+		rememberWindowPosition(root.Position)
 		if Overlay then
 			Overlay:HideBlocker(true)
 		end
@@ -1246,7 +1389,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local fallbackPos = getCenteredPosition(fallbackSize)
 
 		local targetSize = lastWindowSize or fallbackSize
-		local targetPos = lastWindowPosition or fallbackPos
+		local storedPos = typeof(RvrseUI._lastWindowPosition) == "UDim2" and RvrseUI._lastWindowPosition or nil
+		local targetPos = storedPos or lastWindowPosition or fallbackPos
 
 		root.Visible = true
 		root.Size = targetSize
@@ -1272,7 +1416,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		task.wait(0.05)
 		isAnimating = false
 		lastWindowSize = targetSize
-		lastWindowPosition = targetPos
+		rememberWindowPosition(targetPos)
 		Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
 
 		task.delay(0.25, function()
@@ -1836,7 +1980,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local function syncPillFromTheme()
 		local t = Theme.Current
 		local currentPal = Theme:Get()
-		themeToggle.Text = t == "Dark" and "🌙" or "🌞"
+		local iconName = t == "Dark" and "lucide://moon" or "lucide://sun"
+		themeIcon.SetIcon(iconName, currentPal.Accent)
+		themeIcon.SetColor(currentPal.Accent)
 		themeToggle.TextColor3 = currentPal.Accent
 		themeToggle.BackgroundColor3 = currentPal.Elevated
 		themeTooltip.Text = "  Theme: " .. t .. "  "
@@ -1860,15 +2006,19 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		title.TextColor3 = newPal.Text
 
 		minimizeBtn.BackgroundColor3 = newPal.Elevated
-		minimizeBtn.TextColor3 = newPal.Accent
+		minimizeIcon.SetColor(newPal.Accent)
 		UIHelpers.stroke(minimizeBtn, newPal.Border, 1)
 
+		themeToggle.BackgroundColor3 = newPal.Elevated
+		themeToggle.TextColor3 = newPal.Accent
+		UIHelpers.stroke(themeToggle, newPal.Border, 1)
+
 		bellToggle.BackgroundColor3 = newPal.Elevated
-		bellToggle.TextColor3 = newPal.Accent
 		UIHelpers.stroke(bellToggle, newPal.Border, 1)
+		syncBellIcon()
 
 		closeBtn.BackgroundColor3 = newPal.Elevated
-		closeBtn.TextColor3 = newPal.Error
+		closeIcon.SetColor(newPal.Error)
 		UIHelpers.stroke(closeBtn, newPal.Border, 1)
 
 		controllerChip.BackgroundColor3 = newPal.Card
