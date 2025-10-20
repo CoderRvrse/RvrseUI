@@ -268,17 +268,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return UDim2.fromOffset(centerX, centerY)
 	end
 
-	local function clampWindowPosition(size, position)
-		local viewport = getViewportSize()
-		local width = size.X.Offset
-		local height = size.Y.Offset
-		local maxX = math.max(0, viewport.X - width)
-		local maxY = math.max(0, viewport.Y - height)
-		local clampedX = math.clamp(position.X.Offset, 0, maxX)
-		local clampedY = math.clamp(position.Y.Offset, 0, maxY)
-		return UDim2.new(position.X.Scale, clampedX, position.Y.Scale, clampedY)
-	end
-
 	local function toScreenOffset(udim)
 		local viewport = getViewportSize()
 		local x = math.floor((udim.X.Scale or 0) * viewport.X + udim.X.Offset)
@@ -441,15 +430,12 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						Particles:SetState("idle")
 					end
 
-					local clamped = clampWindowPosition(root.Size, root.Position)
-					root.Position = clamped
-					lastWindowPosition = clamped
-
 					Debug.printf("[DRAG] Finished - window: %s", tostring(root.Position))
+					lastWindowPosition = root.Position
 				end
 			end)
-			end
-		end)
+		end
+	end)
 
 	-- Track input changes
 	header.InputChanged:Connect(function(input)
@@ -935,12 +921,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		root.Visible = true
 
-		local clamped = clampWindowPosition(root.Size, root.Position)
-		if clamped ~= root.Position then
-			root.Position = clamped
-			lastWindowPosition = clamped
-		end
-
 		-- Start particle system with expand burst on initial show
 		if Particles then
 			Particles:Play("expand")
@@ -1183,7 +1163,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		isMinimized = true
 		isAnimating = true  -- ✅ LOCK drag during animation
 		lastWindowSize = root.Size
-		lastWindowPosition = clampWindowPosition(root.Size, root.Position)
+		lastWindowPosition = root.Position
 		if Overlay then
 			Overlay:HideBlocker(true)
 		end
@@ -1267,10 +1247,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		local targetSize = lastWindowSize or fallbackSize
 		local targetPos = lastWindowPosition or fallbackPos
-		targetPos = clampWindowPosition(targetSize, targetPos)
 
 		root.Visible = true
-		root.Size = UDim2.new(0, 0, 0, 0)
+		root.Size = targetSize
 		root.Position = chipRestoreOffset
 		root.Rotation = 0
 		root.BackgroundTransparency = 1
@@ -1281,11 +1260,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		local restoreTween = Animator:Tween(root, {
-			Size = targetSize,
 			Position = targetPos,
-			BackgroundTransparency = 1,
-			Rotation = 0
-		}, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
+			BackgroundTransparency = 1
+		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 
 		task.defer(function()
 			snapshotLayout("post-restore")
