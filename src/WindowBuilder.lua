@@ -1612,7 +1612,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 					selectedProfile = resolveTarget
 					if resolveTarget then
-						profilesDropdown:Set(resolveTarget, true)
+							profilesDropdown:Set({resolveTarget}, true)
 						updateLabels(resolveTarget)
 					else
 						updateLabels(nil)
@@ -1649,27 +1649,40 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 				end
 
-				profilesDropdown = profileSection:CreateDropdown({
-					Text = "Profiles",
-					Values = {},
-					PlaceholderText = dropdownPlaceholder,
-					Overlay = false,
-					UseLegacyDropdown = true,
-					OnOpen = function()
-						refreshProfiles(selectedProfile, {suppressWarning = true})
-					end,
-					OnChanged = function(value)
-						if not value or value == "" then return end
-						if not containsValue(lastProfileList, value) then
-							return
+					profilesDropdown = profileSection:CreateDropdown({
+						Text = "Profiles",
+						Values = {},
+						PlaceholderText = dropdownPlaceholder,
+						Overlay = false,
+						CurrentOption = selectedProfile and {selectedProfile} or nil,
+						OnOpen = function()
+							refreshProfiles(selectedProfile, {suppressWarning = true})
+						end,
+						OnChanged = function(values)
+							if type(values) ~= "table" or #values == 0 then
+								return
+							end
+
+							local chosen = values[1]
+							if #values > 1 then
+								profilesDropdown:Set({chosen}, true)
+							end
+
+							if not containsValue(lastProfileList, chosen) then
+								return
+							end
+
+							if chosen == selectedProfile then
+								updateLabels(chosen)
+								return
+							end
+
+							if applyProfile(chosen) then
+								profilesDropdown:Set({chosen}, true)
+								profilesDropdown:SetOpen(false)
+							end
 						end
-						if value == selectedProfile then
-							updateLabels(value)
-							return
-						end
-						applyProfile(value)
-					end
-				})
+					})
 
 				local newProfileName = ""
 				local nameInput = profileSection:CreateTextBox({
