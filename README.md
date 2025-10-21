@@ -17,6 +17,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 -- Create window
 local Window = RvrseUI:CreateWindow({
     Name = "My Hub",
+    Icon = "lucide://layout-dashboard",
     Theme = "Dark",
     ToggleUIKeybind = "K",
     ConfigurationSaving = {
@@ -185,7 +186,7 @@ Section:CreateToggle({
 local Window = RvrseUI:CreateWindow({
     -- 📌 BASIC SETTINGS
     Name = "My Hub",                    -- Window title
-    Icon = "🎮",                        -- Window icon (emoji or asset ID)
+    Icon = "lucide://gamepad-2",        -- Window icon (lucide recommended)
     Theme = "Dark",                     -- "Dark" or "Light"
 
     -- 📌 HOTKEYS
@@ -204,7 +205,7 @@ local Window = RvrseUI:CreateWindow({
     ConfigurationManager = {
         Enabled = true,                 -- Show "Profiles" tab
         TabName = "Profiles",          -- Tab name
-        Icon = "📁"                    -- Tab icon
+        Icon = "lucide://folder"       -- Tab icon
     },
 
     -- 📌 LOADING SCREEN
@@ -910,7 +911,7 @@ Window:Destroy()
 ### Tab API
 
 ```lua
-local Tab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
+local Tab = Window:CreateTab({ Title = "Main", Icon = "lucide://settings" })
 
 -- Methods
 Tab:CreateSection("Section Name")
@@ -1145,7 +1146,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 -- Create window
 local Window = RvrseUI:CreateWindow({
     Name = "My Game Hub",
-    Icon = "🎮",
+    Icon = "lucide://gamepad-2",
     Theme = "Dark",
     ToggleUIKeybind = "K",
     ConfigurationSaving = {
@@ -1158,7 +1159,7 @@ local Window = RvrseUI:CreateWindow({
 })
 
 -- Main Tab
-local MainTab = Window:CreateTab({ Title = "Main", Icon = "⚙" })
+local MainTab = Window:CreateTab({ Title = "Main", Icon = "lucide://settings" })
 local PlayerSection = MainTab:CreateSection("Player")
 
 -- Walk Speed with save
@@ -1203,7 +1204,7 @@ PlayerSection:CreateToggle({
 })
 
 -- Combat Tab
-local CombatTab = Window:CreateTab({ Title = "Combat", Icon = "⚔️" })
+local CombatTab = Window:CreateTab({ Title = "Combat", Icon = "lucide://swords" })
 local CombatSection = CombatTab:CreateSection("Auto Farm")
 
 -- Master toggle with lock group
@@ -1237,7 +1238,7 @@ CombatSection:CreateToggle({
 })
 
 -- Settings Tab
-local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "🔧" })
+local SettingsTab = Window:CreateTab({ Title = "Settings", Icon = "lucide://sliders-vertical" })
 local ThemeSection = SettingsTab:CreateSection("Appearance")
 
 -- Theme color picker

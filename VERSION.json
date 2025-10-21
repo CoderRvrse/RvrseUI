@@ -4,8 +4,8 @@
     "minor": 3,
     "patch": 2,
     "full": "4.3.2",
-    "build": "20251021a",
-    "hash": "S3L9T0Q5",
+    "build": "20251021b",
+    "hash": "H4N2B8M1",
     "channel": "Stable"
   },
   "release": {
@@ -305,7 +305,7 @@
 }
     "4.3.2": {
       "date": "2025-10-21",
-      "hash": "S3L9T0Q5",
+      "hash": "H4N2B8M1",
       "changes": [
         "💾 Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
         "🛠️ Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
