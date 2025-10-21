@@ -1137,6 +1137,10 @@ Section:CreateColorPicker({
 
 ## 💡 Examples
 
+### Codex-5 Agent Memo
+
+- [RvrseUI Codex-5 Agent Guide](examples/AGENTS.md) – condensed playbook for building polished hubs with the bundled monolith.
+
 ### Complete Hub Example
 
 ```lua

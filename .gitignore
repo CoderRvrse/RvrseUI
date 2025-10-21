@@ -72,3 +72,4 @@ dist/
 out/
 # Local AI helper notes
 AGENTS.md
+!examples/AGENTS.md
