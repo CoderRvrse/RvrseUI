@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 2,
-    "full": "4.3.2",
-    "build": "20251021b",
-    "hash": "H4N2B8M1",
+    "patch": 3,
+    "full": "4.3.3",
+    "build": "20251021c",
+    "hash": "J7P5Z2K4",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-20",
-    "name": "Lucide Icon System Refresh",
+    "date": "2025-10-21",
+    "name": "Codex-5 Memo Link",
     "codename": "Neon Atlas",
-    "notes": "Lucide sprite sheet embedded everywhere: Tabs, Notifications, Buttons, Labels, and docs demos render pixel-perfect icons with automatic Unicode fallbacks. Adds rbxassetid image support to the icon resolver and refreshes README/CLAUDE guidance for the end-to-end workflow. Profiles manager now runs on the modern dropdown system with a dedicated QA harness."
+    "notes": "README highlights the relocated Codex-5 agent memo for builders, ensuring the examples folder carries the latest AI assistant guidance alongside the bundled monolith."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,24 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.3": {
+      "date": "2025-10-21",
+      "hash": "J7P5Z2K4",
+      "changes": [
+        "📚 README surfaces the Codex-5 agent memo in `examples/AGENTS.md`, giving builders a direct link to the bundled monolith guidance."
+      ]
+    },
+    "4.3.2": {
+      "date": "2025-10-21",
+      "hash": "H4N2B8M1",
+      "changes": [
+        "💾 Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
+        "🛠️ Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
+        "🧪 New example: examples/test-config-hydration.lua demonstrates the zero-boilerplate workflow.",
+        "📚 README/AGENTS/DEV_NOTES refreshed to explain hydration behavior and opt-out strategy.",
+        "🧱 Internal Set APIs accept a fireCallback flag so programmatic updates stay silent unless explicitly fired."
+      ]
+    },
     "4.3.1": {
       "date": "2025-10-20",
       "hash": "V6N8R1C7",
@@ -303,14 +321,3 @@
     "license": "MIT"
   }
 }
-    "4.3.2": {
-      "date": "2025-10-21",
-      "hash": "H4N2B8M1",
-      "changes": [
-        "💾 Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
-        "🛠️ Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
-        "🧪 New example: examples/test-config-hydration.lua demonstrates the zero-boilerplate workflow.",
-        "📚 README/AGENTS/DEV_NOTES refreshed to explain hydration behavior and opt-out strategy.",
-        "🧱 Internal Set APIs accept a fireCallback flag so programmatic updates stay silent unless explicitly fired."
-      ]
-    },
