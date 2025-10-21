@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 3,
-    "full": "4.3.3",
-    "build": "20251021c",
-    "hash": "J7P5Z2K4",
+    "patch": 4,
+    "full": "4.3.4",
+    "build": "20251021d",
+    "hash": "Q8L6Y1F2",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-21",
-    "name": "Codex-5 Memo Link",
+    "name": "Hydration Demo Update",
     "codename": "Neon Atlas",
-    "notes": "README highlights the relocated Codex-5 agent memo for builders, ensuring the examples folder carries the latest AI assistant guidance alongside the bundled monolith."
+    "notes": "Complete hub example now shows the getgenv+flag hydration pattern so builders can see how saved state flows through RvrseUI loops at a glance."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,13 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.4": {
+      "date": "2025-10-21",
+      "hash": "Q8L6Y1F2",
+      "changes": [
+        "📘 Complete hub example now initializes getgenv() state, wires flags, and prints hydrated values so the auto-save pipeline is demonstrated inline."
+      ]
+    },
     "4.3.3": {
       "date": "2025-10-21",
       "hash": "J7P5Z2K4",

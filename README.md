@@ -1,10 +1,10 @@
-# RvrseUI v4.3.3
+# RvrseUI v4.3.4
 
 ![RvrseUI Banner](assets/banner.png)
 
 **Modern, Production-Ready Roblox UI Library** with Lucide Icon System, Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
 
-![Version](https://img.shields.io/badge/version-4.3.3-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-445KB-orange)
+![Version](https://img.shields.io/badge/version-4.3.4-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-445KB-orange)
 
 ---
 
@@ -103,7 +103,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 ### Method 2: Version-Specific
 ```lua
-local version = "v4.3.3"
+local version = "v4.3.4"
 local url = string.format("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua", version)
 local RvrseUI = loadstring(game:HttpGet(url))()
 ```
@@ -158,7 +158,7 @@ Section:CreateSlider({
 
 ### Auto Hydration on Load (New!)
 
-Starting with v4.3.2 (and continuing in v4.3.3), flag-based elements (slider, toggle, color picker, text box, etc.) automatically
+Starting with v4.3.2 (and continuing in v4.3.4), flag-based elements (slider, toggle, color picker, text box, etc.) automatically
 re-fire their `OnChanged` callbacks right after configurations are restored. This means gameplay logic
 wired inside `OnChanged` runs immediately when a profile loads—no more manual hydration code.
 
@@ -992,7 +992,7 @@ Window:SetTokenIcon("lucide://gamepad-2", { UseThemeColor = true })
 
 ## ✨ Lucide Icon System
 
-RvrseUI v4.3.3 ships with a unified icon pipeline that keeps every element in sync—tabs, notifications, buttons, labels, and doc demos all pull from the same resolver.
+RvrseUI v4.3.4 ships with a unified icon pipeline that keeps every element in sync—tabs, notifications, buttons, labels, and doc demos all pull from the same resolver.
 
 - **Supported schemes:** `lucide://home`, `icon://⭐`, direct emoji (`"🔥"`), `rbxassetid://16364871493`, or plain asset IDs (`"16364871493"`).
 - **Sprite sheet first:** `lucide://` icons render from the embedded Lucide atlas (`_G.RvrseUI_LucideIconsData`) with themed tinting and automatic Unicode fallbacks.
@@ -1146,6 +1146,16 @@ Section:CreateColorPicker({
 ```lua
 -- Load RvrseUI
 local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+local env = getgenv()
+
+-- Persisted state (hydrated automatically after Window:Show)
+env.WalkSpeed = env.WalkSpeed or 16
+env.JumpPower = env.JumpPower or 50
+env.InfiniteJump = env.InfiniteJump or false
+env.AutoFarmMaster = env.AutoFarmMaster or false
+env.FarmCoins = env.FarmCoins or false
+env.FarmXP = env.FarmXP or false
+env.ThemeColor = env.ThemeColor or Color3.fromRGB(88, 101, 242)
 
 -- Create window
 local Window = RvrseUI:CreateWindow({
@@ -1171,9 +1181,10 @@ PlayerSection:CreateSlider({
     Text = "Walk Speed",
     Min = 16,
     Max = 100,
-    Default = 16,
+    Default = env.WalkSpeed,
     Flag = "WalkSpeed",
     OnChanged = function(speed)
+        env.WalkSpeed = speed
         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
     end
 })
@@ -1183,9 +1194,10 @@ PlayerSection:CreateSlider({
     Text = "Jump Power",
     Min = 50,
     Max = 200,
-    Default = 50,
+    Default = env.JumpPower,
     Flag = "JumpPower",
     OnChanged = function(power)
+        env.JumpPower = power
         game.Players.LocalPlayer.Character.Humanoid.JumpPower = power
     end
 })
@@ -1193,10 +1205,12 @@ PlayerSection:CreateSlider({
 -- Infinite Jump toggle
 PlayerSection:CreateToggle({
     Text = "Infinite Jump",
-    State = false,
+    Default = env.InfiniteJump,
     Flag = "InfiniteJump",
     OnChanged = function(enabled)
-        -- Implementation here
+        env.InfiniteJump = enabled
+
+        -- Hydration triggers OnChanged once per flag, so this fires on load with saved state
         if enabled then
             RvrseUI:Notify({
                 Title = "Infinite Jump",
@@ -1214,10 +1228,11 @@ local CombatSection = CombatTab:CreateSection("Auto Farm")
 -- Master toggle with lock group
 CombatSection:CreateToggle({
     Text = "🎯 Auto Farm (Master)",
-    State = false,
+    Default = env.AutoFarmMaster,
     LockGroup = "AutoFarm",
     Flag = "AutoFarmMaster",
     OnChanged = function(enabled)
+        env.AutoFarmMaster = enabled
         RvrseUI:Notify({
             Title = enabled and "Auto Farm Started" or "Auto Farm Stopped",
             Message = enabled and "Individual farms locked" or "Manual control restored",
@@ -1229,16 +1244,22 @@ CombatSection:CreateToggle({
 -- Child toggles
 CombatSection:CreateToggle({
     Text = "Farm Coins",
-    State = false,
+    Default = env.FarmCoins,
     RespectLock = "AutoFarm",
-    Flag = "FarmCoins"
+    Flag = "FarmCoins",
+    OnChanged = function(enabled)
+        env.FarmCoins = enabled
+    end
 })
 
 CombatSection:CreateToggle({
     Text = "Farm XP",
-    State = false,
+    Default = env.FarmXP,
     RespectLock = "AutoFarm",
-    Flag = "FarmXP"
+    Flag = "FarmXP",
+    OnChanged = function(enabled)
+        env.FarmXP = enabled
+    end
 })
 
 -- Settings Tab
@@ -1248,16 +1269,23 @@ local ThemeSection = SettingsTab:CreateSection("Appearance")
 -- Theme color picker
 ThemeSection:CreateColorPicker({
     Text = "Theme Color",
-    Default = Color3.fromRGB(88, 101, 242),
+    Default = env.ThemeColor,
     Advanced = true,
     Flag = "ThemeColor",
     OnChanged = function(color)
+        env.ThemeColor = color
         -- Apply to UI elements
     end
 })
 
 -- CRITICAL: Show window LAST!
 Window:Show()
+
+-- Hydration proof: Saved values already refreshed, so env + flags hold the persisted state
+local savedSpeed = RvrseUI.Flags["WalkSpeed"] and RvrseUI.Flags["WalkSpeed"]:Get()
+if savedSpeed then
+    print("[Hydrated] WalkSpeed =", savedSpeed)
+end
 
 -- Welcome message
 RvrseUI:Notify({
@@ -1285,7 +1313,7 @@ RvrseUI:Notify({
 - Script: `examples/test-lucide-icons.lua`
 - Showcases: Tabs, Notifications, Buttons, Labels, and Roblox asset icons using `lucide://`, `icon://`, emoji, and `rbxassetid://` schemes.
 - Usage: Drop into Roblox Studio or your executor to verify `_G.RvrseUI_LucideIconsData` is loading (watch the console for `[LUCIDE]` logs).
-- Tip: If you see fallback glyphs, make sure you're running the latest `RvrseUI.lua` build for v4.3.3.
+- Tip: If you see fallback glyphs, make sure you're running the latest `RvrseUI.lua` build for v4.3.4.
 
 ---
 
@@ -1330,4 +1358,4 @@ MIT License - See [LICENSE](LICENSE) file
 
 **Made with ❤️ by CoderRvrse**
 
-**Version 4.3.3** • **Build 445KB** • **30 Modules** • **Production Ready**
+**Version 4.3.4** • **Build 445KB** • **30 Modules** • **Production Ready**
