@@ -1,4 +1,4 @@
--- RvrseUI v4.3.14 | Modern Professional UI Framework
+-- RvrseUI v4.3.15 | Modern Professional UI Framework
 -- Compiled from modular architecture on 2025-10-22T05:00:00Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
@@ -37,9 +37,9 @@ do
 		Major = 4,
 		Minor = 3,
 		Patch = 9,
-		Build = "20251022i",  -- YYYYMMDD format
-		Full = "4.3.14",
-		Hash = "B2V7X0Y4",  -- Release hash for integrity verification
+		Build = "20251022j",  -- YYYYMMDD format
+		Full = "4.3.15",
+		Hash = "C3W8Y1Z5",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
