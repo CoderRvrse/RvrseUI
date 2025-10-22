@@ -3,9 +3,9 @@
     "major": 4,
     "minor": 3,
     "patch": 10,
-    "full": "4.3.16",
-    "build": "20251022k",
-    "hash": "D4X9Z2A6",
+    "full": "4.3.17",
+    "build": "20251022l",
+    "hash": "E5Y0A3B7",
     "channel": "Stable"
   },
   "release": {
@@ -41,9 +41,9 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
-    "4.3.16": {
+    "4.3.17": {
       "date": "2025-10-22",
-      "hash": "D4X9Z2A6",
+      "hash": "E5Y0A3B7",
       "changes": [
         "✅ Fixed Aftman 404 error by using official setup-aftman@v0.4.2 GitHub Action instead of manual installation.",
         "🔧 Updated to Aftman v0.3.0 (latest stable release, v0.2.7 URL was broken).",
