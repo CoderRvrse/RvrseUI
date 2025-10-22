@@ -1,0 +1,8 @@
+# Stylua ignore patterns
+# Exclude build outputs and archives
+
+build/
+dist/
+out/
+docs/__archive/
+*.backup.lua
