@@ -6222,7 +6222,10 @@ do
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
 		local Theme = dependencies.Theme
-	
+		local isLightTheme = Theme and Theme.Current == "Light"
+		local baseTransparency = isLightTheme and 0 or 0.3
+		local focusTransparency = isLightTheme and 0 or 0.1
+
 		local f = card(52) -- Taller for modern look
 		local fireOnConfigLoad = o.FireOnConfigLoad ~= false
 	
