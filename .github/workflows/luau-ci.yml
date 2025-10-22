@@ -27,23 +27,29 @@ jobs:
           fi
           if ! command -v wally >/dev/null 2>&1; then
             tmpdir=$(mktemp -d)
-            if curl -sSfL https://github.com/UpliftGames/wally/releases/latest/download/wally-linux.zip -o "$tmpdir/wally.zip"; then
+            # Pin to v0.3.2 release (known working version)
+            WALLY_VERSION="v0.3.2"
+            WALLY_URL="https://github.com/UpliftGames/wally/releases/download/${WALLY_VERSION}/wally-${WALLY_VERSION}-linux-x86_64.zip"
+
+            echo "Installing Wally ${WALLY_VERSION}..."
+            if curl -sSfL "$WALLY_URL" -o "$tmpdir/wally.zip"; then
               unzip -o "$tmpdir/wally.zip" -d "$tmpdir"
-            elif curl -sSfL https://github.com/UpliftGames/wally/releases/latest/download/wally-linux.tar.gz -o "$tmpdir/wally.tar.gz"; then
-              tar -xzf "$tmpdir/wally.tar.gz" -C "$tmpdir"
             else
-              echo "Failed to download Wally binary" >&2
+              echo "Failed to download Wally ${WALLY_VERSION}" >&2
               exit 1
-            end
-            if [ -f "$tmpdir/wally-linux" ]; then
-              sudo mv "$tmpdir/wally-linux" /usr/local/bin/wally
-            elif [ -f "$tmpdir/wally" ]; then
+            fi
+
+            if [ -f "$tmpdir/wally" ]; then
               sudo mv "$tmpdir/wally" /usr/local/bin/wally
+              sudo chmod +x /usr/local/bin/wally
+              echo "Wally ${WALLY_VERSION} installed successfully"
             else
               echo "Wally binary not found after extraction" >&2
+              ls -la "$tmpdir"
               exit 1
-            end
-            sudo chmod +x /usr/local/bin/wally
+            fi
+
+            rm -rf "$tmpdir"
           fi
 
       - name: Stylua

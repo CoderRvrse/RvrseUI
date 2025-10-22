@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 8,
-    "full": "4.3.8",
-    "build": "20251022c",
-    "hash": "V6P1R4Z7",
+    "patch": 9,
+    "full": "4.3.9",
+    "build": "20251022d",
+    "hash": "W7Q2S5T9",
     "channel": "Stable"
   },
   "release": {
@@ -41,6 +41,17 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.9": {
+      "date": "2025-10-22",
+      "hash": "W7Q2S5T9",
+      "changes": [
+        "🔧 Fixed critical bash syntax errors in CI workflow (replaced `end` with `fi` in shell conditionals).",
+        "📌 Pinned Wally installation to v0.3.2 (stable release) to avoid GitHub release artifact instability.",
+        "🛠️ Updated Wally download URL to correct artifact format for reliable CI builds.",
+        "📊 Added verbose logging and improved error handling in toolchain installation steps.",
+        "✅ CI pipeline now fully functional with cargo-based stylua/selene/rojo + pinned Wally."
+      ]
+    },
     "4.3.5": {
       "date": "2025-10-21",
       "hash": "M9Q4T7S1",

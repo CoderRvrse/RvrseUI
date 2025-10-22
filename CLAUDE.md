@@ -2,10 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.3.2)
+# RvrseUI – Maintainer Notes (v4.3.9)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
+
+---
+
+## 🔥 Migration Handoff – Luau-First Initiative (Immediate Focus)
+
+- **Mission Status:** We are midway through converting the repo to 100% Luau. Stylua, Selene, and Rojo now install via `cargo install` inside `.github/workflows/luau-ci.yml`; Wally fetching is unstable because GitHub no longer publishes `wally-linux.tar.gz`—pin a known release (v0.3.2 works) and verify checksum before extraction. The workflow must stay `luau-ci` and keep all steps green.
+- **Monolith Health:** The public API (`RvrseUI:CreateWindow`, `:Notify`, etc.) was reintroduced in `RvrseUI.lua` v4.3.8; SurvivalHub sample loads again. Before pushing further changes, run `lua tools/build.lua` and smoke-test `examples/RvrseUI-SurvivalHub.lua` with `loadstring` to confirm hydration logic still matches README.
+- **Outstanding Defects:** Light-mode visuals still show alpha seam/corner mismatch. Audit ImageLabel assets for correct `SliceCenter`, match all `UICorner` radii, ensure `ClipsDescendants` is false where `UIStroke` should spill, and remove semi-transparent PNG halos. Track fixes in `/src/UIHelpers` and `/src/Theme`.
+- **Regression Warning:** Roblox logs reported `value of type nil cannot be converted to a number` from `CreateTextBox`. Review `src/Elements/TextBox.lua` line parity with compiled monolith (lines ~6248 and ~7556) to identify missing defaults before next build.
+- **Legacy Tooling Inventory:** Remaining non-Luau helpers live under `docs/__archive/2025-10-16/BUILD_MONOLITHIC.js`. Treat everything under `tools/` as the source of truth for builds; if you port archived JS logic, mark the original file `vendored` in `.gitattributes` and uprev the Lua replacement in `tools/`. No active shell scripts remain.
+- **Next Checkpoint:** Finish CI stabilization (pinned Wally + retry guard), then document the Luau-first plan in README + VERSION bump. Only after CI is green should Claude continue porting archived Node workflows or tackling UI polish.
 
 ---
 
@@ -969,7 +980,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2025-10-21 (v4.3.2 - Config Hydration)
+**Last Updated:** 2025-10-22 (v4.3.9 - CI Hotfix)
 
 ---
 
