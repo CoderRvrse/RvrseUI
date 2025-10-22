@@ -1,5 +1,5 @@
 [config]
-std = "roblox"
+std = "roblox+luau"
 
 [lints]
 shadowing = "allow"
