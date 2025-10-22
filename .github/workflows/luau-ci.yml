@@ -10,30 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install build toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libssl-dev curl unzip lua5.1
+          if ! command -v cargo >/dev/null 2>&1; then
+            sudo apt-get install -y cargo
+          fi
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          cargo install stylua --locked --force
+          cargo install selene --locked --force
+          cargo install rojo --locked --force
+          cargo install wally-cli --locked --force
 
       - name: Stylua
-        uses: JohnnyMorganz/stylua-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --check .
+        run: stylua --check .
 
       - name: Selene
-        uses: kampfkarren/selene-action@v0.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Rojo
-        uses: rojo-rbx/setup-rojo@v1
-        with:
-          version: v7.4.1
+        run: selene .
 
       - name: Rojo build
         run: rojo build default.project.json --output build/RvrseUI.rbxlx
 
-      - name: Setup Wally
-        uses: UpliftGames/wally-action@v1
-
-      - name: Install dependencies
+      - name: Wally install
         run: wally install
 
       - name: TestEZ
