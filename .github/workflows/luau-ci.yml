@@ -15,7 +15,6 @@ jobs:
         uses: ok-nick/setup-aftman@v0.4.2
         with:
           version: v0.3.0
-          trust-check: false
 
       - name: Install Lua runtime
         run: |
