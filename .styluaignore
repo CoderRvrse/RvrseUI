@@ -6,3 +6,6 @@ dist/
 out/
 docs/__archive/
 *.backup.lua
+
+# Code snippets/patches (not complete Lua files)
+src/tab-sprite-patch.lua
