@@ -37,7 +37,7 @@ function Toggle.Create(o, dependencies)
 	shell.BackgroundColor3 = pal3.Border
 	shell.BorderSizePixel = 0
 	shell.Parent = f
-	corner(shell, 15)
+	corner(shell, "pill")
 
 	-- Gradient overlay on track
 	local trackGradient = Instance.new("UIGradient")
@@ -59,6 +59,7 @@ function Toggle.Create(o, dependencies)
 	trackStroke.Thickness = 0
 	trackStroke.Transparency = 0.7
 	trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	trackStroke.LineJoinMode = Enum.LineJoinMode.Round
 	trackStroke.Parent = shell
 
 	-- Switch thumb (larger and glowing)
@@ -69,7 +70,7 @@ function Toggle.Create(o, dependencies)
 	dot.BorderSizePixel = 0
 	dot.ZIndex = 3
 	dot.Parent = shell
-	corner(dot, 13)
+	corner(dot, "pill")
 	shadow(dot, 0.5, 3)
 
 	-- Glow ring around thumb (when active)
@@ -78,6 +79,7 @@ function Toggle.Create(o, dependencies)
 	glowRing.Thickness = 0
 	glowRing.Transparency = 0.3
 	glowRing.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	glowRing.LineJoinMode = Enum.LineJoinMode.Round
 	glowRing.Parent = dot
 
 	local state = o.State == true

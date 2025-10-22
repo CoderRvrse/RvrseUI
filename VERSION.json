@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 4,
-    "full": "4.3.4",
-    "build": "20251021d",
-    "hash": "Q8L6Y1F2",
+    "patch": 5,
+    "full": "4.3.5",
+    "build": "20251021e",
+    "hash": "M9Q4T7S1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-21",
-    "name": "Hydration Demo Update",
+    "name": "Rounded Edge Polish",
     "codename": "Neon Atlas",
-    "notes": "Complete hub example now shows the getgenv+flag hydration pattern so builders can see how saved state flows through RvrseUI loops at a glance."
+    "notes": "Light and dark themes now share crisp capsules: UIStroke joins are rounded, pill corners respect container size, and light mode drops the semi-transparent halo on cards, inputs, and buttons."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,15 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.5": {
+      "date": "2025-10-21",
+      "hash": "M9Q4T7S1",
+      "changes": [
+        "🎨 Capsule surfaces rebuilt: pill radii now follow container height, preventing mismatched corners on toggles, sliders, color previews, and keybind buttons.",
+        "🖌️ UIStroke joins switched to round across elements so outlines stay smooth even under scaling and animation.",
+        "🌞 Light theme cards, buttons, and inputs render fully opaque by default, eliminating the premultiplied alpha halo that appeared on pale backgrounds."
+      ]
+    },
     "4.3.4": {
       "date": "2025-10-21",
       "hash": "Q8L6Y1F2",

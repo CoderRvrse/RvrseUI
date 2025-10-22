@@ -16,8 +16,9 @@ function Keybind.Create(o, dependencies)
 	local RvrseUI = dependencies.RvrseUI
 	local UIS = dependencies.UIS
 	local Theme = dependencies.Theme
+	local isLightTheme = Theme and Theme.Current == "Light"
 
-local f = card(48) -- Taller for modern look
+	local f = card(48) -- Taller for modern look
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
@@ -35,7 +36,7 @@ local f = card(48) -- Taller for modern look
 	btn.Position = UDim2.new(1, -6, 0.5, 0)
 	btn.Size = UDim2.new(0, 140, 0, 36)
 	btn.BackgroundColor3 = pal3.Card
-	btn.BackgroundTransparency = 0.2
+	btn.BackgroundTransparency = isLightTheme and 0 or 0.2
 	btn.BorderSizePixel = 0
 	btn.Font = Enum.Font.Code
 	btn.TextSize = 13
@@ -43,7 +44,7 @@ local f = card(48) -- Taller for modern look
 	btn.Text = (o.Default and o.Default.Name) or "Set Key"
 	btn.AutoButtonColor = false
 	btn.Parent = f
-	corner(btn, 10)
+	corner(btn, "pill")
 
 	-- Border stroke
 	local btnStroke = Instance.new("UIStroke")
@@ -51,6 +52,7 @@ local f = card(48) -- Taller for modern look
 	btnStroke.Thickness = 1
 	btnStroke.Transparency = 0.5
 	btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	btnStroke.LineJoinMode = Enum.LineJoinMode.Round
 	btnStroke.Parent = btn
 
 	-- Gradient overlay (shows when capturing)

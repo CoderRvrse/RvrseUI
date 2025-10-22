@@ -56,6 +56,7 @@ function TabBuilder.CreateTab(t, dependencies)
 	tabStroke.Thickness = 1
 	tabStroke.Transparency = 0.6
 	tabStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	tabStroke.LineJoinMode = Enum.LineJoinMode.Round
 	tabStroke.Parent = tabBtn
 
 	-- Handle icon display (icon-only design)

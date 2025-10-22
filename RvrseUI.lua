@@ -1,5 +1,5 @@
--- RvrseUI v4.3.4 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-21T23:05:12.184Z
+-- RvrseUI v4.3.5 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-10-21T23:45:32.582Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -36,10 +36,10 @@ do
 	Version.Data = {
 		Major = 4,
 		Minor = 3,
-		Patch = 4,
-		Build = "20251021d",  -- YYYYMMDD format
-		Full = "4.3.4",
-		Hash = "Q8L6Y1F2",  -- Release hash for integrity verification
+		Patch = 5,
+		Build = "20251021e",  -- YYYYMMDD format
+		Full = "4.3.5",
+		Hash = "M9Q4T7S1",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
@@ -1161,12 +1161,14 @@ do
 		intensity = intensity or 0.3
 		duration = duration or 0.4
 	
-		local glow = Instance.new("UIStroke")
-		glow.Name = "Glow"
-		glow.Color = palette.Glow or Color3.fromRGB(168, 85, 247)
-		glow.Thickness = 0
-		glow.Transparency = 1
-		glow.Parent = obj
+	local glow = Instance.new("UIStroke")
+	glow.Name = "Glow"
+	glow.Color = palette.Glow or Color3.fromRGB(168, 85, 247)
+	glow.Thickness = 0
+	glow.Transparency = 1
+	glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	glow.LineJoinMode = Enum.LineJoinMode.Round
+	glow.Parent = obj
 	
 		-- Fade in glow
 		self:Tween(glow, {
@@ -1305,11 +1307,19 @@ do
 	
 	function UIHelpers.corner(inst, r)
 		local c = Instance.new("UICorner")
-		c.CornerRadius = UDim.new(0, r or 12)
+		if typeof(r) == "UDim" then
+			c.CornerRadius = r
+		elseif r == "pill" or r == "full" then
+			c.CornerRadius = UDim.new(1, 0)
+		elseif typeof(r) == "number" then
+			c.CornerRadius = UDim.new(0, r)
+		else
+			c.CornerRadius = UDim.new(0, 12)
+		end
 		c.Parent = inst
 		return c
 	end
-	
+
 	function UIHelpers.stroke(inst, color, thickness, Theme)
 		local s = Instance.new("UIStroke")
 		if color then
@@ -1321,6 +1331,7 @@ do
 		end
 		s.Thickness = thickness or 1.5  -- Increased from 1 to 1.5 for crispness
 		s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		s.LineJoinMode = Enum.LineJoinMode.Round
 		s.Parent = inst
 		return s
 	end
@@ -1390,6 +1401,7 @@ do
 		tooltipStroke.Color = Color3.fromRGB(60, 60, 70)
 		tooltipStroke.Thickness = 1
 		tooltipStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tooltipStroke.LineJoinMode = Enum.LineJoinMode.Round
 		tooltipStroke.Parent = tooltip
 	
 		return tooltip
@@ -1403,6 +1415,7 @@ do
 		glow.Thickness = 0
 		glow.Transparency = 0.5
 		glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		glow.LineJoinMode = Enum.LineJoinMode.Round
 		glow.Parent = inst
 	
 		-- Animate glow
@@ -2628,6 +2641,7 @@ do
 				s.Color = color or (deps.Theme and deps.Theme:Get().Border) or Color3.fromRGB(45, 45, 55)
 				s.Thickness = thickness or 1
 				s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+				s.LineJoinMode = Enum.LineJoinMode.Round
 				s.Parent = inst
 				return s
 			end
@@ -3146,12 +3160,13 @@ do
 		Corner.Parent = Container
 	
 		-- Gradient border effect
-		local Border = Instance.new("UIStroke")
-		Border.Color = colors.Accent
-		Border.Thickness = 2
-		Border.Transparency = 0.5
-		Border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		Border.Parent = Container
+	local Border = Instance.new("UIStroke")
+	Border.Color = colors.Accent
+	Border.Thickness = 2
+	Border.Transparency = 0.5
+	Border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Border.LineJoinMode = Enum.LineJoinMode.Round
+	Border.Parent = Container
 	
 		local BorderGradient = Instance.new("UIGradient")
 		BorderGradient.Color = ColorSequence.new({
@@ -3293,11 +3308,13 @@ do
 			NoteBtnCorner.CornerRadius = UDim.new(0, 10)
 			NoteBtnCorner.Parent = NoteBtn
 	
-			local NoteBtnStroke = Instance.new("UIStroke")
-			NoteBtnStroke.Color = colors.Accent
-			NoteBtnStroke.Thickness = 1.5
-			NoteBtnStroke.Transparency = 0.7
-			NoteBtnStroke.Parent = NoteBtn
+		local NoteBtnStroke = Instance.new("UIStroke")
+		NoteBtnStroke.Color = colors.Accent
+		NoteBtnStroke.Thickness = 1.5
+		NoteBtnStroke.Transparency = 0.7
+		NoteBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		NoteBtnStroke.LineJoinMode = Enum.LineJoinMode.Round
+		NoteBtnStroke.Parent = NoteBtn
 	
 			local NoteBtnPadding = Instance.new("UIPadding")
 			NoteBtnPadding.PaddingLeft = UDim.new(0, 12)
@@ -3340,11 +3357,13 @@ do
 		InputCorner.CornerRadius = UDim.new(0, 10)
 		InputCorner.Parent = InputBox
 	
-		local InputStroke = Instance.new("UIStroke")
-		InputStroke.Color = colors.Border
-		InputStroke.Thickness = 1.5
-		InputStroke.Transparency = 0.5
-		InputStroke.Parent = InputBox
+	local InputStroke = Instance.new("UIStroke")
+	InputStroke.Color = colors.Border
+	InputStroke.Thickness = 1.5
+	InputStroke.Transparency = 0.5
+	InputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	InputStroke.LineJoinMode = Enum.LineJoinMode.Round
+	InputStroke.Parent = InputBox
 	
 		local InputPadding = Instance.new("UIPadding")
 		InputPadding.PaddingLeft = UDim.new(0, 16)
@@ -4245,11 +4264,12 @@ do
 		local RvrseUI = dependencies.RvrseUI
 		local Theme = dependencies.Theme
 		local Icons = dependencies.Icons
-	
+		local isLightTheme = Theme and Theme.Current == "Light"
+
 		-- Create container with gradient background
 		local f = card(48) -- Slightly taller for modern look
 		f.BackgroundColor3 = pal3.Card
-		f.BackgroundTransparency = 0.2
+		f.BackgroundTransparency = isLightTheme and 0 or 0.2
 	
 		-- Add gradient background
 		local gradient = Instance.new("UIGradient")
@@ -4271,6 +4291,7 @@ do
 		stroke.Thickness = 1
 		stroke.Transparency = 0.5
 		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		stroke.LineJoinMode = Enum.LineJoinMode.Round
 		stroke.Parent = f
 	
 		-- Main button
@@ -4597,6 +4618,9 @@ do
 		local Animator = dependencies.Animator
 		local RvrseUI = dependencies.RvrseUI
 		local Theme = dependencies.Theme
+		local isLightTheme = Theme and Theme.Current == "Light"
+		local baseTransparency = isLightTheme and 0 or 0.3
+		local focusTransparency = isLightTheme and 0 or 0.1
 	
 		local f = card(48) -- Taller for modern look
 		local fireOnConfigLoad = o.FireOnConfigLoad ~= false
@@ -4619,7 +4643,7 @@ do
 		shell.BackgroundColor3 = pal3.Border
 		shell.BorderSizePixel = 0
 		shell.Parent = f
-		corner(shell, 15)
+		corner(shell, "pill")
 	
 		-- Gradient overlay on track
 		local trackGradient = Instance.new("UIGradient")
@@ -4641,6 +4665,7 @@ do
 		trackStroke.Thickness = 0
 		trackStroke.Transparency = 0.7
 		trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		trackStroke.LineJoinMode = Enum.LineJoinMode.Round
 		trackStroke.Parent = shell
 	
 		-- Switch thumb (larger and glowing)
@@ -4651,7 +4676,7 @@ do
 		dot.BorderSizePixel = 0
 		dot.ZIndex = 3
 		dot.Parent = shell
-		corner(dot, 13)
+		corner(dot, "pill")
 		shadow(dot, 0.5, 3)
 	
 		-- Glow ring around thumb (when active)
@@ -4660,6 +4685,7 @@ do
 		glowRing.Thickness = 0
 		glowRing.Transparency = 0.3
 		glowRing.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		glowRing.LineJoinMode = Enum.LineJoinMode.Round
 		glowRing.Parent = dot
 	
 		local state = o.State == true
@@ -5759,7 +5785,7 @@ do
 		track.BackgroundColor3 = pal3.Card
 		track.BorderSizePixel = 0
 		track.Parent = f
-		corner(track, 5)
+		corner(track, "pill")
 	
 		-- Track border glow
 		local trackStroke = Instance.new("UIStroke")
@@ -5767,6 +5793,7 @@ do
 		trackStroke.Thickness = 1
 		trackStroke.Transparency = 0.7
 		trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		trackStroke.LineJoinMode = Enum.LineJoinMode.Round
 		trackStroke.Parent = track
 	
 		-- Vibrant gradient fill
@@ -5777,7 +5804,7 @@ do
 		fill.BorderSizePixel = 0
 		fill.ZIndex = 2
 		fill.Parent = track
-		corner(fill, 5)
+		corner(fill, "pill")
 	
 		-- Multi-color gradient on fill
 		local fillGradient = Instance.new("UIGradient")
@@ -5798,7 +5825,7 @@ do
 		thumb.BorderSizePixel = 0
 		thumb.ZIndex = 4
 		thumb.Parent = track
-		corner(thumb, 11)
+		corner(thumb, "pill")
 		shadow(thumb, 0.5, 5) -- Enhanced shadow
 	
 		-- Glowing stroke around thumb
@@ -5807,6 +5834,7 @@ do
 		glowStroke.Thickness = 0
 		glowStroke.Transparency = 0.2
 		glowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		glowStroke.LineJoinMode = Enum.LineJoinMode.Round
 		glowStroke.Parent = thumb
 	
 		local dragging = false
@@ -6009,8 +6037,9 @@ do
 		local RvrseUI = dependencies.RvrseUI
 		local UIS = dependencies.UIS
 		local Theme = dependencies.Theme
-	
-	local f = card(48) -- Taller for modern look
+		local isLightTheme = Theme and Theme.Current == "Light"
+
+		local f = card(48) -- Taller for modern look
 	
 		local lbl = Instance.new("TextLabel")
 		lbl.BackgroundTransparency = 1
@@ -6028,7 +6057,7 @@ do
 		btn.Position = UDim2.new(1, -6, 0.5, 0)
 		btn.Size = UDim2.new(0, 140, 0, 36)
 		btn.BackgroundColor3 = pal3.Card
-		btn.BackgroundTransparency = 0.2
+		btn.BackgroundTransparency = isLightTheme and 0 or 0.2
 		btn.BorderSizePixel = 0
 		btn.Font = Enum.Font.Code
 		btn.TextSize = 13
@@ -6036,7 +6065,7 @@ do
 		btn.Text = (o.Default and o.Default.Name) or "Set Key"
 		btn.AutoButtonColor = false
 		btn.Parent = f
-		corner(btn, 10)
+		corner(btn, "pill")
 	
 		-- Border stroke
 		local btnStroke = Instance.new("UIStroke")
@@ -6044,6 +6073,7 @@ do
 		btnStroke.Thickness = 1
 		btnStroke.Transparency = 0.5
 		btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		btnStroke.LineJoinMode = Enum.LineJoinMode.Round
 		btnStroke.Parent = btn
 	
 		-- Gradient overlay (shows when capturing)
@@ -6212,7 +6242,7 @@ do
 		inputBox.Position = UDim2.new(1, -8, 0.5, 0)
 		inputBox.Size = UDim2.new(0, 240, 0, 36)
 		inputBox.BackgroundColor3 = pal3.Card
-		inputBox.BackgroundTransparency = 0.3
+		inputBox.BackgroundTransparency = baseTransparency
 		inputBox.BorderSizePixel = 0
 		inputBox.Font = Enum.Font.GothamMedium
 		inputBox.TextSize = 14
@@ -6222,7 +6252,7 @@ do
 		inputBox.Text = o.Default or ""
 		inputBox.ClearTextOnFocus = false
 		inputBox.Parent = f
-		corner(inputBox, 10)
+		corner(inputBox, "pill")
 	
 		-- Subtle border (default state)
 		local borderStroke = Instance.new("UIStroke")
@@ -6230,6 +6260,7 @@ do
 		borderStroke.Thickness = 1
 		borderStroke.Transparency = 0.6
 		borderStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		borderStroke.LineJoinMode = Enum.LineJoinMode.Round
 		borderStroke.Parent = inputBox
 	
 		-- Gradient underline (glows on focus)
@@ -6260,8 +6291,8 @@ do
 		inputBox.Focused:Connect(function()
 			isFocused = true
 	
-			-- Background brightens
-			Animator:Tween(inputBox, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+		-- Background brightens
+		Animator:Tween(inputBox, {BackgroundTransparency = focusTransparency}, Animator.Spring.Lightning)
 	
 			-- Border glows
 			Animator:Tween(borderStroke, {
@@ -6285,8 +6316,8 @@ do
 			isFocused = false
 			currentValue = inputBox.Text
 	
-			-- Background dims
-			Animator:Tween(inputBox, {BackgroundTransparency = 0.3}, Animator.Spring.Snappy)
+		-- Background dims
+		Animator:Tween(inputBox, {BackgroundTransparency = baseTransparency}, Animator.Spring.Snappy)
 	
 			-- Border restores
 			Animator:Tween(borderStroke, {
@@ -6497,7 +6528,7 @@ do
 		preview.Text = ""
 		preview.AutoButtonColor = false
 		preview.Parent = f
-		corner(preview, 20)
+		corner(preview, "pill")
 	
 		-- Glowing stroke
 		local previewStroke = Instance.new("UIStroke")
@@ -6505,6 +6536,7 @@ do
 		previewStroke.Thickness = 2
 		previewStroke.Transparency = 0.4
 		previewStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		previewStroke.LineJoinMode = Enum.LineJoinMode.Round
 		previewStroke.Parent = preview
 	
 		-- Advanced mode: Color picker panel
@@ -7376,20 +7408,27 @@ do
 	function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		local Theme = dependencies.Theme
 		local helpers = dependencies.UIHelpers or {}
-		local corner = helpers.corner or function(inst, radius)
-			local c = Instance.new("UICorner")
+	local corner = helpers.corner or function(inst, radius)
+		local c = Instance.new("UICorner")
+		if typeof(radius) == "UDim" then
+			c.CornerRadius = radius
+		elseif radius == "pill" or radius == "full" then
+			c.CornerRadius = UDim.new(1, 0)
+		else
 			c.CornerRadius = UDim.new(0, radius or 12)
-			c.Parent = inst
-			return c
 		end
-		local stroke = helpers.stroke or function(inst, color, thickness)
-			local s = Instance.new("UIStroke")
-			s.Color = color or Color3.fromRGB(45, 45, 55)
-			s.Thickness = thickness or 1
-			s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-			s.Parent = inst
-			return s
-		end
+		c.Parent = inst
+		return c
+	end
+	local stroke = helpers.stroke or function(inst, color, thickness)
+		local s = Instance.new("UIStroke")
+		s.Color = color or Color3.fromRGB(45, 45, 55)
+		s.Thickness = thickness or 1
+		s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		s.LineJoinMode = Enum.LineJoinMode.Round
+		s.Parent = inst
+		return s
+	end
 		local padding = helpers.padding or function(inst, inset)
 			local pad = Instance.new("UIPadding")
 			local offset = UDim.new(0, inset or 12)
@@ -7407,7 +7446,8 @@ do
 		local overlayLayer = dependencies.OverlayLayer
 		local overlayService = dependencies.Overlay
 	
-		local pal3 = Theme:Get()
+	local pal3 = Theme:Get()
+	local isLightTheme = Theme and Theme.Current == "Light"
 	
 		-- Section header
 		local sectionHeader = Instance.new("Frame")
@@ -7439,9 +7479,9 @@ do
 	
 		-- Card factory function (creates base card for elements)
 		local function card(height)
-			local c = Instance.new("Frame")
-			c.BackgroundColor3 = pal3.Elevated
-			c.BackgroundTransparency = 0.3
+		local c = Instance.new("Frame")
+		c.BackgroundColor3 = pal3.Elevated
+		c.BackgroundTransparency = isLightTheme and 0 or 0.3
 			c.BorderSizePixel = 0
 			c.Size = UDim2.new(1, 0, 0, height)
 			c.Parent = container
@@ -7583,6 +7623,7 @@ do
 		tabStroke.Thickness = 1
 		tabStroke.Transparency = 0.6
 		tabStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tabStroke.LineJoinMode = Enum.LineJoinMode.Round
 		tabStroke.Parent = tabBtn
 	
 		-- Handle icon display (icon-only design)
@@ -8335,6 +8376,7 @@ do
 		headerStroke.Thickness = 1
 		headerStroke.Transparency = 0.5
 		headerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		headerStroke.LineJoinMode = Enum.LineJoinMode.Round
 		headerStroke.Parent = header
 	
 		local headerDivider = Instance.new("Frame")
@@ -8777,6 +8819,7 @@ do
 		tabRailStroke.Thickness = 1
 		tabRailStroke.Transparency = 0.6
 		tabRailStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tabRailStroke.LineJoinMode = Enum.LineJoinMode.Round
 		tabRailStroke.Parent = tabBar
 	
 		local tabPadding = Instance.new("UIPadding")

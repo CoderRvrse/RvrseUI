@@ -15,11 +15,12 @@ function Button.Create(o, dependencies)
 	local RvrseUI = dependencies.RvrseUI
 	local Theme = dependencies.Theme
 	local Icons = dependencies.Icons
+	local isLightTheme = Theme and Theme.Current == "Light"
 
 	-- Create container with gradient background
 	local f = card(48) -- Slightly taller for modern look
 	f.BackgroundColor3 = pal3.Card
-	f.BackgroundTransparency = 0.2
+	f.BackgroundTransparency = isLightTheme and 0 or 0.2
 
 	-- Add gradient background
 	local gradient = Instance.new("UIGradient")
@@ -41,6 +42,7 @@ function Button.Create(o, dependencies)
 	stroke.Thickness = 1
 	stroke.Transparency = 0.5
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.LineJoinMode = Enum.LineJoinMode.Round
 	stroke.Parent = f
 
 	-- Main button

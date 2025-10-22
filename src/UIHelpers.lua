@@ -21,7 +21,15 @@ end
 -- Add UICorner to instance
 function UIHelpers.corner(inst, r)
 	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, r or 12)
+	if typeof(r) == "UDim" then
+		c.CornerRadius = r
+	elseif r == "pill" or r == "full" then
+		c.CornerRadius = UDim.new(1, 0)
+	elseif typeof(r) == "number" then
+		c.CornerRadius = UDim.new(0, r)
+	else
+		c.CornerRadius = UDim.new(0, 12)
+	end
 	c.Parent = inst
 	return c
 end
@@ -39,6 +47,7 @@ function UIHelpers.stroke(inst, color, thickness, Theme)
 	end
 	s.Thickness = thickness or 1.5  -- Increased from 1 to 1.5 for crispness
 	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	s.LineJoinMode = Enum.LineJoinMode.Round
 	s.Parent = inst
 	return s
 end
@@ -112,6 +121,7 @@ function UIHelpers.createTooltip(parent, text)
 	tooltipStroke.Color = Color3.fromRGB(60, 60, 70)
 	tooltipStroke.Thickness = 1
 	tooltipStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	tooltipStroke.LineJoinMode = Enum.LineJoinMode.Round
 	tooltipStroke.Parent = tooltip
 
 	return tooltip
@@ -126,6 +136,7 @@ function UIHelpers.addGlow(inst, color, intensity)
 	glow.Thickness = 0
 	glow.Transparency = 0.5
 	glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	glow.LineJoinMode = Enum.LineJoinMode.Round
 	glow.Parent = inst
 
 	-- Animate glow

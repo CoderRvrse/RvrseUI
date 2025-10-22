@@ -149,7 +149,7 @@ function ColorPicker.Create(o, dependencies)
 	preview.Text = ""
 	preview.AutoButtonColor = false
 	preview.Parent = f
-	corner(preview, 20)
+	corner(preview, "pill")
 
 	-- Glowing stroke
 	local previewStroke = Instance.new("UIStroke")
@@ -157,6 +157,7 @@ function ColorPicker.Create(o, dependencies)
 	previewStroke.Thickness = 2
 	previewStroke.Transparency = 0.4
 	previewStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	previewStroke.LineJoinMode = Enum.LineJoinMode.Round
 	previewStroke.Parent = preview
 
 	-- Advanced mode: Color picker panel

@@ -501,6 +501,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	headerStroke.Thickness = 1
 	headerStroke.Transparency = 0.5
 	headerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	headerStroke.LineJoinMode = Enum.LineJoinMode.Round
 	headerStroke.Parent = header
 
 	local headerDivider = Instance.new("Frame")
@@ -943,6 +944,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	tabRailStroke.Thickness = 1
 	tabRailStroke.Transparency = 0.6
 	tabRailStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	tabRailStroke.LineJoinMode = Enum.LineJoinMode.Round
 	tabRailStroke.Parent = tabBar
 
 	local tabPadding = Instance.new("UIPadding")

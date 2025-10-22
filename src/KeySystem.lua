@@ -228,6 +228,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	Border.Thickness = 2
 	Border.Transparency = 0.5
 	Border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Border.LineJoinMode = Enum.LineJoinMode.Round
 	Border.Parent = Container
 
 	local BorderGradient = Instance.new("UIGradient")
@@ -374,6 +375,8 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		NoteBtnStroke.Color = colors.Accent
 		NoteBtnStroke.Thickness = 1.5
 		NoteBtnStroke.Transparency = 0.7
+		NoteBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		NoteBtnStroke.LineJoinMode = Enum.LineJoinMode.Round
 		NoteBtnStroke.Parent = NoteBtn
 
 		local NoteBtnPadding = Instance.new("UIPadding")
@@ -421,6 +424,8 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	InputStroke.Color = colors.Border
 	InputStroke.Thickness = 1.5
 	InputStroke.Transparency = 0.5
+	InputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	InputStroke.LineJoinMode = Enum.LineJoinMode.Round
 	InputStroke.Parent = InputBox
 
 	local InputPadding = Instance.new("UIPadding")

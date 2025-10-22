@@ -15,6 +15,9 @@ function TextBox.Create(o, dependencies)
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
 	local Theme = dependencies.Theme
+	local isLightTheme = Theme and Theme.Current == "Light"
+	local baseTransparency = isLightTheme and 0 or 0.3
+	local focusTransparency = isLightTheme and 0 or 0.1
 
 	local f = card(52) -- Taller for modern look
 	local fireOnConfigLoad = o.FireOnConfigLoad ~= false
@@ -35,7 +38,7 @@ function TextBox.Create(o, dependencies)
 	inputBox.Position = UDim2.new(1, -8, 0.5, 0)
 	inputBox.Size = UDim2.new(0, 240, 0, 36)
 	inputBox.BackgroundColor3 = pal3.Card
-	inputBox.BackgroundTransparency = 0.3
+	inputBox.BackgroundTransparency = baseTransparency
 	inputBox.BorderSizePixel = 0
 	inputBox.Font = Enum.Font.GothamMedium
 	inputBox.TextSize = 14
@@ -45,7 +48,7 @@ function TextBox.Create(o, dependencies)
 	inputBox.Text = o.Default or ""
 	inputBox.ClearTextOnFocus = false
 	inputBox.Parent = f
-	corner(inputBox, 10)
+	corner(inputBox, "pill")
 
 	-- Subtle border (default state)
 	local borderStroke = Instance.new("UIStroke")
@@ -53,6 +56,7 @@ function TextBox.Create(o, dependencies)
 	borderStroke.Thickness = 1
 	borderStroke.Transparency = 0.6
 	borderStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	borderStroke.LineJoinMode = Enum.LineJoinMode.Round
 	borderStroke.Parent = inputBox
 
 	-- Gradient underline (glows on focus)
@@ -84,7 +88,7 @@ function TextBox.Create(o, dependencies)
 		isFocused = true
 
 		-- Background brightens
-		Animator:Tween(inputBox, {BackgroundTransparency = 0.1}, Animator.Spring.Lightning)
+	Animator:Tween(inputBox, {BackgroundTransparency = focusTransparency}, Animator.Spring.Lightning)
 
 		-- Border glows
 		Animator:Tween(borderStroke, {
@@ -109,7 +113,7 @@ function TextBox.Create(o, dependencies)
 		currentValue = inputBox.Text
 
 		-- Background dims
-		Animator:Tween(inputBox, {BackgroundTransparency = 0.3}, Animator.Spring.Snappy)
+	Animator:Tween(inputBox, {BackgroundTransparency = baseTransparency}, Animator.Spring.Snappy)
 
 		-- Border restores
 		Animator:Tween(borderStroke, {

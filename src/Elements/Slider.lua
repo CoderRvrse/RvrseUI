@@ -61,7 +61,7 @@ function Slider.Create(o, dependencies)
 	track.BackgroundColor3 = pal3.Card
 	track.BorderSizePixel = 0
 	track.Parent = f
-	corner(track, 5)
+	corner(track, "pill")
 
 	-- Track border glow
 	local trackStroke = Instance.new("UIStroke")
@@ -69,6 +69,7 @@ function Slider.Create(o, dependencies)
 	trackStroke.Thickness = 1
 	trackStroke.Transparency = 0.7
 	trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	trackStroke.LineJoinMode = Enum.LineJoinMode.Round
 	trackStroke.Parent = track
 
 	-- Vibrant gradient fill
@@ -79,7 +80,7 @@ function Slider.Create(o, dependencies)
 	fill.BorderSizePixel = 0
 	fill.ZIndex = 2
 	fill.Parent = track
-	corner(fill, 5)
+	corner(fill, "pill")
 
 	-- Multi-color gradient on fill
 	local fillGradient = Instance.new("UIGradient")
@@ -100,7 +101,7 @@ function Slider.Create(o, dependencies)
 	thumb.BorderSizePixel = 0
 	thumb.ZIndex = 4
 	thumb.Parent = track
-	corner(thumb, 11)
+	corner(thumb, "pill")
 	shadow(thumb, 0.5, 5) -- Enhanced shadow
 
 	-- Glowing stroke around thumb
@@ -109,6 +110,7 @@ function Slider.Create(o, dependencies)
 	glowStroke.Thickness = 0
 	glowStroke.Transparency = 0.2
 	glowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	glowStroke.LineJoinMode = Enum.LineJoinMode.Round
 	glowStroke.Parent = thumb
 
 	local dragging = false

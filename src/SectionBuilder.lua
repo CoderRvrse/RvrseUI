@@ -28,6 +28,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		s.Color = color or Color3.fromRGB(45, 45, 55)
 		s.Thickness = thickness or 1
 		s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		s.LineJoinMode = Enum.LineJoinMode.Round
 		s.Parent = inst
 		return s
 	end
@@ -49,6 +50,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local overlayService = dependencies.Overlay
 
 	local pal3 = Theme:Get()
+	local isLightTheme = Theme and Theme.Current == "Light"
 
 	-- Section header
 	local sectionHeader = Instance.new("Frame")
@@ -82,7 +84,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local function card(height)
 		local c = Instance.new("Frame")
 		c.BackgroundColor3 = pal3.Elevated
-		c.BackgroundTransparency = 0.3
+		c.BackgroundTransparency = isLightTheme and 0 or 0.3
 		c.BorderSizePixel = 0
 		c.Size = UDim2.new(1, 0, 0, height)
 		c.Parent = container

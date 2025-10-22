@@ -232,6 +232,7 @@ function Notifications:Initialize(deps)
 			s.Color = color or (deps.Theme and deps.Theme:Get().Border) or Color3.fromRGB(45, 45, 55)
 			s.Thickness = thickness or 1
 			s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			s.LineJoinMode = Enum.LineJoinMode.Round
 			s.Parent = inst
 			return s
 		end

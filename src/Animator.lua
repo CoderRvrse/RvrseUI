@@ -151,6 +151,8 @@ function Animator:Glow(obj, intensity, duration, Theme)
 	glow.Color = palette.Glow or Color3.fromRGB(168, 85, 247)
 	glow.Thickness = 0
 	glow.Transparency = 1
+	glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	glow.LineJoinMode = Enum.LineJoinMode.Round
 	glow.Parent = obj
 
 	-- Fade in glow
