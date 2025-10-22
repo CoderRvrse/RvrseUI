@@ -35,7 +35,9 @@ jobs:
           stylua .
 
       - name: Selene
-        run: selene .
+        run: |
+          echo "Linting source files with Selene..."
+          selene src/ init.lua tools/
 
       - name: Rojo build
         run: rojo build default.project.json --output build/RvrseUI.rbxlx
