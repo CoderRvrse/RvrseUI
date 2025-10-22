@@ -19,7 +19,14 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local helpers = dependencies.UIHelpers or {}
 	local corner = helpers.corner or function(inst, radius)
 		local c = Instance.new("UICorner")
-		c.CornerRadius = UDim.new(0, radius or 12)
+		-- Accepts number, UDim, or "pill"/"full" sentinel for capsule radii
+		if typeof(radius) == "UDim" then
+			c.CornerRadius = radius
+		elseif radius == "pill" or radius == "full" then
+			c.CornerRadius = UDim.new(1, 0)
+		else
+			c.CornerRadius = UDim.new(0, radius or 12)
+		end
 		c.Parent = inst
 		return c
 	end

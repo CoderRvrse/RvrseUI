@@ -7410,6 +7410,7 @@ do
 		local helpers = dependencies.UIHelpers or {}
 	local corner = helpers.corner or function(inst, radius)
 		local c = Instance.new("UICorner")
+		-- Accepts number, UDim, or "pill"/"full" sentinel for capsule radii
 		if typeof(radius) == "UDim" then
 			c.CornerRadius = radius
 		elseif radius == "pill" or radius == "full" then
