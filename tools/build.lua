@@ -34,7 +34,7 @@ local Modules = {
     "src/WindowBuilder.lua"
 }
 
-local HEADER = [[-- RvrseUI v4.3.18 | Modern Professional UI Framework
+local HEADER = [[-- RvrseUI v4.3.19 | Modern Professional UI Framework
 -- Compiled from modular architecture on ]] .. os.date("!%Y-%m-%dT%H:%M:%SZ") .. [[
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations

@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.3.18)
+# RvrseUI – Maintainer Notes (v4.3.19)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -980,7 +980,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2025-10-22 (v4.3.18 - CI Hotfix)
+**Last Updated:** 2025-10-22 (v4.3.19 - CI Hotfix)
 
 ---
 
