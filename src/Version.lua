@@ -10,9 +10,9 @@ Version.Data = {
 	Major = 4,
 	Minor = 3,
 	Patch = 9,
-	Build = "20251022n",  -- YYYYMMDD format
-	Full = "4.3.19",
-	Hash = "G7A2C5D9",  -- Release hash for integrity verification
+	Build = "20251022o",  -- YYYYMMDD format
+	Full = "4.3.20",
+	Hash = "H8B3D6E0",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
