@@ -10,39 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          set -euxo pipefail
 
-          # Install Lua runtime for TestEZ
+      - name: Setup Aftman
+        uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          version: v0.3.0
+          trust-check: false
+
+      - name: Install Lua runtime
+        run: |
           sudo apt-get update
           sudo apt-get install -y lua5.1
 
-          # Install Aftman (the preferred toolchain manager for Roblox projects)
-          curl -sSfL https://github.com/LPGhatguy/aftman/releases/download/v0.2.7/aftman-v0.2.7-linux.zip -o aftman.zip
-          unzip -o aftman.zip
-          chmod +x aftman
-          sudo mv aftman /usr/local/bin/aftman
-
-          # Add Aftman bin directory to PATH
-          mkdir -p "$HOME/.aftman/bin"
-          echo "$HOME/.aftman/bin" >> $GITHUB_PATH
-
-      - name: Install toolchain via Aftman
+      - name: Verify toolchain installations
         run: |
-          set -euxo pipefail
-
-          # Trust all tools (CI environment, no user prompts)
-          aftman trust roblox/stylua
-          aftman trust kampfkarren/selene
-          aftman trust rojo-rbx/rojo
-          aftman trust upliftgames/wally
-
-          # Install all tools from aftman.toml
-          aftman install --no-trust-check
-
-          # Verify installations
-          echo "✅ Installed tools:"
+          echo "✅ Installed tools via Aftman:"
           stylua --version
           selene --version
           rojo --version
