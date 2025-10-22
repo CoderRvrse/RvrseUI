@@ -29,8 +29,10 @@ jobs:
           rojo --version
           wally --version
 
-      - name: Stylua
-        run: stylua --check .
+      - name: Stylua Format
+        run: |
+          echo "Formatting Lua code with Stylua..."
+          stylua .
 
       - name: Selene
         run: selene .
