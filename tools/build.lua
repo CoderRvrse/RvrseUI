@@ -35,7 +35,7 @@ local Modules = {
 }
 
 local HEADER = table.concat({
-    "-- RvrseUI v4.3.6 | Modern Professional UI Framework",
+    "-- RvrseUI v4.3.7 | Modern Professional UI Framework",
     "-- Compiled from modular architecture on " .. os.date("!%Y-%m-%dT%H:%M:%SZ"),
     "",
     "-- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations",

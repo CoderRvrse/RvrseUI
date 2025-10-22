@@ -126,7 +126,7 @@ end
 ### 2. **Build Script Updates**
 - ✅ Added `lucide-icons-data.lua` to compilation order and embedded atlas into monolith
 - ✅ Verified `RvrseUI.lua` injects `_G.RvrseUI_LucideIconsData` for executors
-- ✅ `build.js` / `build.lua` banner + features updated for v4.3.0
+- ✅ `tools/build.lua` (Luau packer) banner + features updated for v4.3.0
 
 ### 3. **Documentation**
 - ✅ README gains Lucide Icon System section + example references

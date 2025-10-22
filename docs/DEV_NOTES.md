@@ -17,7 +17,7 @@ For build system and architecture, see [CLAUDE.md](CLAUDE.md).
 - **Per-window API:** `Window:SetTokenIcon(icon, opts)` / `GetTokenIcon()` – override icons on a per-hub basis (e.g., themed executors).
 - **Config keys:** `TokenIcon`, `TokenIconColor`, and `TokenIconFallback` (aliases `ControllerIcon*`) can be passed to `CreateWindow`.
 - **Theme aware:** When `UseThemeColor` or no color override is provided, the chip auto-adopts the active accent on theme switches.
-- **QA checklist:** Rebuild (`node build.js`), run `examples/test-lucide-icons.lua`, minimize/restore to verify sprite + fallback, then test `RvrseUI:SetTokenIcon("lucide://sparkles")` in Studio.
+- **QA checklist:** Rebuild (`lua tools/build.lua`), run `examples/test-lucide-icons.lua`, minimize/restore to verify sprite + fallback, then test `RvrseUI:SetTokenIcon("lucide://sparkles")` in Studio.
 
 ### v4.3.2 (2025-10-21)
 
@@ -44,7 +44,7 @@ For build system and architecture, see [CLAUDE.md](CLAUDE.md).
 - **Symptom:** Console shows `❌ Failed to load Lucide icons sprite sheet` followed by repeated `[LUCIDE] ⚠️ Sprite sheet not loaded, using fallback...`
 - **Cause:** `RvrseUI.lua` was rebuilt without embedding `_G.RvrseUI_LucideIconsData` (usually because the build script was skipped or an older bundle was pushed).
 - **Fix Workflow (DO NOT SKIP):**
-  1. Run `node build.js` (or `lua build.lua`) from repo root to regenerate `RvrseUI.lua`.
+  1. Run `lua tools/build.lua` from repo root to regenerate `RvrseUI.lua`.
   2. Open the output and confirm the header reads v4.3.0+ and that `_G.RvrseUI_LucideIconsData` appears near the bottom.
   3. Execute `examples/test-lucide-icons.lua`; expect `[LUCIDE] ✅ Sprite sheet data loaded successfully` with zero fallback warnings.
   4. Commit the updated `src/` files *and* `RvrseUI.lua`, then push. Never ship source-only or bundle-only changes.
@@ -399,15 +399,15 @@ Version.Data = {
   Hash = "R9B4K3X7"
 }
 
-# 5. build.js and build.lua (version banners)
+# 5. tools/build.lua and tools/build.lua (version banners)
 console.log('🔨 RvrseUI v4.0.4 Build Script');
 const header = `-- RvrseUI v4.0.4 | Modern Professional UI Framework
 
 # 6. Rebuild
-node build.js
+lua tools/build.lua
 
 # 7. Commit everything together
-git add VERSION.json README.md CLAUDE.md DEV_NOTES.md src/Version.lua build.js build.lua RvrseUI.lua
+git add VERSION.json README.md CLAUDE.md DEV_NOTES.md src/Version.lua tools/build.lua tools/build.lua RvrseUI.lua
 git commit -m "chore: bump version to v4.0.4"
 git push origin main
 ```

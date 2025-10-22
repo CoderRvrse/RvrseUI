@@ -163,7 +163,7 @@ LucideIcons.AssetMap = {
 
 ### Step 4: Rebuild
 ```bash
-node build.js
+lua tools/build.lua
 ```
 
 Now `"lucide://home"` will use your custom asset instead of Unicode fallback!
@@ -314,7 +314,7 @@ If your console prints:
 
 then the monolith is missing `_G.RvrseUI_LucideIconsData`. Fix it by:
 
-1. Running `node build.js` (or `lua build.lua`) to regenerate `RvrseUI.lua`.
+1. Running `lua tools/build.lua` to regenerate `RvrseUI.lua`.
 2. Opening the output to confirm the v4.3.0 header and embedded `_G.RvrseUI_LucideIconsData`.
 3. Executing `examples/test-lucide-icons.lua` and verifying the log `[LUCIDE] ✅ Sprite sheet data loaded successfully`.
 4. Committing and pushing both `src/` changes and the rebuilt monolith.

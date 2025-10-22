@@ -370,7 +370,7 @@ See [docs/SECURITY.md](docs/SECURITY.md) for complete security best practices, c
 - README updated with usage examples; VERSION metadata bumped to v4.3.1 (build 20251020c).
 
 **Regression test checklist**
-1. Build with `node build.js` (or `lua build.lua`) and confirm `RvrseUI.lua` header shows v4.3.2.
+1. Build with `lua tools/build.lua` and confirm `RvrseUI.lua` header shows v4.3.2.
 2. Run `examples/test-lucide-icons.lua` – minimize/restore and verify the token icon matches the chosen Lucide glyph (check `[LUCIDE]` logs).
 3. In Studio or executor, run:
    ```lua
@@ -404,7 +404,7 @@ If you ever see console output like:
 
 take the following steps before shipping anything:
 
-1. **Rebuild the bundle.** Run `node build.js` (or `lua build.lua`). Missing `_G.RvrseUI_LucideIconsData` embeds are the root cause 99% of the time.
+1. **Rebuild the bundle.** Run `lua tools/build.lua`. Missing `_G.RvrseUI_LucideIconsData` embeds are the root cause 99% of the time.
 2. **Sanity-check the output.** Open the regenerated `RvrseUI.lua` and confirm both the v4.3.0 header and the embedded `_G.RvrseUI_LucideIconsData` block exist.
 3. **Run the Lucide smoke test.** Execute `examples/test-lucide-icons.lua` in Studio/executor. Expect `[LUCIDE] ✅ Sprite sheet data loaded successfully` with no fallback spam.
 4. **Commit source + monolith together.** Always push the changed `src/` files *and* the rebuilt `RvrseUI.lua`. Skipping one is how this bug resurfaced three times.
@@ -417,7 +417,7 @@ Treat this failure as a release blocker. If the test script shows fallbacks, hal
 
 1. **Source data** lives in `src/lucide-icons-data.lua` – generated JSON describing glyphs, sprite UVs, and fallbacks. Treat it as build output; regenerate via `lua tools/generate-lucide-data.lua` when adding SVGs.
 2. **Resolver logic** resides in `src/LucideIcons.lua` and `src/Icons.lua`. `LucideIcons.Resolve()` returns sprite metadata or unicode, while `Icons.ResolveIconPayload()` orchestrates the different schemes.
-3. **Build step** (`node build.js` or `lua build.lua`) loads `lucide-icons-data.lua`, serializes it, and injects `_G.RvrseUI_LucideIconsData` into `RvrseUI.lua` / `init.lua`. This keeps executors offline-friendly.
+3. **Build step** (`lua tools/build.lua`) loads `lucide-icons-data.lua`, serializes it, and injects `_G.RvrseUI_LucideIconsData` into `RvrseUI.lua` / `init.lua`. This keeps executors offline-friendly.
 4. **Element factories** (Button/Label/Notification/Tab) call `Icons.AttachIcon(holder, payload, themeColor)` to create either an ImageLabel (sprites/assets) or TextLabel (emoji/fallbacks) pre-sized with 24px padding.
 5. **Testing**: `examples/test-lucide-icons.lua` should be exercised any time icon-related code changes. It covers lucide sprites, unicode fallbacks, emoji, and Roblox assets across tabs, buttons, labels, and notifications.
 
@@ -463,8 +463,8 @@ RvrseUI/
 │       ├── Paragraph.lua
 │       └── Divider.lua
 ├── init.lua                  # ✅ Modular entry point (bootstrap logic)
-├── build.js                  # ✅ Node build script
-├── build.lua                 # ✅ Lua fallback build script
+├── tools/build.lua                  # ✅ Luau build script
+├── 
 ├── RvrseUI.lua               # ❌ GENERATED - Never edit directly!
 ├── VERSION.json              # Version metadata & changelog
 ├── README.md                 # User-facing documentation
@@ -489,7 +489,7 @@ RvrseUI/
 
 ### How The Build Works
 
-**`build.js` / `build.lua` perform these steps:**
+**`tools/build.lua` (Luau packer) perform these steps:**
 
 1. **Read all modules** from `src/` in dependency order (30 modules total)
 2. **Strip module headers** (comment lines starting with `--`)
@@ -518,7 +518,7 @@ Builders: SectionBuilder → TabBuilder → WindowBuilder
 
 #### ✅ DO:
 - Edit files in `src/` or `init.lua`
-- Run `node build.js` after EVERY source change
+- Run `lua tools/build.lua` after EVERY source change
 - Commit both source files AND regenerated `RvrseUI.lua` together
 - Test the compiled `RvrseUI.lua` in Roblox before pushing
 
@@ -597,7 +597,7 @@ content.replace(/^local ([A-Z][A-Za-z]+) = \{\}/gm, '$1 = {}');
 vim src/WindowBuilder.lua
 
 # 2. Rebuild the monolith
-node build.js
+lua tools/build.lua
 
 # 3. Test in Roblox
 # Load the generated RvrseUI.lua and verify changes work
@@ -643,15 +643,15 @@ Version.Data = {
   Hash = "K7M3P9X1"
 }
 
-# 5. build.js and build.lua (version banners)
+# 5. tools/build.lua (version banners)
 console.log('🔨 RvrseUI v3.0.4 Build Script');
 const header = `-- RvrseUI v3.0.4 | Modern Professional UI Framework
 
 # 6. Rebuild
-node build.js
+lua tools/build.lua
 
 # 7. Commit everything together
-git add VERSION.json README.md CLAUDE.md src/Version.lua build.js build.lua RvrseUI.lua
+git add VERSION.json README.md CLAUDE.md src/Version.lua tools/build.lua tools/build.lua RvrseUI.lua
 git commit -m "chore: bump version to v3.0.4"
 git push origin main
 ```
@@ -714,7 +714,7 @@ git push origin main
 - **Maintenance**: Regenerate `src/lucide-icons-data.lua` via `tools/generate-lucide-data.lua` whenever new SVGs are imported; rebuild the monolith immediately after.
 
 ### Monolith Build Pipeline
-- `build.js` / `build.lua` wrap each module in a `do ... end` scope with tab indentation before concatenation.
+- `tools/build.lua` (Luau packer) wrap each module in a `do ... end` scope with tab indentation before concatenation.
 - Bootstrap logic from `init.lua` is embedded into the monolith (lines 138-232 of build scripts):
   - Initializes all modules in dependency order
   - Creates `DEFAULT_HOST` ScreenGui (DisplayOrder = 999)
@@ -722,7 +722,7 @@ git push origin main
   - Initializes Notifications, Hotkeys, WindowManager
   - Sets up Elements table with all 10 element types
 - The compiled `RvrseUI.lua` is standalone: safe to `loadstring()` without external dependencies.
-- Any edits in `src/` or `init.lua` must be followed by `node build.js` (or `lua build.lua`) to keep the monolith aligned.
+- Any edits in `src/` or `init.lua` must be followed by `lua tools/build.lua` to keep the monolith aligned.
 - **NEVER patch `RvrseUI.lua` directly** - it will be overwritten on next build.
 - The compiled file caches `DEFAULT_HOST` / `DEFAULT_OVERLAY`. If destroyed manually, `RvrseUI:CreateWindow` recreates them (lines 293-300 of build scripts).
 - Version bumps require updating `VERSION.json`, README badge, CLAUDE.md header, and rerunning build for timestamp update.
@@ -865,7 +865,7 @@ RvrseUI:EnableDebug(true)
 
 ### Changes Don't Appear After Rebuild
 **Cause:** Cached old version or didn't rebuild
-**Fix:** Run `node build.js` again, check file timestamp, clear Roblox cache
+**Fix:** Run `lua tools/build.lua` again, check file timestamp, clear Roblox cache
 
 ---
 
@@ -882,7 +882,7 @@ If you're an AI (like Claude or GPT) working on this project:
 ### WHEN Making Changes:
 1. ✅ Only edit files in `src/` or `init.lua`
 2. ✅ Never directly edit `RvrseUI.lua`
-3. ✅ Always rebuild after source changes: `node build.js`
+3. ✅ Always rebuild after source changes: `lua tools/build.lua`
 4. ✅ Test the compiled output before committing
 5. ✅ Commit source + compiled together
 
@@ -916,10 +916,10 @@ If you're an AI (like Claude or GPT) working on this project:
 ### Building the Monolith
 ```bash
 # Build with Node.js (preferred)
-node build.js
+lua tools/build.lua
 
 # Build with Lua (fallback)
-lua build.lua
+lua tools/build.lua
 ```
 
 ### Testing
@@ -942,8 +942,8 @@ lua build.lua
 # 2. Edit README.md (badge and example code)
 # 3. Edit CLAUDE.md (header)
 # 4. Edit src/Version.lua (Version.Data table)
-# 5. Edit build.js and build.lua (header comments)
-# 6. Run: node build.js
+# 5. Edit tools/build.lua (header comments)
+# 6. Run: lua tools/build.lua
 # 7. Commit all changes together
 ```
 
@@ -955,7 +955,7 @@ git commit -m "feat: description"
 git push origin main
 
 # Version release workflow
-git add VERSION.json README.md CLAUDE.md src/Version.lua build.js build.lua RvrseUI.lua
+git add VERSION.json README.md CLAUDE.md src/Version.lua tools/build.lua tools/build.lua RvrseUI.lua
 git commit -m "chore: bump version to v3.0.X"
 git push origin main
 ```

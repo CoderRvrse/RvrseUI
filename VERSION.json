@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 6,
-    "full": "4.3.6",
-    "build": "20251022a",
-    "hash": "S4L7U9A2",
+    "patch": 7,
+    "full": "4.3.7",
+    "build": "20251022b",
+    "hash": "T5M8L2Q3",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-22",
-    "name": "Luau Toolchain Kickoff",
+    "name": "Luau Tooling Cleanup",
     "codename": "Neon Atlas",
-    "notes": "Introduces Rojo/Wally/Stylua scaffolding, Luau-first linguist config, and CI placeholder while legacy packers remain available."
+    "notes": "Docs now reference the Luau packer, and the legacy injection shell script has been retired."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -332,6 +332,14 @@
         "\ud83d\udee0\ufe0f Bootstrap Rojo + Wally project files so the library can build from pure Luau.",
         "\ud83e\uddf9 Added repo hygiene (.editorconfig, linguist overrides) to keep GitHub language stats at 100% Lua.",
         "\u2705 Wired stylua/selene/rojo/TestEZ checks into CI as the future enforcement pipeline."
+      ]
+    },
+    "4.3.7": {
+      "date": "2025-10-22",
+      "hash": "T5M8L2Q3",
+      "changes": [
+        "\ud83d\udcda Updated documentation to reference the new Luau build pipeline and removed the legacy shell injector.",
+        "\ud83e\uddf0 Repository now ships a single Luau build entry point (`lua tools/build.lua`)."
       ]
     }
   },

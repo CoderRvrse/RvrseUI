@@ -6,7 +6,7 @@
 
 ---
 
-> **Critical Reminder:** If you ever see `❌ Failed to load Lucide icons sprite sheet` in logs, rebuild the monolith (`node build.js`), confirm `_G.RvrseUI_LucideIconsData` exists, run `examples/test-lucide-icons.lua`, then commit the refreshed `RvrseUI.lua`. Do not skip these steps—this regression has already resurfaced multiple times.
+> **Critical Reminder:** If you ever see `❌ Failed to load Lucide icons sprite sheet` in logs, rebuild the monolith (`lua tools/build.lua`), confirm `_G.RvrseUI_LucideIconsData` exists, run `examples/test-lucide-icons.lua`, then commit the refreshed `RvrseUI.lua`. Do not skip these steps—this regression has already resurfaced multiple times.
 
 ## 🐛 The Problem
 
@@ -79,29 +79,14 @@ end
 
 ### 2. **Injected Sprite Data into RvrseUI.lua**
 
-Created `inject-lucide-data.sh` script that:
-1. Rebuilds `RvrseUI.lua` with latest code
-2. Reads `src/lucide-icons-data.lua` (145KB sprite data)
-3. Injects it as `_G.RvrseUI_LucideIconsData = {sprite data}` at line 35
-4. Sets it BEFORE any modules load
+`lua tools/build.lua` now embeds the sprite sheet automatically. Each rebuild:
 
-**Injection Point (RvrseUI.lua:35):**
-```lua
--- ========================
--- Lucide Icons Sprite Data
--- ========================
--- 500+ Lucide icons via sprite sheets (145KB)
--- Set as global for LucideIcons module to access
-_G.RvrseUI_LucideIconsData = -- This file was automatically @generated and not intended for manual editing
---!nocheck
+1. concatenates the modules in `src/` using the canonical order
+2. reads `src/lucide-icons-data.lua` (145 KB sprite atlas)
+3. writes `_G.RvrseUI_LucideIconsData = { ... }` immediately after the service preload
+4. outputs the refreshed bundle to `RvrseUI.lua`
 
-return {["48px"]={rewind={16898613699,{48,48},{563,967}},fuel={16898613353,{48,48},{196,967}}, ... [500+ more icons]
-```
-
-**File Size Verification:**
-- Before injection: 274 KB
-- After injection: 419 KB
-- Difference: 145 KB ✅ (sprite data size matches)
+No extra shell helpers are required—run the Luau build script whenever you modify source files and the global data stays in sync.
 
 ### 3. **Created Test Suite**
 
@@ -208,29 +193,23 @@ end
 
 ### Rebuilding RvrseUI.lua
 
-The sprite data injection script must be run after every rebuild:
+Run the Luau packer after every rebuild:
 
 ```bash
 cd d:/RvrseUI
-./inject-lucide-data.sh
+lua tools/build.lua
 ```
 
-**What it does:**
-1. Runs `node build.js` to compile latest source
-2. Reads `src/lucide-icons-data.lua`
-3. Injects sprite data into `RvrseUI.lua` as global
-4. Outputs: `✅ Lucide sprite data injected!`
+That step compiles the bundle, embeds `_G.RvrseUI_LucideIconsData`, and prints a success message. A typical loop looks like:
 
-**Automated build workflow:**
 ```bash
 # Edit source files
 vim src/SomeModule.lua
 
 # Rebuild with sprite data
-./inject-lucide-data.sh
+lua tools/build.lua
 
-# Test in executor
-# (sprite data is now embedded)
+# Smoke test in executor or Studio
 ```
 
 ### File Structure
@@ -241,7 +220,6 @@ d:/RvrseUI/
 │   ├── LucideIcons.lua          # ✅ Updated: Hybrid loading
 │   └── lucide-icons-data.lua    # 145KB sprite data (source)
 ├── RvrseUI.lua                   # ✅ Updated: 419KB (includes sprite data)
-├── inject-lucide-data.sh         # ✅ NEW: Injection script
 └── examples/
     └── test-lucide-data-loading.lua  # ✅ NEW: Verification test
 ```

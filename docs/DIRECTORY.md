@@ -10,8 +10,7 @@ RvrseUI/
 ├── 📂 examples/             🧪 Example scripts & tests
 ├── 📂 src/                  💻 Source code (modules)
 │
-├── 📄 build.js              🔨 Build script (Node.js)
-├── 📄 build.lua             🔨 Build script (Lua fallback)
+├── 📄 tools/build.lua              🔨 Luau build script
 ├── 📄 CHANGELOG.md          📝 Version history
 ├── 📄 CLAUDE.md             🤖 AI maintainer guide
 ├── 📄 init.lua              🚀 Modular entry point
@@ -102,7 +101,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/ma
 vim src/Elements/ColorPicker.lua
 
 # Build monolith
-node build.js
+lua tools/build.lua
 
 # Test compiled
 # Load RvrseUI.lua in Roblox
@@ -113,9 +112,8 @@ git commit -m "feat: update ColorPicker"
 ```
 
 ### Build Scripts
-- **`build.js`** - Primary build script (Node.js, preferred)
-- **`build.lua`** - Fallback build script (Pure Lua)
-
+- **`tools/build.lua`** - Primary Luau build script
+- 
 Both produce the same output: `RvrseUI.lua` (228 KB)
 
 ---
@@ -148,7 +146,7 @@ Both produce the same output: `RvrseUI.lua` (228 KB)
 ### For Contributors:
 1. Read [CLAUDE.md](./CLAUDE.md)
 2. Edit files in `src/`
-3. Run `node build.js`
+3. Run `lua tools/build.lua`
 4. Test and commit
 
 ### For AI Assistants:
@@ -198,7 +196,7 @@ Both produce the same output: `RvrseUI.lua` (228 KB)
 → `examples/` directory
 
 ### "How do I build?"
-→ Run `node build.js` or `lua build.lua`
+→ Run `lua tools/build.lua` or `lua tools/build.lua`
 
 ### "What's the production file?"
 → `RvrseUI.lua` (228 KB monolith)

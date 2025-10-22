@@ -1,10 +1,10 @@
-# RvrseUI v4.3.6
+# RvrseUI v4.3.7
 
 ![RvrseUI Banner](assets/banner.png)
 
 **Modern, Production-Ready Roblox UI Library** with Lucide Icon System, Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
 
-![Version](https://img.shields.io/badge/version-4.3.6-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-445KB-orange)
+![Version](https://img.shields.io/badge/version-4.3.7-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-445KB-orange)
 
 ---
 
@@ -103,7 +103,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 ### Method 2: Version-Specific
 ```lua
-local version = "v4.3.6"
+local version = "v4.3.7"
 local url = string.format("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua", version)
 local RvrseUI = loadstring(game:HttpGet(url))()
 ```
@@ -158,7 +158,7 @@ Section:CreateSlider({
 
 ### Auto Hydration on Load (New!)
 
-Starting with v4.3.2 (and continuing in v4.3.6), flag-based elements (slider, toggle, color picker, text box, etc.) automatically
+Starting with v4.3.2 (and continuing in v4.3.7), flag-based elements (slider, toggle, color picker, text box, etc.) automatically
 re-fire their `OnChanged` callbacks right after configurations are restored. This means gameplay logic
 wired inside `OnChanged` runs immediately when a profile loads—no more manual hydration code.
 
@@ -992,7 +992,7 @@ Window:SetTokenIcon("lucide://gamepad-2", { UseThemeColor = true })
 
 ## ✨ Lucide Icon System
 
-RvrseUI v4.3.6 ships with a unified icon pipeline that keeps every element in sync—tabs, notifications, buttons, labels, and doc demos all pull from the same resolver.
+RvrseUI v4.3.7 ships with a unified icon pipeline that keeps every element in sync—tabs, notifications, buttons, labels, and doc demos all pull from the same resolver.
 
 - **Supported schemes:** `lucide://home`, `icon://⭐`, direct emoji (`"🔥"`), `rbxassetid://16364871493`, or plain asset IDs (`"16364871493"`).
 - **Sprite sheet first:** `lucide://` icons render from the embedded Lucide atlas (`_G.RvrseUI_LucideIconsData`) with themed tinting and automatic Unicode fallbacks.
@@ -1022,7 +1022,7 @@ section:CreateLabel({
 ### Extending the Library
 
 - Icon metadata lives in `src/lucide-icons-data.lua`. Regenerate it with `tools/generate-lucide-data.lua` when you add new SVGs.
-- The monolith embed happens during `node build.js` (or `lua build.lua`); both scripts inject `_G.RvrseUI_LucideIconsData` automatically.
+- The monolith embed happens during `lua tools/build.lua`; the packer injects `_G.RvrseUI_LucideIconsData` automatically.
 - Need a custom fallback? Update `IconResolver.Fallbacks` in `src/Icons.lua` and rebuild—no other wiring required.
 
 ### 🚨 Critical Troubleshooting
@@ -1034,7 +1034,7 @@ If you see console output like:
 [LUCIDE] ⚠️ Sprite sheet not loaded, using fallback for: sparkles
 ```
 
-stop and run `node build.js` (or `lua build.lua`), verify `_G.RvrseUI_LucideIconsData` exists in the regenerated `RvrseUI.lua`, and rerun `examples/test-lucide-icons.lua` until `[LUCIDE] ✅ Sprite sheet data loaded successfully` appears. Commit the rebuilt monolith alongside your source changes—this regression hit three times when rebuild steps were skipped.
+stop and run `lua tools/build.lua`, verify `_G.RvrseUI_LucideIconsData` exists in the regenerated `RvrseUI.lua`, and rerun `examples/test-lucide-icons.lua` until `[LUCIDE] ✅ Sprite sheet data loaded successfully` appears. Commit the rebuilt monolith alongside your source changes—this regression hit three times when rebuild steps were skipped.
 
 ---
 
@@ -1313,7 +1313,7 @@ RvrseUI:Notify({
 - Script: `examples/test-lucide-icons.lua`
 - Showcases: Tabs, Notifications, Buttons, Labels, and Roblox asset icons using `lucide://`, `icon://`, emoji, and `rbxassetid://` schemes.
 - Usage: Drop into Roblox Studio or your executor to verify `_G.RvrseUI_LucideIconsData` is loading (watch the console for `[LUCIDE]` logs).
-- Tip: If you see fallback glyphs, make sure you're running the latest `RvrseUI.lua` build for v4.3.6.
+- Tip: If you see fallback glyphs, make sure you're running the latest `RvrseUI.lua` build for v4.3.7.
 
 ---
 
@@ -1359,4 +1359,4 @@ MIT License - See [LICENSE](LICENSE) file
 
 **Made with ❤️ by CoderRvrse**
 
-**Version 4.3.6** • **Build 445KB** • **30 Modules** • **Production Ready**
+**Version 4.3.7** • **Build 445KB** • **30 Modules** • **Production Ready**

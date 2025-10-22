@@ -38,7 +38,7 @@ If testers report logs like:
 
 execute this fix immediately:
 
-1. Run `node build.js` (or `lua build.lua`) in the repo root to regenerate `RvrseUI.lua`. The build injects `_G.RvrseUI_LucideIconsData`; without it, every icon falls back to text.
+1. Run `lua tools/build.lua` in the repo root to regenerate `RvrseUI.lua`. The build injects `_G.RvrseUI_LucideIconsData`; without it, every icon falls back to text.
 2. Inspect the regenerated `RvrseUI.lua` and confirm both the v4.3.0 header and the `_G.RvrseUI_LucideIconsData` blob exist.
 3. Launch `examples/test-lucide-icons.lua` in Studio/executor and watch the console. Only proceed if you see `[LUCIDE] ✅ Sprite sheet data loaded successfully`.
 4. Commit and push the updated monolith together with any source changes.
