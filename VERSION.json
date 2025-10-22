@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 7,
-    "full": "4.3.7",
-    "build": "20251022b",
-    "hash": "T5M8L2Q3",
+    "patch": 8,
+    "full": "4.3.8",
+    "build": "20251022c",
+    "hash": "V6P1R4Z7",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-22",
-    "name": "Luau Tooling Cleanup",
+    "name": "Luau CI Toolchain",
     "codename": "Neon Atlas",
-    "notes": "Docs now reference the Luau packer, and the legacy injection shell script has been retired."
+    "notes": "GitHub Actions now installs Stylua, Selene, Rojo, and Wally via cargo so the pipeline avoids external actions."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -340,6 +340,13 @@
       "changes": [
         "\ud83d\udcda Updated documentation to reference the new Luau build pipeline and removed the legacy shell injector.",
         "\ud83e\uddf0 Repository now ships a single Luau build entry point (`lua tools/build.lua`)."
+      ]
+    },
+    "4.3.8": {
+      "date": "2025-10-22",
+      "hash": "V6P1R4Z7",
+      "changes": [
+        "\ud83d\udd01 CI installs stylua/selene/rojo/wally using cargo to avoid third-party actions."
       ]
     }
   },

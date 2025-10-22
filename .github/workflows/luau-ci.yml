@@ -12,16 +12,39 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install build toolchain
         run: |
+          set -euxo pipefail
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libssl-dev curl unzip lua5.1
-          if ! command -v cargo >/dev/null 2>&1; then
-            sudo apt-get install -y cargo
-          fi
+          sudo apt-get install -y build-essential pkg-config libssl-dev curl unzip lua5.1 cargo
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          cargo install stylua --locked --force
-          cargo install selene --locked --force
-          cargo install rojo --locked --force
-          cargo install wally-cli --locked --force
+          if ! command -v stylua >/dev/null 2>&1; then
+            cargo install stylua --locked
+          fi
+          if ! command -v selene >/dev/null 2>&1; then
+            cargo install selene --locked
+          fi
+          if ! command -v rojo >/dev/null 2>&1; then
+            cargo install rojo --locked
+          fi
+          if ! command -v wally >/dev/null 2>&1; then
+            tmpdir=$(mktemp -d)
+            if curl -sSfL https://github.com/UpliftGames/wally/releases/latest/download/wally-linux.zip -o "$tmpdir/wally.zip"; then
+              unzip -o "$tmpdir/wally.zip" -d "$tmpdir"
+            elif curl -sSfL https://github.com/UpliftGames/wally/releases/latest/download/wally-linux.tar.gz -o "$tmpdir/wally.tar.gz"; then
+              tar -xzf "$tmpdir/wally.tar.gz" -C "$tmpdir"
+            else
+              echo "Failed to download Wally binary" >&2
+              exit 1
+            end
+            if [ -f "$tmpdir/wally-linux" ]; then
+              sudo mv "$tmpdir/wally-linux" /usr/local/bin/wally
+            elif [ -f "$tmpdir/wally" ]; then
+              sudo mv "$tmpdir/wally" /usr/local/bin/wally
+            else
+              echo "Wally binary not found after extraction" >&2
+              exit 1
+            end
+            sudo chmod +x /usr/local/bin/wally
+          fi
 
       - name: Stylua
         run: stylua --check .
