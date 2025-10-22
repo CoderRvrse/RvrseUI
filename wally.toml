@@ -1,0 +1,12 @@
+[package]
+name = "coderrvrse/rvrseui"
+version = "4.3.6"
+description = "Modern Roblox UI framework with Lucide icons."
+license = "MIT"
+authors = ["CoderRvrse"]
+realm = "shared"
+
+[place]
+classification = "tool"
+
+[dependencies]

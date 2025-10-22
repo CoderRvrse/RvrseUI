@@ -1,0 +1,10 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rojo-rbx/rojo/master/rojo.schema.json",
+    "name": "RvrseUI",
+    "servePort": 3667,
+    "partitions": {
+        "default": {
+            "path": "default.project.json"
+        }
+    }
+}

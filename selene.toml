@@ -1,0 +1,9 @@
+std = "roblox+luau"
+
+[lints]
+shadowing = "allow"
+unused_variable = "warn"
+global_usage = "warn"
+
+[rules]
+allow_deprecated_std = true

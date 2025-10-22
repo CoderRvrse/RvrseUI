@@ -1,0 +1,40 @@
+name: luau-ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stylua
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --check .
+
+      - name: Selene
+        uses: kampfkarren/selene-action@v0.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Rojo
+        uses: rojo-rbx/setup-rojo@v1
+        with:
+          version: v7.4.1
+
+      - name: Rojo build
+        run: rojo build default.project.json --output build/RvrseUI.rbxlx
+
+      - name: Setup Wally
+        uses: UpliftGames/wally-action@v1
+
+      - name: Install dependencies
+        run: wally install
+
+      - name: TestEZ
+        run: lua tools/testez.lua

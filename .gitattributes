@@ -1,0 +1,17 @@
+# GitHub linguist setup for Luau-first repo
+**/*.lua linguist-language=Lua
+
+# Treat non-Luau tooling as vendored
+**/*.js linguist-vendored
+**/*.ts linguist-vendored
+**/*.sh linguist-vendored
+**/*.ps1 linguist-vendored
+**/*.bat linguist-vendored
+**/*.json linguist-vendored
+**/*.yml linguist-vendored
+**/*.yaml linguist-vendored
+**/*.md linguist-vendored
+
+# Tool directories
+tools/** linguist-vendored
+scripts/** linguist-vendored

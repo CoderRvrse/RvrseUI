@@ -70,6 +70,10 @@ __pycache__/
 build/
 dist/
 out/
+Packages/
+*.rbxm.json
+*.rbxlx.json
+
 # Local AI helper notes
 AGENTS.md
 !examples/AGENTS.md

@@ -1,0 +1,13 @@
+{
+    "name": "RvrseUI",
+    "servePort": 3667,
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedStorage": {
+            "$className": "ReplicatedStorage",
+            "RvrseUI": {
+                "$path": "src"
+            }
+        }
+    }
+}
