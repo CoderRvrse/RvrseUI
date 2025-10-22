@@ -4624,6 +4624,9 @@ do
 		local isLightTheme = Theme and Theme.Current == "Light"
 		local baseTransparency = isLightTheme and 0 or 0.3
 		local focusTransparency = isLightTheme and 0 or 0.1
+		local isLightTheme = Theme and Theme.Current == "Light"
+		local baseTransparency = isLightTheme and 0 or 0.3
+		local focusTransparency = isLightTheme and 0 or 0.1
 	
 		local f = card(48) -- Taller for modern look
 		local fireOnConfigLoad = o.FireOnConfigLoad ~= false
