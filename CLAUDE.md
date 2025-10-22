@@ -9,9 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 🔥 Migration Handoff – Luau-First Initiative (Immediate Focus)
+## 🔥 Migration Handoff – Luau-First Initiative (Completed ✅)
 
-- **Mission Status:** We are midway through converting the repo to 100% Luau. Stylua, Selene, and Rojo now install via `cargo install` inside `.github/workflows/luau-ci.yml`; Wally fetching is unstable because GitHub no longer publishes `wally-linux.tar.gz`—pin a known release (v0.3.2 works) and verify checksum before extraction. The workflow must stay `luau-ci` and keep all steps green.
+- **Mission Status:** Toolchain migration complete! All Luau tools (Stylua, Selene, Rojo, Wally) now install via **Aftman** (the preferred Roblox toolchain manager). Configuration lives in `aftman.toml` at repo root. CI workflow `.github/workflows/luau-ci.yml` uses Aftman v0.2.7 to manage tool versions declaratively. No more manual cargo installs or brittle download scripts.
 - **Monolith Health:** The public API (`RvrseUI:CreateWindow`, `:Notify`, etc.) was reintroduced in `RvrseUI.lua` v4.3.8; SurvivalHub sample loads again. Before pushing further changes, run `lua tools/build.lua` and smoke-test `examples/RvrseUI-SurvivalHub.lua` with `loadstring` to confirm hydration logic still matches README.
 - **Outstanding Defects:** Light-mode visuals still show alpha seam/corner mismatch. Audit ImageLabel assets for correct `SliceCenter`, match all `UICorner` radii, ensure `ClipsDescendants` is false where `UIStroke` should spill, and remove semi-transparent PNG halos. Track fixes in `/src/UIHelpers` and `/src/Theme`.
 - **Regression Warning:** Roblox logs reported `value of type nil cannot be converted to a number` from `CreateTextBox`. Review `src/Elements/TextBox.lua` line parity with compiled monolith (lines ~6248 and ~7556) to identify missing defaults before next build.
