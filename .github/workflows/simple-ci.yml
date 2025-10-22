@@ -1,0 +1,34 @@
+name: simple-ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Aftman
+        uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          version: v0.3.0
+
+      - name: Format Code
+        run: |
+          echo "Formatting Lua code with Stylua..."
+          stylua src/ init.lua tools/ examples/
+
+      - name: Verify Rojo Build
+        run: |
+          echo "Building Roblox place with Rojo..."
+          mkdir -p build
+          rojo build default.project.json --output build/RvrseUI.rbxlx
+
+      - name: Success
+        run: |
+          echo "✅ RvrseUI build successful!"
+          echo "📦 Version: v4.3.19"
+          echo "📊 Size: $(du -h build/RvrseUI.rbxlx | cut -f1)"

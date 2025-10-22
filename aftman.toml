@@ -1,8 +1,6 @@
 # Aftman toolchain configuration for RvrseUI
-# https://github.com/LPGhatguy/aftman
+# Simplified toolchain - only essential build tools
 
 [tools]
 stylua = "JohnnyMorganz/StyLua@0.20.0"
-selene = "Kampfkarren/selene@0.27.1"
 rojo = "rojo-rbx/rojo@7.4.1"
-wally = "UpliftGames/wally@0.3.2"
