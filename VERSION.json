@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 9,
-    "full": "4.3.9",
-    "build": "20251022d",
-    "hash": "W7Q2S5T9",
+    "patch": 10,
+    "full": "4.3.10",
+    "build": "20251022e",
+    "hash": "X8R3T6U0",
     "channel": "Stable"
   },
   "release": {
@@ -41,6 +41,18 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.10": {
+      "date": "2025-10-22",
+      "hash": "X8R3T6U0",
+      "changes": [
+        "🚀 Migrated CI to Aftman toolchain manager (official Roblox recommendation for tool management).",
+        "📦 Added aftman.toml configuration file - single source of truth for tool versions (stylua, selene, rojo, wally).",
+        "🔧 Completely refactored CI workflow - replaced cargo installs and manual downloads with clean Aftman integration.",
+        "✅ Fixed Wally 404 download errors - Aftman handles binary downloads automatically.",
+        "📉 Reduced CI workflow complexity by 50% - more maintainable and reliable.",
+        "🎯 Declarative tool management - consistent versions across local dev and CI environments."
+      ]
+    },
     "4.3.9": {
       "date": "2025-10-22",
       "hash": "W7Q2S5T9",

@@ -1,10 +1,10 @@
-# RvrseUI v4.3.9
+# RvrseUI v4.3.10
 
 ![RvrseUI Banner](assets/banner.png)
 
 **Modern, Production-Ready Roblox UI Library** with Lucide Icon System, Advanced ColorPicker, Unified Multi-Select Dropdowns, and Built-in Key System
 
-![Version](https://img.shields.io/badge/version-4.3.9-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-445KB-orange)
+![Version](https://img.shields.io/badge/version-4.3.10-blue) ![Status](https://img.shields.io/badge/status-production%20ready-success) ![License](https://img.shields.io/badge/license-MIT-green) ![Build](https://img.shields.io/badge/build-445KB-orange)
 
 ---
 
@@ -103,7 +103,7 @@ local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Coder
 
 ### Method 2: Version-Specific
 ```lua
-local version = "v4.3.9"
+local version = "v4.3.10"
 local url = string.format("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/%s/RvrseUI.lua", version)
 local RvrseUI = loadstring(game:HttpGet(url))()
 ```
