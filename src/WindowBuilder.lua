@@ -1837,7 +1837,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			local ok, err = pcall(function()
 				local managerOptions = typeof(cfg.ConfigurationManager) == "table" and cfg.ConfigurationManager or {}
 				local tabTitle = managerOptions.TabName or "Profiles"
-				local tabIcon = managerOptions.Icon or "folder"
+				local tabIcon = managerOptions.Icon
+				if tabIcon == nil then
+					tabIcon = "lucide://settings"
+				end
 				local sectionTitle = managerOptions.SectionTitle or "Configuration Profiles"
 				local profilePlaceholder = managerOptions.NewProfilePlaceholder or "my_profile"
 				local dropdownPlaceholder = managerOptions.DropdownPlaceholder or "Select profile"
