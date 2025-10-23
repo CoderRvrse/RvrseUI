@@ -1,5 +1,5 @@
--- RvrseUI v4.3.21 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-23T12:00:00Z
+-- RvrseUI v4.3.22 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-10-23T13:30:00Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -36,10 +36,10 @@ do
 	Version.Data = {
 		Major = 4,
 		Minor = 3,
-		Patch = 11,
-		Build = "20251023a",  -- YYYYMMDD format
-		Full = "4.3.21",
-		Hash = "L2C1D7F9",  -- Release hash for integrity verification
+		Patch = 12,
+		Build = "20251023b",  -- YYYYMMDD format
+		Full = "4.3.22",
+		Hash = "R4D1S7H3",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
@@ -7923,6 +7923,70 @@ do
 	
 	function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		cfg = cfg or {}
+
+		local function toBoolean(value)
+			if typeof(value) == "boolean" then
+				return value
+			end
+			if typeof(value) == "string" then
+				local normalized = string.lower(value)
+				if normalized == "true" or normalized == "on" or normalized == "enable" or normalized == "enabled" or normalized == "yes" or normalized == "verbose" then
+					return true
+				end
+				if normalized == "false" or normalized == "off" or normalized == "disable" or normalized == "disabled" or normalized == "no" or normalized == "silent" or normalized == "muted" then
+					return false
+				end
+			end
+			return nil
+		end
+
+		local debugOption = cfg.Debug or cfg.DebugMode or cfg.DebugLogging
+		if debugOption ~= nil then
+			local desired = nil
+			local lockDebug = false
+
+			if typeof(debugOption) == "table" then
+				if debugOption.Enabled ~= nil then
+					desired = toBoolean(debugOption.Enabled)
+				elseif debugOption.Enable ~= nil then
+					desired = toBoolean(debugOption.Enable)
+				elseif debugOption.Mode ~= nil then
+					desired = toBoolean(debugOption.Mode)
+				elseif debugOption.State ~= nil then
+					desired = toBoolean(debugOption.State)
+				end
+
+				if debugOption.Lock ~= nil then
+					local lockValue = toBoolean(debugOption.Lock)
+					if lockValue ~= nil then
+						lockDebug = lockValue
+					end
+				elseif debugOption.Locked ~= nil then
+					local lockValue = toBoolean(debugOption.Locked)
+					if lockValue ~= nil then
+						lockDebug = lockValue
+					end
+				elseif debugOption.AllowOverride ~= nil then
+					local allow = toBoolean(debugOption.AllowOverride)
+					if allow ~= nil then
+						lockDebug = not allow
+					end
+				elseif debugOption.Hard == true then
+					lockDebug = true
+				end
+			else
+				desired = toBoolean(debugOption)
+				lockDebug = true
+			end
+
+			if desired ~= nil then
+				if lockDebug then
+					RvrseUI:LockDebug(desired)
+				else
+					RvrseUI:EnableDebug(desired)
+				end
+			end
+		end
 	
 		-- ============================================
 		-- KEY SYSTEM VALIDATION (BLOCKING)
@@ -10259,6 +10323,16 @@ RvrseUI._themeListeners = {}
 RvrseUI._savedTheme = nil
 RvrseUI._lastWindowPosition = nil
 RvrseUI._controllerChipPosition = nil
+local initialDebugState = false
+if Debug then
+	if Debug.IsEnabled then
+		initialDebugState = Debug:IsEnabled() and true or false
+	else
+		initialDebugState = not not (Debug.Enabled or Debug.enabled)
+	end
+end
+RvrseUI._debugEnabled = initialDebugState
+RvrseUI._debugOverride = nil
 
 -- Configuration settings
 RvrseUI.ConfigurationSaving = false
@@ -10509,26 +10583,53 @@ function RvrseUI:GetTheme()
 end
 
 -- Debug Methods
-function RvrseUI:EnableDebug(enabled)
+function RvrseUI:_applyDebugState(flag)
+	local state = flag and true or false
 	if Debug then
 		if Debug.SetEnabled then
-			Debug:SetEnabled(enabled)
+			Debug:SetEnabled(state)
 		else
-			local flag = enabled and true or false
-			Debug.Enabled = flag
-			Debug.enabled = flag
+			Debug.Enabled = state
+			Debug.enabled = state
 		end
 	end
+	self._debugEnabled = state
+	return state
+end
+
+function RvrseUI:EnableDebug(enabled)
+	local target = enabled and true or false
+	if self._debugOverride ~= nil then
+		target = self._debugOverride
+	end
+	return self:_applyDebugState(target)
+end
+
+function RvrseUI:LockDebug(enabled)
+	self._debugOverride = enabled and true or false
+	return self:_applyDebugState(self._debugOverride)
+end
+
+function RvrseUI:UnlockDebug()
+	self._debugOverride = nil
+	return self:_applyDebugState(self._debugEnabled)
 end
 
 function RvrseUI:IsDebugEnabled()
+	if self._debugOverride ~= nil then
+		return self._debugOverride
+	end
 	if Debug then
 		if Debug.IsEnabled then
 			return Debug:IsEnabled()
 		end
 		return not not (Debug.Enabled or Debug.enabled)
 	end
-	return false
+	return self._debugEnabled
+end
+
+function RvrseUI:IsDebugLocked()
+	return self._debugOverride ~= nil
 end
 
 -- Window Management

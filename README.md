@@ -213,6 +213,7 @@ local Window = RvrseUI:CreateWindow({
     LoadingSubtitle = "Loading features...",
 
     -- 📌 ADVANCED (OPTIONAL)
+    Debug = false,                     -- Force-disable RvrseUI debug logging (locked)
     DisableBuildWarnings = false,      -- Hide startup notification
     Container = "PlayerGui",            -- Where to place UI
     DisplayOrder = 100000               -- Z-index
@@ -951,9 +952,17 @@ RvrseUI:SetAutoSaveEnabled(bool)     -- Toggle auto-save
 RvrseUI:SetTokenIcon(icon, opts)     -- Change minimize token icon (lucide://, emoji, asset)
 RvrseUI:GetTokenIcon()               -- Read current token icon, color override, fallback
 RvrseUI:EnableDebug(true)            -- Enable debug logging
+RvrseUI:LockDebug(false)             -- Hard-disable debug logging (ignores later EnableDebug calls)
+RvrseUI:UnlockDebug()                -- Remove hard lock on debug logging
+RvrseUI:IsDebugLocked()              -- Check if debug logging is hard-locked
 RvrseUI:GetVersionInfo()             -- Get version info
 RvrseUI.Flags                        -- Access all flagged elements
 ```
+
+**Debug control tips**
+- `Debug = false` inside `CreateWindow` hard-mutes all internal diagnostics.
+- Pass a table to keep the option user-toggleable: `Debug = { Enabled = false, Lock = false }`.
+- Any call to `RvrseUI:LockDebug(value)` wins over later `EnableDebug` attempts until `UnlockDebug()` runs.
 
 ---
 

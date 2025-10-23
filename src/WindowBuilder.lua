@@ -46,6 +46,70 @@ end
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
 
+	local function toBoolean(value)
+		if typeof(value) == "boolean" then
+			return value
+		end
+		if typeof(value) == "string" then
+			local normalized = string.lower(value)
+			if normalized == "true" or normalized == "on" or normalized == "enable" or normalized == "enabled" or normalized == "yes" or normalized == "verbose" then
+				return true
+			end
+			if normalized == "false" or normalized == "off" or normalized == "disable" or normalized == "disabled" or normalized == "no" or normalized == "silent" or normalized == "muted" then
+				return false
+			end
+		end
+		return nil
+	end
+
+	local debugOption = cfg.Debug or cfg.DebugMode or cfg.DebugLogging
+	if debugOption ~= nil then
+		local desired = nil
+		local lockDebug = false
+
+		if typeof(debugOption) == "table" then
+			if debugOption.Enabled ~= nil then
+				desired = toBoolean(debugOption.Enabled)
+			elseif debugOption.Enable ~= nil then
+				desired = toBoolean(debugOption.Enable)
+			elseif debugOption.Mode ~= nil then
+				desired = toBoolean(debugOption.Mode)
+			elseif debugOption.State ~= nil then
+				desired = toBoolean(debugOption.State)
+			end
+
+			if debugOption.Lock ~= nil then
+				local lockValue = toBoolean(debugOption.Lock)
+				if lockValue ~= nil then
+					lockDebug = lockValue
+				end
+			elseif debugOption.Locked ~= nil then
+				local lockValue = toBoolean(debugOption.Locked)
+				if lockValue ~= nil then
+					lockDebug = lockValue
+				end
+			elseif debugOption.AllowOverride ~= nil then
+				local allow = toBoolean(debugOption.AllowOverride)
+				if allow ~= nil then
+					lockDebug = not allow
+				end
+			elseif debugOption.Hard == true then
+				lockDebug = true
+			end
+		else
+			desired = toBoolean(debugOption)
+			lockDebug = true
+		end
+
+		if desired ~= nil then
+			if lockDebug then
+				RvrseUI:LockDebug(desired)
+			else
+				RvrseUI:EnableDebug(desired)
+			end
+		end
+	end
+
 	-- ============================================
 	-- KEY SYSTEM VALIDATION (BLOCKING)
 	-- ============================================

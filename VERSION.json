@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 11,
-    "full": "4.3.21",
-    "build": "20251023a",
-    "hash": "L2C1D7F9",
+    "patch": 12,
+    "full": "4.3.22",
+    "build": "20251023b",
+    "hash": "R4D1S7H3",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-10-23",
-    "name": "Lucide Icon Refresh",
-    "codename": "Azure Glyph",
-    "notes": "Profiles manager now defaults to the Lucide settings glyph so every UI surface remains on-brand."
+    "name": "Silent Debug Control",
+    "codename": "Midnight Switch",
+    "notes": "Add build-time debug locks so production hubs can stay quiet without editing source."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,22 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.22": {
+      "date": "2025-10-23",
+      "hash": "R4D1S7H3",
+      "type": "patch",
+      "title": "Silent Debug Toggle",
+      "changes": [
+        "\ud83d\udd07 New `Debug` option in `CreateWindow` lets hubs hard-mute internal console diagnostics.",
+        "\ud83d\udd12 Added `RvrseUI:LockDebug/UnlockDebug/IsDebugLocked` so scripts can enforce or inspect debug state.",
+        "\ud83d\udcd6 README documents how to keep builds quiet or allow opt-in verbose logs."
+      ],
+      "breaking_changes": [],
+      "deprecations": [],
+      "lessons_learned": [
+        "Centralizing debug controls beats patching dozens of print statements across modules."
+      ]
+    },
     "4.3.21": {
       "date": "2025-10-23",
       "hash": "L2C1D7F9",

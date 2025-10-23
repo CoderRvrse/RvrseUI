@@ -212,6 +212,16 @@ RvrseUI._obfuscatedNames = Obfuscation.getObfuscatedNames()
 RvrseUI._tokenIcon = "lucide://gamepad-2"
 RvrseUI._tokenIconColor = nil
 RvrseUI._tokenIconFallback = "🎮"
+local initialDebugState = false
+if Debug then
+	if Debug.IsEnabled then
+		initialDebugState = Debug:IsEnabled() and true or false
+	else
+		initialDebugState = not not (Debug.Enabled or Debug.enabled)
+	end
+end
+RvrseUI._debugEnabled = initialDebugState
+RvrseUI._debugOverride = nil
 
 -- Configuration settings
 RvrseUI.ConfigurationSaving = false
@@ -483,26 +493,53 @@ function RvrseUI:GetTheme()
 end
 
 -- Debug Methods
-function RvrseUI:EnableDebug(enabled)
+function RvrseUI:_applyDebugState(flag)
+	local state = flag and true or false
 	if Debug then
 		if Debug.SetEnabled then
-			Debug:SetEnabled(enabled)
+			Debug:SetEnabled(state)
 		else
-			local flag = enabled and true or false
-			Debug.Enabled = flag
-			Debug.enabled = flag
+			Debug.Enabled = state
+			Debug.enabled = state
 		end
 	end
+	self._debugEnabled = state
+	return state
+end
+
+function RvrseUI:EnableDebug(enabled)
+	local target = enabled and true or false
+	if self._debugOverride ~= nil then
+		target = self._debugOverride
+	end
+	return self:_applyDebugState(target)
+end
+
+function RvrseUI:LockDebug(enabled)
+	self._debugOverride = enabled and true or false
+	return self:_applyDebugState(self._debugOverride)
+end
+
+function RvrseUI:UnlockDebug()
+	self._debugOverride = nil
+	return self:_applyDebugState(self._debugEnabled)
 end
 
 function RvrseUI:IsDebugEnabled()
+	if self._debugOverride ~= nil then
+		return self._debugOverride
+	end
 	if Debug then
 		if Debug.IsEnabled then
 			return Debug:IsEnabled()
 		end
 		return not not (Debug.Enabled or Debug.enabled)
 	end
-	return false
+	return self._debugEnabled
+end
+
+function RvrseUI:IsDebugLocked()
+	return self._debugOverride ~= nil
 end
 
 -- Window Management
