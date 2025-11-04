@@ -277,6 +277,6 @@ end
 --   ❌ As primary access control
 --   ❌ For premium features (validate server-side!)
 --   ❌ To protect secrets or sensitive data
---   ❌ As anti-cheat mechanism
+--   ❌ For game action validation (must validate on server!)
 --
 -- ============================================================================
