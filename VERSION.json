@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 12,
-    "full": "4.3.22",
-    "build": "20251023b",
-    "hash": "R4D1S7H3",
+    "patch": 13,
+    "full": "4.3.23",
+    "build": "20251104a",
+    "hash": "E1X2M3P4",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-23",
-    "name": "Silent Debug Control",
-    "codename": "Midnight Switch",
-    "notes": "Add build-time debug locks so production hubs can stay quiet without editing source."
+    "date": "2025-11-04",
+    "name": "RVRSE Integration Examples",
+    "codename": "Pattern Library",
+    "notes": "Complete example projects demonstrating RvrseUI + RVRSE integration with all three official patterns."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -47,9 +47,9 @@
       "type": "patch",
       "title": "Silent Debug Toggle",
       "changes": [
-        "\ud83d\udd07 New `Debug` option in `CreateWindow` lets hubs hard-mute internal console diagnostics.",
-        "\ud83d\udd12 Added `RvrseUI:LockDebug/UnlockDebug/IsDebugLocked` so scripts can enforce or inspect debug state.",
-        "\ud83d\udcd6 README documents how to keep builds quiet or allow opt-in verbose logs."
+        "🔇 New `Debug` option in `CreateWindow` lets hubs hard-mute internal console diagnostics.",
+        "🔒 Added `RvrseUI:LockDebug/UnlockDebug/IsDebugLocked` so scripts can enforce or inspect debug state.",
+        "📖 README documents how to keep builds quiet or allow opt-in verbose logs."
       ],
       "breaking_changes": [],
       "deprecations": [],
@@ -63,8 +63,8 @@
       "type": "patch",
       "title": "Lucide Config Icon Refresh",
       "changes": [
-        "\ud83c\udfa8 Configuration manager tab now defaults to lucide://settings when no custom icon is provided.",
-        "\u2699\ufe0f Keeps user overrides intact, including explicit false to fall back to initial-letter badges."
+        "🎨 Configuration manager tab now defaults to lucide://settings when no custom icon is provided.",
+        "⚙️ Keeps user overrides intact, including explicit false to fall back to initial-letter badges."
       ],
       "breaking_changes": [],
       "deprecations": [],
@@ -159,308 +159,330 @@
       "date": "2025-10-21",
       "hash": "M9Q4T7S1",
       "changes": [
-        "\ud83c\udfa8 Capsule surfaces rebuilt: pill radii now follow container height, preventing mismatched corners on toggles, sliders, color previews, and keybind buttons.",
-        "\ud83d\udd8c\ufe0f UIStroke joins switched to round across elements so outlines stay smooth even under scaling and animation.",
-        "\ud83c\udf1e Light theme cards, buttons, and inputs render fully opaque by default, eliminating the premultiplied alpha halo that appeared on pale backgrounds."
+        "🎨 Capsule surfaces rebuilt: pill radii now follow container height, preventing mismatched corners on toggles, sliders, color previews, and keybind buttons.",
+        "🖌️ UIStroke joins switched to round across elements so outlines stay smooth even under scaling and animation.",
+        "🌞 Light theme cards, buttons, and inputs render fully opaque by default, eliminating the premultiplied alpha halo that appeared on pale backgrounds."
       ]
     },
     "4.3.4": {
       "date": "2025-10-21",
       "hash": "Q8L6Y1F2",
       "changes": [
-        "\ud83d\udcd8 Complete hub example now initializes getgenv() state, wires flags, and prints hydrated values so the auto-save pipeline is demonstrated inline."
+        "📘 Complete hub example now initializes getgenv() state, wires flags, and prints hydrated values so the auto-save pipeline is demonstrated inline."
       ]
     },
     "4.3.3": {
       "date": "2025-10-21",
       "hash": "J7P5Z2K4",
       "changes": [
-        "\ud83d\udcda README surfaces the Codex-5 agent memo in `examples/AGENTS.md`, giving builders a direct link to the bundled monolith guidance."
+        "📚 README surfaces the Codex-5 agent memo in `examples/AGENTS.md`, giving builders a direct link to the bundled monolith guidance."
       ]
     },
     "4.3.2": {
       "date": "2025-10-21",
       "hash": "H4N2B8M1",
       "changes": [
-        "\ud83d\udcbe Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
-        "\ud83d\udee0\ufe0f Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
-        "\ud83e\uddea New example: examples/test-config-hydration.lua demonstrates the zero-boilerplate workflow.",
-        "\ud83d\udcda README/AGENTS/DEV_NOTES refreshed to explain hydration behavior and opt-out strategy.",
-        "\ud83e\uddf1 Internal Set APIs accept a fireCallback flag so programmatic updates stay silent unless explicitly fired."
+        "💾 Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
+        "🛠️ Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
+        "🧪 New example: examples/test-config-hydration.lua demonstrates the zero-boilerplate workflow.",
+        "📚 README/AGENTS/DEV_NOTES refreshed to explain hydration behavior and opt-out strategy.",
+        "🧱 Internal Set APIs accept a fireCallback flag so programmatic updates stay silent unless explicitly fired."
       ]
     },
     "4.3.1": {
       "date": "2025-10-20",
       "hash": "V6N8R1C7",
       "changes": [
-        "\ud83c\udfae Controller chip now uses the Lucide icon resolver\u2014supports `lucide://`, emoji, `rbxassetid://`, or numeric IDs with automatic Unicode fallback.",
-        "\ud83e\ude84 New APIs: `RvrseUI:SetTokenIcon` / `GetTokenIcon` and `Window:SetTokenIcon` / `GetTokenIcon` for per-hub or per-window customization.",
-        "\ud83c\udfa8 Theme-friendly tinting with optional color overrides; fallbacks remain visible even if the sprite sheet fails to load.",
-        "\ud83d\udcd8 README updated with token customization examples plus refreshed badges/build stats.",
-        "\ud83e\uddfe Version metadata bumped to v4.3.1 (build 20251020c) for release tracking."
+        "🎮 Controller chip now uses the Lucide icon resolver—supports `lucide://`, emoji, `rbxassetid://`, or numeric IDs with automatic Unicode fallback.",
+        "🪄 New APIs: `RvrseUI:SetTokenIcon` / `GetTokenIcon` and `Window:SetTokenIcon` / `GetTokenIcon` for per-hub or per-window customization.",
+        "🎨 Theme-friendly tinting with optional color overrides; fallbacks remain visible even if the sprite sheet fails to load.",
+        "📘 README updated with token customization examples plus refreshed badges/build stats.",
+        "🧾 Version metadata bumped to v4.3.1 (build 20251020c) for release tracking."
       ]
     },
     "4.3.0": {
       "date": "2025-10-20",
       "hash": "P7R1L8Z3",
       "changes": [
-        "\ud83e\ude84 Lucide icons now render across ALL UI elements (Tabs, Notifications, Buttons, Labels) with consistent spacing and dedicated icon holders.",
-        "\ud83d\uddbc\ufe0f Added rbxassetid:// image support to IconResolver so Roblox-hosted sprites render alongside lucide:// and emoji schemes.",
-        "\ud83e\udde9 Buttons and Labels reserve a 24px icon lane with dynamic padding that prevents overlap when fallbacks or emojis are used.",
-        "\ud83e\uddf5 Lucide sprite data is embedded into RvrseUI.lua and init build so executors load the sheet without extra HTTP calls.",
-        "\ud83e\uddea Refreshed examples/test-lucide-icons.lua to showcase Buttons, Labels, Notifications, and Roblox asset icons in one scene.",
-        "\ud83d\udcda README.md now ships with a dedicated Lucide Icon System section, updated quick-start badges, and direct example links.",
-        "\ud83d\uddd2\ufe0f CLAUDE.md gains a developer log plus advanced guidance for regenerating lucide sprites and wiring new icons.",
-        "\ud83d\udd16 VERSION metadata updated for v4.3.0 (build 20251020b, codename \"Neon Atlas\").",
-        "\ud83e\ude9f Minimize/restore flow tweaked so the window reopens from the controller chip at the exact saved position.",
-        "\ud83e\uddf0 Profiles tab now leverages the modern dropdown with single-select guards and ships with `examples/test-config-profiles.lua` for regression testing."
+        "🪄 Lucide icons now render across ALL UI elements (Tabs, Notifications, Buttons, Labels) with consistent spacing and dedicated icon holders.",
+        "🖼️ Added rbxassetid:// image support to IconResolver so Roblox-hosted sprites render alongside lucide:// and emoji schemes.",
+        "🧩 Buttons and Labels reserve a 24px icon lane with dynamic padding that prevents overlap when fallbacks or emojis are used.",
+        "🧵 Lucide sprite data is embedded into RvrseUI.lua and init build so executors load the sheet without extra HTTP calls.",
+        "🧪 Refreshed examples/test-lucide-icons.lua to showcase Buttons, Labels, Notifications, and Roblox asset icons in one scene.",
+        "📚 README.md now ships with a dedicated Lucide Icon System section, updated quick-start badges, and direct example links.",
+        "🗒️ CLAUDE.md gains a developer log plus advanced guidance for regenerating lucide sprites and wiring new icons.",
+        "🔖 VERSION metadata updated for v4.3.0 (build 20251020b, codename \"Neon Atlas\").",
+        "🪟 Minimize/restore flow tweaked so the window reopens from the controller chip at the exact saved position.",
+        "🧰 Profiles tab now leverages the modern dropdown with single-select guards and ships with `examples/test-config-profiles.lua` for regression testing."
       ]
     },
     "4.2.0": {
       "date": "2025-10-18",
       "hash": "L6I9C3U5",
       "changes": [
-        "\ud83c\udfa8 LUCIDE ICON LIBRARY INTEGRATION - 500+ professional icons via lucide:// protocol!",
-        "\u2728 NEW: LucideIcons.lua module (287 lines) - Lucide icon resolution with Unicode fallbacks",
-        "\ud83d\udd0d Icon resolution chain: Asset map \u2192 Unicode fallback \u2192 Text display",
-        "\ud83d\udce6 100+ Unicode fallbacks pre-mapped for common icons (home, settings, arrows, etc.)",
-        "\ud83d\ude80 Zero setup required - works immediately with automatic fallbacks",
-        "\ud83c\udfaf Advanced: Upload custom Lucide SVGs as Roblox assets and map in LucideIcons.AssetMap",
-        "\ud83d\udd27 5 icon formats supported: lucide://, icon://, emoji, rbxassetid://, asset ID number",
-        "\ud83d\udcda Icons.lua enhanced with lucide:// protocol support",
-        "\ud83c\udf10 HttpService integration for future SVG fetching capabilities",
-        "\ud83d\udcd6 Complete documentation: docs/LUCIDE_ICONS_GUIDE.md (347 lines)",
-        "\ud83e\uddea Two example scripts: test-lucide-icons.lua (308 lines), test-lucide-simple.lua (71 lines)",
-        "\ud83d\udd28 Build system updated: Added LucideIcons to module order + HttpService to services",
-        "\ud83d\udcca Module count: 28 \u2192 29 (+1 LucideIcons)",
-        "\ud83d\udcc8 File size: 264 KB \u2192 272 KB (+8 KB for icon system)",
-        "\u2705 ORGANIC PARTICLE SYSTEM - 'Spore Bubble' floating particles with Perlin noise drift!",
-        "\ud83c\udfa8 NEW: Particles.lua module (698 lines) - Complete Perlin noise implementation for organic motion",
-        "\ud83c\udf0a Perlin noise 3D with octave layering - particles drift with lateral curl (no straight lines)",
-        "\ud83e\udee7 Size distribution: 60% small (3-8px), 30% medium (9-16px), 10% large (18-28px bubbles)",
-        "\ud83c\udfad Opacity range: 0.15-0.35 base with cubic easing (in: t\u00b3, out: 1-(1-t)\u00b3)",
-        "\u23f1\ufe0f Lifetime: 2.8-5.2s random, fade in 120-180ms, fade out 180-220ms",
-        "\ud83c\udfaf Motion: Base upward 20-45 px/s + Perlin lateral drift \u00b18-18 px/s + vertical noise \u00b16 px/s",
-        "\ud83c\udfa8 HSL color jitter: \u00b16\u00b0 hue, \u00b18% lightness from theme accent for variety",
-        "\u267b\ufe0f Object pooling: Zero per-frame allocation, particles reused from pool",
-        "\ud83d\udcca Adaptive density: 40-80 desktop, 20-40 mobile, auto-reduces if FPS < 50",
-        "\ud83c\udfac State-driven spawning: 'expand' (+30% burst), 'idle' (10% trickle), 'dragging' (50% throttle)",
-        "\u26a1 RunService heartbeat updates - <0.8ms render budget per frame",
-        "\ud83d\udd27 Configurable: Particles.Enabled, Density (low/med/high), Blend (alpha/additive)",
-        "\ud83e\ude9f Integrated with WindowBuilder: plays on show/restore, stops on minimize, throttles on drag",
-        "\ud83d\udce6 Module count: 28 (up from 27) +1 Particles module",
-        "\ud83d\udcc8 File size: 264 KB (up from 247 KB, +17 KB for complete Perlin noise system)"
+        "🎨 LUCIDE ICON LIBRARY INTEGRATION - 500+ professional icons via lucide:// protocol!",
+        "✨ NEW: LucideIcons.lua module (287 lines) - Lucide icon resolution with Unicode fallbacks",
+        "🔍 Icon resolution chain: Asset map → Unicode fallback → Text display",
+        "📦 100+ Unicode fallbacks pre-mapped for common icons (home, settings, arrows, etc.)",
+        "🚀 Zero setup required - works immediately with automatic fallbacks",
+        "🎯 Advanced: Upload custom Lucide SVGs as Roblox assets and map in LucideIcons.AssetMap",
+        "🔧 5 icon formats supported: lucide://, icon://, emoji, rbxassetid://, asset ID number",
+        "📚 Icons.lua enhanced with lucide:// protocol support",
+        "🌐 HttpService integration for future SVG fetching capabilities",
+        "📖 Complete documentation: docs/LUCIDE_ICONS_GUIDE.md (347 lines)",
+        "🧪 Two example scripts: test-lucide-icons.lua (308 lines), test-lucide-simple.lua (71 lines)",
+        "🔨 Build system updated: Added LucideIcons to module order + HttpService to services",
+        "📊 Module count: 28 → 29 (+1 LucideIcons)",
+        "📈 File size: 264 KB → 272 KB (+8 KB for icon system)",
+        "✅ ORGANIC PARTICLE SYSTEM - 'Spore Bubble' floating particles with Perlin noise drift!",
+        "🎨 NEW: Particles.lua module (698 lines) - Complete Perlin noise implementation for organic motion",
+        "🌊 Perlin noise 3D with octave layering - particles drift with lateral curl (no straight lines)",
+        "🫧 Size distribution: 60% small (3-8px), 30% medium (9-16px), 10% large (18-28px bubbles)",
+        "🎭 Opacity range: 0.15-0.35 base with cubic easing (in: t³, out: 1-(1-t)³)",
+        "⏱️ Lifetime: 2.8-5.2s random, fade in 120-180ms, fade out 180-220ms",
+        "🎯 Motion: Base upward 20-45 px/s + Perlin lateral drift ±8-18 px/s + vertical noise ±6 px/s",
+        "🎨 HSL color jitter: ±6° hue, ±8% lightness from theme accent for variety",
+        "♻️ Object pooling: Zero per-frame allocation, particles reused from pool",
+        "📊 Adaptive density: 40-80 desktop, 20-40 mobile, auto-reduces if FPS < 50",
+        "🎬 State-driven spawning: 'expand' (+30% burst), 'idle' (10% trickle), 'dragging' (50% throttle)",
+        "⚡ RunService heartbeat updates - <0.8ms render budget per frame",
+        "🔧 Configurable: Particles.Enabled, Density (low/med/high), Blend (alpha/additive)",
+        "🪟 Integrated with WindowBuilder: plays on show/restore, stops on minimize, throttles on drag",
+        "📦 Module count: 28 (up from 27) +1 Particles module",
+        "📈 File size: 264 KB (up from 247 KB, +17 KB for complete Perlin noise system)"
       ]
     },
     "4.1.0": {
       "date": "2025-10-18",
       "hash": "U7M5D3W9",
       "changes": [
-        "\ud83c\udfaf UNIFIED DROPDOWN SYSTEM - Major architectural cleanup!",
-        "\ud83d\uddd1\ufe0f Removed DropdownLegacy.lua (404 lines) - eliminated broken single-select system",
-        "\u2702\ufe0f Cleaned Dropdown.lua - removed ALL single-select logic and Rayfield compatibility code (reduced from 1021 to 801 lines)",
-        "\ud83d\udd27 Updated SectionBuilder.lua - CreateDropdown() now ALWAYS uses modern multi-select system (removed UseModernDropdown flag)",
-        "\ud83d\udce6 Module count: 27 (down from 28) - cleaner codebase",
-        "\ud83d\udcc9 File size: 246 KB (down from 260 KB - 5% smaller!)",
-        "\ud83d\udcca Net code reduction: 1,459 lines deleted (-1775 deletions, +316 additions)",
-        "\u2705 Modern multi-select is now the ONLY dropdown system - users select one OR multiple items by clicking",
-        "\ud83c\udfa8 Checkbox interface - visual checkboxes for all dropdown items",
-        "\ud83d\udeab Removed ALL Rayfield compatibility code and documentation",
-        "\ud83d\udcdd Updated README.md - removed 'Single-Select vs Multi-Select' confusion, clarified unified system",
-        "\ud83e\uddf9 Deleted TEST_DROPDOWN_LONG_LABELS.lua (166 lines) - broken test file",
-        "\ud83d\udd04 Updated build.js and build.lua - removed DropdownLegacy from pipeline",
-        "\ud83d\udcda Updated all documentation to reflect unified system (README, badges, version info)",
-        "\ud83c\udfaf API CONSISTENCY: OnChanged ALWAYS receives a table (e.g., {'Item1', 'Item2'})",
-        "\u2728 Dynamic overlay rendering - dropdowns always appear above all other UI",
-        "\ud83d\udee1\ufe0f No ZIndex issues - proper DisplayOrder calculation ensures topmost rendering",
-        "\ud83d\udd27 Breaking Changes: NONE - existing code continues to work (backwards compatible)"
+        "🎯 UNIFIED DROPDOWN SYSTEM - Major architectural cleanup!",
+        "🗑️ Removed DropdownLegacy.lua (404 lines) - eliminated broken single-select system",
+        "✂️ Cleaned Dropdown.lua - removed ALL single-select logic and Rayfield compatibility code (reduced from 1021 to 801 lines)",
+        "🔧 Updated SectionBuilder.lua - CreateDropdown() now ALWAYS uses modern multi-select system (removed UseModernDropdown flag)",
+        "📦 Module count: 27 (down from 28) - cleaner codebase",
+        "📉 File size: 246 KB (down from 260 KB - 5% smaller!)",
+        "📊 Net code reduction: 1,459 lines deleted (-1775 deletions, +316 additions)",
+        "✅ Modern multi-select is now the ONLY dropdown system - users select one OR multiple items by clicking",
+        "🎨 Checkbox interface - visual checkboxes for all dropdown items",
+        "🚫 Removed ALL Rayfield compatibility code and documentation",
+        "📝 Updated README.md - removed 'Single-Select vs Multi-Select' confusion, clarified unified system",
+        "🧹 Deleted TEST_DROPDOWN_LONG_LABELS.lua (166 lines) - broken test file",
+        "🔄 Updated build.js and build.lua - removed DropdownLegacy from pipeline",
+        "📚 Updated all documentation to reflect unified system (README, badges, version info)",
+        "🎯 API CONSISTENCY: OnChanged ALWAYS receives a table (e.g., {'Item1', 'Item2'})",
+        "✨ Dynamic overlay rendering - dropdowns always appear above all other UI",
+        "🛡️ No ZIndex issues - proper DisplayOrder calculation ensures topmost rendering",
+        "🔧 Breaking Changes: NONE - existing code continues to work (backwards compatible)"
       ]
     },
     "4.0.4": {
       "date": "2025-10-18",
       "hash": "R9B4K3X7",
       "changes": [
-        "\ud83c\udfaf CRITICAL FIX: Complete drag system rewrite - back to basics!",
-        "\ud83d\udc1b ROOT CAUSE: Overcomplicated drag logic with AbsolutePosition/AnchorPoint math introduced offset bugs",
-        "\u2728 SOLUTION: Replaced ~600 lines of complex code with ~140 lines of classic Roblox drag pattern",
-        "\ud83d\udcd0 Simple delta calculation: delta = currentPosition - startPosition, apply to original UDim2",
-        "\ud83e\ude9f Window header drag now uses basic InputBegan \u2192 store start \u2192 calculate delta pattern",
-        "\ud83c\udfae Controller chip drag simplified to same pattern - no offset calculations needed",
-        "\ud83d\udeab Removed: AbsolutePosition math, GUI inset handling, AnchorPoint conversions, coordinate space mixing",
-        "\ud83d\udeab Removed: Size locking system, hover animation blocking, complex pointer tracking",
-        "\u2705 Kept: Animation blocking (isAnimating flag) to prevent drag during minimize/restore tweens",
-        "\ud83d\udcca Code reduction: 65% smaller (400 lines \u2192 140 lines)",
-        "\ud83c\udfaf User confirmed: 'that was it that was the fix back to the basics!'",
-        "\ud83d\udcdd Created SIMPLE_DRAG_REFERENCE.lua as reference for future drag implementations",
-        "\ud83d\udcda Created DRAG_FIX_PROPOSAL.md documenting architectural analysis",
-        "\ud83e\uddea Verified: No jumps, no offset drift, cursor stays glued to grab point"
+        "🎯 CRITICAL FIX: Complete drag system rewrite - back to basics!",
+        "🐛 ROOT CAUSE: Overcomplicated drag logic with AbsolutePosition/AnchorPoint math introduced offset bugs",
+        "✨ SOLUTION: Replaced ~600 lines of complex code with ~140 lines of classic Roblox drag pattern",
+        "📐 Simple delta calculation: delta = currentPosition - startPosition, apply to original UDim2",
+        "🪟 Window header drag now uses basic InputBegan → store start → calculate delta pattern",
+        "🎮 Controller chip drag simplified to same pattern - no offset calculations needed",
+        "🚫 Removed: AbsolutePosition math, GUI inset handling, AnchorPoint conversions, coordinate space mixing",
+        "🚫 Removed: Size locking system, hover animation blocking, complex pointer tracking",
+        "✅ Kept: Animation blocking (isAnimating flag) to prevent drag during minimize/restore tweens",
+        "📊 Code reduction: 65% smaller (400 lines → 140 lines)",
+        "🎯 User confirmed: 'that was it that was the fix back to the basics!'",
+        "📝 Created SIMPLE_DRAG_REFERENCE.lua as reference for future drag implementations",
+        "📚 Created DRAG_FIX_PROPOSAL.md documenting architectural analysis",
+        "🧪 Verified: No jumps, no offset drift, cursor stays glued to grab point"
       ]
     },
     "4.0.3": {
       "date": "2025-10-17",
       "hash": "P8X4N7Q2",
       "changes": [
-        "\ud83c\udf89 CRITICAL FIX: Multi-select dropdown blocker now works perfectly!",
-        "\ud83d\udc1b ROOT CAUSE: Lua closure upvalue capture bug - closures capture VALUES not references",
-        "\ud83d\udd27 Wrapper function closeDropdown() captured setOpen as nil at definition time",
-        "\u2705 SOLUTION: Use inline anonymous functions at connection point (inside setOpen body)",
-        "\ud83d\udcca Evidence: Logs showed setOpen was 'function' when connecting, 'nil' when handler fired",
-        "\ud83e\uddea Test confirms fix: Blocker clicks now close dropdown successfully",
-        "\ud83d\udd0d Added comprehensive debug logging to track exact blocker click flow",
-        "\ud83d\udcdd Documented Lua closure scoping bug in CLAUDE.md (Warning #3)",
-        "\ud83d\udd22 Build number properly incremented to 20251017b"
+        "🎉 CRITICAL FIX: Multi-select dropdown blocker now works perfectly!",
+        "🐛 ROOT CAUSE: Lua closure upvalue capture bug - closures capture VALUES not references",
+        "🔧 Wrapper function closeDropdown() captured setOpen as nil at definition time",
+        "✅ SOLUTION: Use inline anonymous functions at connection point (inside setOpen body)",
+        "📊 Evidence: Logs showed setOpen was 'function' when connecting, 'nil' when handler fired",
+        "🧪 Test confirms fix: Blocker clicks now close dropdown successfully",
+        "🔍 Added comprehensive debug logging to track exact blocker click flow",
+        "📝 Documented Lua closure scoping bug in CLAUDE.md (Warning #3)",
+        "🔢 Build number properly incremented to 20251017b"
       ]
     },
     "4.0.2": {
       "date": "2025-10-17",
       "hash": "D3F7K9M2",
       "changes": [
-        "\ud83d\udc1b CRITICAL FIX: Modern Dropdown multi-select blocker close crash",
-        "\ud83d\udd27 Fixed forward-declaration scoping issue in Dropdown.lua",
-        "\u26a1 Added 'local setOpen' forward declaration before showOverlayBlocker()",
-        "\u2705 Multi-select dropdowns now close properly when clicking outside",
-        "\ud83c\udfaf BLOCKER FIX: Set Modal=false and Active=false in Overlay:ShowBlocker",
-        "\ud83d\udd27 Dropdown.lua and ColorPicker.lua now explicitly pass Modal=false",
-        "\ud83d\udcdd Documented that DropdownLegacy does NOT support multi-select",
-        "\ud83e\uddea Updated test suite to reflect Legacy Dropdown limitations",
-        "\ud83d\udea8 Error fixed: ':3853: attempt to call a nil value' when closing multi-select",
-        "\ud83d\uddb1\ufe0f Blocker click events now fire correctly (was blocked by Active=true)"
+        "🐛 CRITICAL FIX: Modern Dropdown multi-select blocker close crash",
+        "🔧 Fixed forward-declaration scoping issue in Dropdown.lua",
+        "⚡ Added 'local setOpen' forward declaration before showOverlayBlocker()",
+        "✅ Multi-select dropdowns now close properly when clicking outside",
+        "🎯 BLOCKER FIX: Set Modal=false and Active=false in Overlay:ShowBlocker",
+        "🔧 Dropdown.lua and ColorPicker.lua now explicitly pass Modal=false",
+        "📝 Documented that DropdownLegacy does NOT support multi-select",
+        "🧪 Updated test suite to reflect Legacy Dropdown limitations",
+        "🚨 Error fixed: ':3853: attempt to call a nil value' when closing multi-select",
+        "🖱️ Blocker click events now fire correctly (was blocked by Active=true)"
       ]
     },
     "4.0.1": {
       "date": "2025-10-17",
       "hash": "C9P2X5L8",
       "changes": [
-        "\ud83c\udfa8 ColorPicker Phase 2 - Advanced mode fixes (RGB/HSV sliders + Hex input)",
-        "\ud83d\udd27 Fixed Overlay module missing from build pipeline - was never compiled into monolith",
-        "\ud83d\udc1b Fixed ColorPicker panel visibility issues (ClipsDescendants, parenting, transparency)",
-        "\u26a1 Optimized slider callbacks - only fire on user interaction, not programmatic updates",
-        "\ud83d\udcca Added comprehensive GUI architecture documentation (UI-ARCHITECTURE.md, DEBUGGING-WORKFLOW.md)",
-        "\ud83d\udee0\ufe0f Created GUI inspector tools (visual + console-based) for debugging layer issues",
-        "\ud83c\udfaf Added visual debug test with color-coded layers for troubleshooting blocker issues",
-        "\ud83d\udcdd Enhanced debug logging throughout ColorPicker and Overlay modules"
+        "🎨 ColorPicker Phase 2 - Advanced mode fixes (RGB/HSV sliders + Hex input)",
+        "🔧 Fixed Overlay module missing from build pipeline - was never compiled into monolith",
+        "🐛 Fixed ColorPicker panel visibility issues (ClipsDescendants, parenting, transparency)",
+        "⚡ Optimized slider callbacks - only fire on user interaction, not programmatic updates",
+        "📊 Added comprehensive GUI architecture documentation (UI-ARCHITECTURE.md, DEBUGGING-WORKFLOW.md)",
+        "🛠️ Created GUI inspector tools (visual + console-based) for debugging layer issues",
+        "🎯 Added visual debug test with color-coded layers for troubleshooting blocker issues",
+        "📝 Enhanced debug logging throughout ColorPicker and Overlay modules"
       ]
     },
     "4.0.0": {
       "date": "2025-10-10",
       "hash": "V8N3X7C2",
       "changes": [
-        "\ud83c\udfa8 COMPLETE VISUAL REDESIGN - Vibrant cyberpunk neon aesthetic (Purple\u2192Pink\u2192Cyan gradients everywhere)",
-        "\ud83c\udf08 New Theme.lua v4.0 - Electric purple, hot magenta, cyber cyan palette with 50+ new color variants",
-        "\ud83c\udfac Enhanced Animator.lua v4.0 - 8 animation presets (Butter, Lightning, Glide, Spring, Pop, Expo, Snappy, Bounce)",
-        "\u2728 5 new animation effects - Shimmer (sweeping highlight), Pulse (scale), Glow (dynamic stroke), SlideIn, FadeIn",
-        "\ud83d\udd18 Button.lua v4.0 - Gradient background + 4 simultaneous effects (ripple + shimmer + pulse + border flash)",
-        "\ud83d\udd00 Toggle.lua v4.0 - Modern iOS-style switch with gradient track and glowing thumb (56\u00d730px)",
-        "\ud83d\udccf Slider.lua v4.0 - Gradient fill bar, growing/glowing thumb (22px\u219228px when dragging)",
-        "\u2328\ufe0f TextBox.lua v4.0 - Gradient underline expands from center on focus + glowing border",
-        "\ud83c\udfb9 Keybind.lua v4.0 - Gradient background activates during key capture mode",
-        "\ud83c\udfa8 ColorPicker.lua v4.0 - Circular preview (40\u00d740px) with glow effects and pulse animation",
-        "\ud83d\udcdd Label.lua v4.0 - Minimal refinement with better spacing",
-        "\ud83e\ude9f WindowBuilder.lua v4.0 - Animated rotating gradient border (360\u00b0 continuous) + gradient topbar",
-        "\ud83d\udcf1 TabBuilder.lua v4.0 - Icon-only vertical rail (80px wide, down from 176px) with centered icons",
-        "\ud83c\udfaf Tab active state - Gradient overlay + glowing 2px border + 4px indicator line with Spring animation",
-        "\u274c Removed Light theme - Focus on one perfect dark theme with vibrant colors",
-        "\ud83d\udce6 File size: 187 KB (only +13 KB for complete redesign, 7.5% increase)"
+        "🎨 COMPLETE VISUAL REDESIGN - Vibrant cyberpunk neon aesthetic (Purple→Pink→Cyan gradients everywhere)",
+        "🌈 New Theme.lua v4.0 - Electric purple, hot magenta, cyber cyan palette with 50+ new color variants",
+        "🎬 Enhanced Animator.lua v4.0 - 8 animation presets (Butter, Lightning, Glide, Spring, Pop, Expo, Snappy, Bounce)",
+        "✨ 5 new animation effects - Shimmer (sweeping highlight), Pulse (scale), Glow (dynamic stroke), SlideIn, FadeIn",
+        "🔘 Button.lua v4.0 - Gradient background + 4 simultaneous effects (ripple + shimmer + pulse + border flash)",
+        "🔀 Toggle.lua v4.0 - Modern iOS-style switch with gradient track and glowing thumb (56×30px)",
+        "📏 Slider.lua v4.0 - Gradient fill bar, growing/glowing thumb (22px→28px when dragging)",
+        "⌨️ TextBox.lua v4.0 - Gradient underline expands from center on focus + glowing border",
+        "🎹 Keybind.lua v4.0 - Gradient background activates during key capture mode",
+        "🎨 ColorPicker.lua v4.0 - Circular preview (40×40px) with glow effects and pulse animation",
+        "📝 Label.lua v4.0 - Minimal refinement with better spacing",
+        "🪟 WindowBuilder.lua v4.0 - Animated rotating gradient border (360° continuous) + gradient topbar",
+        "📱 TabBuilder.lua v4.0 - Icon-only vertical rail (80px wide, down from 176px) with centered icons",
+        "🎯 Tab active state - Gradient overlay + glowing 2px border + 4px indicator line with Spring animation",
+        "❌ Removed Light theme - Focus on one perfect dark theme with vibrant colors",
+        "📦 File size: 187 KB (only +13 KB for complete redesign, 7.5% increase)"
       ]
     },
     "3.0.4": {
       "date": "2025-10-10",
       "hash": "K7M3P9X1",
       "changes": [
-        "\ud83c\udfaf Redesigned window header drag to cache exact grab offset and maintain cursor lock throughout drag operations.",
-        "\ud83c\udfae Upgraded controller chip drag with grab-point preservation using AnchorPoint-optimized positioning.",
-        "\ud83d\udcd0 Added sub-pixel precision rounding (math.floor + 0.5) to both drag systems for smooth movement.",
-        "\ud83d\udd0d Implemented consistent UI-space coordinate calculations with proper GUI inset handling for all host types.",
-        "\ud83d\uddb1\ufe0f Unified touch and mouse input support with active input tracking to prevent cross-contamination.",
-        "\ud83d\udc1b Fixed drag offset drift issues that caused cursor to slip away from initial grab point.",
-        "\ud83d\udcdd Added debug logging for drag offset caching and position tracking when debug mode enabled.",
-        "\ud83d\udce6 Embedded the init bootstrap in the monolith build and updated README/CLAUDE guidance to keep `src/` and the bundled file aligned.",
-        "\ud83d\udcda Comprehensive CLAUDE.md rewrite documenting architecture, build system, common pitfalls, troubleshooting, and AI assistant guidelines."
+        "🎯 Redesigned window header drag to cache exact grab offset and maintain cursor lock throughout drag operations.",
+        "🎮 Upgraded controller chip drag with grab-point preservation using AnchorPoint-optimized positioning.",
+        "📐 Added sub-pixel precision rounding (math.floor + 0.5) to both drag systems for smooth movement.",
+        "🔍 Implemented consistent UI-space coordinate calculations with proper GUI inset handling for all host types.",
+        "🖱️ Unified touch and mouse input support with active input tracking to prevent cross-contamination.",
+        "🐛 Fixed drag offset drift issues that caused cursor to slip away from initial grab point.",
+        "📝 Added debug logging for drag offset caching and position tracking when debug mode enabled.",
+        "📦 Embedded the init bootstrap in the monolith build and updated README/CLAUDE guidance to keep `src/` and the bundled file aligned.",
+        "📚 Comprehensive CLAUDE.md rewrite documenting architecture, build system, common pitfalls, troubleshooting, and AI assistant guidelines."
       ]
     },
     "3.0.3": {
       "date": "2025-10-11",
       "hash": "N8P4Q6R2",
       "changes": [
-        "\ud83d\udcbe Added configurable auto-save toggle so manual loads can restore snapshots without immediate overwrites.",
-        "\ud83e\uddf7 Guarded minimization chip drag against inset/viewport drift for precise cursor alignment.",
-        "\ud83c\udf9b\ufe0f Hardened hotkey listeners to avoid duplicate bindings and keep destroy/toggle keys reliable.",
-        "\ud83d\udcda Documented maintainer rules for persistence and new AutoSave option across README/CLAUDE notes.",
-        "\ud83d\udcc2 Injected an in-app Profiles tab for listing, saving, loading, and deleting configuration files.",
-        "\ud83d\udcdd Refreshed README/CLAUDE documentation to capture overlay dropdowns and profile management workflows."
+        "💾 Added configurable auto-save toggle so manual loads can restore snapshots without immediate overwrites.",
+        "🧷 Guarded minimization chip drag against inset/viewport drift for precise cursor alignment.",
+        "🎛️ Hardened hotkey listeners to avoid duplicate bindings and keep destroy/toggle keys reliable.",
+        "📚 Documented maintainer rules for persistence and new AutoSave option across README/CLAUDE notes.",
+        "📂 Injected an in-app Profiles tab for listing, saving, loading, and deleting configuration files.",
+        "📝 Refreshed README/CLAUDE documentation to capture overlay dropdowns and profile management workflows."
       ]
     },
     "3.0.2": {
       "date": "2025-10-10",
       "hash": "Z4X7C2V1",
       "changes": [
-        "\ud83e\udde0 Routed configuration save/load through the active RvrseUI instance so element flags serialize correctly.",
-        "\ud83e\ude9d Restored last-profile folder/file parsing for boolean ConfigurationSaving setups.",
-        "\ud83c\udfa8 Theme cache now syncs back to the live UI context during loads, ensuring visual state matches disk.",
-        "\ud83d\udcc4 Updated docs and build scripts to advertise v3.0.2 hotfix release."
+        "🧠 Routed configuration save/load through the active RvrseUI instance so element flags serialize correctly.",
+        "🪝 Restored last-profile folder/file parsing for boolean ConfigurationSaving setups.",
+        "🎨 Theme cache now syncs back to the live UI context during loads, ensuring visual state matches disk.",
+        "📄 Updated docs and build scripts to advertise v3.0.2 hotfix release."
       ]
     },
     "3.0.1": {
       "date": "2025-10-10",
       "hash": "Q1W2E3R4",
       "changes": [
-        "\ud83d\udc1b Fixed configuration initialization so logging hooks exist prior to save/load calls.",
-        "\ud83d\udd01 Restored auto-load profile detection so last saved configs reattach folder and filename correctly.",
-        "\u2699\ufe0f Ensured Config module receives State/Theme dependencies during bootstrap to eliminate nil reference errors.",
-        "\ud83d\udcc4 Updated documentation and build headers to reflect v3.0.1 release metadata."
+        "🐛 Fixed configuration initialization so logging hooks exist prior to save/load calls.",
+        "🔁 Restored auto-load profile detection so last saved configs reattach folder and filename correctly.",
+        "⚙️ Ensured Config module receives State/Theme dependencies during bootstrap to eliminate nil reference errors.",
+        "📄 Updated documentation and build headers to reflect v3.0.1 release metadata."
       ]
     },
     "3.0.0": {
       "date": "2025-10-09",
       "hash": "M6D8A3L1",
       "changes": [
-        "\ud83e\uddf9 Removed legacy test/demo scripts and retired outdated harnesses.",
-        "\ud83e\uddea Added TEST_ALL_FEATURES.lua \u2013 single master suite covering 12 elements, notifications, locks, theme toggles, and config workflow.",
-        "\ud83d\udcdd Rebuilt README.md and CLAUDE.md to match the modular architecture and new testing flow.",
-        "\ud83d\udcda Updated ancillary guides (STATUS.md, TESTING_GUIDE.md, build instructions) to point at the new workflow."
+        "🧹 Removed legacy test/demo scripts and retired outdated harnesses.",
+        "🧪 Added TEST_ALL_FEATURES.lua – single master suite covering 12 elements, notifications, locks, theme toggles, and config workflow.",
+        "📝 Rebuilt README.md and CLAUDE.md to match the modular architecture and new testing flow.",
+        "📚 Updated ancillary guides (STATUS.md, TESTING_GUIDE.md, build instructions) to point at the new workflow."
       ]
     },
     "2.13.0": {
       "date": "2025-10-02",
       "hash": "D8Y2K5M3",
       "changes": [
-        "\ud83d\udd27 WINDOW:SHOW() METHOD - Proper Config Loading!",
-        "\u2705 Config now loads after elements exist (Window:Show()).",
-        "\u2705 Hotkey and element state persistence restored.",
-        "\ud83d\udccb Usage: Create window, build UI, then call Window:Show()."
+        "🔧 WINDOW:SHOW() METHOD - Proper Config Loading!",
+        "✅ Config now loads after elements exist (Window:Show()).",
+        "✅ Hotkey and element state persistence restored.",
+        "📋 Usage: Create window, build UI, then call Window:Show()."
       ]
     },
     "2.12.2": {
       "date": "2025-10-02",
       "hash": "C7X4N9L2",
       "changes": [
-        "\ud83d\udc7b Invisible pre-load system prevents flash of default values.",
-        "\u2705 Splash screen handles config load then reveals UI.",
-        "\ud83c\udfaf Perfect first-frame experience for saved layouts."
+        "👻 Invisible pre-load system prevents flash of default values.",
+        "✅ Splash screen handles config load then reveals UI.",
+        "🎯 Perfect first-frame experience for saved layouts."
       ]
     },
     "4.3.6": {
       "date": "2025-10-22",
       "hash": "S4L7U9A2",
       "changes": [
-        "\ud83d\udee0\ufe0f Bootstrap Rojo + Wally project files so the library can build from pure Luau.",
-        "\ud83e\uddf9 Added repo hygiene (.editorconfig, linguist overrides) to keep GitHub language stats at 100% Lua.",
-        "\u2705 Wired stylua/selene/rojo/TestEZ checks into CI as the future enforcement pipeline."
+        "🛠️ Bootstrap Rojo + Wally project files so the library can build from pure Luau.",
+        "🧹 Added repo hygiene (.editorconfig, linguist overrides) to keep GitHub language stats at 100% Lua.",
+        "✅ Wired stylua/selene/rojo/TestEZ checks into CI as the future enforcement pipeline."
       ]
     },
     "4.3.7": {
       "date": "2025-10-22",
       "hash": "T5M8L2Q3",
       "changes": [
-        "\ud83d\udcda Updated documentation to reference the new Luau build pipeline and removed the legacy shell injector.",
-        "\ud83e\uddf0 Repository now ships a single Luau build entry point (`lua tools/build.lua`)."
+        "📚 Updated documentation to reference the new Luau build pipeline and removed the legacy shell injector.",
+        "🧰 Repository now ships a single Luau build entry point (`lua tools/build.lua`)."
       ]
     },
     "4.3.8": {
       "date": "2025-10-22",
       "hash": "V6P1R4Z7",
       "changes": [
-        "\ud83d\udd01 CI installs stylua/selene/rojo/wally using cargo to avoid third-party actions."
+        "🔁 CI installs stylua/selene/rojo/wally using cargo to avoid third-party actions."
+      ]
+    },
+    "4.3.23": {
+      "date": "2025-11-04",
+      "hash": "E1X2M3P4",
+      "type": "documentation",
+      "title": "RVRSE Integration Examples",
+      "changes": [
+        "📚 Added 3 complete example projects showing RvrseUI + RVRSE integration",
+        "📖 Example 1: Simple Hub with Remote Key Loader (Pattern 1) - Basic setup",
+        "🔐 Example 2: Advanced Hub with VIP Whitelist (Pattern 2) - Tiered access control",
+        "📊 Example 3: Monitored Hub with Discord Webhook (Pattern 3) - Analytics logging",
+        "✅ Each example includes main.lua (complete working code) + comprehensive README",
+        "🛠️ Step-by-step setup guides with prerequisites, configuration, and troubleshooting",
+        "💡 Use cases, customization examples, and security best practices documented",
+        "🎯 Total: 1,697 lines of example code and documentation added"
+      ],
+      "breaking_changes": [],
+      "deprecations": [],
+      "lessons_learned": [
+        "Complete working examples dramatically improve developer onboarding.",
+        "Three progressively complex examples (simple → advanced → monitored) provide natural learning curve."
       ]
     }
   },
