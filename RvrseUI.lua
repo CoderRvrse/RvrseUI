@@ -1,5 +1,5 @@
--- RvrseUI v4.3.22 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-11-06T09:00:00Z
+-- RvrseUI v4.3.23 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-11-06T10:00:00Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -36,10 +36,10 @@ do
 	Version.Data = {
 		Major = 4,
 		Minor = 3,
-		Patch = 22,
-		Build = "20251106b",  -- YYYYMMDD format
-		Full = "4.3.22",
-		Hash = "C8P4L9X2",  -- Release hash for integrity verification
+		Patch = 23,
+		Build = "20251106c",  -- YYYYMMDD format
+		Full = "4.3.23",
+		Hash = "W9K5N7R3",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
@@ -8152,6 +8152,25 @@ do
 			local y = math.floor((udim.Y.Scale or 0) * viewport.Y + udim.Y.Offset)
 			return UDim2.fromOffset(x, y)
 		end
+
+		-- Clamp position to keep window fully on-screen
+		local function clampToScreen(position, size)
+			local viewport = getViewportSize()
+			local pos = toScreenOffset(position)
+			local width = size.X.Offset
+			local height = size.Y.Offset
+
+			-- Add padding from edges (20px minimum)
+			local padding = 20
+			local maxX = viewport.X - width - padding
+			local maxY = viewport.Y - height - padding
+
+			-- Clamp X and Y within bounds
+			local clampedX = math.max(padding, math.min(pos.X.Offset, maxX))
+			local clampedY = math.max(padding, math.min(pos.Y.Offset, maxY))
+
+			return UDim2.fromOffset(clampedX, clampedY)
+		end
 	
 		root.Position = getCenteredPosition(root.Size)
 		root.BackgroundColor3 = pal.Bg
@@ -9398,10 +9417,14 @@ do
 			local storedPos = typeof(RvrseUI._lastWindowPosition) == "UDim2" and RvrseUI._lastWindowPosition or nil
 			local targetPos = storedPos or lastWindowPosition or fallbackPos
 
-			-- Spawn window at chip center, then animate to original position
+			-- Clamp chip position and target position to stay on-screen
+			local clampedChipPos = clampToScreen(chipCenterPos, targetSize)
+			local clampedTargetPos = clampToScreen(targetPos, targetSize)
+
+			-- Spawn window at clamped chip center, then animate to clamped original position
 			root.Visible = true
 			root.Size = targetSize
-			root.Position = chipCenterPos
+			root.Position = clampedChipPos
 			root.Rotation = 0
 			root.BackgroundTransparency = 1
 
@@ -9410,9 +9433,9 @@ do
 				Particles:Play("expand")
 			end
 
-			-- Animate FROM chip center TO original position
+			-- Animate FROM clamped chip center TO clamped original position
 			local restoreTween = Animator:Tween(root, {
-				Position = targetPos,
+				Position = clampedTargetPos,
 				BackgroundTransparency = 1
 			}, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 
@@ -9424,7 +9447,7 @@ do
 			task.wait(0.05)
 			isAnimating = false
 			lastWindowSize = targetSize
-			rememberWindowPosition(targetPos)
+			rememberWindowPosition(clampedTargetPos)
 			Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
 	
 			task.delay(0.25, function()

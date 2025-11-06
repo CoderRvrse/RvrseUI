@@ -275,6 +275,25 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return UDim2.fromOffset(x, y)
 	end
 
+	-- Clamp position to keep window fully on-screen
+	local function clampToScreen(position, size)
+		local viewport = getViewportSize()
+		local pos = toScreenOffset(position)
+		local width = size.X.Offset
+		local height = size.Y.Offset
+
+		-- Add padding from edges (20px minimum)
+		local padding = 20
+		local maxX = viewport.X - width - padding
+		local maxY = viewport.Y - height - padding
+
+		-- Clamp X and Y within bounds
+		local clampedX = math.max(padding, math.min(pos.X.Offset, maxX))
+		local clampedY = math.max(padding, math.min(pos.Y.Offset, maxY))
+
+		return UDim2.fromOffset(clampedX, clampedY)
+	end
+
 	root.Position = getCenteredPosition(root.Size)
 	root.BackgroundColor3 = pal.Bg
 	root.BackgroundTransparency = 1  -- TRANSPARENT - let children show through
@@ -1520,10 +1539,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		local storedPos = typeof(RvrseUI._lastWindowPosition) == "UDim2" and RvrseUI._lastWindowPosition or nil
 		local targetPos = storedPos or lastWindowPosition or fallbackPos
 
-		-- Spawn window at chip center, then animate to original position
+		-- Clamp chip position and target position to stay on-screen
+		local clampedChipPos = clampToScreen(chipCenterPos, targetSize)
+		local clampedTargetPos = clampToScreen(targetPos, targetSize)
+
+		-- Spawn window at clamped chip center, then animate to clamped original position
 		root.Visible = true
 		root.Size = targetSize
-		root.Position = chipCenterPos
+		root.Position = clampedChipPos
 		root.Rotation = 0
 		root.BackgroundTransparency = 1
 
@@ -1532,9 +1555,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Particles:Play("expand")
 		end
 
-		-- Animate FROM chip center TO original position
+		-- Animate FROM clamped chip center TO clamped original position
 		local restoreTween = Animator:Tween(root, {
-			Position = targetPos,
+			Position = clampedTargetPos,
 			BackgroundTransparency = 1
 		}, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 
@@ -1546,7 +1569,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		task.wait(0.05)
 		isAnimating = false
 		lastWindowSize = targetSize
-		rememberWindowPosition(targetPos)
+		rememberWindowPosition(clampedTargetPos)
 		Debug.printf("[RESTORE] ✅ Animation complete - drag unlocked")
 
 		task.delay(0.25, function()

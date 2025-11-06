@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 22,
-    "full": "4.3.22",
-    "build": "20251106b",
-    "hash": "C8P4L9X2",
+    "patch": 23,
+    "full": "4.3.23",
+    "build": "20251106c",
+    "hash": "W9K5N7R3",
     "channel": "Stable"
   },
   "release": {
@@ -41,6 +41,20 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.23": {
+      "date": "2025-11-06",
+      "hash": "W9K5N7R3",
+      "changes": [
+        "🎯 CRITICAL FIX: Window now stays fully visible on-screen during restore.",
+        "📏 New clampToScreen() function keeps window within viewport bounds (20px padding).",
+        "🚫 Prevents half-off-screen bug when chip dragged to screen edges.",
+        "✨ Clamps BOTH chip position AND target position for smooth bounded animation.",
+        "📐 Constraints: min 20px from any edge, max viewport - windowSize - 20px.",
+        "🎬 Visual flow: Chip shrinks → Window appears at clamped chip position → Slides to clamped original position.",
+        "💾 Saves clamped position so future restores stay within bounds.",
+        "✅ User experience: Window always fully visible, no matter where chip is dragged."
+      ]
+    },
     "4.3.22": {
       "date": "2025-11-06",
       "hash": "C8P4L9X2",
@@ -52,7 +66,7 @@
         "🔧 Fixed v4.3.21 bug where window appeared instantly (no animation from chip).",
         "📍 Chip center calculation preserves dragged position correctly.",
         "🎨 Visual flow: Chip shrinks → Window appears at chip center → Slides to original position.",
-        "✅ User experience: Smooth, professional restore animation from wherever chip was dragged."
+        "🐛 BUG: Window could restore half off-screen if chip dragged to edges (fixed in v4.3.23)."
       ]
     },
     "4.3.21": {
