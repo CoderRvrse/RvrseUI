@@ -1567,8 +1567,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Particles:Stop(true)
 		end
 
-		local chipRestoreOffset = toScreenOffset(controllerChip.Position)
-
 		local shrinkTween = Animator:Tween(controllerChip, {
 			Size = UDim2.new(0, 0, 0, 0)
 		}, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
@@ -1585,17 +1583,18 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		root.Visible = true
 		root.Size = targetSize
-		root.Position = chipRestoreOffset
+		root.Position = targetPos  -- ✅ FIX: Use original window position, not chip position
 		root.Rotation = 0
-		root.BackgroundTransparency = 1
+		root.BackgroundTransparency = 0  -- ✅ FIX: Start visible, tween is now fade-only
 
 		if Particles then
 			Particles:SetLayer(particleLayer)
 			Particles:Play("expand")
 		end
 
+		-- ✅ FIX: No position tween needed - window already at correct position
+		-- Just fade in the background transparency
 		local restoreTween = Animator:Tween(root, {
-			Position = targetPos,
 			BackgroundTransparency = 1
 		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 

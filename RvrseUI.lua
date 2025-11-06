@@ -1,5 +1,5 @@
--- RvrseUI v4.3.20 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-11-06T05:55:23Z
+-- RvrseUI v4.3.24 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-11-06T06:35:16Z
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
 -- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
@@ -37,10 +37,10 @@ local Version = {}
 Version.Data = {
 	Major = 4,
 	Minor = 3,
-	Patch = 12,
-	Build = "20251023b",  -- YYYYMMDD format
-	Full = "4.3.22",
-	Hash = "R4D1S7H3",  -- Release hash for integrity verification
+	Patch = 24,
+	Build = "20251106",  -- YYYYMMDD format
+	Full = "4.3.24",
+	Hash = "P5X8W2Q9",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -9747,8 +9747,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Particles:Stop(true)
 		end
 
-		local chipRestoreOffset = toScreenOffset(controllerChip.Position)
-
 		local shrinkTween = Animator:Tween(controllerChip, {
 			Size = UDim2.new(0, 0, 0, 0)
 		}, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
@@ -9765,17 +9763,18 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		root.Visible = true
 		root.Size = targetSize
-		root.Position = chipRestoreOffset
+		root.Position = targetPos  -- ✅ FIX: Use original window position, not chip position
 		root.Rotation = 0
-		root.BackgroundTransparency = 1
+		root.BackgroundTransparency = 0  -- ✅ FIX: Start visible, tween is now fade-only
 
 		if Particles then
 			Particles:SetLayer(particleLayer)
 			Particles:Play("expand")
 		end
 
+		-- ✅ FIX: No position tween needed - window already at correct position
+		-- Just fade in the background transparency
 		local restoreTween = Animator:Tween(root, {
-			Position = targetPos,
 			BackgroundTransparency = 1
 		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 
