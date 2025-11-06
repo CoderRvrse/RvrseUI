@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 10,
-    "full": "4.3.20",
-    "build": "20251022o",
-    "hash": "H8B3D6E0",
+    "patch": 21,
+    "full": "4.3.21",
+    "build": "20251106a",
+    "hash": "R5X2M8N4",
     "channel": "Stable"
   },
   "release": {
@@ -41,6 +41,20 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.21": {
+      "date": "2025-11-06",
+      "hash": "R5X2M8N4",
+      "changes": [
+        "🎯 CRITICAL FIX: Eliminate janky 'fly back' animation on window restore.",
+        "✨ Window now immediately appears at original position when restoring from chip.",
+        "🚫 Removed: chipRestoreOffset calculation and position animation from chip location.",
+        "🎬 Simplified: Window spawns directly at targetPos, no tween from chip position.",
+        "⏱️ Adjusted timing: task.wait(0.25) for smooth animation lock release.",
+        "🏗️ Rollback: Reset repo to v4.3.20 stable base, applied fix cleanly.",
+        "📦 Lines changed: -3 lines (removed unnecessary animation code).",
+        "✅ User experience: Instant, smooth restore - no more visual glitches."
+      ]
+    },
     "4.3.20": {
       "date": "2025-10-22",
       "hash": "H8B3D6E0",

@@ -1503,8 +1503,6 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Particles:Stop(true)
 		end
 
-		local chipRestoreOffset = toScreenOffset(controllerChip.Position)
-
 		local shrinkTween = Animator:Tween(controllerChip, {
 			Size = UDim2.new(0, 0, 0, 0)
 		}, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
@@ -1521,7 +1519,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		root.Visible = true
 		root.Size = targetSize
-		root.Position = chipRestoreOffset
+		root.Position = targetPos
 		root.Rotation = 0
 		root.BackgroundTransparency = 1
 
@@ -1530,17 +1528,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Particles:Play("expand")
 		end
 
-		local restoreTween = Animator:Tween(root, {
-			Position = targetPos,
-			BackgroundTransparency = 1
-		}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
-
 		task.defer(function()
 			snapshotLayout("post-restore")
 		end)
 
-		restoreTween.Completed:Wait()
-		task.wait(0.05)
+		task.wait(0.25)
 		isAnimating = false
 		lastWindowSize = targetSize
 		rememberWindowPosition(targetPos)

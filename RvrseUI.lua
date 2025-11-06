@@ -1,5 +1,5 @@
--- RvrseUI v4.3.20 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-10-22T05:00:00Z
+-- RvrseUI v4.3.21 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-11-06T08:00:00Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -9380,45 +9380,37 @@ do
 			if Particles then
 				Particles:Stop(true)
 			end
-	
-			local chipRestoreOffset = toScreenOffset(controllerChip.Position)
-	
+
 			local shrinkTween = Animator:Tween(controllerChip, {
 				Size = UDim2.new(0, 0, 0, 0)
 			}, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut))
-	
+
 			shrinkTween.Completed:Wait()
 			controllerChip.Visible = false
-	
+
 			local fallbackSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
 			local fallbackPos = getCenteredPosition(fallbackSize)
-	
+
 			local targetSize = lastWindowSize or fallbackSize
 			local storedPos = typeof(RvrseUI._lastWindowPosition) == "UDim2" and RvrseUI._lastWindowPosition or nil
 			local targetPos = storedPos or lastWindowPosition or fallbackPos
-	
+
 			root.Visible = true
 			root.Size = targetSize
-			root.Position = chipRestoreOffset
+			root.Position = targetPos
 			root.Rotation = 0
 			root.BackgroundTransparency = 1
-	
+
 			if Particles then
 				Particles:SetLayer(particleLayer)
 				Particles:Play("expand")
 			end
-	
-			local restoreTween = Animator:Tween(root, {
-				Position = targetPos,
-				BackgroundTransparency = 1
-			}, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
-	
+
 			task.defer(function()
 				snapshotLayout("post-restore")
 			end)
-	
-			restoreTween.Completed:Wait()
-			task.wait(0.05)
+
+			task.wait(0.25)
 			isAnimating = false
 			lastWindowSize = targetSize
 			rememberWindowPosition(targetPos)
