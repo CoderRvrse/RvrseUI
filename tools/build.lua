@@ -497,8 +497,14 @@ local function sanitizeModule(modulePath, contents)
     contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
 
     if modulePath:match("lucide%-icons%-data%.lua$") then
-        local sanitized = contents:gsub("^return%s*", "")
-        return "\n-- ========================\n-- lucide-icons-data Module\n-- ========================\n\n_G.RvrseUI_LucideIconsData = " .. sanitized .. "\n"
+        -- Find the start of the data table (first '{' character)
+        -- This skips all comments, --!nocheck, and "return" statement
+        local dataStart = contents:find("{")
+        if not dataStart then
+            error("lucide-icons-data.lua doesn't contain data table")
+        end
+        local sanitized = contents:sub(dataStart)
+        return "\n-- ========================\n-- lucide-icons-data Module\n-- ========================\n\n_G.RvrseUI_LucideIconsData = --!nocheck\n\n" .. sanitized .. "\n"
     end
 
     local moduleName = modulePath:match("([^/]+)%.lua$")
