@@ -2,10 +2,10 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 21,
-    "full": "4.3.21",
-    "build": "20251106a",
-    "hash": "R5X2M8N4",
+    "patch": 22,
+    "full": "4.3.22",
+    "build": "20251106b",
+    "hash": "C8P4L9X2",
     "channel": "Stable"
   },
   "release": {
@@ -41,18 +41,27 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.22": {
+      "date": "2025-11-06",
+      "hash": "C8P4L9X2",
+      "changes": [
+        "🎯 CORRECT FIX: Window restores FROM chip center TO original position with smooth animation.",
+        "✨ Calculates chip center position BEFORE shrinking (toScreenOffset).",
+        "🎬 Window spawns at chipCenterPos, then animates to targetPos smoothly.",
+        "⏱️ Animation: 0.4s Quad EaseOut for buttery smooth transition.",
+        "🔧 Fixed v4.3.21 bug where window appeared instantly (no animation from chip).",
+        "📍 Chip center calculation preserves dragged position correctly.",
+        "🎨 Visual flow: Chip shrinks → Window appears at chip center → Slides to original position.",
+        "✅ User experience: Smooth, professional restore animation from wherever chip was dragged."
+      ]
+    },
     "4.3.21": {
       "date": "2025-11-06",
       "hash": "R5X2M8N4",
       "changes": [
-        "🎯 CRITICAL FIX: Eliminate janky 'fly back' animation on window restore.",
-        "✨ Window now immediately appears at original position when restoring from chip.",
-        "🚫 Removed: chipRestoreOffset calculation and position animation from chip location.",
-        "🎬 Simplified: Window spawns directly at targetPos, no tween from chip position.",
-        "⏱️ Adjusted timing: task.wait(0.25) for smooth animation lock release.",
-        "🏗️ Rollback: Reset repo to v4.3.20 stable base, applied fix cleanly.",
-        "📦 Lines changed: -3 lines (removed unnecessary animation code).",
-        "✅ User experience: Instant, smooth restore - no more visual glitches."
+        "❌ REVERTED: Window appeared instantly at original position (no animation).",
+        "🐛 Bug: Removed animation entirely - window teleported without smooth transition.",
+        "📝 This version was incorrect - users expected animation FROM chip TO original position."
       ]
     },
     "4.3.20": {
