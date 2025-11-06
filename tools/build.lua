@@ -491,9 +491,16 @@ local function writeFile(path, contents)
 end
 
 local function sanitizeModule(modulePath, contents)
+    -- Remove first comment line (header comment)
     contents = contents:gsub("^%-%-[^\n]*\n", "")
-    contents = contents:gsub("^local ([A-Z][A-Za-z0-9_]*) = %{%}", "%1 = {}")
+
+    -- Convert "local ModuleName = {}" to "ModuleName = {}" (at start OR after newline)
+    contents = contents:gsub("(\n?)local ([A-Z][A-Za-z0-9_]*) = ({%})", "%1%2 = %3")
+
+    -- Remove conflicting "local RvrseUI" declarations
     contents = contents:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
+
+    -- Remove trailing "return ModuleName" statements
     contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
 
     if modulePath:match("lucide%-icons%-data%.lua$") then
