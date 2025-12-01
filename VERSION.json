@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 30,
-    "full": "4.3.30",
-    "build": "20251202d",
-    "hash": "E5F8A2C9",
+    "patch": 31,
+    "full": "4.3.31",
+    "build": "20251202e",
+    "hash": "F8A2C9D4",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-12-02",
-    "name": "Sonic Control",
-    "codename": "Holo Audio",
-    "notes": "Added video controls to the hero section so users can unmute the showcase, plus updated version metadata."
+    "name": "Iconic Identity",
+    "codename": "Holo Brand",
+    "notes": "Added a custom SVG favicon with a neon 'R' logo to fix 404 errors and brand the browser tab."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,14 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.31": {
+      "date": "2025-12-02",
+      "hash": "F8A2C9D4",
+      "changes": [
+        "🖼️ Added `favicon.svg` with a neon gradient 'R' logo to replace the missing favicon.",
+        "🌐 Updated `index.html` to link the new SVG favicon, resolving browser 404 errors."
+      ]
+    },
     "4.3.30": {
       "date": "2025-12-02",
       "hash": "E5F8A2C9",

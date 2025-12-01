@@ -1,5 +1,35 @@
 # RvrseUI Releases
 
+## Version 4.3.31 "Holo Brand" - Iconic Identity
+**Release Date**: December 2, 2025  
+**Build**: 20251202e  
+**Hash**: `F8A2C9D4`  
+**Channel**: Stable
+
+### Highlights
+- Added a custom SVG favicon with a neon 'R' logo to fix 404 errors and brand the browser tab.
+- Updated `index.html` to link the new SVG favicon.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 3,
+  Patch = 31,
+  Build = "20251202e",
+  Full = "4.3.31",
+  Hash = "F8A2C9D4",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Browser tab shows a neon "R" icon.
+- No more 404 errors for favicon in console.
+- Footer/hero badges show v4.3.31.
+
+---
+
 ## Version 4.3.30 "Holo Audio" - Sonic Control
 **Release Date**: December 2, 2025  
 **Build**: 20251202d  
