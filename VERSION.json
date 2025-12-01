@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 27,
-    "full": "4.3.27",
-    "build": "20251202a",
-    "hash": "C1E8D4A6",
+    "patch": 28,
+    "full": "4.3.28",
+    "build": "20251202b",
+    "hash": "9F6C1E3B",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-12-02",
-    "name": "Neon Scroll Suite",
-    "codename": "Holo Glide",
-    "notes": "Introduced custom neon scrollbars across the site plus updated badges so the documentation matches the 2025 executor aesthetic."
+    "name": "Showcase Flight",
+    "codename": "Holo Stream",
+    "notes": "Hero now streams an inline MP4 demo, the background bubbles received new motion, and the entire site references the latest release metadata."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,16 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.28": {
+      "date": "2025-12-02",
+      "hash": "9F6C1E3B",
+      "changes": [
+        "🎬 Replaced the static hero banner with an automated MP4 showcase that loops inline without controls.",
+        "🫧 Bubble field densified with more nodes, shimmer animations, and varied timing so the backdrop feels alive.",
+        "📼 Added the RvrseUI.mp4 asset to the repo for GitHub Pages hosting.",
+        "🔢 Updated hero/footer badges plus version metadata to satisfy the guarded push workflow."
+      ]
+    },
     "4.3.27": {
       "date": "2025-12-02",
       "hash": "C1E8D4A6",

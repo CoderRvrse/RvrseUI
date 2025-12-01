@@ -1,5 +1,36 @@
 # RvrseUI Releases
 
+## Version 4.3.28 "Holo Stream" - Showcase Flight
+**Release Date**: December 2, 2025  
+**Build**: 20251202b  
+**Hash**: `9F6C1E3B`  
+**Channel**: Stable
+
+### Highlights
+- Hero section now plays `RvrseUI.mp4` inline with autoplay/loop so visitors immediately view the UI in action.
+- Bubble field background received more nodes, shimmer animation, and varied speeds to feel alive instead of static.
+- Updated all metadata references to v4.3.28 to align with the release guard.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 3,
+  Patch = 28,
+  Build = "20251202b",
+  Full = "4.3.28",
+  Hash = "9F6C1E3B",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Hero video autoplays muted/looping and falls back to download link if unsupported.
+- Bubble field shows varied bubble sizes with shimmer.
+- Footer/hero badges show v4.3.28.
+
+---
+
 ## Version 4.3.27 "Holo Glide" - Neon Scroll Suite
 **Release Date**: December 2, 2025  
 **Build**: 20251202a  

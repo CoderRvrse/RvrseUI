@@ -1,5 +1,5 @@
--- RvrseUI v4.3.27 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-12-02T01:00:00Z
+-- RvrseUI v4.3.28 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-12-02T04:00:00Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
 -- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
@@ -36,10 +36,10 @@ do
 	Version.Data = {
 		Major = 4,
 		Minor = 3,
-		Patch = 27,
-		Build = "20251202a",  -- YYYYMMDD format
-		Full = "4.3.27",
-		Hash = "C1E8D4A6",  -- Release hash for integrity verification
+		Patch = 28,
+		Build = "20251202b",  -- YYYYMMDD format
+		Full = "4.3.28",
+		Hash = "9F6C1E3B",  -- Release hash for integrity verification
 		Channel = "Stable"   -- Stable, Beta, Dev
 	}
 	
