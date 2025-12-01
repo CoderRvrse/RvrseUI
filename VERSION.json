@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 25,
-    "full": "4.3.25",
-    "build": "20251201b",
-    "hash": "A8E5C9B2",
+    "patch": 26,
+    "full": "4.3.26",
+    "build": "20251201c",
+    "hash": "F4D1B7E9",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-12-01",
-    "name": "Docs Neon Enhancements",
-    "codename": "Holo Cards",
-    "notes": "Improved the GitHub Pages experience with taller element tiles, better typography, and inline copy buttons on every snippet."
+    "name": "Neon Flight Deck",
+    "codename": "Nav Pulse",
+    "notes": "Animated the top navigation, added a floating back-to-top control, and rebuilt the developer doc steps to feel like a real operator playbook."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,17 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.26": {
+      "date": "2025-12-01",
+      "hash": "F4D1B7E9",
+      "changes": [
+        "🛰️ Navigation bar now has a neon shell, animated link underlines, and condenses as you scroll for a cockpit-like feel.",
+        "⬆️ Added a floating 'Back to top' control with smooth scrolling so long docs are easier to navigate on executors and browsers.",
+        "📘 Developer doc section rewritten into three precise operator steps (boot, persist, gate) with context bullets instead of vague playbooks.",
+        "🧾 Hero badge + footer updated to v4.3.26 so the site mirrors repository metadata.",
+        "⚙️ Release metadata bumped to satisfy the protected main push guard."
+      ]
+    },
     "4.3.25": {
       "date": "2025-12-01",
       "hash": "A8E5C9B2",

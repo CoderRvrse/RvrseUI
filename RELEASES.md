@@ -1,5 +1,36 @@
 # RvrseUI Releases
 
+## Version 4.3.26 "Nav Pulse" - Neon Flight Deck
+**Release Date**: December 1, 2025  
+**Build**: 20251201c  
+**Hash**: `F4D1B7E9`  
+**Channel**: Stable
+
+### Highlights
+- Top navigation now rides inside a glowing capsule with animated underlines and scroll-based compression so the site feels like an executor flight deck.
+- Added a floating "Back to top" control that fades in after long scrolls and snaps users back to the hero with smooth animation.
+- Rebuilt the developer doc area into three tactical steps (boot, persist, gate) with bulletproof copy so builders know exactly how to deploy RvrseUI.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 3,
+  Patch = 26,
+  Build = "20251201c",
+  Full = "4.3.26",
+  Hash = "F4D1B7E9",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Scroll down: nav condenses and "Back to top" button fades in.
+- Doc section shows Step 01–03 cards with copy buttons + context bullets.
+- Footer + hero badge display v4.3.26.
+
+---
+
 ## Version 4.3.25 "Holo Cards" - Docs Neon Enhancements
 **Release Date**: December 1, 2025  
 **Build**: 20251201b  

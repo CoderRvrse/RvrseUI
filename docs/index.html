@@ -19,15 +19,18 @@
   <body>
     <div class="wrapper">
       <nav>
-        <a href="#top"><strong>RvrseUI</strong></a>
-        <ul>
+        <div class="nav-brand">
+          <a href="#top"><strong>RvrseUI</strong></a>
+          <span>Executor Ops Toolkit</span>
+        </div>
+        <ul class="nav-links">
           <li><a href="#quick-start">Quick Start</a></li>
           <li><a href="#features">Features</a></li>
           <li><a href="#elements">Elements</a></li>
           <li><a href="#advanced">Advanced</a></li>
           <li><a href="#resources">Resources</a></li>
         </ul>
-        <div class="hero-actions">
+        <div class="nav-actions">
           <a class="cta" href="https://github.com/CoderRvrse/RvrseUI" target="_blank" rel="noreferrer">GitHub</a>
         </div>
       </nav>
@@ -35,7 +38,7 @@
       <header class="hero" id="top">
         <div class="hero-grid">
           <div class="hero-copy">
-            <span class="hero-badge">v4.3.25 &middot; Production Ready</span>
+            <span class="hero-badge">v4.3.26 &middot; Production Ready</span>
             <h1>Cyberpunk UI Toolkit for Roblox Executors</h1>
             <p>
               Build neon dashboards, hydrate Lucide-powered tabs, and wire key systems in minutes. RvrseUI ships with the same cyber grid aesthetic players expect from premium executors.
@@ -417,25 +420,16 @@ Section:CreateSection("Combat")
       <section id="docs">
         <div class="section-heading">
           <span>Developer Docs</span>
-          <h2>Guided Playbooks For Builders</h2>
-          <p>Modeled after our sister company docs: bite-sized steps, ready-to-copy commands, zero fluff.</p>
+          <h2>Ship RvrseUI Like An Operator</h2>
+          <p>Three precise plays: boot the library, persist configs, and lock entry with the built-in key system. No fluff—just execution.</p>
         </div>
-        <div class="doc-layout">
-          <aside class="doc-nav">
-            <h3>Doc Outline</h3>
-            <ul>
-              <li><strong>Configuration</strong> Auto-save, profiles, manual save/load</li>
-              <li><strong>Windows</strong> Loading screens, token icon, hotkeys</li>
-              <li><strong>Interaction</strong> Elements, binds, notification stack</li>
-              <li><strong>UI Components</strong> Themes, Lucide icons, particles</li>
-            </ul>
-          </aside>
-          <div class="doc-panel">
-            <article class="doc-card">
-              <h4>1. Boot the library</h4>
-              <p>Drop this at the top of every script. Keep <code>Window:Show()</code> as the final call so configs load before UI draws.</p>
-              <div class="mini-code" data-copy-container>
-                <button class="copy-btn floating" type="button">Copy</button>
+        <div class="doc-flow">
+          <article class="doc-step">
+            <div class="step-label">01</div>
+            <h3>Boot the library</h3>
+            <p>Drop this at the top of every script. Build tabs/sections, then fire <code>Window:Show()</code> so saved configs hydrate before render.</p>
+            <div class="mini-code" data-copy-container>
+              <button class="copy-btn floating" type="button">Copy</button>
 <pre><code>local RvrseUI = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"
 ))()
@@ -451,15 +445,19 @@ local Tab = Window:CreateTab({ Title = "Main", Icon = "lucide://home" })
 local Section = Tab:CreateSection("Player")
 
 Window:Show()</code></pre>
-              </div>
-              <div class="copy-row"><code>Window:Show()</code><span>Call last</span></div>
-            </article>
+            </div>
+            <ul class="step-points">
+              <li>Place <code>Window:Show()</code> last so configs hydrate silently.</li>
+              <li>Swap <code>ToggleUIKeybind</code> to your hub hotkey.</li>
+            </ul>
+          </article>
 
-            <article class="doc-card">
-              <h4>2. Save profiles like a pro</h4>
-              <p>Flags make values persistent. The manager tab gives players multiple profiles without you writing extra UI.</p>
-              <div class="mini-code" data-copy-container>
-                <button class="copy-btn floating" type="button">Copy</button>
+          <article class="doc-step">
+            <div class="step-label">02</div>
+            <h3>Persist every flag</h3>
+            <p>Enable the config manager to hand players autosave, profiles, and manual control without writing extra UI.</p>
+            <div class="mini-code" data-copy-container>
+              <button class="copy-btn floating" type="button">Copy</button>
 <pre><code>local Window = RvrseUI:CreateWindow({
     ConfigurationSaving = {
         Enabled = true,
@@ -476,18 +474,19 @@ Window:Show()</code></pre>
 
 RvrseUI:SaveConfiguration()
 RvrseUI:LoadConfiguration()</code></pre>
-              </div>
-              <div class="split-panel">
-                <div class="copy-row"><code>RvrseUI.Flags["Speed"]:Set(32)</code><span>Set any element</span></div>
-                <div class="copy-row"><code>RvrseUI:SetAutoSaveEnabled(true)</code><span>Toggle autosave</span></div>
-              </div>
-            </article>
+            </div>
+            <ul class="step-points">
+              <li><code>RvrseUI.Flags[flag]:Set(value)</code> updates any element instantly.</li>
+              <li>Use <code>RvrseUI:SetAutoSaveEnabled()</code> for manual snapshots.</li>
+            </ul>
+          </article>
 
-            <article class="doc-card">
-              <h4>3. Plug in the key system</h4>
-              <p>Ship authentication the same way every time. Swap between single key, multi key, or remote fetch.</p>
-              <div class="mini-code" data-copy-container>
-                <button class="copy-btn floating" type="button">Copy</button>
+          <article class="doc-step">
+            <div class="step-label">03</div>
+            <h3>Gate entry with keys</h3>
+            <p>Wire VIP keys, Discord logging, and clipboard buttons from the same block. Supports single, multi, or remote fetch flows.</p>
+            <div class="mini-code" data-copy-container>
+              <button class="copy-btn floating" type="button">Copy</button>
 <pre><code>local Window = RvrseUI:CreateWindow({
     KeySystem = true,
     KeySettings = {
@@ -501,23 +500,26 @@ RvrseUI:LoadConfiguration()</code></pre>
             Callback = function()
                 setclipboard("https://myhub.gg/key")
             end
-        }
+        },
+        OnKeyValid = function(key)
+            print("Unlocked with", key)
+        end
     }
 })</code></pre>
-              </div>
-              <div class="copy-row"><code>OnKeyValid = function(key) ... end</code><span>Success hook</span></div>
-            </article>
-
-            <article class="doc-card">
-              <h4>Need the deep dive?</h4>
-              <p>Open any of these references in a new tab and keep building.</p>
-              <div class="split-panel">
-                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/README.md" target="_blank" rel="noreferrer">Full developer README</a>
-                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/LUCIDE_ICONS_GUIDE.md" target="_blank" rel="noreferrer">Lucide icon guide</a>
-                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/tree/main/examples" target="_blank" rel="noreferrer">Example scripts</a>
-                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/issues" target="_blank" rel="noreferrer">Issue tracker</a>
-              </div>
-            </article>
+            </div>
+            <ul class="step-points">
+              <li><code>OnKeyValid</code>, <code>OnKeyInvalid</code>, and <code>OnAttemptsExhausted</code> are ready-made hooks.</li>
+              <li>Swap <code>NoteButton</code> for your own link shortener or hosted key page.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="doc-links">
+          <p>Need every API? Jump to the exhaustive references.</p>
+          <div class="doc-link-grid">
+            <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/README.md" target="_blank" rel="noreferrer">Developer README</a>
+            <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/LUCIDE_ICONS_GUIDE.md" target="_blank" rel="noreferrer">Lucide icon guide</a>
+            <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/tree/main/examples" target="_blank" rel="noreferrer">Example scripts</a>
+            <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/issues" target="_blank" rel="noreferrer">Issue tracker</a>
           </div>
         </div>
       </section>
@@ -570,10 +572,13 @@ RvrseUI:LoadConfiguration()</code></pre>
       </section>
 
       <footer>
-        <p>RvrseUI v4.3.25 &middot; MIT License &middot; Built by CoderRvrse</p>
+        <p>RvrseUI v4.3.26 &middot; MIT License &middot; Built by CoderRvrse</p>
         <p>GitHub Pages site generated from the /docs folder.</p>
       </footer>
     </div>
+    <button class="back-to-top" type="button" aria-label="Back to top">
+      Back to top
+    </button>
     <script>
       const copyButtons = document.querySelectorAll(".copy-btn");
 
@@ -605,6 +610,28 @@ RvrseUI:LoadConfiguration()</code></pre>
           }
         });
       });
+
+      const nav = document.querySelector("nav");
+      const backToTopBtn = document.querySelector(".back-to-top");
+
+      const handleScrollState = () => {
+        const y = window.scrollY;
+        if (nav) {
+          nav.classList.toggle("nav-condensed", y > 60);
+        }
+        if (backToTopBtn) {
+          backToTopBtn.classList.toggle("visible", y > 600);
+        }
+      };
+
+      window.addEventListener("scroll", handleScrollState, { passive: true });
+      handleScrollState();
+
+      if (backToTopBtn) {
+        backToTopBtn.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      }
     </script>
   </body>
 </html>
