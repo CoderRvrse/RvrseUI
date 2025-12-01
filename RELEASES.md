@@ -1,5 +1,35 @@
 # RvrseUI Releases
 
+## Version 4.3.29 "Holo Split" - Neon Drift
+**Release Date**: December 2, 2025  
+**Build**: 20251202c  
+**Hash**: `B2D5F8A1`  
+**Channel**: Stable
+
+### Highlights
+- Background bubbles now feature a dual-tone split: Cyan on the left, Magenta on the right, matching the RvrseUI banner aesthetic.
+- Updated bubble shimmer and glow effects to respect the new color variables.
+- Bumped version metadata to v4.3.29.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 3,
+  Patch = 29,
+  Build = "20251202c",
+  Full = "4.3.29",
+  Hash = "B2D5F8A1",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Bubbles on the left are Cyan, bubbles on the right are Magenta.
+- Footer/hero badges show v4.3.29.
+
+---
+
 ## Version 4.3.28 "Holo Stream" - Showcase Flight
 **Release Date**: December 2, 2025  
 **Build**: 20251202b  

@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 28,
-    "full": "4.3.28",
-    "build": "20251202b",
-    "hash": "9F6C1E3B",
+    "patch": 29,
+    "full": "4.3.29",
+    "build": "20251202c",
+    "hash": "B2D5F8A1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-12-02",
-    "name": "Showcase Flight",
-    "codename": "Holo Stream",
-    "notes": "Hero now streams an inline MP4 demo, the background bubbles received new motion, and the entire site references the latest release metadata."
+    "name": "Neon Drift",
+    "codename": "Holo Split",
+    "notes": "Background bubbles now feature a dual-tone blue/pink split to match the RvrseUI brand identity, plus updated version metadata."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,15 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.29": {
+      "date": "2025-12-02",
+      "hash": "B2D5F8A1",
+      "changes": [
+        "🫧 Bubble field now features a dual-tone split: Cyan on the left, Magenta on the right, matching the RvrseUI banner aesthetic.",
+        "🎨 Updated bubble shimmer and glow effects to respect the new color variables.",
+        "🔢 Bumped version metadata to v4.3.29."
+      ]
+    },
     "4.3.28": {
       "date": "2025-12-02",
       "hash": "9F6C1E3B",
