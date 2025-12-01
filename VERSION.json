@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 23,
-    "full": "4.3.23",
-    "build": "20251106c",
-    "hash": "W9K5N7R3",
+    "patch": 24,
+    "full": "4.3.24",
+    "build": "20251201a",
+    "hash": "D2F7A5C1",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-10-22",
-    "name": "Luau CI Toolchain",
-    "codename": "Neon Atlas",
-    "notes": "GitHub Actions now installs Stylua, Selene, Rojo, and Wally via cargo so the pipeline avoids external actions."
+    "date": "2025-12-01",
+    "name": "Docs Microsite Launch",
+    "codename": "Nebula Docs",
+    "notes": "GitHub Pages site replaces the README wall of text with interactive quick-start tiles, copy-ready demos, and guided doc cards."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,17 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.24": {
+      "date": "2025-12-01",
+      "hash": "D2F7A5C1",
+      "changes": [
+        "🌐 Launched a GitHub Pages microsite with redesigned hero, quick start, and resources navigation.",
+        "🧱 Added copy/paste ready demo cards for every UI element so builders can grab snippets instantly.",
+        "📚 Introduced developer doc playbooks that walk through booting, profile saves, and the key system.",
+        "🪪 Trimmed the README down to the banner + links so all documentation now lives on the site.",
+        "📝 Updated release metadata to track the documentation overhaul."
+      ]
+    },
     "4.3.23": {
       "date": "2025-11-06",
       "hash": "W9K5N7R3",

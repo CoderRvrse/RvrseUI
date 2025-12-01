@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RvrseUI &middot; Production-Ready Roblox UI Toolkit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <meta
+      name="description"
+      content="RvrseUI is a modern Roblox UI framework with Lucide icons, advanced color pickers, unified dropdowns, automatic configuration saving, and a built-in key system."
+    />
+  </head>
+  <body>
+    <div class="wrapper">
+      <nav>
+        <a href="#top"><strong>RvrseUI</strong></a>
+        <ul>
+          <li><a href="#quick-start">Quick Start</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#elements">Elements</a></li>
+          <li><a href="#advanced">Advanced</a></li>
+          <li><a href="#resources">Resources</a></li>
+        </ul>
+        <div class="hero-actions">
+          <a class="cta" href="https://github.com/CoderRvrse/RvrseUI" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </nav>
+
+      <header class="hero" id="top">
+        <div class="hero-grid">
+          <div>
+            <p class="badge-list" style="margin-bottom: 14px">
+              <span>v4.3.20 &middot; Production Ready</span>
+            </p>
+            <h1>Production-Ready Roblox UI Toolkit</h1>
+            <p>
+              RvrseUI delivers polished UI, Lucide-powered icons, configuration profiles, advanced
+              color picking, and a built-in key system. Drop it into any executor or Studio project
+              and ship dashboards that feel premium in under a minute.
+            </p>
+            <div class="hero-actions">
+              <a class="cta" href="#quick-start">Launch the Setup</a>
+              <a href="https://github.com/CoderRvrse/RvrseUI/blob/main/examples/test-all-overlay-elements.lua" target="_blank" rel="noreferrer">
+                Try demo script
+              </a>
+            </div>
+            <div class="hero-stats" style="margin-top: 32px">
+              <div>
+                <span>Build Size</span>
+                <strong>445 KB</strong>
+              </div>
+              <div>
+                <span>Components</span>
+                <strong>10+</strong>
+              </div>
+              <div>
+                <span>Config Runtime</span>
+                <strong>Auto-Save</strong>
+              </div>
+            </div>
+          </div>
+          <div>
+            <img
+              src="https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/assets/banner.png"
+              alt="RvrseUI Banner"
+            />
+          </div>
+        </div>
+      </header>
+
+      <section id="quick-start">
+        <div class="section-heading">
+          <span>Quick Start</span>
+          <h2>Load, Build, Ship in 30 Seconds</h2>
+          <p>
+            Copy the snippet below into your executor or Roblox Studio to spin up a fully-featured
+            window with saved configurations, Lucide icons, and live callbacks.
+          </p>
+        </div>
+        <div class="code-block">
+          <small>loadstring</small>
+<pre><code>local RvrseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"))()
+
+local Window = RvrseUI:CreateWindow({
+    Name = "My Hub",
+    Icon = "lucide://layout-dashboard",
+    Theme = "Dark",
+    ToggleUIKeybind = "K",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MyHub",
+        FileName = "Config.json"
+    }
+})
+
+local Tab = Window:CreateTab({ Title = "Main", Icon = "lucide://home" })
+local Section = Tab:CreateSection("Player")
+
+Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    Flag = "WalkSpeed",
+    OnChanged = function(speed)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+    end
+})
+
+Window:Show() -- loads config then renders UI</code></pre>
+        </div>
+        <ul class="badge-list" style="margin-top: 24px">
+          <li>Copy/Paste friendly</li>
+          <li>Auto-loads saved flags</li>
+          <li>Tab + Section Builder</li>
+          <li>Lucide + Emoji icons</li>
+        </ul>
+      </section>
+
+      <section id="features">
+        <div class="section-heading">
+          <span>Feature Highlights</span>
+          <h2>Built For Modern Roblox Dashboards</h2>
+        </div>
+        <div class="card-grid">
+          <article class="card">
+            <h3>Lucide Icon System</h3>
+            <p>
+              Unified sprite atlas with automatic fallbacks, Roblox asset IDs, emojis, and dedicated
+              icon lanes so text never overlaps.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Configuration Profiles</h3>
+            <p>
+              Auto-save every flagged element, replay callbacks after load, and ship profile tabs so
+              players can switch presets without leaving the UI.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Advanced Color Picker</h3>
+            <p>
+              Toggle between preset palettes and RGB/HSV/HEX controls synced in real-time with live
+              preview or simple mode for quick presets.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Unified Dropdowns</h3>
+            <p>
+              Multi-select capable with checkbox UX, overlay rendering to avoid ZIndex conflicts, and
+              a table-first API for consistent callbacks.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Key System Built-In</h3>
+            <p>
+              Ship authentication with whitelists, rotating validators, webhook logging, and
+              Rayfield-compatible flows without importing extra modules.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Notifications + Theme</h3>
+            <p>
+              Priority-aware toast system, theme toggles, and customizable minimize token icons keep
+              UI feedback consistent across every hub.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="elements">
+        <div class="section-heading">
+          <span>Elements</span>
+          <h2>Copy, Paste, Customize</h2>
+          <p>Each tile is a mini playbook: description, best use, and a script you can drop into any section.</p>
+        </div>
+        <div class="demo-grid">
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Button</span>
+              <h3>Fire instant actions</h3>
+              <p>Use for teleports, purchases, or one-shot utilities.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateButton</li>
+              <li><strong>Best for</strong> Quick callbacks</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>Section:CreateButton({
+    Text = "Teleport",
+    Icon = "lucide://flash",
+    Callback = function()
+        print("Launch player")
+    end
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Toggle</span>
+              <h3>Persistent on/off</h3>
+              <p>Persists to disk and can lock conflicting controls.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateToggle</li>
+              <li><strong>Best for</strong> ESP, farms, boosts</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>Section:CreateToggle({
+    Text = "Auto Farm",
+    State = false,
+    Flag = "AutoFarm",
+    LockGroup = "FarmMaster",
+    OnChanged = function(enabled)
+        getgenv().AutoFarm = enabled
+    end
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Slider</span>
+              <h3>Numeric control</h3>
+              <p>Show live values with suffix text and saved flags.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateSlider</li>
+              <li><strong>Best for</strong> Speed, FOV, sensitivity</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>local speed = Section:CreateSlider({
+    Text = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Flag = "WalkSpeed",
+    Suffix = " studs",
+    OnChanged = function(value)
+        humanoid.WalkSpeed = value
+    end
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Dropdown</span>
+              <h3>Multi-select ready</h3>
+              <p>Always returns a table so you can loop selections.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateDropdown</li>
+              <li><strong>Best for</strong> Loadouts, filters</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>local weapons = Section:CreateDropdown({
+    Text = "Weapons",
+    Values = {"Sword", "Bow", "Staff"},
+    Flag = "Weapons",
+    MultiSelect = true,
+    OnChanged = function(selected)
+        print(table.concat(selected, ", "))
+    end
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Color Picker</span>
+              <h3>RGB + HSV + Hex</h3>
+              <p>Advanced mode mirrors Studio-quality tooling.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateColorPicker</li>
+              <li><strong>Best for</strong> Theme accents</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>Section:CreateColorPicker({
+    Text = "Accent Color",
+    Flag = "Accent",
+    Advanced = true,
+    Default = Color3.fromRGB(124, 93, 250),
+    OnChanged = function(color)
+        highlight.FillColor = color
+    end
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Keybind</span>
+              <h3>Rebindable hotkeys</h3>
+              <p>Let players set UI toggle, dash, or combat keys.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateKeybind</li>
+              <li><strong>Best for</strong> UI toggle, skill casts</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>Section:CreateKeybind({
+    Text = "Toggle UI",
+    Default = Enum.KeyCode.K,
+    Flag = "UIKey",
+    IsUIToggle = true,
+    OnChanged = function(key)
+        print("UI toggles on", key.Name)
+    end
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Text Box</span>
+              <h3>Player input</h3>
+              <p>Great for usernames, webhook URLs, or search filters.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateTextBox</li>
+              <li><strong>Best for</strong> Targets, messages</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>Section:CreateTextBox({
+    Text = "Player Target",
+    PlaceholderText = "Enter name",
+    Flag = "PlayerTarget",
+    OnEnter = function(name)
+        print("Targeting", name)
+    end
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Labels</span>
+              <h3>Status + copy</h3>
+              <p>Pair static labels with paragraphs for inline docs.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateLabel / Paragraph</li>
+              <li><strong>Best for</strong> Status, release notes</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>Section:CreateLabel({
+    Text = "Status: Ready",
+    Icon = "lucide://check-circle"
+})
+
+Section:CreateParagraph({
+    Text = "Tips:\n- Press K to toggle\n- Save profiles often"
+})</code></pre>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill">Divider</span>
+              <h3>Breathe between blocks</h3>
+              <p>Keep high-density layouts readable with subtle lines.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateDivider</li>
+              <li><strong>Best for</strong> Grouping controls</li>
+            </ul>
+            <div class="mini-code">
+<pre><code>Section:CreateDivider()
+
+Section:CreateSection("Combat")
+    :CreateSlider({ Text = "Damage", Min = 1, Max = 10 })</code></pre>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="advanced">
+        <div class="section-heading">
+          <span>Advanced Systems</span>
+          <h2>Ops-Ready Building Blocks</h2>
+        </div>
+        <div class="highlight-card">
+          <div>
+            <h3>Configuration Engine</h3>
+            <p>
+              Every element that sets a <code>Flag</code> automatically writes to disk, replays
+              <code>OnChanged</code> the moment configs load, and exposes getters/setters via
+              <code>RvrseUI.Flags</code>. Opt-out per element with <code>FireOnConfigLoad = false</code>.
+            </p>
+            <ul>
+              <li><strong>Manual control:</strong> <code>SaveConfiguration()</code> & <code>LoadConfiguration()</code></li>
+              <li><strong>Profiles:</strong> Built-in profile tab with icons and autosave toggle.</li>
+              <li><strong>Env sync:</strong> Mirror values to <code>getgenv()</code> or other tables instantly.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Security + Keys</h3>
+            <p>
+              Ship gated hubs without extra dependencies. Configure daily rotating validators,
+              whitelists, or remote fetchers and log every attempt to Discord.
+            </p>
+            <ul>
+              <li><strong>Rayfield flow:</strong> Single key, multi-key, or URL fetch.</li>
+              <li><strong>Callbacks:</strong> <code>OnKeyValid</code>, <code>OnKeyInvalid</code>, <code>OnAttemptsExhausted</code>.</li>
+              <li><strong>Quality of life:</strong> Built-in "Get Key" button with clipboard + notification.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card-grid" style="margin-top: 32px">
+          <article class="card">
+            <h3>Lucide Everywhere</h3>
+            <p>
+              Tabs, notifications, buttons, labels, and the controller chip share the same resolver so
+              icons always match and never overlap text.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Notification Stack</h3>
+            <p>
+              Priority-aware toasts with success/info/warn/error palettes and optional Lucide glyphs
+              so players never miss important feedback.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Lock Groups</h3>
+            <p>
+              Master/slave relationships automatically disable conflicting toggles and sliders while
+              preserving saved state.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Token Icon Control</h3>
+            <p>
+              Swap the minimize chip globally or per window with Lucide, emoji, or asset IDs and keep
+              controller UX consistent.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="docs">
+        <div class="section-heading">
+          <span>Developer Docs</span>
+          <h2>Guided Playbooks For Builders</h2>
+          <p>Modeled after our sister company docs: bite-sized steps, ready-to-copy commands, zero fluff.</p>
+        </div>
+        <div class="doc-layout">
+          <aside class="doc-nav">
+            <h3>Doc Outline</h3>
+            <ul>
+              <li><strong>Configuration</strong> Auto-save, profiles, manual save/load</li>
+              <li><strong>Windows</strong> Loading screens, token icon, hotkeys</li>
+              <li><strong>Interaction</strong> Elements, binds, notification stack</li>
+              <li><strong>UI Components</strong> Themes, Lucide icons, particles</li>
+            </ul>
+          </aside>
+          <div class="doc-panel">
+            <article class="doc-card">
+              <h4>1. Boot the library</h4>
+              <p>Drop this at the top of every script. Keep <code>Window:Show()</code> as the final call so configs load before UI draws.</p>
+              <div class="mini-code">
+<pre><code>local RvrseUI = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/CoderRvrse/RvrseUI/main/RvrseUI.lua"
+))()
+
+local Window = RvrseUI:CreateWindow({
+    Name = "Dashboard",
+    Icon = "lucide://layout-dashboard",
+    Theme = "Dark",
+    ToggleUIKeybind = "K"
+})
+
+local Tab = Window:CreateTab({ Title = "Main", Icon = "lucide://home" })
+local Section = Tab:CreateSection("Player")
+
+Window:Show()</code></pre>
+              </div>
+              <div class="copy-row"><code>Window:Show()</code><span>Call last</span></div>
+            </article>
+
+            <article class="doc-card">
+              <h4>2. Save profiles like a pro</h4>
+              <p>Flags make values persistent. The manager tab gives players multiple profiles without you writing extra UI.</p>
+              <div class="mini-code">
+<pre><code>local Window = RvrseUI:CreateWindow({
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MyHub",
+        FileName = "Config.json",
+        AutoSave = true
+    },
+    ConfigurationManager = {
+        Enabled = true,
+        TabName = "Profiles",
+        Icon = "lucide://folder"
+    }
+})
+
+RvrseUI:SaveConfiguration()
+RvrseUI:LoadConfiguration()</code></pre>
+              </div>
+              <div class="split-panel">
+                <div class="copy-row"><code>RvrseUI.Flags["Speed"]:Set(32)</code><span>Set any element</span></div>
+                <div class="copy-row"><code>RvrseUI:SetAutoSaveEnabled(true)</code><span>Toggle autosave</span></div>
+              </div>
+            </article>
+
+            <article class="doc-card">
+              <h4>3. Plug in the key system</h4>
+              <p>Ship authentication the same way every time. Swap between single key, multi key, or remote fetch.</p>
+              <div class="mini-code">
+<pre><code>local Window = RvrseUI:CreateWindow({
+    KeySystem = true,
+    KeySettings = {
+        Title = "RvrseUI Access",
+        Note = "Click to grab your key",
+        Keys = {"DevKey", "VIPKey"},
+        SaveKey = true,
+        WebhookURL = "https://discord.com/api/webhooks/...",
+        NoteButton = {
+            Text = "Get Key",
+            Callback = function()
+                setclipboard("https://myhub.gg/key")
+            end
+        }
+    }
+})</code></pre>
+              </div>
+              <div class="copy-row"><code>OnKeyValid = function(key) ... end</code><span>Success hook</span></div>
+            </article>
+
+            <article class="doc-card">
+              <h4>Need the deep dive?</h4>
+              <p>Open any of these references in a new tab and keep building.</p>
+              <div class="split-panel">
+                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/README.md" target="_blank" rel="noreferrer">Full developer README</a>
+                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/LUCIDE_ICONS_GUIDE.md" target="_blank" rel="noreferrer">Lucide icon guide</a>
+                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/tree/main/examples" target="_blank" rel="noreferrer">Example scripts</a>
+                <a class="cta-link" href="https://github.com/CoderRvrse/RvrseUI/issues" target="_blank" rel="noreferrer">Issue tracker</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="resources">
+        <div class="section-heading">
+          <span>Resources</span>
+          <h2>Docs, Scripts, and Deep Dives</h2>
+        </div>
+        <div class="resources">
+          <ul>
+            <li>
+              <a href="https://github.com/CoderRvrse/RvrseUI/tree/main/examples" target="_blank" rel="noreferrer">Examples repo folder</a>
+              <span>Color pickers, dropdown stress tests, config-load demos</span>
+            </li>
+            <li>
+              <a href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/LUCIDE_ICONS_GUIDE.md" target="_blank" rel="noreferrer">Lucide Icons Guide</a>
+              <span>Sprite generation, troubleshooting, asset overrides</span>
+            </li>
+            <li>
+              <a href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/DEV_NOTES.md" target="_blank" rel="noreferrer">Developer Notes</a>
+              <span>Changelog, architecture, roadmap</span>
+            </li>
+            <li>
+              <a href="https://github.com/CoderRvrse/RvrseUI/blob/main/docs/UI-ARCHITECTURE.md" target="_blank" rel="noreferrer">UI Architecture</a>
+              <span>Internals of Window/Tab/Section builders</span>
+            </li>
+            <li>
+              <a href="https://github.com/CoderRvrse/RvrseUI/issues" target="_blank" rel="noreferrer">Issue Tracker</a>
+              <span>Report bugs, request features, collaborate</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="highlight-card">
+          <div>
+            <h3>Ready to build?</h3>
+            <p>
+              Clone the repo, paste the quick start snippet, and ship dashboards with a production
+              polish that feels like a premium executor UI.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a class="cta" href="https://github.com/CoderRvrse/RvrseUI" target="_blank" rel="noreferrer">Open on GitHub</a>
+            <a href="https://github.com/CoderRvrse/RvrseUI/blob/main/RvrseUI.lua" target="_blank" rel="noreferrer">Download monolith</a>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>RvrseUI v4.3.20 &middot; MIT License &middot; Built by CoderRvrse</p>
+        <p>GitHub Pages site generated from the /docs folder.</p>
+      </footer>
+    </div>
+  </body>
+</html>
