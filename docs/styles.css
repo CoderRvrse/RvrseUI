@@ -97,8 +97,14 @@ a {
   width: var(--bubble-size, 160px);
   height: var(--bubble-size, 160px);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(65, 230, 255, 0.4), transparent 55%);
-  box-shadow: 0 0 40px rgba(65, 230, 255, 0.25);
+  
+  /* Default to Blue/Cyan */
+  --bubble-color: 65, 230, 255; 
+  
+  background: radial-gradient(circle, rgba(var(--bubble-color), 0.4), transparent 60%);
+  box-shadow: 0 0 40px rgba(var(--bubble-color), 0.25);
+  border: 1px solid rgba(var(--bubble-color), 0.1);
+  
   mix-blend-mode: screen;
   animation: bubble-rise var(--bubble-duration, 24s) linear infinite,
     bubble-shimmer var(--bubble-shimmer, 8s) ease-in-out infinite;
@@ -108,6 +114,19 @@ a {
   filter: blur(0.5px) saturate(140%);
   opacity: 0;
   will-change: transform, opacity, filter;
+}
+
+/* Right-side bubbles get the Pink/Magenta treatment */
+.bubble-field span:nth-child(6),
+.bubble-field span:nth-child(7),
+.bubble-field span:nth-child(8),
+.bubble-field span:nth-child(9),
+.bubble-field span:nth-child(10),
+.bubble-field span:nth-child(15),
+.bubble-field span:nth-child(16),
+.bubble-field span:nth-child(17),
+.bubble-field span:nth-child(18) {
+  --bubble-color: 255, 94, 162; /* Pink */
 }
 
 .bubble-field span:nth-child(1) { --bubble-size: 220px; --bubble-left: 8%; --bubble-duration: 34s; --bubble-delay: 0s; --bubble-shimmer: 10s; }
@@ -135,10 +154,10 @@ a {
     opacity: 0;
   }
   5% {
-    opacity: 0.35;
+    opacity: 0.4;
   }
   60% {
-    opacity: 0.3;
+    opacity: 0.35;
   }
   85% {
     opacity: 0.15;
@@ -152,15 +171,15 @@ a {
 @keyframes bubble-shimmer {
   0% {
     filter: blur(0.4px) saturate(120%);
-    box-shadow: 0 0 20px rgba(65, 230, 255, 0.15);
+    box-shadow: 0 0 20px rgba(var(--bubble-color), 0.2);
   }
   50% {
-    filter: blur(0.6px) saturate(180%);
-    box-shadow: 0 0 40px rgba(156, 77, 255, 0.35);
+    filter: blur(0.8px) saturate(160%);
+    box-shadow: 0 0 50px rgba(var(--bubble-color), 0.5);
   }
   100% {
     filter: blur(0.4px) saturate(130%);
-    box-shadow: 0 0 20px rgba(65, 230, 255, 0.2);
+    box-shadow: 0 0 20px rgba(var(--bubble-color), 0.25);
   }
 }
 
