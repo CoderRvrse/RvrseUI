@@ -1,5 +1,36 @@
 # RvrseUI Releases
 
+## Version 4.3.27 "Holo Glide" - Neon Scroll Suite
+**Release Date**: December 2, 2025  
+**Build**: 20251202a  
+**Hash**: `C1E8D4A6`  
+**Channel**: Stable
+
+### Highlights
+- Replaced default browser scrollbars with neon, rounded rails across the entire site so long docs feel native to the cyber UI.
+- Mini code panes now use matching low-profile scrollbars, keeping demo snippets premium even when the content overflows.
+- Updated hero/footer badges and metadata to v4.3.27 for push guard compliance.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 3,
+  Patch = 27,
+  Build = "20251202a",
+  Full = "4.3.27",
+  Hash = "C1E8D4A6",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Observe neon scrollbar on the main page + code blocks (Chrome, Edge, etc.).
+- Hero badge + footer show v4.3.27.
+- No regression in scroll performance or layout spacing.
+
+---
+
 ## Version 4.3.26 "Nav Pulse" - Neon Flight Deck
 **Release Date**: December 1, 2025  
 **Build**: 20251201c  

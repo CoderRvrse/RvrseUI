@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 26,
-    "full": "4.3.26",
-    "build": "20251201c",
-    "hash": "F4D1B7E9",
+    "patch": 27,
+    "full": "4.3.27",
+    "build": "20251202a",
+    "hash": "C1E8D4A6",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-12-01",
-    "name": "Neon Flight Deck",
-    "codename": "Nav Pulse",
-    "notes": "Animated the top navigation, added a floating back-to-top control, and rebuilt the developer doc steps to feel like a real operator playbook."
+    "date": "2025-12-02",
+    "name": "Neon Scroll Suite",
+    "codename": "Holo Glide",
+    "notes": "Introduced custom neon scrollbars across the site plus updated badges so the documentation matches the 2025 executor aesthetic."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,16 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.27": {
+      "date": "2025-12-02",
+      "hash": "C1E8D4A6",
+      "changes": [
+        "🌀 Global scrollbar styling now matches the neon palette with rounded rails and gradient thumbs for a modern feel.",
+        "📜 Code blocks and mini demos received slimmer scrollbars so horizontal snippets look premium instead of default browser chrome.",
+        "🔢 Hero badge + footer bumped to v4.3.27 to stay in sync with the release guard.",
+        "⚙️ Version metadata updated to satisfy the push policy."
+      ]
+    },
     "4.3.26": {
       "date": "2025-12-01",
       "hash": "F4D1B7E9",
