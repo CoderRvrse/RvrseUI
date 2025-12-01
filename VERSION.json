@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 29,
-    "full": "4.3.29",
-    "build": "20251202c",
-    "hash": "B2D5F8A1",
+    "patch": 30,
+    "full": "4.3.30",
+    "build": "20251202d",
+    "hash": "E5F8A2C9",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-12-02",
-    "name": "Neon Drift",
-    "codename": "Holo Split",
-    "notes": "Background bubbles now feature a dual-tone blue/pink split to match the RvrseUI brand identity, plus updated version metadata."
+    "name": "Sonic Control",
+    "codename": "Holo Audio",
+    "notes": "Added video controls to the hero section so users can unmute the showcase, plus updated version metadata."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,14 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.30": {
+      "date": "2025-12-02",
+      "hash": "E5F8A2C9",
+      "changes": [
+        "🔊 Added native video controls to the hero showcase so users can unmute and replay the video manually.",
+        "🔧 Clarified autoplay behavior: video must start muted to bypass browser blocking policies."
+      ]
+    },
     "4.3.29": {
       "date": "2025-12-02",
       "hash": "B2D5F8A1",

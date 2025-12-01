@@ -1,5 +1,35 @@
 # RvrseUI Releases
 
+## Version 4.3.30 "Holo Audio" - Sonic Control
+**Release Date**: December 2, 2025  
+**Build**: 20251202d  
+**Hash**: `E5F8A2C9`  
+**Channel**: Stable
+
+### Highlights
+- Added native video controls to the hero showcase so users can unmute and replay the video manually.
+- Clarified autoplay behavior: video must start muted to bypass browser blocking policies.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 3,
+  Patch = 30,
+  Build = "20251202d",
+  Full = "4.3.30",
+  Hash = "E5F8A2C9",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Video player shows controls (play/pause, volume, fullscreen).
+- Video still autoplays muted on load.
+- Footer/hero badges show v4.3.30.
+
+---
+
 ## Version 4.3.29 "Holo Split" - Neon Drift
 **Release Date**: December 2, 2025  
 **Build**: 20251202c  
