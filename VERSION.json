@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 3,
-    "patch": 24,
-    "full": "4.3.24",
-    "build": "20251201a",
-    "hash": "D2F7A5C1",
+    "patch": 25,
+    "full": "4.3.25",
+    "build": "20251201b",
+    "hash": "A8E5C9B2",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-12-01",
-    "name": "Docs Microsite Launch",
-    "codename": "Nebula Docs",
-    "notes": "GitHub Pages site replaces the README wall of text with interactive quick-start tiles, copy-ready demos, and guided doc cards."
+    "name": "Docs Neon Enhancements",
+    "codename": "Holo Cards",
+    "notes": "Improved the GitHub Pages experience with taller element tiles, better typography, and inline copy buttons on every snippet."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,17 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.3.25": {
+      "date": "2025-12-01",
+      "hash": "A8E5C9B2",
+      "changes": [
+        "🧊 Element reference tiles now have expanded spacing, better typography, and taller code wells so longer snippets stay readable.",
+        "📋 Added one-tap copy buttons to the quick start, every demo card, and each developer doc playbook snippet for faster sharing.",
+        "🛡️ Clipboard helper script debounces clicks, gives visual feedback, and keeps the site self-contained without extra JS deps.",
+        "🔢 Hero badge + footer now display the current release (v4.3.25) to match repo metadata.",
+        "🌐 Updated release files so GitHub Pages rebuilds pull the neon enhancements without tripping the version gate."
+      ]
+    },
     "4.3.24": {
       "date": "2025-12-01",
       "hash": "D2F7A5C1",

@@ -1,5 +1,37 @@
 # RvrseUI Releases
 
+## Version 4.3.25 "Holo Cards" - Docs Neon Enhancements
+**Release Date**: December 1, 2025  
+**Build**: 20251201b  
+**Hash**: `A8E5C9B2`  
+**Channel**: Stable
+
+### Highlights
+- Element demo tiles received taller padding, tighter typography, and more generous code wells so long snippets stay readable on desktop and mobile.
+- Every snippet on the site (quick start, demos, doc playbooks) now ships with a neon copy button plus JS helper for instant clipboard access.
+- Copy feedback uses the same glow palette with temporary "Copied" state so users know their command is ready to paste.
+- Visible release references (hero badge + footer) updated to v4.3.25 to mirror repository metadata.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 3,
+  Patch = 25,
+  Build = "20251201b",
+  Full = "4.3.25",
+  Hash = "A8E5C9B2",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Copy buttons appear on the quick start block, each element tile, and all developer doc snippets.
+- Copy buttons flip to "Copied" for ~1.6 seconds after use, then reset automatically.
+- `docs/index.html` and `docs/styles.css` load without console errors and remain responsive across breakpoints.
+
+---
+
 ## Version 4.3.24 "Nebula Docs" - Docs Microsite Launch
 **Release Date**: December 1, 2025  
 **Build**: 20251201a  
