@@ -29,20 +29,19 @@ local Modules = {
     "src/Elements/Label.lua",
     "src/Elements/Paragraph.lua",
     "src/Elements/Divider.lua",
-    "src/Elements/FilterableList.lua",
     "src/SectionBuilder.lua",
     "src/TabBuilder.lua",
     "src/WindowBuilder.lua"
 }
 
-local HEADER = [[-- RvrseUI v4.4.0 | Modern Professional UI Framework
+local HEADER = [[-- RvrseUI v4.3.20 | Modern Professional UI Framework
 -- Compiled from modular architecture on ]] .. os.date("!%Y-%m-%dT%H:%M:%SZ") .. [[
 
--- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList
--- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
+-- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
+-- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
 -- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
--- 🏗️ ARCHITECTURE: This file is compiled from 31 modular files
+-- 🏗️ ARCHITECTURE: This file is compiled from 30 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 ]]
@@ -61,79 +60,6 @@ local PlayerGui = LP:WaitForChild("PlayerGui")
 local Mouse = LP:GetMouse()
 
 local RvrseUI = {}
-
--- ============================================
--- MODULE TABLE INITIALIZATION
--- Using _G explicit assignment for maximum executor compatibility
--- This ensures modules persist across all executor sandboxing methods
--- ============================================
-_G._RvrseUI_Modules = _G._RvrseUI_Modules or {}
-local _M = _G._RvrseUI_Modules
-
-_M.Version = _M.Version or {}
-_M.Debug = _M.Debug or {}
-_M.Obfuscation = _M.Obfuscation or {}
-_M.Icons = _M.Icons or {}
-_M.LucideIcons = _M.LucideIcons or {}
-_M.Theme = _M.Theme or {}
-_M.Animator = _M.Animator or {}
-_M.State = _M.State or {}
-_M.UIHelpers = _M.UIHelpers or {}
-_M.Config = _M.Config or {}
-_M.WindowManager = _M.WindowManager or {}
-_M.Hotkeys = _M.Hotkeys or {}
-_M.Notifications = _M.Notifications or {}
-_M.Overlay = _M.Overlay or {}
-_M.KeySystem = _M.KeySystem or {}
-_M.Particles = _M.Particles or {}
-_M.Button = _M.Button or {}
-_M.Toggle = _M.Toggle or {}
-_M.Dropdown = _M.Dropdown or {}
-_M.Slider = _M.Slider or {}
-_M.Keybind = _M.Keybind or {}
-_M.TextBox = _M.TextBox or {}
-_M.ColorPicker = _M.ColorPicker or {}
-_M.Label = _M.Label or {}
-_M.Paragraph = _M.Paragraph or {}
-_M.Divider = _M.Divider or {}
-_M.FilterableList = _M.FilterableList or {}
-_M.SectionBuilder = _M.SectionBuilder or {}
-_M.TabBuilder = _M.TabBuilder or {}
-_M.WindowBuilder = _M.WindowBuilder or {}
-_M.Elements = _M.Elements or {}
-
--- Create local references for convenience
-local Version = _M.Version
-local Debug = _M.Debug
-local Obfuscation = _M.Obfuscation
-local Icons = _M.Icons
-local LucideIcons = _M.LucideIcons
-local Theme = _M.Theme
-local Animator = _M.Animator
-local State = _M.State
-local UIHelpers = _M.UIHelpers
-local Config = _M.Config
-local WindowManager = _M.WindowManager
-local Hotkeys = _M.Hotkeys
-local Notifications = _M.Notifications
-local Overlay = _M.Overlay
-local KeySystem = _M.KeySystem
-local Particles = _M.Particles
-local Button = _M.Button
-local Toggle = _M.Toggle
-local Dropdown = _M.Dropdown
-local Slider = _M.Slider
-local Keybind = _M.Keybind
-local TextBox = _M.TextBox
-local ColorPicker = _M.ColorPicker
-local Label = _M.Label
-local Paragraph = _M.Paragraph
-local Divider = _M.Divider
-local FilterableList = _M.FilterableList
-local SectionBuilder = _M.SectionBuilder
-local TabBuilder = _M.TabBuilder
-local WindowBuilder = _M.WindowBuilder
-local Elements = _M.Elements
 ]]
 
 local INIT_SECTION = [[
@@ -186,8 +112,7 @@ Elements = {
     ColorPicker = ColorPicker,
     Label = Label,
     Paragraph = Paragraph,
-    Divider = Divider,
-    FilterableList = FilterableList
+    Divider = Divider
 }
 
 RvrseUI.NotificationsEnabled = true
@@ -566,44 +491,13 @@ local function writeFile(path, contents)
 end
 
 local function sanitizeModule(modulePath, contents)
-    -- Remove ALL leading comment lines and blank lines (some modules have multiple)
-    while contents:sub(1, 2) == "--" or contents:sub(1, 1) == "\n" or contents:sub(1, 1) == "\r" do
-        contents = contents:gsub("^%-%-[^\n]*\n", "")
-        contents = contents:gsub("^%s*\n", "")
-    end
-    
-    -- Only remove local declarations for the EXACT modules we forward-declared
-    -- This prevents stripping internal locals like PerlinNoise, Config (in Particles.lua), etc.
-    -- Search ANYWHERE in the file since some modules have code before the declaration
-    local forwardDeclaredModules = {
-        "Version", "Debug", "Obfuscation", "Icons", "LucideIcons", "Theme",
-        "Animator", "State", "UIHelpers", "Config", "WindowManager", "Hotkeys",
-        "Notifications", "Overlay", "KeySystem", "Particles", "Button", "Toggle",
-        "Dropdown", "Slider", "Keybind", "TextBox", "ColorPicker", "Label",
-        "Paragraph", "Divider", "FilterableList", "SectionBuilder", "TabBuilder",
-        "WindowBuilder", "Elements"
-    }
-    
-    -- Replace module declarations anywhere in the file (but only exact matches with empty {})
-    for _, mod in ipairs(forwardDeclaredModules) do
-        local pattern = "\nlocal " .. mod .. " = %{%}%s*\n"
-        contents = contents:gsub(pattern, "\n-- [Using pre-declared " .. mod .. "]\n")
-        -- Also match at very start of content
-        local startPattern = "^local " .. mod .. " = %{%}%s*\n"
-        contents = contents:gsub(startPattern, "-- [Using pre-declared " .. mod .. "]\n")
-    end
-    
+    contents = contents:gsub("^%-%-[^\n]*\n", "")
+    contents = contents:gsub("^local ([A-Z][A-Za-z0-9_]*) = %{%}", "%1 = {}")
     contents = contents:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
     contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
 
     if modulePath:match("lucide%-icons%-data%.lua$") then
-        -- Remove comment lines (--...) and --!nocheck directive, then strip 'return' keyword
-        -- The file format is: comment lines, --!nocheck, empty line, return {...}
-        local sanitized = contents
-            :gsub("^%-%-[^\n]*\n", "")  -- Remove first comment line
-            :gsub("^%-%-[^\n]*\n", "")  -- Remove second comment line (--!nocheck)
-            :gsub("^%s+", "")           -- Trim leading whitespace
-            :gsub("^return%s*", "")     -- Remove the return keyword
+        local sanitized = contents:gsub("^return%s*", "")
         return "\n-- ========================\n-- lucide-icons-data Module\n-- ========================\n\n_G.RvrseUI_LucideIconsData = " .. sanitized .. "\n"
     end
 
