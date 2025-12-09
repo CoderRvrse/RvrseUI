@@ -517,8 +517,25 @@ function sanitizeModule(modulePath, contents) {
     // Remove leading comment line
     contents = contents.replace(/^--[^\n]*\n/, '');
 
-    // Remove local Module = {} declarations (modules are pre-declared in SERVICES section)
-    contents = contents.replace(/^local ([A-Z][A-Za-z0-9_]*) = \{\}\s*\n/gm, '-- [Using pre-declared $1]\n');
+    // Only remove local declarations for the EXACT modules we forward-declared
+    // This prevents stripping internal locals like PerlinNoise, Config, etc.
+    const forwardDeclaredModules = [
+        'Version', 'Debug', 'Obfuscation', 'Icons', 'LucideIcons', 'Theme',
+        'Animator', 'State', 'UIHelpers', 'Config', 'WindowManager', 'Hotkeys',
+        'Notifications', 'Overlay', 'KeySystem', 'Particles', 'Button', 'Toggle',
+        'Dropdown', 'Slider', 'Keybind', 'TextBox', 'ColorPicker', 'Label',
+        'Paragraph', 'Divider', 'FilterableList', 'SectionBuilder', 'TabBuilder',
+        'WindowBuilder', 'Elements'
+    ];
+    
+    // Only match at the very beginning of file content (after first comment stripped)
+    for (const mod of forwardDeclaredModules) {
+        const regex = new RegExp(`^local ${mod} = \\{\\}\\s*\\n`);
+        if (regex.test(contents)) {
+            contents = contents.replace(regex, `-- [Using pre-declared ${mod}]\n`);
+            break; // Only one module declaration per file
+        }
+    }
 
     // Remove conflicting local RvrseUI declarations
     contents = contents.replace(/^local RvrseUI.*\n/gm, '-- [Removed conflicting local RvrseUI]\n');

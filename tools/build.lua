@@ -530,8 +530,27 @@ end
 
 local function sanitizeModule(modulePath, contents)
     contents = contents:gsub("^%-%-[^\n]*\n", "")
-    -- Comment out module declarations since they're pre-declared at file top
-    contents = contents:gsub("^local ([A-Z][A-Za-z0-9_]*) = %{%}", "-- [Using pre-declared %1]")
+    
+    -- Only remove local declarations for the EXACT modules we forward-declared
+    -- This prevents stripping internal locals like PerlinNoise, Config (in Particles.lua), etc.
+    local forwardDeclaredModules = {
+        "Version", "Debug", "Obfuscation", "Icons", "LucideIcons", "Theme",
+        "Animator", "State", "UIHelpers", "Config", "WindowManager", "Hotkeys",
+        "Notifications", "Overlay", "KeySystem", "Particles", "Button", "Toggle",
+        "Dropdown", "Slider", "Keybind", "TextBox", "ColorPicker", "Label",
+        "Paragraph", "Divider", "FilterableList", "SectionBuilder", "TabBuilder",
+        "WindowBuilder", "Elements"
+    }
+    
+    -- Only match at the very beginning of file content (after first comment stripped)
+    for _, mod in ipairs(forwardDeclaredModules) do
+        local pattern = "^local " .. mod .. " = %{%}"
+        if contents:match(pattern) then
+            contents = contents:gsub(pattern, "-- [Using pre-declared " .. mod .. "]")
+            break -- Only one module declaration per file
+        end
+    end
+    
     contents = contents:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
     contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
 
