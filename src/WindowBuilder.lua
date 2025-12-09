@@ -1880,6 +1880,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		table.insert(searchableElements, elementData)
 	end
 
+	-- Forward declaration for hideSearch (defined after performSearch)
+	local hideSearch
+
 	-- Function to create a search result item
 	local function createSearchResultItem(elementData, index)
 		local currentPal = Theme:Get()
@@ -2109,7 +2112,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		performSearch("")
 	end
 
-	function hideSearch()
+	hideSearch = function()
 		if not searchOverlayVisible then return end
 		searchOverlayVisible = false
 		searchInput.Text = ""

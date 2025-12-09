@@ -1,9 +1,9 @@
--- RvrseUI v4.4.1 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-12-09T21:15:30.998Z
+-- RvrseUI v4.4.0 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2025-12-09T21:24:10.613Z
 
--- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Global Search
+-- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
--- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence, Global Search (Ctrl+F)
+-- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
 -- 🏗️ ARCHITECTURE: This file is compiled from 31 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
@@ -10746,6 +10746,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		table.insert(searchableElements, elementData)
 	end
 
+	-- Forward declaration for hideSearch (defined after performSearch)
+	local hideSearch
+
 	-- Function to create a search result item
 	local function createSearchResultItem(elementData, index)
 		local currentPal = Theme:Get()
@@ -10975,7 +10978,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		performSearch("")
 	end
 
-	function hideSearch()
+	hideSearch = function()
 		if not searchOverlayVisible then return end
 		searchOverlayVisible = false
 		searchInput.Text = ""
