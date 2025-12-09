@@ -499,7 +499,13 @@ local function sanitizeModule(modulePath, contents)
     contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
 
     if modulePath:match("lucide%-icons%-data%.lua$") then
-        local sanitized = contents:gsub("^return%s*", "")
+        -- Remove comment lines (--...) and --!nocheck directive, then strip 'return' keyword
+        -- The file format is: comment lines, --!nocheck, empty line, return {...}
+        local sanitized = contents
+            :gsub("^%-%-[^\n]*\n", "")  -- Remove first comment line
+            :gsub("^%-%-[^\n]*\n", "")  -- Remove second comment line (--!nocheck)
+            :gsub("^%s+", "")           -- Trim leading whitespace
+            :gsub("^return%s*", "")     -- Remove the return keyword
         return "\n-- ========================\n-- lucide-icons-data Module\n-- ========================\n\n_G.RvrseUI_LucideIconsData = " .. sanitized .. "\n"
     end
 
