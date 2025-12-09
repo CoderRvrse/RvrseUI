@@ -64,39 +64,76 @@ local RvrseUI = {}
 
 -- ============================================
 -- MODULE TABLE INITIALIZATION
--- Using direct table assignment (not local) for executor compatibility
+-- Using _G explicit assignment for maximum executor compatibility
+-- This ensures modules persist across all executor sandboxing methods
 -- ============================================
-Version = {}
-Debug = {}
-Obfuscation = {}
-Icons = {}
-LucideIcons = {}
-Theme = {}
-Animator = {}
-State = {}
-UIHelpers = {}
-Config = {}
-WindowManager = {}
-Hotkeys = {}
-Notifications = {}
-Overlay = {}
-KeySystem = {}
-Particles = {}
-Button = {}
-Toggle = {}
-Dropdown = {}
-Slider = {}
-Keybind = {}
-TextBox = {}
-ColorPicker = {}
-Label = {}
-Paragraph = {}
-Divider = {}
-FilterableList = {}
-SectionBuilder = {}
-TabBuilder = {}
-WindowBuilder = {}
-Elements = {}
+_G._RvrseUI_Modules = _G._RvrseUI_Modules or {}
+local _M = _G._RvrseUI_Modules
+
+_M.Version = _M.Version or {}
+_M.Debug = _M.Debug or {}
+_M.Obfuscation = _M.Obfuscation or {}
+_M.Icons = _M.Icons or {}
+_M.LucideIcons = _M.LucideIcons or {}
+_M.Theme = _M.Theme or {}
+_M.Animator = _M.Animator or {}
+_M.State = _M.State or {}
+_M.UIHelpers = _M.UIHelpers or {}
+_M.Config = _M.Config or {}
+_M.WindowManager = _M.WindowManager or {}
+_M.Hotkeys = _M.Hotkeys or {}
+_M.Notifications = _M.Notifications or {}
+_M.Overlay = _M.Overlay or {}
+_M.KeySystem = _M.KeySystem or {}
+_M.Particles = _M.Particles or {}
+_M.Button = _M.Button or {}
+_M.Toggle = _M.Toggle or {}
+_M.Dropdown = _M.Dropdown or {}
+_M.Slider = _M.Slider or {}
+_M.Keybind = _M.Keybind or {}
+_M.TextBox = _M.TextBox or {}
+_M.ColorPicker = _M.ColorPicker or {}
+_M.Label = _M.Label or {}
+_M.Paragraph = _M.Paragraph or {}
+_M.Divider = _M.Divider or {}
+_M.FilterableList = _M.FilterableList or {}
+_M.SectionBuilder = _M.SectionBuilder or {}
+_M.TabBuilder = _M.TabBuilder or {}
+_M.WindowBuilder = _M.WindowBuilder or {}
+_M.Elements = _M.Elements or {}
+
+-- Create local references for convenience
+local Version = _M.Version
+local Debug = _M.Debug
+local Obfuscation = _M.Obfuscation
+local Icons = _M.Icons
+local LucideIcons = _M.LucideIcons
+local Theme = _M.Theme
+local Animator = _M.Animator
+local State = _M.State
+local UIHelpers = _M.UIHelpers
+local Config = _M.Config
+local WindowManager = _M.WindowManager
+local Hotkeys = _M.Hotkeys
+local Notifications = _M.Notifications
+local Overlay = _M.Overlay
+local KeySystem = _M.KeySystem
+local Particles = _M.Particles
+local Button = _M.Button
+local Toggle = _M.Toggle
+local Dropdown = _M.Dropdown
+local Slider = _M.Slider
+local Keybind = _M.Keybind
+local TextBox = _M.TextBox
+local ColorPicker = _M.ColorPicker
+local Label = _M.Label
+local Paragraph = _M.Paragraph
+local Divider = _M.Divider
+local FilterableList = _M.FilterableList
+local SectionBuilder = _M.SectionBuilder
+local TabBuilder = _M.TabBuilder
+local WindowBuilder = _M.WindowBuilder
+local Elements = _M.Elements
 ]]
 
 local INIT_SECTION = [[
