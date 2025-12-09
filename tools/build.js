@@ -514,11 +514,15 @@ Notifications:SetContext(RvrseUI)
 `;
 
 function sanitizeModule(modulePath, contents) {
-    // Remove leading comment line
-    contents = contents.replace(/^--[^\n]*\n/, '');
+    // Remove ALL leading comment lines and blank lines (some modules have multiple)
+    while (contents.startsWith('--') || contents.startsWith('\n') || contents.startsWith('\r')) {
+        contents = contents.replace(/^--[^\n]*\n/, '');
+        contents = contents.replace(/^\s*\n/, '');
+    }
 
     // Only remove local declarations for the EXACT modules we forward-declared
-    // This prevents stripping internal locals like PerlinNoise, Config, etc.
+    // This prevents stripping internal locals like PerlinNoise, Config (in Particles), etc.
+    // Search ANYWHERE in the file since some modules have code before the declaration
     const forwardDeclaredModules = [
         'Version', 'Debug', 'Obfuscation', 'Icons', 'LucideIcons', 'Theme',
         'Animator', 'State', 'UIHelpers', 'Config', 'WindowManager', 'Hotkeys',
@@ -528,13 +532,11 @@ function sanitizeModule(modulePath, contents) {
         'WindowBuilder', 'Elements'
     ];
     
-    // Only match at the very beginning of file content (after first comment stripped)
+    // Replace module declarations anywhere in the file (but only exact matches with empty {})
     for (const mod of forwardDeclaredModules) {
-        const regex = new RegExp(`^local ${mod} = \\{\\}\\s*\\n`);
-        if (regex.test(contents)) {
-            contents = contents.replace(regex, `-- [Using pre-declared ${mod}]\n`);
-            break; // Only one module declaration per file
-        }
+        // Match at start of line (^) or after newline
+        const regex = new RegExp(`(^|\\n)local ${mod} = \\{\\}(\\s*\\n)`, 'g');
+        contents = contents.replace(regex, `$1-- [Using pre-declared ${mod}]$2`);
     }
 
     // Remove conflicting local RvrseUI declarations

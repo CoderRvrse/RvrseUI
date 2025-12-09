@@ -529,10 +529,15 @@ local function writeFile(path, contents)
 end
 
 local function sanitizeModule(modulePath, contents)
-    contents = contents:gsub("^%-%-[^\n]*\n", "")
+    -- Remove ALL leading comment lines and blank lines (some modules have multiple)
+    while contents:sub(1, 2) == "--" or contents:sub(1, 1) == "\n" or contents:sub(1, 1) == "\r" do
+        contents = contents:gsub("^%-%-[^\n]*\n", "")
+        contents = contents:gsub("^%s*\n", "")
+    end
     
     -- Only remove local declarations for the EXACT modules we forward-declared
     -- This prevents stripping internal locals like PerlinNoise, Config (in Particles.lua), etc.
+    -- Search ANYWHERE in the file since some modules have code before the declaration
     local forwardDeclaredModules = {
         "Version", "Debug", "Obfuscation", "Icons", "LucideIcons", "Theme",
         "Animator", "State", "UIHelpers", "Config", "WindowManager", "Hotkeys",
@@ -542,13 +547,13 @@ local function sanitizeModule(modulePath, contents)
         "WindowBuilder", "Elements"
     }
     
-    -- Only match at the very beginning of file content (after first comment stripped)
+    -- Replace module declarations anywhere in the file (but only exact matches with empty {})
     for _, mod in ipairs(forwardDeclaredModules) do
-        local pattern = "^local " .. mod .. " = %{%}"
-        if contents:match(pattern) then
-            contents = contents:gsub(pattern, "-- [Using pre-declared " .. mod .. "]")
-            break -- Only one module declaration per file
-        end
+        local pattern = "\nlocal " .. mod .. " = %{%}%s*\n"
+        contents = contents:gsub(pattern, "\n-- [Using pre-declared " .. mod .. "]\n")
+        -- Also match at very start of content
+        local startPattern = "^local " .. mod .. " = %{%}%s*\n"
+        contents = contents:gsub(startPattern, "-- [Using pre-declared " .. mod .. "]\n")
     end
     
     contents = contents:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
