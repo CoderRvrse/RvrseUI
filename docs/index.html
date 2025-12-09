@@ -59,7 +59,7 @@
       <header class="hero" id="top">
         <div class="hero-grid">
           <div class="hero-copy">
-            <span class="hero-badge">v4.3.31 &middot; Production Ready</span>
+            <span class="hero-badge">v4.4.0 &middot; Production Ready</span>
             <h1>Operator UI Toolkit for Roblox Executors</h1>
             <p>
               Build neon dashboards, hydrate Lucide-powered tabs, and wire key systems in minutes. RvrseUI ships with the same cyber grid aesthetic players expect from premium executors.
@@ -71,11 +71,11 @@
             <div class="hero-stats">
               <div class="stat-card">
                 <span>Build Size</span>
-                <strong>445 KB</strong>
+                <strong>470 KB</strong>
               </div>
               <div class="stat-card">
                 <span>Elements</span>
-                <strong>10+</strong>
+                <strong>11</strong>
               </div>
               <div class="stat-card">
                 <span>Config Runtime</span>
@@ -390,6 +390,34 @@ Section:CreateSection("Combat")
     :CreateSlider({ Text = "Damage", Min = 1, Max = 10 })</code></pre>
             </div>
           </article>
+
+          <article class="demo-card">
+            <header>
+              <span class="tag-pill tag-new">FilterableList</span>
+              <h3>Live-filter scrollable lists</h3>
+              <p>Search through items in real-time. Perfect for item fetchers, player lists, and teleport locations.</p>
+            </header>
+            <ul class="demo-meta">
+              <li><strong>API</strong> Section:CreateFilterableList</li>
+              <li><strong>Best for</strong> Item spawners, player TP</li>
+            </ul>
+            <div class="mini-code" data-copy-container>
+              <button class="copy-btn floating" type="button">Copy</button>
+<pre><code>Section:CreateFilterableList({
+    Text = "Search Items",
+    PlaceholderText = "Type to filter...",
+    Items = {
+        { Text = "Log", Icon = "lucide://tree" },
+        { Text = "Stone", Icon = "lucide://mountain" },
+        { Text = "Iron", Icon = "lucide://gem" }
+    },
+    MaxVisibleItems = 6,
+    OnItemClick = function(item)
+        print("Selected:", item.Text)
+    end
+})</code></pre>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -593,7 +621,7 @@ RvrseUI:LoadConfiguration()</code></pre>
       </section>
 
       <footer>
-        <p>RvrseUI v4.3.31 &middot; MIT License &middot; Built by CoderRvrse</p>
+        <p>RvrseUI v4.4.0 &middot; MIT License &middot; Built by CoderRvrse</p>
         <p>GitHub Pages site generated from the /docs folder.</p>
       </footer>
     </div>

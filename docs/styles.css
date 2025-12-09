@@ -566,6 +566,23 @@ nav.nav-condensed {
   padding: 4px 18px;
 }
 
+.tag-pill.tag-new {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hot) 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(156, 77, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 94, 162, 0.7);
+  }
+}
+
 .mini-code {
   font-family: var(--mono);
   background: rgba(3, 5, 18, 0.95);
