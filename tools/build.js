@@ -492,7 +492,12 @@ function sanitizeModule(modulePath, contents) {
 
     // Special handling for lucide-icons-data
     if (modulePath.includes('lucide-icons-data.lua')) {
-        const sanitized = contents.replace(/^return\s*/, '');
+        // Remove comment lines and --!nocheck directive, then strip 'return' keyword
+        // The file format is: comment lines, --!nocheck, empty line, return {...}
+        let sanitized = contents
+            .replace(/^--[^\n]*\n/gm, '')  // Remove all comment lines
+            .replace(/^\s+/, '')            // Trim leading whitespace
+            .replace(/^return\s*/, '');     // Remove the return keyword
         return `
 -- ========================
 -- lucide-icons-data Module
