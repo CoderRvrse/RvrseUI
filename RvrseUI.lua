@@ -1,5 +1,5 @@
 -- RvrseUI v4.4.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-12-09T22:39:04.510Z
+-- Compiled from modular architecture on 2025-12-09T22:48:59.568Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -25,40 +25,40 @@ local Mouse = LP:GetMouse()
 local RvrseUI = {}
 
 -- ============================================
--- MODULE FORWARD DECLARATIONS
--- (Ensures all modules are in scope for all executor environments)
+-- MODULE TABLE INITIALIZATION
+-- Using direct table assignment (not local) for executor compatibility
 -- ============================================
-local Version = {}
-local Debug = {}
-local Obfuscation = {}
-local Icons = {}
-local LucideIcons = {}
-local Theme = {}
-local Animator = {}
-local State = {}
-local UIHelpers = {}
-local Config = {}
-local WindowManager = {}
-local Hotkeys = {}
-local Notifications = {}
-local Overlay = {}
-local KeySystem = {}
-local Particles = {}
-local Button = {}
-local Toggle = {}
-local Dropdown = {}
-local Slider = {}
-local Keybind = {}
-local TextBox = {}
-local ColorPicker = {}
-local Label = {}
-local Paragraph = {}
-local Divider = {}
-local FilterableList = {}
-local SectionBuilder = {}
-local TabBuilder = {}
-local WindowBuilder = {}
-local Elements = {}
+Version = {}
+Debug = {}
+Obfuscation = {}
+Icons = {}
+LucideIcons = {}
+Theme = {}
+Animator = {}
+State = {}
+UIHelpers = {}
+Config = {}
+WindowManager = {}
+Hotkeys = {}
+Notifications = {}
+Overlay = {}
+KeySystem = {}
+Particles = {}
+Button = {}
+Toggle = {}
+Dropdown = {}
+Slider = {}
+Keybind = {}
+TextBox = {}
+ColorPicker = {}
+Label = {}
+Paragraph = {}
+Divider = {}
+FilterableList = {}
+SectionBuilder = {}
+TabBuilder = {}
+WindowBuilder = {}
+Elements = {}
 
 
 -- ========================
