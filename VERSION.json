@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 3,
-    "patch": 31,
-    "full": "4.3.31",
-    "build": "20251202e",
-    "hash": "F8A2C9D4",
+    "minor": 4,
+    "patch": 0,
+    "full": "4.4.0",
+    "build": "20251209a",
+    "hash": "F1L7R4B9",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-12-02",
-    "name": "Iconic Identity",
-    "codename": "Holo Brand",
-    "notes": "Added a custom SVG favicon with a neon 'R' logo to fix 404 errors and brand the browser tab."
+    "date": "2025-12-09",
+    "name": "Live Filter",
+    "codename": "Dynamic Lists",
+    "notes": "Added FilterableList element for live-filterable scrollable lists with search input - perfect for item fetchers, player lists, teleport locations."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -41,6 +41,24 @@
     "dynamic_obfuscation": true
   },
   "changelog": {
+    "4.4.0": {
+      "date": "2025-12-09",
+      "hash": "F1L7R4B9",
+      "changes": [
+        "🎯 NEW ELEMENT: FilterableList - Live-filterable scrollable lists with real-time search!",
+        "🔍 Built-in search input with debounced filtering (configurable delay)",
+        "📋 Scrollable item list with smooth animations and hover effects",
+        "🎨 Full Lucide icon support for list items (lucide://, rbxassetid://, emoji)",
+        "⚡ API methods: SetItems, AddItem, RemoveItem, Clear, SetQuery, GetFilteredItems",
+        "🛠️ Custom filter function support via OnFilter callback",
+        "📊 Optional count display shows filtered/total items",
+        "🎮 Perfect for: Item fetchers, player lists, teleport locations, command browsers",
+        "📦 Module count: 30 → 31 (+1 FilterableList element)",
+        "📈 Element count: 10 → 11 UI elements",
+        "🧪 New example: examples/test-filterable-list.lua with 6 demo tabs",
+        "📚 Updated CLAUDE.md with new module statistics and element count"
+      ]
+    },
     "4.3.31": {
       "date": "2025-12-02",
       "hash": "F8A2C9D4",

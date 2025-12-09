@@ -1,7 +1,11 @@
--- tools/build.lua
--- Pure Luau build script that reconstructs the RvrseUI monolith
+// tools/build.js
+// Node.js build script that reconstructs the RvrseUI monolith
+// Equivalent to tools/build.lua for systems without Lua installed
 
-local Modules = {
+const fs = require('fs');
+const path = require('path');
+
+const Modules = [
     "src/Version.lua",
     "src/Debug.lua",
     "src/Obfuscation.lua",
@@ -33,10 +37,10 @@ local Modules = {
     "src/SectionBuilder.lua",
     "src/TabBuilder.lua",
     "src/WindowBuilder.lua"
-}
+];
 
-local HEADER = [[-- RvrseUI v4.4.0 | Modern Professional UI Framework
--- Compiled from modular architecture on ]] .. os.date("!%Y-%m-%dT%H:%M:%SZ") .. [[
+const HEADER = `-- RvrseUI v4.4.0 | Modern Professional UI Framework
+-- Compiled from modular architecture on ${new Date().toISOString()}
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -45,9 +49,9 @@ local HEADER = [[-- RvrseUI v4.4.0 | Modern Professional UI Framework
 -- 🏗️ ARCHITECTURE: This file is compiled from 31 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
-]]
+`;
 
-local SERVICES = [[
+const SERVICES = `
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -61,9 +65,9 @@ local PlayerGui = LP:WaitForChild("PlayerGui")
 local Mouse = LP:GetMouse()
 
 local RvrseUI = {}
-]]
+`;
 
-local INIT_SECTION = [[
+const INIT_SECTION = `
 -- ============================================
 -- MODULE INITIALIZATION (compiled from init.lua)
 -- ============================================
@@ -170,9 +174,9 @@ Particles:Initialize({
     Theme = Theme,
     RunService = RS
 })
-]]
+`;
 
-local API_SECTION = [[
+const API_SECTION = `
 -- ============================================
 -- MAIN RVRSEUI TABLE & PUBLIC API
 -- ============================================
@@ -471,59 +475,77 @@ function RvrseUI:RestoreAll()
 end
 
 Notifications:SetContext(RvrseUI)
-]]
+`;
 
-local function readFile(path)
-    local file = io.open(path, "r")
-    if not file then
-        error("Failed to read module: " .. path)
-    end
-    local contents = file:read("*all")
-    file:close()
-    return contents
-end
+function sanitizeModule(modulePath, contents) {
+    // Remove leading comment line
+    contents = contents.replace(/^--[^\n]*\n/, '');
 
-local function writeFile(path, contents)
-    local file = io.open(path, "w")
-    if not file then
-        error("Failed to write file: " .. path)
-    end
-    file:write(contents)
-    file:close()
-end
+    // Convert local Module = {} to Module = {}
+    contents = contents.replace(/^local ([A-Z][A-Za-z0-9_]*) = \{\}/gm, '$1 = {}');
 
-local function sanitizeModule(modulePath, contents)
-    contents = contents:gsub("^%-%-[^\n]*\n", "")
-    contents = contents:gsub("^local ([A-Z][A-Za-z0-9_]*) = %{%}", "%1 = {}")
-    contents = contents:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
-    contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
+    // Remove conflicting local RvrseUI declarations
+    contents = contents.replace(/^local RvrseUI.*\n/gm, '-- [Removed conflicting local RvrseUI]\n');
 
-    if modulePath:match("lucide%-icons%-data%.lua$") then
-        local sanitized = contents:gsub("^return%s*", "")
-        return "\n-- ========================\n-- lucide-icons-data Module\n-- ========================\n\n_G.RvrseUI_LucideIconsData = " .. sanitized .. "\n"
-    end
+    // Remove trailing return statements
+    contents = contents.replace(/\nreturn [A-Z][A-Za-z0-9_]*\s*$/, '\n');
 
-    local moduleName = modulePath:match("([^/]+)%.lua$")
-    local marker = "\n-- ========================\n-- " .. moduleName .. " Module\n-- ========================\n\n"
-    return marker .. contents .. "\n"
-end
+    // Special handling for lucide-icons-data
+    if (modulePath.includes('lucide-icons-data.lua')) {
+        const sanitized = contents.replace(/^return\s*/, '');
+        return `
+-- ========================
+-- lucide-icons-data Module
+-- ========================
 
-local function build()
-    local buffer = {HEADER, SERVICES}
+_G.RvrseUI_LucideIconsData = ${sanitized}
+`;
+    }
 
-    for _, modulePath in ipairs(Modules) do
-        print("Packing " .. modulePath)
-        local contents = readFile(modulePath)
-        table.insert(buffer, sanitizeModule(modulePath, contents))
-    end
+    const moduleName = path.basename(modulePath, '.lua');
+    const marker = `
+-- ========================
+-- ${moduleName} Module
+-- ========================
 
-    table.insert(buffer, INIT_SECTION)
-    table.insert(buffer, API_SECTION)
-    table.insert(buffer, "\nreturn RvrseUI\n")
+`;
+    return marker + contents + '\n';
+}
 
-    local output = table.concat(buffer, "\n")
-    writeFile("RvrseUI.lua", output)
-    print("✅ Packed modules into RvrseUI.lua")
-end
+function build() {
+    console.log('🔨 RvrseUI v4.4.0 Build Script (Node.js)');
+    console.log('==========================================');
 
-build()
+    const buffer = [HEADER, SERVICES];
+
+    for (const modulePath of Modules) {
+        console.log(`Packing ${modulePath}`);
+        try {
+            const contents = fs.readFileSync(modulePath, 'utf8');
+            buffer.push(sanitizeModule(modulePath, contents));
+        } catch (err) {
+            console.error(`❌ Failed to read ${modulePath}: ${err.message}`);
+            process.exit(1);
+        }
+    }
+
+    buffer.push(INIT_SECTION);
+    buffer.push(API_SECTION);
+    buffer.push('\nreturn RvrseUI\n');
+
+    const output = buffer.join('\n');
+
+    try {
+        fs.writeFileSync('RvrseUI.lua', output, 'utf8');
+        const stats = fs.statSync('RvrseUI.lua');
+        const sizeKB = Math.round(stats.size / 1024);
+        console.log('==========================================');
+        console.log(`✅ Packed ${Modules.length} modules into RvrseUI.lua`);
+        console.log(`📦 File size: ${sizeKB} KB`);
+    } catch (err) {
+        console.error(`❌ Failed to write RvrseUI.lua: ${err.message}`);
+        process.exit(1);
+    }
+}
+
+build();

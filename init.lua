@@ -48,6 +48,7 @@ local Elements = {
 	Label = require(script.src.Elements.Label),
 	Paragraph = require(script.src.Elements.Paragraph),
 	Divider = require(script.src.Elements.Divider),
+	FilterableList = require(script.src.Elements.FilterableList),
 	DropdownLegacy = require(script.src.Elements.DropdownLegacy)
 }
 

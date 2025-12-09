@@ -166,6 +166,10 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		return Elements.ColorPicker.Create(o, getElementDeps())
 	end
 
+	function SectionAPI:CreateFilterableList(o)
+		return Elements.FilterableList.Create(o, getElementDeps())
+	end
+
 	-- Section utility methods
 	function SectionAPI:Update(newTitle)
 		sectionLabel.Text = newTitle or sectionTitle

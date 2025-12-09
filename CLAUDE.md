@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.3.20)
+# RvrseUI – Maintainer Notes (v4.4.0)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -731,7 +731,7 @@ git push origin main
   - Creates `DEFAULT_HOST` ScreenGui (DisplayOrder = 999)
   - Creates `DEFAULT_OVERLAY` Frame (ZIndex = 20000) via inline code (Overlay module not used in bootstrap)
   - Initializes Notifications, Hotkeys, WindowManager
-  - Sets up Elements table with all 10 element types
+  - Sets up Elements table with all 11 element types
 - The compiled `RvrseUI.lua` is standalone: safe to `loadstring()` without external dependencies.
 - Any edits in `src/` or `init.lua` must be followed by `lua tools/build.lua` to keep the monolith aligned.
 - **NEVER patch `RvrseUI.lua` directly** - it will be overwritten on next build.
@@ -806,7 +806,7 @@ RvrseUI:CreateWindow({
   - Modules: Theme, Animator, State, Config, UIHelpers, Icons, etc.
   - Services: UserInputService, GuiService, RunService, TweenService, HttpService
   - Builders: TabBuilder, SectionBuilder, WindowBuilder
-  - Elements: Table of all 10 element constructors
+  - Elements: Table of all 11 element constructors
   - OverlayLayer: Reference to overlay Frame
 - **In the monolith**, deps is constructed inline in `RvrseUI:CreateWindow()` (build scripts lines 247-269).
 - **NEVER use global lookups** in modules - always accept dependencies via Initialize or function parameters.
@@ -980,20 +980,20 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2025-10-22 (v4.3.20 - CI Hotfix)
+**Last Updated:** 2025-12-09 (v4.4.0 - FilterableList Element)
 
 ---
 
 ## 📊 Module Statistics
 
-- **Total Modules:** 30 (Lucide + Particles pipeline finalized in v4.3.0)
+- **Total Modules:** 31 (FilterableList added in v4.4.0)
   - Foundation: 3 (Version, Debug, Obfuscation)
   - Visual Data: 4 (Theme, Icons, LucideIcons, lucide-icons-data)
   - Core Systems: 3 (Animator, State, UIHelpers)
   - Services: 6 (Config, WindowManager, Overlay, Notifications, Hotkeys, KeySystem)
   - Visual FX: 1 (Particles)
-  - Elements: 10 (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider)
+  - Elements: 11 (Button, Toggle, Dropdown, Slider, Keybind, TextBox, ColorPicker, Label, Paragraph, Divider, FilterableList)
   - Builders: 3 (SectionBuilder, TabBuilder, WindowBuilder)
-- **Element Count:** 10 UI elements
-- **Total Lines (compiled):** ~6,000 lines in RvrseUI.lua
-- **File Size:** ~434 KB (RvrseUI.lua monolith)
+- **Element Count:** 11 UI elements
+- **Total Lines (compiled):** ~6,500 lines in RvrseUI.lua
+- **File Size:** ~450 KB (RvrseUI.lua monolith)
