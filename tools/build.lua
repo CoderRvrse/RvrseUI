@@ -61,6 +61,42 @@ local PlayerGui = LP:WaitForChild("PlayerGui")
 local Mouse = LP:GetMouse()
 
 local RvrseUI = {}
+
+-- ============================================
+-- MODULE FORWARD DECLARATIONS
+-- (Ensures all modules are in scope for all executor environments)
+-- ============================================
+local Version = {}
+local Debug = {}
+local Obfuscation = {}
+local Icons = {}
+local LucideIcons = {}
+local Theme = {}
+local Animator = {}
+local State = {}
+local UIHelpers = {}
+local Config = {}
+local WindowManager = {}
+local Hotkeys = {}
+local Notifications = {}
+local Overlay = {}
+local KeySystem = {}
+local Particles = {}
+local Button = {}
+local Toggle = {}
+local Dropdown = {}
+local Slider = {}
+local Keybind = {}
+local TextBox = {}
+local ColorPicker = {}
+local Label = {}
+local Paragraph = {}
+local Divider = {}
+local FilterableList = {}
+local SectionBuilder = {}
+local TabBuilder = {}
+local WindowBuilder = {}
+local Elements = {}
 ]]
 
 local INIT_SECTION = [[
@@ -494,7 +530,8 @@ end
 
 local function sanitizeModule(modulePath, contents)
     contents = contents:gsub("^%-%-[^\n]*\n", "")
-    contents = contents:gsub("^local ([A-Z][A-Za-z0-9_]*) = %{%}", "%1 = {}")
+    -- Comment out module declarations since they're pre-declared at file top
+    contents = contents:gsub("^local ([A-Z][A-Za-z0-9_]*) = %{%}", "-- [Using pre-declared %1]")
     contents = contents:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
     contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
 

@@ -1,5 +1,5 @@
 -- RvrseUI v4.4.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2025-12-09T22:04:15.699Z
+-- Compiled from modular architecture on 2025-12-09T22:15:27.683Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -24,6 +24,42 @@ local Mouse = LP:GetMouse()
 
 local RvrseUI = {}
 
+-- ============================================
+-- MODULE FORWARD DECLARATIONS
+-- (Ensures all modules are in scope for all executor environments)
+-- ============================================
+local Version = {}
+local Debug = {}
+local Obfuscation = {}
+local Icons = {}
+local LucideIcons = {}
+local Theme = {}
+local Animator = {}
+local State = {}
+local UIHelpers = {}
+local Config = {}
+local WindowManager = {}
+local Hotkeys = {}
+local Notifications = {}
+local Overlay = {}
+local KeySystem = {}
+local Particles = {}
+local Button = {}
+local Toggle = {}
+local Dropdown = {}
+local Slider = {}
+local Keybind = {}
+local TextBox = {}
+local ColorPicker = {}
+local Label = {}
+local Paragraph = {}
+local Divider = {}
+local FilterableList = {}
+local SectionBuilder = {}
+local TabBuilder = {}
+local WindowBuilder = {}
+local Elements = {}
+
 
 -- ========================
 -- Version Module
@@ -34,8 +70,7 @@ local RvrseUI = {}
 -- Handles version metadata and version comparison
 -- Extracted from RvrseUI.lua (lines 22-54)
 
-Version = {}
-
+-- [Using pre-declared Version]
 Version.Data = {
 	Major = 4,
 	Minor = 4,
@@ -95,8 +130,7 @@ setmetatable(Version, {
 -- Handles debug logging with conditional output
 -- Extracted from RvrseUI.lua (lines 17, 60-64)
 
-Debug = {}
-
+-- [Using pre-declared Debug]
 Debug.Enabled = false  -- Global debug toggle (disabled by default for production)
 Debug.enabled = Debug.Enabled  -- Back-compat alias for legacy references
 
@@ -152,8 +186,7 @@ end
 -- 4. Reverse engineering attempts
 -- Extracted from RvrseUI.lua (lines 75-149)
 
-Obfuscation = {}
-
+-- [Using pre-declared Obfuscation]
 Obfuscation._seed = tick() * math.random(1, 999999)  -- Unique seed per session
 Obfuscation._cache = {}  -- Cache generated names to avoid duplicates
 
@@ -259,8 +292,7 @@ end
 -- Extracted from RvrseUI.lua (lines 548-756)
 -- Now supports Lucide icons via lucide:// protocol
 
-Icons = {}
-
+-- [Using pre-declared Icons]
 -- Dependencies (injected via Initialize)
 local deps
 
@@ -563,8 +595,7 @@ end
 -- Professional Lucide icon integration using sprite sheets (Rayfield pattern)
 -- Provides 500+ pixel-perfect icons via ImageRectOffset/ImageRectSize
 
-LucideIcons = {}
-
+-- [Using pre-declared LucideIcons]
 -- Dependencies (injected via Initialize)
 local deps
 
@@ -908,8 +939,7 @@ _G.RvrseUI_LucideIconsData = {["48px"]={rewind={16898613699,{48,48},{563,967}},f
 -- Next-gen vibrant design system with stunning gradients and modern aesthetics
 -- Complete redesign - removed Light theme, focusing on one amazing dark experience
 
-Theme = {}
-
+-- [Using pre-declared Theme]
 -- 🎨 REVOLUTIONARY COLOR PALETTE - Cyberpunk Neon meets Modern Minimalism
 Theme.Palettes = {
 	Dark = {
@@ -1110,8 +1140,7 @@ end
 
 local TweenService = game:GetService("TweenService")
 
-Animator = {}
-
+-- [Using pre-declared Animator]
 -- 🎬 Advanced spring animation presets - Ultra smooth and responsive
 Animator.Spring = {
 	-- Ultra-smooth for premium feel
@@ -1329,8 +1358,7 @@ end
 -- Handles global state management including locks and flags
 -- Extracted from RvrseUI.lua (lines 57, 900-914, 1287-1288)
 
-State = {}
-
+-- [Using pre-declared State]
 -- Global flag storage for all elements
 State.Flags = {}
 
@@ -1401,8 +1429,7 @@ end
 
 local TweenService = game:GetService("TweenService")
 
-UIHelpers = {}
-
+-- [Using pre-declared UIHelpers]
 -- Convert string or EnumItem to KeyCode
 function UIHelpers.coerceKeycode(k)
 	if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
@@ -1598,8 +1625,7 @@ end
 --    theme cache preservation, last-profile parsing).
 -- ============================================
 
-Config = {}
-
+-- [Using pre-declared Config]
 -- Module dependencies (injected on initialization)
 local State = nil
 local Theme = nil
@@ -2322,8 +2348,7 @@ local CoreGui = game:GetService("CoreGui")
 local LP = Players.LocalPlayer
 local PlayerGui = LP:WaitForChild("PlayerGui")
 
-WindowManager = {}
-
+-- [Using pre-declared WindowManager]
 -- Initialize the WindowManager with dependencies
 function WindowManager:Init(obfuscatedNames)
 	self._host = nil
@@ -2452,7 +2477,7 @@ end
 
 local UIS = game:GetService("UserInputService")
 
-Hotkeys = {}
+-- [Using pre-declared Hotkeys]
 Hotkeys.UI = {
 	_toggleTargets = {},
 	_windowData = {},
@@ -2619,8 +2644,7 @@ end
 -- Extracted from RvrseUI.lua (lines 1066-1179)
 -- Provides toast notification system with animations and priority support
 
-Notifications = {}
-
+-- [Using pre-declared Notifications]
 -- Helper functions (must be passed as dependencies)
 local corner, stroke
 
@@ -2881,7 +2905,7 @@ end
 -- and modal dimming. Ensures a single overlay host is reused and
 -- exposes helpers to show/hide the global blocker.
 
-Overlay = {}
+-- [Using pre-declared Overlay]
 Overlay._initialized = false
 
 local function setLayerVisibility(layer)
@@ -3158,7 +3182,7 @@ end
 -- Advanced key validation system with multiple authentication methods
 -- Supports: String keys, Remote keys, HWID whitelist, Discord webhooks
 
-KeySystem = {}
+-- [Using pre-declared KeySystem]
 local deps
 
 function KeySystem:Initialize(dependencies)
@@ -3904,7 +3928,7 @@ end
 -- RvrseUI "Spore Bubble" Particle System
 -- GPU-cheap organic particle effects with Perlin noise drift
 
-Particles = {}
+-- [Using pre-declared Particles]
 local deps
 
 -- Configuration
@@ -3929,7 +3953,7 @@ local lastFrameTime = 0
 local adaptiveDensityMultiplier = 1
 
 -- Perlin noise implementation (3D)
-PerlinNoise = {}
+-- [Using pre-declared PerlinNoise]
 local permutation = {}
 
 -- Initialize Perlin permutation table
@@ -4498,8 +4522,7 @@ end
 -- Next-gen vibrant button with gradient background and glow effects
 -- Complete redesign for RvrseUI v4.0
 
-Button = {}
-
+-- [Using pre-declared Button]
 function Button.Create(o, dependencies)
 	o = o or {}
 
@@ -4868,8 +4891,7 @@ end
 -- Switch-style toggle with vibrant gradient track
 -- Complete redesign for RvrseUI v4.0
 
-Toggle = {}
-
+-- [Using pre-declared Toggle]
 function Toggle.Create(o, dependencies)
 	o = o or {}
 
@@ -5118,8 +5140,7 @@ end
 -- Modern multi-select overlay dropdown system (unified as of v4.1.0)
 -- Users can select multiple items or just one by clicking once
 
-Dropdown = {}
-
+-- [Using pre-declared Dropdown]
 function Dropdown.Create(o, dependencies)
 	o = o or {}
 
@@ -6016,8 +6037,7 @@ end
 -- Gradient-filled slider with glowing thumb
 -- Complete redesign for RvrseUI v4.0
 
-Slider = {}
-
+-- [Using pre-declared Slider]
 function Slider.Create(o, dependencies)
 	o = o or {}
 
@@ -6328,8 +6348,7 @@ end
 -- Modern keybind with gradient highlight when capturing
 -- Complete redesign for RvrseUI v4.0
 
-Keybind = {}
-
+-- [Using pre-declared Keybind]
 function Keybind.Create(o, dependencies)
 	o = o or {}
 
@@ -6529,8 +6548,7 @@ end
 -- Modern input with glowing underline and gradient focus
 -- Complete redesign for RvrseUI v4.0
 
-TextBox = {}
-
+-- [Using pre-declared TextBox]
 function TextBox.Create(o, dependencies)
 	o = o or {}
 
@@ -6723,8 +6741,7 @@ end
 -- Advanced color picker with RGB/HSV sliders, hex input, and live preview
 -- Supports both simple mode (preset colors) and advanced mode (full RGB/HSV control)
 
-ColorPicker = {}
-
+-- [Using pre-declared ColorPicker]
 -- Helper: Convert RGB to HSV
 local function RGBtoHSV(r, g, b)
 	r, g, b = r / 255, g / 255, b / 255
@@ -7477,8 +7494,7 @@ end
 -- Clean label with optional gradient text
 -- Minimal redesign for RvrseUI v4.0
 
-Label = {}
-
+-- [Using pre-declared Label]
 function Label.Create(o, dependencies)
 	o = o or {}
 
@@ -7679,8 +7695,7 @@ end
 -- Part of RvrseUI v2.13.0 Modular Architecture
 -- Extracted from RvrseUI.lua (lines 3560-3601)
 
-Paragraph = {}
-
+-- [Using pre-declared Paragraph]
 function Paragraph.Create(o, dependencies)
 	o = o or {}
 
@@ -7740,8 +7755,7 @@ end
 -- Part of RvrseUI v2.13.0 Modular Architecture
 -- Extracted from RvrseUI.lua (lines 3604-3624)
 
-Divider = {}
-
+-- [Using pre-declared Divider]
 function Divider.Create(o, dependencies)
 	o = o or {}
 
@@ -7779,8 +7793,7 @@ end
 -- Live-filterable scrollable list with search input
 -- Designed for item fetchers, player lists, teleport locations, etc.
 
-FilterableList = {}
-
+-- [Using pre-declared FilterableList]
 function FilterableList.Create(o, dependencies)
 	o = o or {}
 
@@ -8347,8 +8360,7 @@ end
 -- Extracted from RvrseUI.lua (lines 2664-2803)
 -- Part of RvrseUI v2.13.0 Modular Architecture
 
-SectionBuilder = {}
-
+-- [Using pre-declared SectionBuilder]
 -- Creates a Section with all element creation methods
 -- Dependencies required:
 --   - Theme: Theme module
@@ -8549,8 +8561,7 @@ end
 -- Extracted from RvrseUI.lua (lines 2518-2806)
 -- Part of RvrseUI v2.13.0 Modular Architecture
 
-TabBuilder = {}
-
+-- [Using pre-declared TabBuilder]
 -- Creates a Tab with CreateSection method
 -- Dependencies required:
 --   - Theme: Theme module
@@ -8866,8 +8877,7 @@ end
 -- Creates and manages the main window structure
 -- This is the largest module, responsible for building the entire UI hierarchy
 
-WindowBuilder = {}
-
+-- [Using pre-declared WindowBuilder]
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles
