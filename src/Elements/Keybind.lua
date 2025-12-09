@@ -177,6 +177,19 @@ function Keybind.Create(o, dependencies)
 		RvrseUI.Flags[o.Flag] = keybindAPI
 	end
 
+	-- Register for global search
+	local registerSearchableElement = dependencies.registerSearchableElement
+	if registerSearchableElement then
+		registerSearchableElement({
+			text = o.Text or "Keybind",
+			icon = o.Icon,
+			elementType = "Keybind",
+			path = (dependencies.tabTitle or "Tab") .. " > " .. (dependencies.sectionTitle or "Section"),
+			frame = f,
+			tabData = dependencies.tabData
+		})
+	end
+
 	return keybindAPI
 end
 

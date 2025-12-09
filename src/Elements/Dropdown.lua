@@ -874,6 +874,19 @@ function Dropdown.Create(o, dependencies)
 		RvrseUI.Flags[o.Flag] = dropdownAPI
 	end
 
+	-- Register for global search
+	local registerSearchableElement = dependencies.registerSearchableElement
+	if registerSearchableElement then
+		registerSearchableElement({
+			text = o.Text or "Dropdown",
+			icon = o.Icon,
+			elementType = "Dropdown",
+			path = (dependencies.tabTitle or "Tab") .. " > " .. (dependencies.sectionTitle or "Section"),
+			frame = f,
+			tabData = dependencies.tabData
+		})
+	end
+
 	return dropdownAPI
 end
 

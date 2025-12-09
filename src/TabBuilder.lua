@@ -293,7 +293,13 @@ function TabBuilder.CreateTab(t, dependencies)
 
 	-- CreateSection method delegates to SectionBuilder
 	function TabAPI:CreateSection(sectionTitle)
-		return SectionBuilder.CreateSection(sectionTitle, page, dependencies)
+		-- Add tab title to dependencies for search indexing
+		local sectionDeps = {}
+		for k, v in pairs(dependencies) do
+			sectionDeps[k] = v
+		end
+		sectionDeps.tabTitle = tabText
+		return SectionBuilder.CreateSection(sectionTitle, page, sectionDeps)
 	end
 
 	return TabAPI

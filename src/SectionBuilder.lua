@@ -55,6 +55,7 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local RvrseUI = dependencies.RvrseUI
 	local overlayLayer = dependencies.OverlayLayer
 	local overlayService = dependencies.Overlay
+	local registerSearchableElement = dependencies.registerSearchableElement
 
 	local pal3 = Theme:Get()
 	local isLightTheme = Theme and Theme.Current == "Light"
@@ -119,7 +120,10 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 			gradient = gradient,
 			shadow = shadow,
 			OverlayLayer = overlayLayer,
-			Overlay = overlayService
+			Overlay = overlayService,
+			registerSearchableElement = registerSearchableElement,
+			sectionTitle = sectionTitle,
+			tabTitle = dependencies.tabTitle
 		}
 	end
 

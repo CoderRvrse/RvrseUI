@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 4,
-    "patch": 0,
-    "full": "4.4.0",
-    "build": "20251209a",
-    "hash": "F1L7R4B9",
+    "patch": 1,
+    "full": "4.4.1",
+    "build": "20251209b",
+    "hash": "G2S8R5C1",
     "channel": "Stable"
   },
   "release": {
     "date": "2025-12-09",
-    "name": "Live Filter",
-    "codename": "Dynamic Lists",
-    "notes": "Added FilterableList element for live-filterable scrollable lists with search input - perfect for item fetchers, player lists, teleport locations."
+    "name": "Global Search",
+    "codename": "Quick Find",
+    "notes": "Added global search to window header - press Ctrl+F or click the search button to find any element across all tabs and sections instantly."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -38,9 +38,21 @@
     "complete_elements": true,
     "configuration_saving": true,
     "auto_save": true,
-    "dynamic_obfuscation": true
+    "dynamic_obfuscation": true,
+    "global_search": true
   },
   "changelog": {
+    "4.4.1": {
+      "date": "2025-12-09",
+      "hash": "G2S8R5C1",
+      "changes": [
+        "🔍 NEW: Global Search - Search button in window header with Ctrl+F keyboard shortcut!",
+        "⚡ Real-time search across all tabs, sections, and elements with debounced input",
+        "🎯 Click search results to navigate directly to the element and highlight it",
+        "📋 Results show element type, path (Tab > Section), and icon preview",
+        "⌨️ Press Escape to close search overlay"
+      ]
+    },
     "4.4.0": {
       "date": "2025-12-09",
       "hash": "F1L7R4B9",

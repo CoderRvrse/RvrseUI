@@ -730,6 +730,19 @@ function ColorPicker.Create(o, dependencies)
 		RvrseUI.Flags[o.Flag] = colorpickerAPI
 	end
 
+	-- Register for global search
+	local registerSearchableElement = dependencies.registerSearchableElement
+	if registerSearchableElement then
+		registerSearchableElement({
+			text = o.Text or "ColorPicker",
+			icon = o.Icon,
+			elementType = "ColorPicker",
+			path = (dependencies.tabTitle or "Tab") .. " > " .. (dependencies.sectionTitle or "Section"),
+			frame = f,
+			tabData = dependencies.tabData
+		})
+	end
+
 	return colorpickerAPI
 end
 

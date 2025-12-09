@@ -288,6 +288,19 @@ function Slider.Create(o, dependencies)
 		RvrseUI.Flags[o.Flag] = sliderAPI
 	end
 
+	-- Register for global search
+	local registerSearchableElement = dependencies.registerSearchableElement
+	if registerSearchableElement then
+		registerSearchableElement({
+			text = o.Text or "Slider",
+			icon = o.Icon,
+			elementType = "Slider",
+			path = (dependencies.tabTitle or "Tab") .. " > " .. (dependencies.sectionTitle or "Section"),
+			frame = f,
+			tabData = dependencies.tabData
+		})
+	end
+
 	return sliderAPI
 end
 

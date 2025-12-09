@@ -345,6 +345,20 @@ function Button.Create(o, dependencies)
 		RvrseUI.Flags[o.Flag] = buttonAPI
 	end
 
+	-- Register for global search
+	local registerSearchableElement = dependencies.registerSearchableElement
+	if registerSearchableElement then
+		registerSearchableElement({
+			text = o.Text or "Button",
+			icon = o.Icon,
+			elementType = "Button",
+			path = (dependencies.tabTitle or "Tab") .. " > " .. (dependencies.sectionTitle or "Section"),
+			frame = f,
+			callback = o.Callback,
+			tabData = dependencies.tabData
+		})
+	end
+
 	return buttonAPI
 end
 

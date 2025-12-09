@@ -1,5 +1,53 @@
 # RvrseUI Releases
 
+## Version 4.4.1 "Quick Find" - Global Search
+**Release Date**: December 9, 2025  
+**Build**: 20251209b  
+**Hash**: `G2S8R5C1`  
+**Channel**: Stable
+
+### Highlights
+- **Global Search**: Added a search button to the window header (next to minimize) with Ctrl+F keyboard shortcut!
+- Real-time search across all tabs, sections, and elements with debounced input.
+- Click search results to navigate directly to the element and highlight it.
+- Results show element type, path (Tab > Section), and icon preview.
+- Press Escape to close the search overlay.
+
+### 📊 Technical Details
+```lua
+Version = {
+  Major = 4,
+  Minor = 4,
+  Patch = 1,
+  Build = "20251209b",
+  Full = "4.4.1",
+  Hash = "G2S8R5C1",
+  Channel = "Stable"
+}
+```
+
+### Verification Checklist
+- Search button visible in window header (magnifying glass icon).
+- Ctrl+F opens search overlay.
+- Typing filters all elements across all tabs.
+- Clicking a result navigates to and highlights the element.
+- Escape closes the search.
+
+---
+
+## Version 4.4.0 "Dynamic Lists" - Live Filter
+**Release Date**: December 9, 2025  
+**Build**: 20251209a  
+**Hash**: `F1L7R4B9`  
+**Channel**: Stable
+
+### Highlights
+- **NEW ELEMENT**: FilterableList - Live-filterable scrollable lists with real-time search!
+- Built-in search input with debounced filtering.
+- Perfect for item fetchers, player lists, teleport locations.
+
+---
+
 ## Version 4.3.31 "Holo Brand" - Iconic Identity
 **Release Date**: December 2, 2025  
 **Build**: 20251202e  
