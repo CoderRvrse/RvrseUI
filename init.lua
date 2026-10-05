@@ -243,6 +243,24 @@ end
 
 -- Create Window (main entry point)
 function RvrseUI:CreateWindow(cfg)
+	-- Closing the last window removes the host; build a fresh one for new windows
+	if not host or not host.Parent then
+		host = Instance.new("ScreenGui")
+		host.Name = Obfuscation.getObfuscatedName("gui")
+		host.ResetOnSpawn = false
+		host.IgnoreGuiInset = true
+		host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		host.DisplayOrder = 100
+		host.Parent = PlayerGui
+
+		Notifications:Initialize({
+			host = host,
+			Theme = Theme,
+			Animator = Animator,
+			UIHelpers = UIHelpers,
+			Icons = Icons
+		})
+	end
 	return WindowBuilder:CreateWindow(self, cfg, host)
 end
 
@@ -376,20 +394,27 @@ function RvrseUI:GetTokenIcon()
 	return self._tokenIcon, self._tokenIconColor, self._tokenIconFallback
 end
 
--- Destroy all UI
+-- Destroy all UI: close every window (each fires its OnClose callbacks and
+-- releases what it started; the last one also removes the shared host, overlay,
+-- hotkeys and particle loop). With no window open, remove those pieces now.
 function RvrseUI:Destroy()
-	if host and host.Parent then
-		host:Destroy()
+	local open = {}
+	for _, window in ipairs(self._windows) do
+		table.insert(open, window)
 	end
-
-	if self.UI._toggleTargets then
-		table.clear(self.UI._toggleTargets)
+	for _, window in ipairs(open) do
+		if type(window) == "table" and type(window.Destroy) == "function" then
+			window:Destroy("rvrseui-destroy")
+		end
 	end
-	if self._lockListeners then
-		table.clear(self._lockListeners)
-	end
-	if self._themeListeners then
-		table.clear(self._themeListeners)
+	if #open == 0 then
+		WindowBuilder:TeardownShared({
+			RvrseUI = self,
+			Host = host,
+			Overlay = Overlay,
+			Hotkeys = Hotkeys,
+			Particles = Particles
+		})
 	end
 
 	print("[RvrseUI] All interfaces destroyed")

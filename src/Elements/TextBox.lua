@@ -14,6 +14,7 @@ function TextBox.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local addLockListener = dependencies.addLockListener or function(fn) table.insert(RvrseUI._lockListeners, fn) return fn end
 	local Theme = dependencies.Theme
 	local isLightTheme = Theme and Theme.Current == "Light"
 	local baseTransparency = isLightTheme and 0 or 0.3
@@ -134,7 +135,7 @@ function TextBox.Create(o, dependencies)
 		if o.Flag then RvrseUI:_autoSave() end
 	end)
 
-	table.insert(RvrseUI._lockListeners, function()
+	addLockListener(function()
 		local locked = RvrseUI.Store:IsLocked(o.RespectLock)
 		lbl.TextTransparency = locked and 0.5 or 0
 		inputBox.TextEditable = not locked

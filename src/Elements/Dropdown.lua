@@ -14,6 +14,8 @@ function Dropdown.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local trackCleanup = dependencies.track or function(item) return item end -- window cleanup (v4.5.0)
+	local addLockListener = dependencies.addLockListener or function(fn) table.insert(RvrseUI._lockListeners, fn) return fn end
 	local UIS = dependencies.UIS
 	local baseOverlayLayer = dependencies.OverlayLayer
 	local OverlayService = dependencies.Overlay
@@ -137,6 +139,7 @@ function Dropdown.Create(o, dependencies)
 			hostGui.DisplayOrder = maxDisplayOrder + 1000  -- Always on top
 			hostGui.Parent = playerGui
 			fallbackOverlayGui = hostGui
+			trackCleanup(hostGui)
 
 			if dependencies.Debug and dependencies.Debug.IsEnabled() then
 				dependencies.Debug.printf("[Dropdown] Created fallback ScreenGui with DisplayOrder=%d (max was %d)",
@@ -216,6 +219,7 @@ function Dropdown.Create(o, dependencies)
 	dropdownList.Parent = f
 	corner(dropdownList, 8)
 	stroke(dropdownList, pal3.Accent, 1)
+	trackCleanup(dropdownList) -- lives in the overlay layer while open; must go with the window
 
 	local dropdownScroll = Instance.new("ScrollingFrame")
 	dropdownScroll.BackgroundTransparency = 1
@@ -748,7 +752,7 @@ function Dropdown.Create(o, dependencies)
 	end)
 
 	-- Close when clicking outside (inline mode)
-	UIS.InputBegan:Connect(function(input)
+	trackCleanup(UIS.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if not dropdownOpen then return end
 			if currentOverlayLayer() then return end
@@ -774,7 +778,7 @@ function Dropdown.Create(o, dependencies)
 				setOpen(false)
 			end
 		end
-	end)
+	end))
 
 	btn.MouseEnter:Connect(function()
 		if not locked() then
@@ -787,7 +791,7 @@ function Dropdown.Create(o, dependencies)
 		end
 	end)
 
-	table.insert(RvrseUI._lockListeners, visual)
+	addLockListener(visual)
 
 	f.Destroying:Connect(function()
 		if dropdownOpen then

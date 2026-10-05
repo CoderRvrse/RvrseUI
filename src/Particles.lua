@@ -553,6 +553,33 @@ function Particles:Stop(fastFade)
 	end
 end
 
+function Particles:GetLayer()
+	return particleLayer
+end
+
+-- Full stop for when the last window closes: disconnect the Heartbeat loop and
+-- destroy every particle (active and pooled) so nothing is left running.
+-- Play() reconnects on the next window.
+function Particles:Teardown()
+	isPlaying = false
+	if updateConnection then
+		updateConnection:Disconnect()
+		updateConnection = nil
+	end
+	for i = #activeParticles, 1, -1 do
+		local inst = activeParticles[i].instance
+		if inst then
+			inst:Destroy()
+		end
+		activeParticles[i] = nil
+	end
+	for i = #particlePool, 1, -1 do
+		particlePool[i]:Destroy()
+		particlePool[i] = nil
+	end
+	particleLayer = nil
+end
+
 function Particles:SetState(state)
 	currentState = state or "idle"
 

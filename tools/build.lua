@@ -29,24 +29,27 @@ local Modules = {
     "src/Elements/Label.lua",
     "src/Elements/Paragraph.lua",
     "src/Elements/Divider.lua",
+    "src/Elements/FilterableList.lua",
     "src/SectionBuilder.lua",
     "src/TabBuilder.lua",
     "src/WindowBuilder.lua"
 }
 
-local HEADER = [[-- RvrseUI v4.3.20 | Modern Professional UI Framework
+local HEADER = [[-- RvrseUI v4.5.0 | Modern Professional UI Framework
 -- Compiled from modular architecture on ]] .. os.date("!%Y-%m-%dT%H:%M:%SZ") .. [[
 
--- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations
--- API: CreateWindow → CreateTab → CreateSection → {All 10 Elements}
+
+-- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
+-- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
 -- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
--- 🏗️ ARCHITECTURE: This file is compiled from 30 modular files
+-- 🏗️ ARCHITECTURE: This file is compiled from 31 modular files
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 ]]
 
 local SERVICES = [[
+
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -63,6 +66,7 @@ local RvrseUI = {}
 ]]
 
 local INIT_SECTION = [[
+
 -- ============================================
 -- MODULE INITIALIZATION (compiled from init.lua)
 -- ============================================
@@ -112,7 +116,8 @@ Elements = {
     ColorPicker = ColorPicker,
     Label = Label,
     Paragraph = Paragraph,
-    Divider = Divider
+    Divider = Divider,
+    FilterableList = FilterableList
 }
 
 RvrseUI.NotificationsEnabled = true
@@ -171,6 +176,7 @@ Particles:Initialize({
 ]]
 
 local API_SECTION = [[
+
 -- ============================================
 -- MAIN RVRSEUI TABLE & PUBLIC API
 -- ============================================
@@ -344,12 +350,27 @@ function RvrseUI:Notify(options, message, duration, notifType)
 end
 
 function RvrseUI:Destroy()
+    -- Close every window: each fires its OnClose callbacks and releases what it
+    -- started; the last one also removes the shared host, overlay, hotkeys and
+    -- particle loop. With no window open, remove those shared pieces now.
+    local open = {}
     for _, window in ipairs(self._windows) do
-        if window.Destroy then window:Destroy() end
+        table.insert(open, window)
     end
-    if self.UI._toggleTargets then table.clear(self.UI._toggleTargets) end
-    if self._lockListeners then table.clear(self._lockListeners) end
-    if self._themeListeners then table.clear(self._themeListeners) end
+    for _, window in ipairs(open) do
+        if type(window) == "table" and type(window.Destroy) == "function" then
+            window:Destroy("rvrseui-destroy")
+        end
+    end
+    if #open == 0 then
+        WindowBuilder:TeardownShared({
+            RvrseUI = self,
+            Host = DEFAULT_HOST,
+            Overlay = Overlay,
+            Hotkeys = Hotkeys,
+            Particles = Particles
+        })
+    end
     print("[RvrseUI] All interfaces destroyed")
 end
 
@@ -490,20 +511,64 @@ local function writeFile(path, contents)
     file:close()
 end
 
+-- Rewrite s line by line (each line without its "\n"; a CRLF line keeps its "\r").
+-- fn returns the new line, or false to drop the line and its newline.
+-- This is how tools/build.js's /^.../gm regexes behave; keep the two in sync.
+local function mapLines(s, fn)
+    local out = {}
+    local pos = 1
+    while pos <= #s do
+        local nl = s:find("\n", pos, true)
+        local line = nl and s:sub(pos, nl - 1) or s:sub(pos)
+        local replaced = fn(line)
+        if replaced ~= false then
+            table.insert(out, replaced)
+            if nl then
+                table.insert(out, "\n")
+            end
+        end
+        pos = nl and nl + 1 or #s + 1
+    end
+    return table.concat(out)
+end
+
 local function sanitizeModule(modulePath, contents)
-    contents = contents:gsub("^%-%-[^\n]*\n", "")
-    contents = contents:gsub("^local ([A-Z][A-Za-z0-9_]*) = %{%}", "%1 = {}")
-    contents = contents:gsub("^local RvrseUI.-\n", "-- [Removed conflicting local RvrseUI]\n")
-    contents = contents:gsub("\nreturn %u%w*%s*$", "\n")
+    -- Remove the leading header comment line
+    contents = contents:gsub("^%-%-[^\n]*\n", "", 1)
+
+    -- Module tables become shared globals: local Module = {} -> Module = {}
+    contents = mapLines(contents, function(line)
+        return (line:gsub("^local (%u[%w_]*) = {}", "%1 = {}"))
+    end)
+
+    -- Remove conflicting local RvrseUI declarations (build.js's `.*\n` never
+    -- matches a CRLF line, so neither does this)
+    contents = mapLines(contents, function(line)
+        if line:match("^local RvrseUI") and not line:find("\r", 1, true) then
+            return "-- [Removed conflicting local RvrseUI]"
+        end
+        return line
+    end)
+
+    -- Remove the trailing `return Module`
+    contents = contents:gsub("\nreturn %u[%w_]*%s*$", "\n")
 
     if modulePath:match("lucide%-icons%-data%.lua$") then
-        local sanitized = contents:gsub("^return%s*", "")
+        local sanitized = mapLines(contents, function(line)
+            if line:match("^%-%-") then
+                return false
+            end
+            return line
+        end)
+        sanitized = sanitized:gsub("^%s+", ""):gsub("^return%s*", "")
         return "\n-- ========================\n-- lucide-icons-data Module\n-- ========================\n\n_G.RvrseUI_LucideIconsData = " .. sanitized .. "\n"
     end
 
     local moduleName = modulePath:match("([^/]+)%.lua$")
     local marker = "\n-- ========================\n-- " .. moduleName .. " Module\n-- ========================\n\n"
-    return marker .. contents .. "\n"
+    -- Every module runs inside its own do...end block so its private top-level
+    -- locals stay private (see the matching comment in tools/build.js).
+    return marker .. "do\n" .. contents:gsub("%s+$", "") .. "\nend\n"
 end
 
 local function build()

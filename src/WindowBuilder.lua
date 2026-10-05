@@ -46,6 +46,15 @@ end
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
 
+	-- Closing the last window tears the shared services down (no trace left);
+	-- bring them back if this script opens a new window afterwards.
+	if Overlay and Overlay.Revive then
+		Overlay:Revive()
+	end
+	if Hotkeys and Hotkeys.Init then
+		Hotkeys:Init()
+	end
+
 	-- ============================================
 	-- KEY SYSTEM VALIDATION (BLOCKING)
 	-- ============================================
@@ -71,7 +80,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				CreateColorPicker = function() return {} end,
 				CreateLabel = function() return {} end,
 				CreateParagraph = function() return {} end,
-				CreateDivider = function() return {} end
+				CreateDivider = function() return {} end,
+				CreateFilterableList = function() return {} end
 			}
 			local DummyTab = {
 				CreateSection = function() return DummySection end
@@ -82,7 +92,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				Destroy = function() end,
 				SetTheme = function() end,
 				Minimize = function() end,
-				Restore = function() end
+				Restore = function() end,
+				OnClose = function() end,
+				Track = function(_, item) return item end,
+				IsDestroyed = function() return true end
 			}
 			warn("[RvrseUI] Key validation failed - Window creation blocked")
 			return DummyWindow
@@ -92,6 +105,99 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	local overlayLayer = Overlay and Overlay:GetLayer() or OverlayLayer
+
+	-- ============================================
+	-- LIFECYCLE (v4.5.0)
+	-- Everything this window starts — global input/Heartbeat listeners, overlay
+	-- panels, lock listeners, and whatever the script hands to Window:Track() —
+	-- is registered here and released by ONE teardown, however the window
+	-- closes: X button, Window:Destroy(), RvrseUI:Destroy() or the destroy key.
+	-- ============================================
+	local Lifecycle = {
+		destroyed = false,
+		reason = nil,
+		turnOffToggles = cfg.TurnOffTogglesOnClose == true,
+		_items = {},
+		_closeCallbacks = {},
+		_toggleOffs = {},
+	}
+
+	local function releaseItem(item)
+		local kind = typeof(item)
+		if kind == "RBXScriptConnection" then
+			if item.Connected then
+				item:Disconnect()
+			end
+		elseif kind == "Instance" then
+			item:Destroy()
+		elseif kind == "thread" then
+			if item ~= coroutine.running() and coroutine.status(item) ~= "dead" then
+				task.cancel(item)
+			end
+		elseif kind == "function" then
+			item()
+		elseif kind == "table" then
+			if type(item.Disconnect) == "function" then
+				item:Disconnect()
+			elseif type(item.Destroy) == "function" then
+				item:Destroy()
+			end
+		end
+	end
+
+	-- Track a connection, Instance, thread, cleanup function, or any object with
+	-- :Disconnect()/:Destroy(). Released when the window closes (immediately if
+	-- it already has).
+	function Lifecycle:Track(item)
+		if item == nil then
+			return item
+		end
+		if self.destroyed then
+			local ok, err = pcall(releaseItem, item)
+			if not ok then
+				warn("[RvrseUI] cleanup error:", err)
+			end
+			return item
+		end
+		table.insert(self._items, item)
+		return item
+	end
+
+	-- Add fn to a shared listener list (e.g. RvrseUI._lockListeners) and take it
+	-- back out when this window closes, so other windows never call into it.
+	function Lifecycle:AddListener(list, fn)
+		table.insert(list, fn)
+		self:Track(function()
+			local index = table.find(list, fn)
+			if index then
+				table.remove(list, index)
+			end
+		end)
+		return fn
+	end
+
+	-- Toggles register how to switch themselves off (used by TurnOffTogglesOnClose)
+	function Lifecycle:RegisterToggleOff(fn)
+		table.insert(self._toggleOffs, fn)
+	end
+
+	function Lifecycle:ReleaseAll()
+		local items = self._items
+		self._items = {}
+		for i = #items, 1, -1 do
+			local ok, err = pcall(releaseItem, items[i])
+			if not ok then
+				warn("[RvrseUI] cleanup error:", err)
+			end
+		end
+	end
+
+	if type(cfg.OnClose) == "function" then
+		table.insert(Lifecycle._closeCallbacks, cfg.OnClose)
+	end
+
+	local teardownWindow -- assigned once the window is built (forward-declared for the X button)
+	local windowCustomHost = nil -- ScreenGui made for cfg.Container; removed with the window
 
 	Debug.printf("=== CREATEWINDOW THEME DEBUG ===")
 
@@ -233,7 +339,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		if containerTarget then
 			customHost.Parent = containerTarget
 			windowHost = customHost
-			table.insert(RvrseUI._windows, {host = customHost})
+			windowCustomHost = customHost
 			Debug.printf("Container set to:", cfg.Container)
 		else
 			warn("[RvrseUI] Invalid container specified, using default PlayerGui")
@@ -619,11 +725,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end)
 
 	-- Update position during drag
-	UIS.InputChanged:Connect(function(input)
+	Lifecycle:Track(UIS.InputChanged:Connect(function(input)
 		if input == dragInput and dragging then
 			updateWindowPosition(input)
 		end
-	end)
+	end))
 
 	-- Icon
 	local iconHolder = Instance.new("Frame")
@@ -715,29 +821,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end)
 
 	closeBtn.MouseButton1Click:Connect(function()
-		if Overlay then
-			Overlay:HideBlocker(true)
-		end
 		Animator:Ripple(closeBtn, 16, 16)
-		Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
-
-		task.wait(0.3)
-
-		if host and host.Parent then
-			host:Destroy()
-		end
-
-		if RvrseUI.UI._toggleTargets then
-			table.clear(RvrseUI.UI._toggleTargets)
-		end
-		if RvrseUI._lockListeners then
-			table.clear(RvrseUI._lockListeners)
-		end
-		if RvrseUI._themeListeners then
-			table.clear(RvrseUI._themeListeners)
-		end
-
-		print("[RvrseUI] Interface destroyed - No trace remaining")
+		teardownWindow("close-button")
 	end)
 
 	-- Notification Bell Toggle
@@ -1304,6 +1389,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			shineGradient.Rotation = (shineGradient.Rotation + 2) % 360
 		end
 	end)
+	Lifecycle:Track(shineRotation)
 
 	-- Particle background layer for controller chip (circular, behind icon)
 	local chipParticleLayer = Instance.new("Frame")
@@ -1668,12 +1754,12 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end)
 
 	-- Update position during drag
-	UIS.InputChanged:Connect(function(input)
+	Lifecycle:Track(UIS.InputChanged:Connect(function(input)
 		if input == chipDragInput and chipDragging then
 			chipWasDragged = true  -- Mark as dragged so click doesn't restore
 			updateChipPosition(input)
 		end
-	end)
+	end))
 
 	if RvrseUI._controllerChipPosition then
 		local savedPos = RvrseUI._controllerChipPosition
@@ -1783,33 +1869,111 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return chipIconState.icon, chipIconState.colorOverride, chipIconState.fallback
 	end
 
-	function WindowAPI:Destroy()
+	-- The ONE way a window closes (X button, Window:Destroy(), RvrseUI:Destroy(),
+	-- destroy key). Safe to call any number of times; only the first counts.
+	teardownWindow = function(reason)
+		if Lifecycle.destroyed then
+			return false
+		end
+		Lifecycle.destroyed = true
+		Lifecycle.reason = reason or "destroy"
+		Debug.printf("[LIFECYCLE] Closing window '%s' (%s)", name, Lifecycle.reason)
+
+		-- 1. TurnOffTogglesOnClose / per-toggle TurnOffOnClose: ON toggles run their
+		--    own OnChanged(false) so the script undoes its features. Saved
+		--    configs keep the ON state.
+		for _, turnOff in ipairs(Lifecycle._toggleOffs) do
+			local ok, err = pcall(turnOff, Lifecycle.turnOffToggles)
+			if not ok then
+				warn("[RvrseUI] TurnOffTogglesOnClose error:", err)
+			end
+		end
+
+		-- 2. Tell the script (OnClose callbacks run once each, isolated from each other)
+		for _, callback in ipairs(Lifecycle._closeCallbacks) do
+			task.spawn(function()
+				local ok, err = pcall(callback, Lifecycle.reason)
+				if not ok then
+					warn("[RvrseUI] OnClose callback error:", err)
+				end
+			end)
+		end
+
+		-- 3. Release everything this window started (listeners, loops, panels, script items)
+		Lifecycle:ReleaseAll()
+
+		-- 4. Leave the shared registries (only THIS window)
+		RvrseUI.UI:UnregisterToggleTarget(root)
+		local index = table.find(RvrseUI._windows, WindowAPI)
+		if index then
+			table.remove(RvrseUI._windows, index)
+		end
 		if Overlay then
 			Overlay:HideBlocker(true)
 		end
+		if Particles and Particles.GetLayer then
+			local layer = Particles:GetLayer()
+			if layer == particleLayer or layer == chipParticleLayer then
+				Particles:Stop(true)
+				Particles:SetLayer(nil)
+			end
+		end
+
+		-- 5. Fade out, then remove this window's instances; the last window also
+		--    removes RvrseUI's shared host, overlay, hotkeys and particle loop.
 		Animator:Tween(root, {BackgroundTransparency = 1}, Animator.Spring.Fast)
 		Animator:Tween(chip, {BackgroundTransparency = 1}, Animator.Spring.Fast)
-		task.wait(0.3)
+		task.delay(0.3, function()
+			for _, inst in ipairs({ root, chip, controllerChip, windowCustomHost }) do
+				if inst and inst.Parent then
+					inst:Destroy()
+				end
+			end
+			if WindowBuilder:CountOpenWindows(RvrseUI) == 0 then
+				WindowBuilder:TeardownShared({
+					RvrseUI = RvrseUI,
+					Host = host,
+					Overlay = Overlay,
+					Hotkeys = Hotkeys,
+					Particles = Particles,
+				})
+				print("[RvrseUI] Interface destroyed - No trace remaining")
+			else
+				print("[RvrseUI] Window closed:", name)
+			end
+		end)
+		return true
+	end
 
-		if host and host.Parent then
-			host:Destroy()
-		end
+	-- Close this window. Does not yield; OnClose callbacks fire right away.
+	function WindowAPI:Destroy(reason)
+		teardownWindow(type(reason) == "string" and reason or "destroy")
+	end
 
-		if RvrseUI.UI._toggleTargets then
-			table.clear(RvrseUI.UI._toggleTargets)
+	-- Run callback(reason) once when this window closes, however it closes.
+	-- reason: "close-button" | "destroy" | "destroy-key" | "rvrseui-destroy"
+	function WindowAPI:OnClose(callback)
+		assert(type(callback) == "function", "[RvrseUI] Window:OnClose expects a function")
+		if Lifecycle.destroyed then
+			task.spawn(callback, Lifecycle.reason)
+			return
 		end
-		if RvrseUI._lockListeners then
-			table.clear(RvrseUI._lockListeners)
-		end
-		if RvrseUI._themeListeners then
-			table.clear(RvrseUI._themeListeners)
-		end
+		table.insert(Lifecycle._closeCallbacks, callback)
+	end
 
-		print("[RvrseUI] Interface destroyed - All traces removed")
+	-- Hand RvrseUI something to clean up when this window closes:
+	-- RBXScriptConnection, Instance, thread, function, or object with :Disconnect()/:Destroy().
+	-- Returns the item, so `local conn = Window:Track(signal:Connect(fn))` works.
+	function WindowAPI:Track(item)
+		return Lifecycle:Track(item)
+	end
+
+	function WindowAPI:IsDestroyed()
+		return Lifecycle.destroyed
 	end
 
 	windowData.destroyFunction = function()
-		WindowAPI:Destroy()
+		teardownWindow("destroy-key")
 	end
 
 	local firstShowCompleted = false
@@ -1854,7 +2018,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Elements = Elements,
 			UIS = UIS,
 			OverlayLayer = overlayLayer,
-			Overlay = Overlay
+			Overlay = Overlay,
+			Lifecycle = Lifecycle
 		})
 	end
 
@@ -2134,6 +2299,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 				profileSection:CreateToggle({
 					Text = "Auto Save",
+					TurnOffOnClose = false, -- a saved preference, not a feature: never switch it off on close
 					State = RvrseUI:IsAutoSaveEnabled(),
 					OnChanged = function(state)
 						RvrseUI:SetAutoSaveEnabled(state)
@@ -2274,10 +2440,51 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	table.insert(RvrseUI._windows, WindowAPI)
 
 	task.defer(function()
-		WindowAPI:Show()
+		if not Lifecycle.destroyed then
+			WindowAPI:Show()
+		end
 	end)
 
 	return WindowAPI
+end
+
+-- Windows that are still open (closing removes a window from RvrseUI._windows)
+function WindowBuilder:CountOpenWindows(RvrseUI)
+	local open = 0
+	for _, window in ipairs(RvrseUI._windows) do
+		if type(window) == "table" and type(window.IsDestroyed) == "function" and not window:IsDestroyed() then
+			open += 1
+		end
+	end
+	return open
+end
+
+-- Remove RvrseUI's shared pieces once no window is open: the host ScreenGui
+-- (notifications), the overlay ScreenGui and its listeners, the hotkey
+-- listener and the particle loop. Idempotent; CreateWindow() rebuilds them.
+-- shared = { RvrseUI, Host, Overlay, Hotkeys, Particles } (all optional)
+function WindowBuilder:TeardownShared(shared)
+	if shared.Host and shared.Host.Parent then
+		shared.Host:Destroy()
+	end
+	if shared.Overlay and shared.Overlay.Teardown then
+		shared.Overlay:Teardown()
+	end
+	if shared.Hotkeys and shared.Hotkeys.Teardown then
+		shared.Hotkeys:Teardown()
+	end
+	if shared.Particles and shared.Particles.Teardown then
+		shared.Particles:Teardown()
+	end
+	local RvrseUI = shared.RvrseUI
+	if RvrseUI then
+		if RvrseUI._lockListeners then
+			table.clear(RvrseUI._lockListeners)
+		end
+		if RvrseUI._themeListeners then
+			table.clear(RvrseUI._themeListeners)
+		end
+	end
 end
 
 return WindowBuilder

@@ -32,6 +32,12 @@ function Hotkeys.UI:RegisterToggleTarget(frame, windowData)
 	end
 end
 
+-- Remove a closed window so hotkeys never touch it again
+function Hotkeys.UI:UnregisterToggleTarget(frame)
+	self._toggleTargets[frame] = nil
+	self._windowData[frame] = nil
+end
+
 -- Bind the toggle/minimize key (default: K)
 function Hotkeys.UI:BindToggleKey(key)
 	self._key = coerceKeycode(key or "K")
@@ -44,6 +50,10 @@ end
 
 function Hotkeys:RegisterToggleTarget(frame, windowData)
 	return self.UI:RegisterToggleTarget(frame, windowData)
+end
+
+function Hotkeys:UnregisterToggleTarget(frame)
+	return self.UI:UnregisterToggleTarget(frame)
 end
 
 function Hotkeys:BindToggleKey(key)
@@ -120,7 +130,7 @@ function Hotkeys:Init()
 	end
 	self._initialized = true
 
-	UIS.InputBegan:Connect(function(io, gpe)
+	self._inputConnection = UIS.InputBegan:Connect(function(io, gpe)
 		if gpe then return end
 
 		-- ESC KEY: DESTROY the UI completely
@@ -128,7 +138,12 @@ function Hotkeys:Init()
 			print("\n========== [DESTROY KEY] ==========")
 			print("[DESTROY] Escape key pressed - destroying UI")
 
+			-- Snapshot first: each destroyFunction unregisters its window
+			local targets = {}
 			for f in pairs(self.UI._toggleTargets) do
+				table.insert(targets, f)
+			end
+			for _, f in ipairs(targets) do
 				if f and f.Parent then
 					local windowData = self.UI._windowData and self.UI._windowData[f]
 					if windowData and windowData.destroyFunction then
@@ -149,6 +164,17 @@ function Hotkeys:Init()
 			handleToggle(self)
 		end
 	end)
+end
+
+-- Stop listening once the last window is gone (Init() starts it again)
+function Hotkeys:Teardown()
+	if self._inputConnection then
+		self._inputConnection:Disconnect()
+		self._inputConnection = nil
+	end
+	table.clear(self.UI._toggleTargets)
+	table.clear(self.UI._windowData)
+	self._initialized = false
 end
 
 -- Initialize method (called by init.lua)

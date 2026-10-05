@@ -39,10 +39,10 @@ const Modules = [
     "src/WindowBuilder.lua"
 ];
 
-const HEADER = `-- RvrseUI v4.4.0 | Modern Professional UI Framework
+const HEADER = `-- RvrseUI v4.5.0 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
--- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList
+-- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
 -- Extras: Spore Bubble particles, Notify system, Theme switcher, LockGroup, Drag-to-move, Config persistence
 
@@ -350,12 +350,27 @@ function RvrseUI:Notify(options, message, duration, notifType)
 end
 
 function RvrseUI:Destroy()
+    -- Close every window: each fires its OnClose callbacks and releases what it
+    -- started; the last one also removes the shared host, overlay, hotkeys and
+    -- particle loop. With no window open, remove those shared pieces now.
+    local open = {}
     for _, window in ipairs(self._windows) do
-        if window.Destroy then window:Destroy() end
+        table.insert(open, window)
     end
-    if self.UI._toggleTargets then table.clear(self.UI._toggleTargets) end
-    if self._lockListeners then table.clear(self._lockListeners) end
-    if self._themeListeners then table.clear(self._themeListeners) end
+    for _, window in ipairs(open) do
+        if type(window) == "table" and type(window.Destroy) == "function" then
+            window:Destroy("rvrseui-destroy")
+        end
+    end
+    if #open == 0 then
+        WindowBuilder:TeardownShared({
+            RvrseUI = self,
+            Host = DEFAULT_HOST,
+            Overlay = Overlay,
+            Hotkeys = Hotkeys,
+            Particles = Particles
+        })
+    end
     print("[RvrseUI] All interfaces destroyed")
 end
 
@@ -514,11 +529,17 @@ _G.RvrseUI_LucideIconsData = ${sanitized}
 -- ========================
 
 `;
-    return marker + contents + '\n';
+    // Every module runs inside its own do...end block (as the v4.3.x monolith
+    // did), so a module's private top-level locals stay private. Without it,
+    // WindowBuilder's `local Theme, Animator, ... Obfuscation` (all nil until
+    // CreateWindow) shadow the real module tables for everything after it and
+    // the monolith dies at load: "attempt to index nil with 'Initialize'" —
+    // the v4.4.x executor breakage.
+    return marker + 'do\n' + contents.replace(/\s+$/, '') + '\nend\n';
 }
 
 function build() {
-    console.log('🔨 RvrseUI v4.4.0 Build Script (Node.js)');
+    console.log('🔨 RvrseUI v4.5.0 Build Script (Node.js)');
     console.log('==========================================');
 
     const buffer = [HEADER, SERVICES];

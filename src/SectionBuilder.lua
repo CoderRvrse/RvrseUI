@@ -56,6 +56,23 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 	local overlayLayer = dependencies.OverlayLayer
 	local overlayService = dependencies.Overlay
 	local registerSearchableElement = dependencies.registerSearchableElement
+	local Lifecycle = dependencies.Lifecycle -- the owning window's cleanup tracker (v4.5.0)
+
+	-- Elements hand their global listeners / overlay panels to the window so
+	-- closing the window releases them (no-ops if built outside a window).
+	local function track(item)
+		if Lifecycle then
+			return Lifecycle:Track(item)
+		end
+		return item
+	end
+	local function addLockListener(fn)
+		if Lifecycle then
+			return Lifecycle:AddListener(RvrseUI._lockListeners, fn)
+		end
+		table.insert(RvrseUI._lockListeners, fn)
+		return fn
+	end
 
 	local pal3 = Theme:Get()
 	local isLightTheme = Theme and Theme.Current == "Light"
@@ -123,7 +140,10 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 			Overlay = overlayService,
 			registerSearchableElement = registerSearchableElement,
 			sectionTitle = sectionTitle,
-			tabTitle = dependencies.tabTitle
+			tabTitle = dependencies.tabTitle,
+			Lifecycle = Lifecycle,
+			track = track,
+			addLockListener = addLockListener
 		}
 	end
 

@@ -1,5 +1,27 @@
 # RvrseUI Releases
 
+## Version 4.5.0 "No Trace" - Clean Close
+**Release Date**: October 5, 2026  
+**Build**: 20261005a  
+**Hash**: `L1F3C7Y5`  
+**Channel**: Stable
+
+### Highlights
+- **Closing really closes**: the X button, `Window:Destroy()`, `RvrseUI:Destroy()` and the destroy key now share one teardown that releases everything RvrseUI started. v4.3.31 left ~38 live connections (input listeners for every Slider/Dropdown/Keybind/ColorPicker slider, window/chip drag, two per-frame Heartbeats) and the overlay ScreenGui behind; v4.5.0 leaves none.
+- **One window at a time**: closing one window no longer wipes every other RvrseUI window on screen. The last window to close still removes the shared host, overlay, hotkeys and particle loop.
+- **Lifecycle API for scripts**:
+  - `Window:OnClose(fn)` or `CreateWindow({ OnClose = fn })` — runs once, with the reason (`"close-button"`, `"destroy"`, `"destroy-key"`, `"rvrseui-destroy"`).
+  - `Window:Track(item)` — connections, threads, Instances or cleanup functions released on close.
+  - `Window:IsDestroyed()`.
+  - `CreateWindow({ TurnOffTogglesOnClose = true })` — ON toggles run their own `OnChanged(false)` on close; per-toggle `TurnOffOnClose` overrides. Saved configs keep the ON state.
+- **Build fixed**: `tools/build.js` / `tools/build.lua` wrap every module in `do ... end` again. The 4.4.x builds skipped that, so WindowBuilder's private `local Theme, Obfuscation, ...` shadowed the real modules and the file died at load (`attempt to index nil with 'Initialize'`). Both scripts now produce identical output.
+- **FilterableList is live** (it never shipped in a working 4.4.x build). Global search (4.4.1) stays removed.
+
+### Verification
+- `node tests/headless/run.js` (new): runs the real `RvrseUI.lua` in a strict Roblox mock — 9 scenarios (X, `Window:Destroy`, `RvrseUI:Destroy`, destroy key, two windows, close with dropdown + color picker open, reopen after close, `TurnOffTogglesOnClose` + config saving, `Window:Track`) → 0 connections, 0 ScreenGuis, 0 errors after close.
+
+---
+
 ## Version 4.4.1 "Quick Find" - Global Search
 **Release Date**: December 9, 2025  
 **Build**: 20251209b  

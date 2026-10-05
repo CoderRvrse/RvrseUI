@@ -14,6 +14,7 @@ function Toggle.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local addLockListener = dependencies.addLockListener or function(fn) table.insert(RvrseUI._lockListeners, fn) return fn end
 	local Theme = dependencies.Theme
 
 	local f = card(48) -- Taller for modern look
@@ -192,7 +193,7 @@ function Toggle.Create(o, dependencies)
 		end
 	end)
 
-	table.insert(RvrseUI._lockListeners, visual)
+	addLockListener(visual)
 
 	local toggleAPI = {
 		Set = function(_, v, fireCallback)
@@ -224,6 +225,23 @@ function Toggle.Create(o, dependencies)
 
 	if o.Flag then
 		RvrseUI.Flags[o.Flag] = toggleAPI
+	end
+
+	-- Turn off on close (v4.5.0): when the window closes, an ON toggle runs its own
+	-- OnChanged(false) so the script switches that feature off. Follows the
+	-- window's TurnOffTogglesOnClose unless this toggle sets TurnOffOnClose.
+	-- The stored state is left alone, so a saved config still remembers ON.
+	local Lifecycle = dependencies.Lifecycle
+	if Lifecycle and Lifecycle.RegisterToggleOff then
+		Lifecycle:RegisterToggleOff(function(windowDefault)
+			local turnOff = windowDefault
+			if o.TurnOffOnClose ~= nil then
+				turnOff = o.TurnOffOnClose == true
+			end
+			if turnOff and state and o.OnChanged then
+				task.spawn(o.OnChanged, false)
+			end
+		end)
 	end
 
 	-- Register for global search
