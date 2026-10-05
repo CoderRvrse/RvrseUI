@@ -15,6 +15,8 @@ function Slider.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local trackCleanup = dependencies.track or function(item) return item end -- window cleanup (v4.5.0)
+	local addLockListener = dependencies.addLockListener or function(fn) table.insert(RvrseUI._lockListeners, fn) return fn end
 	local UIS = dependencies.UIS
 	local Theme = dependencies.Theme
 
@@ -213,13 +215,13 @@ function Slider.Create(o, dependencies)
 		end
 	end)
 
-	UIS.InputChanged:Connect(function(io)
+	trackCleanup(UIS.InputChanged:Connect(function(io)
 		if dragging and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then
 			update(io.Position)
 		end
-	end)
+	end))
 
-	table.insert(RvrseUI._lockListeners, function()
+	addLockListener(function()
 		local locked = RvrseUI.Store:IsLocked(o.RespectLock)
 		lbl.TextTransparency = locked and 0.5 or 0
 		track.BackgroundTransparency = locked and 0.5 or 0

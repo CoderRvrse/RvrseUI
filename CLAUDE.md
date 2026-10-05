@@ -2,10 +2,45 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.4.0)
+# RvrseUI – Maintainer Notes (v4.5.0)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
+
+---
+
+## 🚨 CRITICAL WARNING #0 (v4.5.0): Every module is wrapped in `do ... end` — keep it that way
+
+`tools/build.js` and `tools/build.lua` put each module inside its own `do ... end` block. That keeps a module's
+private top-level locals private. The 4.4.x builds dropped the wrapping, so `WindowBuilder.lua`'s
+`local Theme, Animator, ..., Obfuscation` (nil until `CreateWindow`) shadowed the real module tables for every
+line after it, and the monolith died on load with `attempt to index nil with 'Initialize'` — on every executor.
+
+- Module tables still become shared globals (`local Theme = {}` → `Theme = {}`); everything else stays block-local.
+- `build.js` and `build.lua` must produce **identical** output (only the timestamp line differs). After touching
+  either, run both and diff them.
+- Before pushing a build, run `node tests/headless/run.js` — a bad build breaks every hub instantly, because
+  hubs load `main/RvrseUI.lua` live. (The 4.4.x build fails it at load.)
+
+## 🚨 CRITICAL WARNING #0b (v4.5.0): Nothing may outlive its window
+
+A window's `Lifecycle` (created at the top of `WindowBuilder:CreateWindow`) owns everything the window starts.
+`teardownWindow(reason)` is the ONLY close path (X button, `Window:Destroy()`, `RvrseUI:Destroy()`, destroy key).
+
+- **Any connection to a service** (`UIS.*`, `RunService.*`, `game:GetService(...)`) or to an instance outside the
+  window **must** be tracked: in WindowBuilder `Lifecycle:Track(conn)`, in elements `trackCleanup(conn)`.
+  Connections on instances inside the window die with it, but service connections never do.
+- **Anything parented outside the window** (overlay panels, dropdown lists, fallback ScreenGuis) must be tracked
+  too: `trackCleanup(instance)`.
+- **Shared listener lists** (`RvrseUI._lockListeners`): elements call `addLockListener(fn)`, never `table.insert`.
+- The last window to close calls `WindowBuilder:TeardownShared(...)` (host, `Overlay:Teardown()`,
+  `Hotkeys:Teardown()`, `Particles:Teardown()`); `CreateWindow` revives them (`Overlay:Revive()`, `Hotkeys:Init()`).
+- Public API: `Window:OnClose(fn)`, `CreateWindow{ OnClose = fn }`, `Window:Track(item)`, `Window:IsDestroyed()`,
+  `CreateWindow{ TurnOffTogglesOnClose = true }` + per-toggle `TurnOffOnClose`. RvrseUI's own settings toggles
+  (e.g. Profiles "Auto Save") set `TurnOffOnClose = false`.
+- Verify with the headless harness: `node tools/build.js && node tests/headless/run.js` (needs the `luau` CLI;
+  see `tests/headless/README.md`) — 9 close scenarios, must report 0 live connections and 0 ScreenGuis after
+  close. v4.3.31 fails it with 38 leaked connections per window.
 
 ---
 
@@ -980,7 +1015,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2025-12-09 (v4.4.0 - FilterableList Element)
+**Last Updated:** 2026-10-05 (v4.5.0 - Clean Close lifecycle + do...end build fix)
 
 ---
 

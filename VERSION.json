@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 4,
-    "patch": 1,
-    "full": "4.4.1",
-    "build": "20251209b",
-    "hash": "G2S8R5C1",
+    "minor": 5,
+    "patch": 0,
+    "full": "4.5.0",
+    "build": "20261005a",
+    "hash": "L1F3C7Y5",
     "channel": "Stable"
   },
   "release": {
-    "date": "2025-12-09",
-    "name": "Global Search",
-    "codename": "Quick Find",
-    "notes": "Added global search to window header - press Ctrl+F or click the search button to find any element across all tabs and sections instantly."
+    "date": "2026-10-05",
+    "name": "Clean Close",
+    "codename": "No Trace",
+    "notes": "Closing a window now releases everything RvrseUI started (zero leftover listeners, loops or ScreenGuis) and scripts get a lifecycle API: Window:OnClose, Window:Track, Window:IsDestroyed, CreateWindow{OnClose, TurnOffTogglesOnClose}. Fixes the monolith build that broke 4.4.x on executors, so FilterableList finally ships."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -39,9 +39,27 @@
     "configuration_saving": true,
     "auto_save": true,
     "dynamic_obfuscation": true,
-    "global_search": true
+    "global_search": false,
+    "lifecycle_api": true
   },
   "changelog": {
+    "4.5.0": {
+      "date": "2026-10-05",
+      "hash": "L1F3C7Y5",
+      "changes": [
+        "🧹 FIX: Closing a window no longer leaves RvrseUI running. Before, every close path left ~38 live connections (global input listeners per Slider/Dropdown/Keybind/ColorPicker, the window and chip drag listeners, a per-frame Heartbeat for the chip shine and the particle loop) plus the overlay ScreenGui. Now: zero.",
+        "🪟 FIX: Closing one window no longer destroys every other RvrseUI window (the X used to destroy the shared host). The last window to close still removes everything.",
+        "🧩 FIX: Dropdown lists and ColorPicker panels that are open in the overlay layer at close time are removed with their window.",
+        "🔁 One teardown path for the X button, Window:Destroy(), RvrseUI:Destroy() and the destroy key. Window:Destroy() no longer yields; closing twice is harmless.",
+        "🆕 Window:OnClose(fn) / CreateWindow{ OnClose = fn } — runs once with the reason (\"close-button\", \"destroy\", \"destroy-key\", \"rvrseui-destroy\") however the window closes.",
+        "🆕 Window:Track(item) — hand RvrseUI a connection, thread, Instance or cleanup function; it is released when the window closes.",
+        "🆕 Window:IsDestroyed().",
+        "🆕 CreateWindow{ TurnOffTogglesOnClose = true } — every ON toggle runs its own OnChanged(false) on close so features switch themselves off; a per-toggle TurnOffOnClose overrides it. Saved configs keep the ON state.",
+        "🔨 BUILD FIX: tools/build.js and tools/build.lua wrap each module in do...end again (as the v4.3.x monolith did). Without it, WindowBuilder.lua's private `local Theme, Obfuscation, ...` shadowed the real modules and the monolith died at load with \"attempt to index nil with Initialize\" — the 4.4.x executor breakage. build.lua now matches build.js byte-for-byte (it also missed FilterableList).",
+        "📦 FilterableList (from 4.4.0) ships in the live build for the first time. The 4.4.1 global search stays removed (reverted in c213c10).",
+        "🧪 NEW tests/headless (node tests/headless/run.js): runs the real RvrseUI.lua in a strict fake Roblox client. 9 close scenarios (X, Window:Destroy, RvrseUI:Destroy, destroy key, two windows, open overlays, reopen after close, TurnOffTogglesOnClose with config saving, Window:Track) — 0 leftover connections, 0 ScreenGuis, 0 errors."
+      ]
+    },
     "4.4.1": {
       "date": "2025-12-09",
       "hash": "G2S8R5C1",

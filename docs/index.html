@@ -59,7 +59,7 @@
       <header class="hero" id="top">
         <div class="hero-grid">
           <div class="hero-copy">
-            <span class="hero-badge">v4.4.1 &middot; Production Ready</span>
+            <span class="hero-badge">v4.5.0 &middot; Production Ready</span>
             <h1>Operator UI Toolkit for Roblox Executors</h1>
             <p>
               Build neon dashboards, hydrate Lucide-powered tabs, and wire key systems in minutes. RvrseUI ships with the same cyber grid aesthetic players expect from premium executors.
@@ -470,7 +470,7 @@ Section:CreateSection("Combat")
         <div class="section-heading">
           <span>Developer Docs</span>
           <h2>Ship RvrseUI Like An Operator</h2>
-          <p>Three precise plays: boot the library, persist configs, and lock entry with the built-in key system. No fluff—just execution.</p>
+          <p>Four precise plays: boot the library, persist configs, lock entry with the built-in key system, and close without leaving a trace. No fluff—just execution.</p>
         </div>
         <div class="doc-flow">
           <article class="doc-step">
@@ -561,6 +561,38 @@ RvrseUI:LoadConfiguration()</code></pre>
               <li>Swap <code>NoteButton</code> for your own link shortener or hosted key page.</li>
             </ul>
           </article>
+
+          <article class="doc-step">
+            <div class="step-label">04</div>
+            <h3>Close without a trace</h3>
+            <p>However the window closes (X button, <code>Window:Destroy()</code>, <code>RvrseUI:Destroy()</code> or the destroy key), RvrseUI releases everything it started. Hook your own features to the same moment.</p>
+            <div class="mini-code" data-copy-container>
+              <button class="copy-btn floating" type="button">Copy</button>
+<pre><code>local Window = RvrseUI:CreateWindow({
+    Name = "My Hub",
+    TurnOffTogglesOnClose = true, -- ON toggles get OnChanged(false)
+    OnClose = function(reason)
+        print("Hub closed:", reason)
+    end
+})
+
+-- Anything you start, hand to the window:
+Window:Track(game:GetService("RunService").Heartbeat:Connect(function()
+    -- per-frame feature
+end))
+Window:Track(task.spawn(function()
+    while true do task.wait(1) end
+end))
+
+Window:OnClose(function()
+    workspace.Gravity = 196.2 -- undo world changes
+end)</code></pre>
+            </div>
+            <ul class="step-points">
+              <li><code>Window:IsDestroyed()</code> lets loops check if the hub is gone.</li>
+              <li>Per toggle, <code>TurnOffOnClose</code> overrides the window setting.</li>
+            </ul>
+          </article>
         </div>
         <div class="doc-links">
           <p>Need every API? Jump to the exhaustive references.</p>
@@ -621,7 +653,7 @@ RvrseUI:LoadConfiguration()</code></pre>
       </section>
 
       <footer>
-        <p>RvrseUI v4.4.1 &middot; MIT License &middot; Built by CoderRvrse</p>
+        <p>RvrseUI v4.5.0 &middot; MIT License &middot; Built by CoderRvrse</p>
         <p>GitHub Pages site generated from the /docs folder.</p>
       </footer>
     </div>

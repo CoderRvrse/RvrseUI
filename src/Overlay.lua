@@ -27,6 +27,8 @@ function Overlay:Initialize(opts)
 	opts = opts or {}
 	local playerGui = opts.PlayerGui
 	assert(playerGui, "[Overlay] PlayerGui is required")
+	self._opts = opts -- kept so Revive() can rebuild after a Teardown()
+	self._connections = {}
 
 	local function resolveDisplayOrder()
 		if opts.DisplayOrder then
@@ -112,15 +114,15 @@ function Overlay:Initialize(opts)
 		watchGui(gui)
 	end
 
-	playerGui.ChildAdded:Connect(function(child)
+	table.insert(self._connections, playerGui.ChildAdded:Connect(function(child)
 		watchGui(child)
 		task.defer(updateDisplayOrder)
-	end)
+	end))
 
-	playerGui.ChildRemoved:Connect(function(child)
+	table.insert(self._connections, playerGui.ChildRemoved:Connect(function(child)
 		disconnectGui(child)
 		task.defer(updateDisplayOrder)
-	end)
+	end))
 
 	updateDisplayOrder()
 
@@ -165,24 +167,61 @@ function Overlay:Initialize(opts)
 	end
 	self.Blocker = blocker
 
-	layer.ChildAdded:Connect(function(child)
+	table.insert(self._connections, layer.ChildAdded:Connect(function(child)
 		child:GetPropertyChangedSignal("Visible"):Connect(function()
 			setLayerVisibility(layer)
 		end)
 		setLayerVisibility(layer)
-	end)
+	end))
 
-	layer.ChildRemoved:Connect(function()
+	table.insert(self._connections, layer.ChildRemoved:Connect(function()
 		task.defer(function()
-			setLayerVisibility(layer)
+			if layer.Parent then
+				setLayerVisibility(layer)
+			end
 		end)
-	end)
+	end))
 
 	setLayerVisibility(layer)
 
 	self._blockerCount = 0
 	self.Debug = opts.Debug
 	self._initialized = true
+end
+
+-- Remove the overlay ScreenGui and every listener it owns (last window closed).
+function Overlay:Teardown()
+	if not self._initialized then
+		return
+	end
+	for _, conn in ipairs(self._connections or {}) do
+		conn:Disconnect()
+	end
+	self._connections = {}
+	for _, bundle in pairs(self._displayOrderConnections or {}) do
+		if bundle.orderChanged then
+			bundle.orderChanged:Disconnect()
+		end
+		if bundle.ancestryChanged then
+			bundle.ancestryChanged:Disconnect()
+		end
+	end
+	self._displayOrderConnections = {}
+	if self.Gui and self.Gui.Parent then
+		self.Gui:Destroy()
+	end
+	self.Gui = nil
+	self.Layer = nil
+	self.Blocker = nil
+	self._blockerCount = 0
+	self._initialized = false
+end
+
+-- Rebuild after a Teardown() (a new window was created later)
+function Overlay:Revive()
+	if not self._initialized and self._opts then
+		self:Initialize(self._opts)
+	end
 end
 
 function Overlay:GetLayer()
@@ -237,7 +276,9 @@ function Overlay:ShowBlocker(options)
 end
 
 function Overlay:HideBlocker(force)
-	assert(self.Blocker, "[Overlay] Service not initialized")
+	if not self.Blocker then
+		return -- torn down (all windows closed): nothing to hide
+	end
 
 	print(string.format("[OVERLAY] 🔶 HideBlocker called (force: %s, current depth: %d)", tostring(force), self._blockerCount))
 

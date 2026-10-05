@@ -90,6 +90,8 @@ function ColorPicker.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local trackCleanup = dependencies.track or function(item) return item end -- window cleanup (v4.5.0)
+	local addLockListener = dependencies.addLockListener or function(fn) table.insert(RvrseUI._lockListeners, fn) return fn end
 	local Theme = dependencies.Theme
 	local baseOverlayLayer = dependencies.OverlayLayer
 	local OverlayService = dependencies.Overlay
@@ -182,6 +184,15 @@ function ColorPicker.Create(o, dependencies)
 		-- Parent to overlay layer if available, otherwise to element card
 		local panelParent = baseOverlayLayer or f
 		pickerPanel.Parent = panelParent
+		-- The panel lives in the overlay layer, outside the window: it (and the
+		-- shared blocker's click hook) must be removed when the window closes.
+		trackCleanup(pickerPanel)
+		trackCleanup(function()
+			if overlayBlockerConnection then
+				overlayBlockerConnection:Disconnect()
+				overlayBlockerConnection = nil
+			end
+		end)
 
 		-- DEBUG: Log panel creation
 		print("[ColorPicker] Panel created:")
@@ -316,7 +327,7 @@ function ColorPicker.Create(o, dependencies)
 				end
 			end)
 
-			game:GetService("UserInputService").InputChanged:Connect(function(input)
+			trackCleanup(game:GetService("UserInputService").InputChanged:Connect(function(input)
 				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 					local mousePos = input.Position.X
 					local trackPos = track.AbsolutePosition.X
@@ -325,7 +336,7 @@ function ColorPicker.Create(o, dependencies)
 					local value = math.floor(min + (percent * (max - min)) + 0.5)
 					updateSlider(value, true)  -- User dragging, trigger callback
 				end
-			end)
+			end))
 
 			return {
 				Set = function(value)
@@ -667,7 +678,7 @@ function ColorPicker.Create(o, dependencies)
 	end)
 
 	-- Lock listener
-	table.insert(RvrseUI._lockListeners, function()
+	addLockListener(function()
 		local locked = RvrseUI.Store:IsLocked(o.RespectLock)
 		lbl.TextTransparency = locked and 0.5 or 0
 	end)

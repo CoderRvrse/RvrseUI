@@ -13,6 +13,7 @@ function Button.Create(o, dependencies)
 	local UIS = dependencies.UIS
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local addLockListener = dependencies.addLockListener or function(fn) table.insert(RvrseUI._lockListeners, fn) return fn end
 	local Theme = dependencies.Theme
 	local Icons = dependencies.Icons
 	local isLightTheme = Theme and Theme.Current == "Light"
@@ -272,7 +273,7 @@ function Button.Create(o, dependencies)
 	end)
 
 	-- Lock state listener with visual feedback
-	table.insert(RvrseUI._lockListeners, function()
+	addLockListener(function()
 		local locked = RvrseUI.Store:IsLocked(o.RespectLock)
 
 		if locked then

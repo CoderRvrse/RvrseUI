@@ -14,6 +14,7 @@ function FilterableList.Create(o, dependencies)
 	local pal3 = dependencies.pal3
 	local Animator = dependencies.Animator
 	local RvrseUI = dependencies.RvrseUI
+	local addLockListener = dependencies.addLockListener or function(fn) table.insert(RvrseUI._lockListeners, fn) return fn end
 	local Theme = dependencies.Theme
 	local Icons = dependencies.Icons
 	local UIS = dependencies.UIS
@@ -441,7 +442,7 @@ function FilterableList.Create(o, dependencies)
 	searchBox:GetPropertyChangedSignal("Text"):Connect(onSearchChanged)
 
 	-- Lock listener
-	table.insert(RvrseUI._lockListeners, function()
+	addLockListener(function()
 		local locked = RvrseUI.Store:IsLocked(o.RespectLock)
 		searchBox.TextEditable = not locked
 		if locked then
