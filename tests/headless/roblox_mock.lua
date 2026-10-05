@@ -270,7 +270,7 @@ end
 
 -- UDim
 M.UDimMT = M_dt("UDim", {})
-M.UDimMT.__index = function(u, k) return nil end
+M.UDimMT.__index = function() return nil end
 function M.UDim(s, o) return setmetatable({ Scale = s or 0, Offset = o or 0 }, M.UDimMT) end
 M.UDimMT.__add = function(a, b) return M.UDim(a.Scale + b.Scale, a.Offset + b.Offset) end
 M.UDimMT.__sub = function(a, b) return M.UDim(a.Scale - b.Scale, a.Offset - b.Offset) end
@@ -451,7 +451,7 @@ do
 	local mk = M_simple("NumberSequenceKeypoint", { "Time", "Value", "Envelope" })
 	M.NumberSequenceKeypoint.new = function(t, v, e) return mk(t, v, e or 0) end
 end
-local function M_seq(name, kpLib, isValue)
+local function M_seq(name, kpLib)
 	local mt = M_dt(name, {})
 	mt.__index = function(_, k) error(tostring(k) .. " is not a valid member of " .. name, 2) end
 	return {
@@ -538,7 +538,7 @@ end
 -- ════════════════════════════════════════════════════════════════════
 M.EnumItemMT = M_dt("EnumItem", {})
 M.EnumItemMT.__tostring = function(e) return "Enum." .. e.EnumType._name .. "." .. e.Name end
-M.EnumItemMT.__index = function(e, k)
+M.EnumItemMT.__index = function(_, k)
 	if k == "IsA" then return function(self, t) return self.EnumType._name == t end end
 	error(tostring(k) .. " is not a valid member of EnumItem", 2)
 end
