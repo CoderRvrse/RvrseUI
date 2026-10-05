@@ -15,7 +15,11 @@
 -- far below Luau's 200-locals limit and hub code can't capture mock locals.
 local M = {
 	env = getfenv(1),
+	selfSource = debug.info(1, "s"), -- the run file (mock + driver); not hub, not RvrseUI
 	nativeTypeof = typeof,
+	trackWrites = false, -- when true, every Instance property write is logged in M.writes
+	writes = {},
+	printLog = {}, -- { src, msg, frame } for every print, so drivers can attribute them
 	now = 0,
 	frame = 0,
 	conns = {}, -- every connection ever made (see M.liveConns)
@@ -153,6 +157,17 @@ M.ConnMT = { __index = {} }
 M.SignalMT.__tostring = function(s) return "Signal " .. s._name end
 M.ConnMT.__tostring = function() return "Connection" end
 
+-- Source + line of the first Lua frame at or above `level` (relative to the
+-- caller of callerSource). The VM calls methods through pcall — a C frame — so
+-- the code that really made the call can sit a frame or two higher.
+function M.callerSource(level)
+	level = (level or 2) + 1
+	while debug.info(level, "s") == "[C]" do
+		level += 1
+	end
+	return debug.info(level, "s") or "?", debug.info(level, "l") or 0
+end
+
 function M.newSignal(owner, name)
 	return setmetatable({ _owner = owner, _name = name, _list = {}, _waiters = {} }, M.SignalMT)
 end
@@ -168,8 +183,7 @@ function M.SignalMT.__index:Connect(fn)
 	if type(fn) ~= "function" then error("Attempt to connect failed: Passed value is not a function", 2) end
 	local c = setmetatable({ Connected = true, _sig = self, _fn = fn }, M.ConnMT)
 	table.insert(self._list, c)
-	local src = debug.info(2, "s") or "?"
-	local line = debug.info(2, "l") or 0
+	local src, line = M.callerSource(2)
 	c._rec = {
 		conn = c,
 		signal = self._name,
@@ -190,7 +204,8 @@ function M.SignalMT.__index:Once(fn)
 		c:Disconnect()
 		return fn(...)
 	end)
-	c._rec.src = debug.info(2, "s") or "?"
+	c._rec.src = M.callerSource(2)
+	c._rec.where = c._rec.src
 	return c
 end
 function M.SignalMT.__index:ConnectParallel(fn) return self:Connect(fn) end
@@ -240,6 +255,12 @@ function M.fire(inst, name, ...)
 	if d and d.signals[name] then M.fireSignal(d.signals[name], ...) end
 end
 
+-- Code from the hub under test: its own chunk ("Hub"), or chunks it loaded
+-- itself (a source-mode shell decodes its payload through loadstring).
+function M.isHubSource(src)
+	return src == "Hub" or src == "loadstring"
+end
+
 -- Live connections, optionally filtered: { src = "RvrseUI", global = true }
 function M.liveConns(filter)
 	local out = {}
@@ -248,6 +269,7 @@ function M.liveConns(filter)
 			local ok = true
 			if filter then
 				if filter.src ~= nil and r.src ~= filter.src then ok = false end
+				if filter.hub ~= nil and M.isHubSource(r.src) ~= filter.hub then ok = false end
 				if filter.global ~= nil and r.global ~= filter.global then ok = false end
 				if filter.since ~= nil and r.frame < filter.since then ok = false end
 			end
@@ -813,6 +835,9 @@ M.InstMT.__newindex = function(self, k, v)
 	end
 	local old = d.props[k]
 	d.props[k] = v
+	if M.trackWrites then
+		table.insert(M.writes, { src = (M.callerSource(2)), prop = tostring(k), owner = M_ownerLabel(self) })
+	end
 	if old ~= v then
 		M.fire(self, "Changed", k)
 		if d.propSignals[k] then M.fireSignal(d.propSignals[k]) end
@@ -1427,6 +1452,7 @@ function M.print(...)
 	for i = 1, select("#", ...) do parts[i] = tostring((select(i, ...))) end
 	local msg = table.concat(parts, "\t")
 	table.insert(M.prints, msg)
+	table.insert(M.printLog, { src = (M.callerSource(2)), msg = msg, frame = M.frame })
 	if M.echo then M.nativePrint(msg) end
 end
 
