@@ -35,7 +35,7 @@ local Modules = {
     "src/WindowBuilder.lua"
 }
 
-local HEADER = [[-- RvrseUI v4.5.0 | Modern Professional UI Framework
+local HEADER = [[-- RvrseUI v4.5.1 | Modern Professional UI Framework
 -- Compiled from modular architecture on ]] .. os.date("!%Y-%m-%dT%H:%M:%SZ") .. [[
 
 

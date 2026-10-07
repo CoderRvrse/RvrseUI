@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.5.0)
+# RvrseUI – Maintainer Notes (v4.5.1)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -35,6 +35,9 @@ A window's `Lifecycle` (created at the top of `WindowBuilder:CreateWindow`) owns
 - **Shared listener lists** (`RvrseUI._lockListeners`): elements call `addLockListener(fn)`, never `table.insert`.
 - The last window to close calls `WindowBuilder:TeardownShared(...)` (host, `Overlay:Teardown()`,
   `Hotkeys:Teardown()`, `Particles:Teardown()`); `CreateWindow` revives them (`Overlay:Revive()`, `Hotkeys:Init()`).
+- Tabs from code (v4.5.1): `Window:SelectTab(target)`, target = position (1 = first tab created), tab Title, or
+  the tab object. Returns true/false; an unknown target warns and returns false, it never errors. Each entry in
+  WindowBuilder's `tabs` list carries `title`, `activate` and `api` for it (set in TabBuilder).
 - Public API: `Window:OnClose(fn)`, `CreateWindow{ OnClose = fn }`, `Window:Track(item)`, `Window:IsDestroyed()`,
   `CreateWindow{ TurnOffTogglesOnClose = true }` + per-toggle `TurnOffOnClose`. RvrseUI's own settings toggles
   (e.g. Profiles "Auto Save") set `TurnOffOnClose = false`.
@@ -1015,7 +1018,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2026-10-05 (v4.5.0 - Clean Close lifecycle + do...end build fix)
+**Last Updated:** 2026-10-07 (v4.5.1 - Window:SelectTab)
 
 ---
 

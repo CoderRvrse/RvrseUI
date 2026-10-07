@@ -28,6 +28,7 @@ closing, there are **0 live connections made by RvrseUI**, **0 RvrseUI ScreenGui
 | `reopen` | close, then open a new window with the same RvrseUI (shared services come back), close again |
 | `togglesoff` | `TurnOffTogglesOnClose` + config saving: ON toggles get one `OnChanged(false)`, saved config keeps ON, Auto Save stays on |
 | `track` | `Window:Track` connections, a loop thread, a cleanup function and an Instance are all released |
+| `selecttab` | `Window:SelectTab` by position, Title and tab object switches the page; bad targets return `false` with a warning, never an error |
 
 ## The mock (`roblox_mock.lua`)
 

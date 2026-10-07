@@ -226,14 +226,17 @@ function TabBuilder.CreateTab(t, dependencies)
 		end
 	end)
 
-	table.insert(tabs, {
+	local tabData = {
 		btn = tabBtn,
 		page = page,
 		indicator = tabIndicator,
 		icon = tabIcon,
 		gradient = tabGradient,
-		stroke = tabStroke
-	})
+		stroke = tabStroke,
+		title = tabText,
+		activate = activateTab -- Window:SelectTab switches tabs through this
+	}
+	table.insert(tabs, tabData)
 
 	-- Activate first tab automatically
 	if #tabs == 1 then
@@ -241,6 +244,7 @@ function TabBuilder.CreateTab(t, dependencies)
 	end
 
 	local TabAPI = {}
+	tabData.api = TabAPI -- lets Window:SelectTab(tab) find this tab by its object
 
 	-- Tab SetIcon Method (icon-only design)
 	function TabAPI:SetIcon(newIcon)
