@@ -1,5 +1,24 @@
 # RvrseUI Releases
 
+## Version 4.5.1 "Jump To" - Select Tab
+**Release Date**: October 7, 2026  
+**Build**: 20261007a  
+**Hash**: `S3L7T4B1`  
+**Channel**: Stable
+
+### Highlights
+- **`Window:SelectTab(target)`** switches tabs from code, the same as clicking the tab. `target` is one of:
+  - a position: `Window:SelectTab(1)` is the first tab created, `2` the second, and so on;
+  - a tab Title: `Window:SelectTab("Settings")`;
+  - the tab itself: `Window:SelectTab(SettingsTab)`.
+
+  It returns `true` when a tab was selected. A target that matches no tab prints one warning and returns `false`; it never errors, and it returns `false` once the window is closed.
+- **Fix**: the method did not exist before, so a script that called it stopped with `attempt to call a nil value`. `Window:SelectTab(1)` is a common last line in hubs ported from other UI libraries; the window was already on screen, but nothing after that line ran.
+- **Quieter console**: the ColorPicker's diagnostic lines print only when debug is on (`RvrseUI:EnableDebug(true)`). Live on `main` since October 7, first listed here.
+
+### Verification
+- `node tests/headless/run.js`: new `selecttab` scenario (10 scenarios in all). Position, Title and tab object each switch the page, exactly one tab stays marked active, seven kinds of bad target return `false` with one warning each and no error, and a call after close returns `false`. The scenario fails on the v4.5.0 file.
+
 ## Version 4.5.0 "No Trace" - Clean Close
 **Release Date**: October 5, 2026  
 **Build**: 20261005a  

@@ -1,5 +1,5 @@
--- RvrseUI v4.5.0 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-07T21:03:48.762Z
+-- RvrseUI v4.5.1 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2026-10-07T23:31:12.090Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -40,10 +40,10 @@ Version = {}
 Version.Data = {
 	Major = 4,
 	Minor = 5,
-	Patch = 0,
-	Build = "20261005a",  -- YYYYMMDD format
-	Full = "4.5.0",
-	Hash = "L1F3C7Y5",  -- Release hash for integrity verification
+	Patch = 1,
+	Build = "20261007a",  -- YYYYMMDD format
+	Full = "4.5.1",
+	Hash = "S3L7T4B1",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -8932,14 +8932,17 @@ function TabBuilder.CreateTab(t, dependencies)
 		end
 	end)
 
-	table.insert(tabs, {
+	local tabData = {
 		btn = tabBtn,
 		page = page,
 		indicator = tabIndicator,
 		icon = tabIcon,
 		gradient = tabGradient,
-		stroke = tabStroke
-	})
+		stroke = tabStroke,
+		title = tabText,
+		activate = activateTab -- Window:SelectTab switches tabs through this
+	}
+	table.insert(tabs, tabData)
 
 	-- Activate first tab automatically
 	if #tabs == 1 then
@@ -8947,6 +8950,7 @@ function TabBuilder.CreateTab(t, dependencies)
 	end
 
 	local TabAPI = {}
+	tabData.api = TabAPI -- lets Window:SelectTab(tab) find this tab by its object
 
 	-- Tab SetIcon Method (icon-only design)
 	function TabAPI:SetIcon(newIcon)
@@ -11047,6 +11051,27 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			Overlay = Overlay,
 			Lifecycle = Lifecycle
 		})
+	end
+
+	-- Switch to a tab from code, the same as clicking it. `target` is the tab's
+	-- position (1 = the first tab created), its Title, or the tab CreateTab returned.
+	-- Returns true when a tab was selected. An unknown target warns and returns false
+	-- instead of erroring, so a bad call can never stop the script that made it.
+	function WindowAPI:SelectTab(target)
+		if Lifecycle.destroyed then
+			return false
+		end
+		local kind = typeof(target)
+		for index, tabData in ipairs(tabs) do
+			if (kind == "number" and index == target)
+				or (kind == "string" and tabData.title == target)
+				or (kind == "table" and tabData.api == target) then
+				tabData.activate()
+				return true
+			end
+		end
+		warn("[RvrseUI] Window:SelectTab: no tab matches " .. tostring(target))
+		return false
 	end
 
 	if RvrseUI.ConfigurationSaving and cfg.ConfigurationManager ~= false then

@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -46,6 +46,7 @@ function H.buildWindow(RvrseUI, name, extraCfg)
 	end
 	local T2 = W:CreateTab({ Title = "Second", Icon = "lucide://settings" })
 	ui.toggle2 = T2:CreateSection("More"):CreateToggle({ Text = "Second toggle", State = true, Flag = name .. "_t2", OnChanged = function(v) log("toggle2", v) end })
+	ui.tab1, ui.tab2 = T, T2
 	return W, ui
 end
 
@@ -83,6 +84,27 @@ function H.findButtonBesideLabel(text)
 		if M.D[sib].className == "TextButton" then return sib end
 	end
 	return nil
+end
+
+-- the tab page (ScrollingFrame) holding the element with this label
+function H.pageOf(text)
+	local inst = H.findCard(text)
+	while inst and M.D[inst].className ~= "ScrollingFrame" do
+		inst = M.D[inst].props.Parent
+	end
+	return inst
+end
+
+-- how many tab buttons are marked active (exactly 1 while a window is open)
+function H.activeTabCount()
+	local n = 0
+	for _, root in ipairs({ M.PlayerGui, M.CoreGui }) do
+		for _, d in ipairs(M.descendants(root)) do
+			local dd = M.D[d]
+			if dd.className == "TextButton" and dd.attributes and dd.attributes.Active == true then n += 1 end
+		end
+	end
+	return n
 end
 
 function H.guiCount()
@@ -293,6 +315,49 @@ elseif H_SCENARIO == "track" then
 	M.run(0.2)
 	H.check(late == 11, "late Track/OnClose after close did not run right away (" .. late .. ")")
 	H.check(S.lateReason == "close-button", "late OnClose got reason " .. tostring(S.lateReason))
+elseif H_SCENARIO == "selecttab" then
+	-- Window:SelectTab(position | Title | tab object) switches tabs like a click
+	local W, ui = S.W1, S.ui1
+	local hasSelectTab = type(W.SelectTab) == "function"
+	H.check(hasSelectTab, "this build has no Window:SelectTab")
+	if hasSelectTab then
+		local main, second = H.pageOf("Toggle"), H.pageOf("Second toggle")
+		H.check(main ~= nil and second ~= nil and main ~= second, "could not find the two tab pages")
+		local function showing()
+			return (M.D[main].props.Visible and "main" or "") .. (M.D[second].props.Visible and "second" or "")
+		end
+		local function try(target, wantResult, wantShowing, what)
+			local ok, result
+			M.runThread(function() ok, result = pcall(W.SelectTab, W, target) end, 5)
+			M.run(0.5)
+			H.check(ok, what .. " raised: " .. tostring(result))
+			H.check(result == wantResult, what .. " returned " .. tostring(result) .. " (want " .. tostring(wantResult) .. ")")
+			H.check(showing() == wantShowing, what .. " left '" .. showing() .. "' showing (want " .. wantShowing .. ")")
+			H.check(H.activeTabCount() == 1, what .. " left " .. H.activeTabCount() .. " tabs marked active (want 1)")
+		end
+		H.check(showing() == "main", "the first tab is not the one showing at start ('" .. showing() .. "')")
+		try(2, true, "second", "SelectTab(2)")
+		try(1, true, "main", "SelectTab(1)")
+		try("Second", true, "second", 'SelectTab("Second")')
+		try(ui.tab1, true, "main", "SelectTab(first tab object)")
+		try(ui.tab2, true, "second", "SelectTab(second tab object)")
+		try(ui.tab2, true, "second", "SelectTab(the tab already showing)")
+		-- a target that matches no tab: no error, false, the showing tab stays, one warning each
+		local warnings = #M.warnings
+		try(99, false, "second", "SelectTab(99)")
+		try(0, false, "second", "SelectTab(0)")
+		try(1.5, false, "second", "SelectTab(1.5)")
+		try("Nope", false, "second", 'SelectTab("Nope")')
+		try({}, false, "second", "SelectTab({})")
+		try(nil, false, "second", "SelectTab(nil)")
+		try(true, false, "second", "SelectTab(true)")
+		H.check(#M.warnings - warnings == 7, "7 bad targets gave " .. (#M.warnings - warnings) .. " warnings (want 7)")
+	end
+	H.close("x", W, "Harness Hub A")
+	if hasSelectTab then
+		local okLate, late = pcall(W.SelectTab, W, 1)
+		H.check(okLate and late == false, "SelectTab after close: " .. tostring(okLate) .. ", " .. tostring(late) .. " (want no error, false)")
+	end
 else
 	H.close(H_SCENARIO, S.W1, "Harness Hub A", S.RvrseUI)
 end

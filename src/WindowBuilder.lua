@@ -2023,6 +2023,27 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		})
 	end
 
+	-- Switch to a tab from code, the same as clicking it. `target` is the tab's
+	-- position (1 = the first tab created), its Title, or the tab CreateTab returned.
+	-- Returns true when a tab was selected. An unknown target warns and returns false
+	-- instead of erroring, so a bad call can never stop the script that made it.
+	function WindowAPI:SelectTab(target)
+		if Lifecycle.destroyed then
+			return false
+		end
+		local kind = typeof(target)
+		for index, tabData in ipairs(tabs) do
+			if (kind == "number" and index == target)
+				or (kind == "string" and tabData.title == target)
+				or (kind == "table" and tabData.api == target) then
+				tabData.activate()
+				return true
+			end
+		end
+		warn("[RvrseUI] Window:SelectTab: no tab matches " .. tostring(target))
+		return false
+	end
+
 	if RvrseUI.ConfigurationSaving and cfg.ConfigurationManager ~= false then
 		task.defer(function()
 			local ok, err = pcall(function()

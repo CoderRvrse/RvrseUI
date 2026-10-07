@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 5,
-    "patch": 0,
-    "full": "4.5.0",
-    "build": "20261005a",
-    "hash": "L1F3C7Y5",
+    "patch": 1,
+    "full": "4.5.1",
+    "build": "20261007a",
+    "hash": "S3L7T4B1",
     "channel": "Stable"
   },
   "release": {
-    "date": "2026-10-05",
-    "name": "Clean Close",
-    "codename": "No Trace",
-    "notes": "Closing a window now releases everything RvrseUI started (zero leftover listeners, loops or ScreenGuis) and scripts get a lifecycle API: Window:OnClose, Window:Track, Window:IsDestroyed, CreateWindow{OnClose, TurnOffTogglesOnClose}. Fixes the monolith build that broke 4.4.x on executors, so FilterableList finally ships."
+    "date": "2026-10-07",
+    "name": "Select Tab",
+    "codename": "Jump To",
+    "notes": "Adds Window:SelectTab(target) so a script can switch tabs from code, by position, tab Title or tab object. Scripts that already called it (a common last line in hubs ported from other UI libraries) used to stop with 'attempt to call a nil value'."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -43,6 +43,15 @@
     "lifecycle_api": true
   },
   "changelog": {
+    "4.5.1": {
+      "date": "2026-10-07",
+      "hash": "S3L7T4B1",
+      "changes": [
+        "🆕 Window:SelectTab(target): switch tabs from code. target = position (1 = the first tab created), tab Title, or the tab CreateTab returned. Returns true/false; an unknown target warns and returns false, it never errors.",
+        "🐛 FIX: scripts that call Window:SelectTab(1) no longer stop with 'attempt to call a nil value' (the method did not exist).",
+        "🔇 ColorPicker diagnostics print only when debug is on (RvrseUI:EnableDebug(true)). Live on main since 2026-10-07, first listed here."
+      ]
+    },
     "4.5.0": {
       "date": "2026-10-05",
       "hash": "L1F3C7Y5",

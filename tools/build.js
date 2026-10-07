@@ -39,7 +39,7 @@ const Modules = [
     "src/WindowBuilder.lua"
 ];
 
-const HEADER = `-- RvrseUI v4.5.0 | Modern Professional UI Framework
+const HEADER = `-- RvrseUI v4.5.1 | Modern Professional UI Framework
 -- Compiled from modular architecture on ${new Date().toISOString()}
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
@@ -539,7 +539,7 @@ _G.RvrseUI_LucideIconsData = ${sanitized}
 }
 
 function build() {
-    console.log('🔨 RvrseUI v4.5.0 Build Script (Node.js)');
+    console.log('🔨 RvrseUI v4.5.1 Build Script (Node.js)');
     console.log('==========================================');
 
     const buffer = [HEADER, SERVICES];
