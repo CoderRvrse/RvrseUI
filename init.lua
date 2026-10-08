@@ -130,7 +130,8 @@ Notifications:Initialize({
 
 -- Initialize Hotkeys with services
 Hotkeys:Initialize({
-	UIS = UserInputService
+	UIS = UserInputService,
+	Debug = Debug
 })
 
 -- Initialize WindowManager

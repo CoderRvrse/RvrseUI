@@ -144,7 +144,8 @@ DEFAULT_OVERLAY.Parent = DEFAULT_HOST
 Overlay:Initialize({
     PlayerGui = PlayerGui,
     DisplayOrder = DEFAULT_HOST.DisplayOrder + 10,
-    OverlayFrame = DEFAULT_OVERLAY
+    OverlayFrame = DEFAULT_OVERLAY,
+    Debug = Debug
 })
 
 Notifications:Initialize({
@@ -157,7 +158,8 @@ Notifications:Initialize({
 })
 
 Hotkeys:Initialize({
-    UIS = UIS
+    UIS = UIS,
+    Debug = Debug
 })
 
 WindowManager:Initialize()

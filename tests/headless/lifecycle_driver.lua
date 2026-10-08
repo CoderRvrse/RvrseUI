@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -358,6 +358,72 @@ elseif H_SCENARIO == "selecttab" then
 		local okLate, late = pcall(W.SelectTab, W, 1)
 		H.check(okLate and late == false, "SelectTab after close: " .. tostring(okLate) .. ", " .. tostring(late) .. " (want no error, false)")
 	end
+elseif H_SCENARIO == "quiet" then
+	-- Diagnostic lines must stay silent unless RvrseUI:EnableDebug(true) is on.
+	-- With it off, RvrseUI may print only its one-line status messages.
+	local STATUS = { "UI visible - all settings applied", "Interface destroyed - No trace remaining", "[RvrseUI] Window closed:" }
+	local function noise(from)
+		local found = {}
+		for i = from + 1, #M.prints do
+			local status = false
+			for _, text in ipairs(STATUS) do
+				if M.prints[i]:find(text, 1, true) then status = true end
+			end
+			if not status then table.insert(found, M.prints[i]) end
+		end
+		return found
+	end
+	local function tagged(from, tag)
+		local n = 0
+		for i = from + 1, #M.prints do
+			if M.prints[i]:find(tag, 1, true) then n += 1 end
+		end
+		return n
+	end
+	-- what used to print: a list opened and shut, the colour panel opened and
+	-- shut, the toggle key (minimise, then restore)
+	local function use()
+		local preview = H.findButtonBesideLabel("Color")
+		H.check(preview ~= nil, "could not find the ColorPicker preview")
+		M.runThread(function()
+			S.ui1.dropdown:SetOpen(true)
+			S.ui1.dropdown:SetOpen(false)
+			if preview then M.click(preview) end
+		end, 5)
+		M.run(1)
+		M.runThread(function() if preview then M.click(preview) end end, 5)
+		M.run(1)
+		M.keyPress(Enum.KeyCode.K, false)
+		M.run(1)
+		M.keyPress(Enum.KeyCode.K, false)
+		M.run(1)
+	end
+	local function quiet(from, what)
+		local found = noise(from)
+		for i = 1, math.min(#found, 5) do H.log("  NOISE %s: %s", what, (found[i]:gsub("\n", " "))) end
+		H.check(#found == 0, #found .. " line(s) printed " .. what .. " with debug off (want 0)")
+		return #found
+	end
+	H.check(type(S.RvrseUI.EnableDebug) == "function" and S.RvrseUI:IsDebugEnabled() == false, "debug is not off by default")
+	local atBuild = quiet(0, "while building")
+	local mark = #M.prints
+	use()
+	local inUse = quiet(mark, "while using the UI")
+	-- switched on: the same actions DO report (the lines are gated, not gone)
+	S.RvrseUI:EnableDebug(true)
+	mark = #M.prints
+	use()
+	local overlayOn, hotkeyOn = tagged(mark, "[OVERLAY]"), tagged(mark, "[HOTKEY]")
+	H.check(overlayOn > 0, "debug on: opening a list printed no [OVERLAY] line")
+	H.check(hotkeyOn > 0, "debug on: the toggle key printed no [HOTKEY] line")
+	-- and off again: silent again, also through the destroy key
+	S.RvrseUI:EnableDebug(false)
+	mark = #M.prints
+	use()
+	H.close("escape", S.W1, "Harness Hub A", S.RvrseUI)
+	local afterOff = quiet(mark, "after debug was switched off again")
+	H.log("quiet          | debug off: build=%d use=%d | debug on: overlay=%d hotkey=%d | off again + destroy key=%d",
+		atBuild, inUse, overlayOn, hotkeyOn, afterOff)
 else
 	H.close(H_SCENARIO, S.W1, "Harness Hub A", S.RvrseUI)
 end
