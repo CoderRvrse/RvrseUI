@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.1 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-07T23:31:12.090Z
+-- Compiled from modular architecture on 2026-10-08T19:28:48.177Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -2462,6 +2462,14 @@ Hotkeys.UI = {
 }
 Hotkeys._initialized = false
 
+-- Diagnostic lines: silent unless RvrseUI:EnableDebug(true) is on
+local function dprint(...)
+	local dbg = Hotkeys.Debug
+	if dbg and dbg.IsEnabled and dbg:IsEnabled() then
+		print(...)
+	end
+end
+
 -- Utility: Convert string/KeyCode to Enum.KeyCode
 local function coerceKeycode(k)
 	if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
@@ -2514,19 +2522,19 @@ function Hotkeys:BindEscapeKey(key)
 end
 
 local function handleToggle(self)
-	print("\n========== [HOTKEY DEBUG] ==========")
-	print("[HOTKEY] Toggle key processed:", self.UI._key.Name)
+	dprint("\n========== [HOTKEY DEBUG] ==========")
+	dprint("[HOTKEY] Toggle key processed:", self.UI._key.Name)
 
 	for f in pairs(self.UI._toggleTargets) do
 		if f and f.Parent then
 			local windowData = self.UI._windowData and self.UI._windowData[f]
-			print("[HOTKEY] Window found:", f.Name)
-			print("[HOTKEY] Has windowData:", windowData ~= nil)
+			dprint("[HOTKEY] Window found:", f.Name)
+			dprint("[HOTKEY] Has windowData:", windowData ~= nil)
 
 			if windowData then
-				print("[HOTKEY] Has isMinimized function:", windowData.isMinimized ~= nil)
-				print("[HOTKEY] Has minimizeFunction:", windowData.minimizeFunction ~= nil)
-				print("[HOTKEY] Has restoreFunction:", windowData.restoreFunction ~= nil)
+				dprint("[HOTKEY] Has isMinimized function:", windowData.isMinimized ~= nil)
+				dprint("[HOTKEY] Has minimizeFunction:", windowData.minimizeFunction ~= nil)
+				dprint("[HOTKEY] Has restoreFunction:", windowData.restoreFunction ~= nil)
 			end
 
 			if windowData and windowData.isMinimized then
@@ -2537,35 +2545,35 @@ local function handleToggle(self)
 					minimized = (windowData.isMinimized == true)
 				end
 
-				print("[HOTKEY] Current state - isMinimized:", minimized, "| f.Visible:", f.Visible)
+				dprint("[HOTKEY] Current state - isMinimized:", minimized, "| f.Visible:", f.Visible)
 
 				if minimized == true then
-					print("[HOTKEY] ✅ ACTION: RESTORE (chip → full window)")
+					dprint("[HOTKEY] ✅ ACTION: RESTORE (chip → full window)")
 					if windowData.restoreFunction then
 						windowData.restoreFunction()
 					else
-						print("[HOTKEY] ❌ ERROR: restoreFunction missing!")
+						warn("[RvrseUI] Hotkeys: restoreFunction missing")
 					end
 				else
 					if f.Visible then
-						print("[HOTKEY] ✅ ACTION: MINIMIZE (full window → chip)")
+						dprint("[HOTKEY] ✅ ACTION: MINIMIZE (full window → chip)")
 						if windowData.minimizeFunction then
 							windowData.minimizeFunction()
 						else
-							print("[HOTKEY] ❌ ERROR: minimizeFunction missing!")
+							warn("[RvrseUI] Hotkeys: minimizeFunction missing")
 						end
 					else
-						print("[HOTKEY] ✅ ACTION: SHOW (hidden → visible)")
+						dprint("[HOTKEY] ✅ ACTION: SHOW (hidden → visible)")
 						f.Visible = true
 					end
 				end
 			else
-				print("[HOTKEY] ⚠️ No minimize tracking - using simple toggle")
+				dprint("[HOTKEY] ⚠️ No minimize tracking - using simple toggle")
 				f.Visible = not f.Visible
 			end
 		end
 	end
-	print("========================================\n")
+	dprint("========================================\n")
 end
 
 function Hotkeys:ToggleAllWindows()
@@ -2584,8 +2592,8 @@ function Hotkeys:Init()
 
 		-- ESC KEY: DESTROY the UI completely
 		if io.KeyCode == self.UI._escapeKey then
-			print("\n========== [DESTROY KEY] ==========")
-			print("[DESTROY] Escape key pressed - destroying UI")
+			dprint("\n========== [DESTROY KEY] ==========")
+			dprint("[DESTROY] Escape key pressed - destroying UI")
 
 			-- Snapshot first: each destroyFunction unregisters its window
 			local targets = {}
@@ -2596,15 +2604,15 @@ function Hotkeys:Init()
 				if f and f.Parent then
 					local windowData = self.UI._windowData and self.UI._windowData[f]
 					if windowData and windowData.destroyFunction then
-						print("[DESTROY] Calling destroy function")
+						dprint("[DESTROY] Calling destroy function")
 						windowData.destroyFunction()
 					else
-						print("[DESTROY] No destroy function - hiding UI")
+						dprint("[DESTROY] No destroy function - hiding UI")
 						f.Visible = false
 					end
 				end
 			end
-			print("========================================\n")
+			dprint("========================================\n")
 			return
 		end
 
@@ -2631,6 +2639,7 @@ function Hotkeys:Initialize(deps)
 	-- Hotkeys system is ready to use
 	-- deps contains: UserInputService, WindowManager
 	-- Input listeners are set up when BindToggleKey is called
+	self.Debug = deps and deps.Debug or self.Debug
 	self:Init()
 end
 end
@@ -2911,6 +2920,14 @@ do
 Overlay = {}
 Overlay._initialized = false
 
+-- Diagnostic lines: silent unless RvrseUI:EnableDebug(true) is on
+local function dprint(...)
+	local dbg = Overlay.Debug
+	if dbg and dbg.IsEnabled and dbg:IsEnabled() then
+		print(...)
+	end
+end
+
 local function setLayerVisibility(layer)
 	local anyVisible = false
 	for _, child in ipairs(layer:GetChildren()) do
@@ -3139,10 +3156,10 @@ function Overlay:ShowBlocker(options)
 	assert(self.Blocker, "[Overlay] Service not initialized")
 	options = options or {}
 
-	print("[OVERLAY] 🔷 ShowBlocker called with options:")
-	print(string.format("  - Modal: %s", tostring(options.Modal)))
-	print(string.format("  - ZIndex: %s", tostring(options.ZIndex)))
-	print(string.format("  - Transparency: %s", tostring(options.Transparency)))
+	dprint("[OVERLAY] 🔷 ShowBlocker called with options:")
+	dprint(string.format("  - Modal: %s", tostring(options.Modal)))
+	dprint(string.format("  - ZIndex: %s", tostring(options.ZIndex)))
+	dprint(string.format("  - Transparency: %s", tostring(options.Transparency)))
 
 	self._blockerCount += 1
 
@@ -3157,18 +3174,18 @@ function Overlay:ShowBlocker(options)
 	end
 	blocker.BackgroundTransparency = transparency
 
-	print(string.format("[OVERLAY] ✅ Blocker configured:"))
-	print(string.format("  - Visible: %s", tostring(blocker.Visible)))
-	print(string.format("  - Active: %s", tostring(blocker.Active)))
-	print(string.format("  - Modal: %s", tostring(blocker.Modal)))
-	print(string.format("  - ZIndex: %d", blocker.ZIndex))
-	print(string.format("  - Transparency: %.2f", blocker.BackgroundTransparency))
-	print(string.format("  - Blocker depth: %d", self._blockerCount))
+	dprint(string.format("[OVERLAY] ✅ Blocker configured:"))
+	dprint(string.format("  - Visible: %s", tostring(blocker.Visible)))
+	dprint(string.format("  - Active: %s", tostring(blocker.Active)))
+	dprint(string.format("  - Modal: %s", tostring(blocker.Modal)))
+	dprint(string.format("  - ZIndex: %d", blocker.ZIndex))
+	dprint(string.format("  - Transparency: %.2f", blocker.BackgroundTransparency))
+	dprint(string.format("  - Blocker depth: %d", self._blockerCount))
 
 	-- Make sure layer is visible
 	if self.Layer then
 		self.Layer.Visible = true
-		print(string.format("[OVERLAY] Layer made visible"))
+		dprint(string.format("[OVERLAY] Layer made visible"))
 	end
 
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
@@ -3183,7 +3200,7 @@ function Overlay:HideBlocker(force)
 		return -- torn down (all windows closed): nothing to hide
 	end
 
-	print(string.format("[OVERLAY] 🔶 HideBlocker called (force: %s, current depth: %d)", tostring(force), self._blockerCount))
+	dprint(string.format("[OVERLAY] 🔶 HideBlocker called (force: %s, current depth: %d)", tostring(force), self._blockerCount))
 
 	if force then
 		self._blockerCount = 0
@@ -3191,7 +3208,7 @@ function Overlay:HideBlocker(force)
 		self._blockerCount = math.max(0, self._blockerCount - 1)
 	end
 
-	print(string.format("[OVERLAY] New blocker depth: %d", self._blockerCount))
+	dprint(string.format("[OVERLAY] New blocker depth: %d", self._blockerCount))
 
 	if self._blockerCount == 0 then
 		local blocker = self.Blocker
@@ -3199,9 +3216,9 @@ function Overlay:HideBlocker(force)
 		blocker.Modal = false
 		blocker.Visible = false
 		blocker.BackgroundTransparency = 1
-		print("[OVERLAY] ✅ Blocker hidden (depth reached 0)")
+		dprint("[OVERLAY] ✅ Blocker hidden (depth reached 0)")
 	else
-		print(string.format("[OVERLAY] ⚠️ Blocker still active (depth: %d)", self._blockerCount))
+		dprint(string.format("[OVERLAY] ⚠️ Blocker still active (depth: %d)", self._blockerCount))
 	end
 
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
@@ -6571,13 +6588,17 @@ function Keybind.Create(o, dependencies)
 			-- SPECIAL: If this keybind is for UI toggle, update the global toggle key
 			if o.Flag == "_UIToggleKey" or o.IsUIToggle then
 				RvrseUI.UI:BindToggleKey(io.KeyCode)
-				print("[KEYBIND] UI Toggle key updated to:", io.KeyCode.Name)
+				if RvrseUI.IsDebugEnabled and RvrseUI:IsDebugEnabled() then
+					print("[KEYBIND] UI Toggle key updated to:", io.KeyCode.Name)
+				end
 			end
 
 			-- SPECIAL: If this keybind is for escape/close, update the escape key
 			if o.Flag == "_UIEscapeKey" or o.IsUIEscape then
 				RvrseUI.UI:BindEscapeKey(io.KeyCode)
-				print("[KEYBIND] UI Escape key updated to:", io.KeyCode.Name)
+				if RvrseUI.IsDebugEnabled and RvrseUI:IsDebugEnabled() then
+					print("[KEYBIND] UI Escape key updated to:", io.KeyCode.Name)
+				end
 			end
 
 			if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
@@ -11017,10 +11038,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 			task.defer(function()
 				if RvrseUI.ConfigurationSaving and RvrseUI.ConfigurationFileName then
-					print("[RvrseUI] 📂 Loading configuration (after elements created)...")
+					Debug.printf("📂 Loading configuration (after elements created)...")
 					local success, message = RvrseUI:LoadConfiguration()
 					if success then
-						print("[RvrseUI] ✅ Configuration loaded successfully")
+						Debug.printf("✅ Configuration loaded successfully")
 					else
 						print("[RvrseUI] ⚠️ Config load warning:", message)
 					end
@@ -11146,7 +11167,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						opts = opts or {}
 						local list, warning = gatherProfiles()
 						lastProfileList = list
-						print(string.format("[Profiles] refresh count=%d", #list))
+						Debug.printf("[Profiles] refresh count=%d", #list)
 						if profilesDropdown then
 							profilesDropdown:Refresh(list)
 						end
@@ -11616,7 +11637,8 @@ DEFAULT_OVERLAY.Parent = DEFAULT_HOST
 Overlay:Initialize({
     PlayerGui = PlayerGui,
     DisplayOrder = DEFAULT_HOST.DisplayOrder + 10,
-    OverlayFrame = DEFAULT_OVERLAY
+    OverlayFrame = DEFAULT_OVERLAY,
+    Debug = Debug
 })
 
 Notifications:Initialize({
@@ -11629,7 +11651,8 @@ Notifications:Initialize({
 })
 
 Hotkeys:Initialize({
-    UIS = UIS
+    UIS = UIS,
+    Debug = Debug
 })
 
 WindowManager:Initialize()

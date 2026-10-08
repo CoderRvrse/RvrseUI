@@ -1987,10 +1987,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 			task.defer(function()
 				if RvrseUI.ConfigurationSaving and RvrseUI.ConfigurationFileName then
-					print("[RvrseUI] 📂 Loading configuration (after elements created)...")
+					Debug.printf("📂 Loading configuration (after elements created)...")
 					local success, message = RvrseUI:LoadConfiguration()
 					if success then
-						print("[RvrseUI] ✅ Configuration loaded successfully")
+						Debug.printf("✅ Configuration loaded successfully")
 					else
 						print("[RvrseUI] ⚠️ Config load warning:", message)
 					end
@@ -2116,7 +2116,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						opts = opts or {}
 						local list, warning = gatherProfiles()
 						lastProfileList = list
-						print(string.format("[Profiles] refresh count=%d", #list))
+						Debug.printf("[Profiles] refresh count=%d", #list)
 						if profilesDropdown then
 							profilesDropdown:Refresh(list)
 						end

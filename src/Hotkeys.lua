@@ -13,6 +13,14 @@ Hotkeys.UI = {
 }
 Hotkeys._initialized = false
 
+-- Diagnostic lines: silent unless RvrseUI:EnableDebug(true) is on
+local function dprint(...)
+	local dbg = Hotkeys.Debug
+	if dbg and dbg.IsEnabled and dbg:IsEnabled() then
+		print(...)
+	end
+end
+
 -- Utility: Convert string/KeyCode to Enum.KeyCode
 local function coerceKeycode(k)
 	if typeof(k) == "EnumItem" and k.EnumType == Enum.KeyCode then return k end
@@ -65,19 +73,19 @@ function Hotkeys:BindEscapeKey(key)
 end
 
 local function handleToggle(self)
-	print("\n========== [HOTKEY DEBUG] ==========")
-	print("[HOTKEY] Toggle key processed:", self.UI._key.Name)
+	dprint("\n========== [HOTKEY DEBUG] ==========")
+	dprint("[HOTKEY] Toggle key processed:", self.UI._key.Name)
 
 	for f in pairs(self.UI._toggleTargets) do
 		if f and f.Parent then
 			local windowData = self.UI._windowData and self.UI._windowData[f]
-			print("[HOTKEY] Window found:", f.Name)
-			print("[HOTKEY] Has windowData:", windowData ~= nil)
+			dprint("[HOTKEY] Window found:", f.Name)
+			dprint("[HOTKEY] Has windowData:", windowData ~= nil)
 
 			if windowData then
-				print("[HOTKEY] Has isMinimized function:", windowData.isMinimized ~= nil)
-				print("[HOTKEY] Has minimizeFunction:", windowData.minimizeFunction ~= nil)
-				print("[HOTKEY] Has restoreFunction:", windowData.restoreFunction ~= nil)
+				dprint("[HOTKEY] Has isMinimized function:", windowData.isMinimized ~= nil)
+				dprint("[HOTKEY] Has minimizeFunction:", windowData.minimizeFunction ~= nil)
+				dprint("[HOTKEY] Has restoreFunction:", windowData.restoreFunction ~= nil)
 			end
 
 			if windowData and windowData.isMinimized then
@@ -88,35 +96,35 @@ local function handleToggle(self)
 					minimized = (windowData.isMinimized == true)
 				end
 
-				print("[HOTKEY] Current state - isMinimized:", minimized, "| f.Visible:", f.Visible)
+				dprint("[HOTKEY] Current state - isMinimized:", minimized, "| f.Visible:", f.Visible)
 
 				if minimized == true then
-					print("[HOTKEY] ✅ ACTION: RESTORE (chip → full window)")
+					dprint("[HOTKEY] ✅ ACTION: RESTORE (chip → full window)")
 					if windowData.restoreFunction then
 						windowData.restoreFunction()
 					else
-						print("[HOTKEY] ❌ ERROR: restoreFunction missing!")
+						warn("[RvrseUI] Hotkeys: restoreFunction missing")
 					end
 				else
 					if f.Visible then
-						print("[HOTKEY] ✅ ACTION: MINIMIZE (full window → chip)")
+						dprint("[HOTKEY] ✅ ACTION: MINIMIZE (full window → chip)")
 						if windowData.minimizeFunction then
 							windowData.minimizeFunction()
 						else
-							print("[HOTKEY] ❌ ERROR: minimizeFunction missing!")
+							warn("[RvrseUI] Hotkeys: minimizeFunction missing")
 						end
 					else
-						print("[HOTKEY] ✅ ACTION: SHOW (hidden → visible)")
+						dprint("[HOTKEY] ✅ ACTION: SHOW (hidden → visible)")
 						f.Visible = true
 					end
 				end
 			else
-				print("[HOTKEY] ⚠️ No minimize tracking - using simple toggle")
+				dprint("[HOTKEY] ⚠️ No minimize tracking - using simple toggle")
 				f.Visible = not f.Visible
 			end
 		end
 	end
-	print("========================================\n")
+	dprint("========================================\n")
 end
 
 function Hotkeys:ToggleAllWindows()
@@ -135,8 +143,8 @@ function Hotkeys:Init()
 
 		-- ESC KEY: DESTROY the UI completely
 		if io.KeyCode == self.UI._escapeKey then
-			print("\n========== [DESTROY KEY] ==========")
-			print("[DESTROY] Escape key pressed - destroying UI")
+			dprint("\n========== [DESTROY KEY] ==========")
+			dprint("[DESTROY] Escape key pressed - destroying UI")
 
 			-- Snapshot first: each destroyFunction unregisters its window
 			local targets = {}
@@ -147,15 +155,15 @@ function Hotkeys:Init()
 				if f and f.Parent then
 					local windowData = self.UI._windowData and self.UI._windowData[f]
 					if windowData and windowData.destroyFunction then
-						print("[DESTROY] Calling destroy function")
+						dprint("[DESTROY] Calling destroy function")
 						windowData.destroyFunction()
 					else
-						print("[DESTROY] No destroy function - hiding UI")
+						dprint("[DESTROY] No destroy function - hiding UI")
 						f.Visible = false
 					end
 				end
 			end
-			print("========================================\n")
+			dprint("========================================\n")
 			return
 		end
 
@@ -182,6 +190,7 @@ function Hotkeys:Initialize(deps)
 	-- Hotkeys system is ready to use
 	-- deps contains: UserInputService, WindowManager
 	-- Input listeners are set up when BindToggleKey is called
+	self.Debug = deps and deps.Debug or self.Debug
 	self:Init()
 end
 

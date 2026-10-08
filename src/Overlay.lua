@@ -8,6 +8,14 @@
 local Overlay = {}
 Overlay._initialized = false
 
+-- Diagnostic lines: silent unless RvrseUI:EnableDebug(true) is on
+local function dprint(...)
+	local dbg = Overlay.Debug
+	if dbg and dbg.IsEnabled and dbg:IsEnabled() then
+		print(...)
+	end
+end
+
 local function setLayerVisibility(layer)
 	local anyVisible = false
 	for _, child in ipairs(layer:GetChildren()) do
@@ -236,10 +244,10 @@ function Overlay:ShowBlocker(options)
 	assert(self.Blocker, "[Overlay] Service not initialized")
 	options = options or {}
 
-	print("[OVERLAY] 🔷 ShowBlocker called with options:")
-	print(string.format("  - Modal: %s", tostring(options.Modal)))
-	print(string.format("  - ZIndex: %s", tostring(options.ZIndex)))
-	print(string.format("  - Transparency: %s", tostring(options.Transparency)))
+	dprint("[OVERLAY] 🔷 ShowBlocker called with options:")
+	dprint(string.format("  - Modal: %s", tostring(options.Modal)))
+	dprint(string.format("  - ZIndex: %s", tostring(options.ZIndex)))
+	dprint(string.format("  - Transparency: %s", tostring(options.Transparency)))
 
 	self._blockerCount += 1
 
@@ -254,18 +262,18 @@ function Overlay:ShowBlocker(options)
 	end
 	blocker.BackgroundTransparency = transparency
 
-	print(string.format("[OVERLAY] ✅ Blocker configured:"))
-	print(string.format("  - Visible: %s", tostring(blocker.Visible)))
-	print(string.format("  - Active: %s", tostring(blocker.Active)))
-	print(string.format("  - Modal: %s", tostring(blocker.Modal)))
-	print(string.format("  - ZIndex: %d", blocker.ZIndex))
-	print(string.format("  - Transparency: %.2f", blocker.BackgroundTransparency))
-	print(string.format("  - Blocker depth: %d", self._blockerCount))
+	dprint(string.format("[OVERLAY] ✅ Blocker configured:"))
+	dprint(string.format("  - Visible: %s", tostring(blocker.Visible)))
+	dprint(string.format("  - Active: %s", tostring(blocker.Active)))
+	dprint(string.format("  - Modal: %s", tostring(blocker.Modal)))
+	dprint(string.format("  - ZIndex: %d", blocker.ZIndex))
+	dprint(string.format("  - Transparency: %.2f", blocker.BackgroundTransparency))
+	dprint(string.format("  - Blocker depth: %d", self._blockerCount))
 
 	-- Make sure layer is visible
 	if self.Layer then
 		self.Layer.Visible = true
-		print(string.format("[OVERLAY] Layer made visible"))
+		dprint(string.format("[OVERLAY] Layer made visible"))
 	end
 
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then
@@ -280,7 +288,7 @@ function Overlay:HideBlocker(force)
 		return -- torn down (all windows closed): nothing to hide
 	end
 
-	print(string.format("[OVERLAY] 🔶 HideBlocker called (force: %s, current depth: %d)", tostring(force), self._blockerCount))
+	dprint(string.format("[OVERLAY] 🔶 HideBlocker called (force: %s, current depth: %d)", tostring(force), self._blockerCount))
 
 	if force then
 		self._blockerCount = 0
@@ -288,7 +296,7 @@ function Overlay:HideBlocker(force)
 		self._blockerCount = math.max(0, self._blockerCount - 1)
 	end
 
-	print(string.format("[OVERLAY] New blocker depth: %d", self._blockerCount))
+	dprint(string.format("[OVERLAY] New blocker depth: %d", self._blockerCount))
 
 	if self._blockerCount == 0 then
 		local blocker = self.Blocker
@@ -296,9 +304,9 @@ function Overlay:HideBlocker(force)
 		blocker.Modal = false
 		blocker.Visible = false
 		blocker.BackgroundTransparency = 1
-		print("[OVERLAY] ✅ Blocker hidden (depth reached 0)")
+		dprint("[OVERLAY] ✅ Blocker hidden (depth reached 0)")
 	else
-		print(string.format("[OVERLAY] ⚠️ Blocker still active (depth: %d)", self._blockerCount))
+		dprint(string.format("[OVERLAY] ⚠️ Blocker still active (depth: %d)", self._blockerCount))
 	end
 
 	if self.Debug and self.Debug.IsEnabled and self.Debug:IsEnabled() then

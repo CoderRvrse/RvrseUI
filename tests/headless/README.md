@@ -29,6 +29,13 @@ closing, there are **0 live connections made by RvrseUI**, **0 RvrseUI ScreenGui
 | `togglesoff` | `TurnOffTogglesOnClose` + config saving: ON toggles get one `OnChanged(false)`, saved config keeps ON, Auto Save stays on |
 | `track` | `Window:Track` connections, a loop thread, a cleanup function and an Instance are all released |
 | `selecttab` | `Window:SelectTab` by position, Title and tab object switches the page; bad targets return `false` with a warning, never an error |
+| `quiet` | with debug off (the default) RvrseUI prints only its one-line status messages while building, opening a list and the colour panel, pressing the toggle key and the destroy key; with `RvrseUI:EnableDebug(true)` the `[OVERLAY]` / `[HOTKEY]` lines come back |
+
+## Source guard
+
+Before the scenarios, `run.js` reads `src/` and fails on any bare `print(` that is not in its `ALLOWED_PRINTS` list.
+A bare print shows in every user's console: send a diagnostic through `Debug.printf` or a module's gated `dprint`
+(silent unless `RvrseUI:EnableDebug(true)`), and add a line to the list only for a deliberate status message.
 
 ## The mock (`roblox_mock.lua`)
 

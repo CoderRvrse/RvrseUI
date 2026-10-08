@@ -125,13 +125,17 @@ function Keybind.Create(o, dependencies)
 			-- SPECIAL: If this keybind is for UI toggle, update the global toggle key
 			if o.Flag == "_UIToggleKey" or o.IsUIToggle then
 				RvrseUI.UI:BindToggleKey(io.KeyCode)
-				print("[KEYBIND] UI Toggle key updated to:", io.KeyCode.Name)
+				if RvrseUI.IsDebugEnabled and RvrseUI:IsDebugEnabled() then
+					print("[KEYBIND] UI Toggle key updated to:", io.KeyCode.Name)
+				end
 			end
 
 			-- SPECIAL: If this keybind is for escape/close, update the escape key
 			if o.Flag == "_UIEscapeKey" or o.IsUIEscape then
 				RvrseUI.UI:BindEscapeKey(io.KeyCode)
-				print("[KEYBIND] UI Escape key updated to:", io.KeyCode.Name)
+				if RvrseUI.IsDebugEnabled and RvrseUI:IsDebugEnabled() then
+					print("[KEYBIND] UI Escape key updated to:", io.KeyCode.Name)
+				end
 			end
 
 			if o.OnChanged then task.spawn(o.OnChanged, io.KeyCode) end
