@@ -30,6 +30,7 @@ function Keybind.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Keybind"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Modern key display button
@@ -46,6 +47,9 @@ function Keybind.Create(o, dependencies)
 	btn.Text = (o.Default and o.Default.Name) or "Set Key"
 	btn.AutoButtonColor = false
 	btn.Parent = f
+	if dependencies.fitRow then
+		dependencies.fitRow(f, lbl, btn, 10) -- v4.5.2: never covers its label on a phone
+	end
 	corner(btn, "pill")
 
 	-- Border stroke
@@ -69,6 +73,10 @@ function Keybind.Create(o, dependencies)
 		NumberSequenceKeypoint.new(0, 1),
 		NumberSequenceKeypoint.new(1, 1),
 	}
+	-- ✅ v4.5.2: OFF while idle. It used to sit at transparency 1 instead, and a
+	-- UIGradient also fades its button's background AND text, so the key button
+	-- was invisible on every device until it was clicked.
+	btnGradient.Enabled = false
 	btnGradient.Parent = btn
 
 	local capturing = false
@@ -76,10 +84,14 @@ function Keybind.Create(o, dependencies)
 
 	btn.MouseButton1Click:Connect(function()
 		if RvrseUI.Store:IsLocked(o.RespectLock) then return end
+		-- ✅ v4.5.2: a touch screen with no keyboard has no key to press: it would
+		-- wait for one for ever.
+		if not UIS.KeyboardEnabled then return end
 		capturing = true
 		btn.Text = "⌨️ Press any key..."
 
 		-- Activate gradient background (set directly - can't tween NumberSequence)
+		btnGradient.Enabled = true
 		btnGradient.Transparency = NumberSequence.new{
 			NumberSequenceKeypoint.new(0, 0.5),
 			NumberSequenceKeypoint.new(1, 0.5),
@@ -107,6 +119,7 @@ function Keybind.Create(o, dependencies)
 			btn.Text = io.KeyCode.Name
 
 			-- Deactivate gradient (set directly - can't tween NumberSequence)
+			btnGradient.Enabled = false
 			btnGradient.Transparency = NumberSequence.new{
 				NumberSequenceKeypoint.new(0, 1),
 				NumberSequenceKeypoint.new(1, 1),

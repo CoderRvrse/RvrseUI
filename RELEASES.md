@@ -1,5 +1,24 @@
 # RvrseUI Releases
 
+## Version 4.5.2 "Fits Anywhere" - Phone Fit
+**Release Date**: October 11, 2026
+**Build**: 20261011a
+**Hash**: `M0B1L3F7`
+**Channel**: Stable
+
+### Highlights
+- **The window fits the screen.** It asks for 580x480 (a touch screen held upright: 380x520) and takes at most the room below Roblox's top bar. On a phone held sideways (about 750x381) the old fixed 380x520 window was tall and narrow, ran 140px off the bottom and sat in the top bar; now it is 580 wide, all of it on the screen. It is fitted again when the screen changes size, and it can't be dragged off the screen. A desktop still gets 580x480.
+- **Labels are never covered.** On a narrow card the dropdown button, text box and key button give way; every control label is cut with "..." instead of running under its control.
+- **Text cards are as tall as their text.** Paragraph and Label used to guess 50 characters a line and cut the text on phones.
+- **Colour picker panel**: on the right of the screen, centred top to bottom, drawn smaller on a short screen. It used to start 52px below the middle and run off the bottom (on desktops too). Its rows are in order again (RGB, HSV, Hex Code).
+- **Dropdown lists** near the bottom of the screen stay on it (they ran off by the top bar's height).
+- **Keybind button can be seen.** Its highlight gradient hid it until clicked. On a touch screen with no keyboard a tap no longer waits for a key forever.
+- **New**: `ColorPicker:SetOpen(state)`, like a dropdown's `SetOpen`.
+
+### Verification
+- `node tests/headless/run.js`: new `mobile` scenario (12 scenarios in all): the window fits a 750x381 sideways phone below the top bar and is centred there, the colour panel opens on the screen, the key button is not hidden, turned upright (381x750) the window is fitted again and no control covers its label, a window opened where the last one was left lands below the top bar; every other scenario checks a desktop still gets 580x480. It FAILS on 4.5.1 (8 checks); 11 of 11 mutations of the fix are caught.
+- Roblox Studio, Device emulator on a phone (750x381, touch only): window, labels, paragraph, key button, colour panel and dropdown list all on the screen.
+
 ## Version 4.5.1 "Jump To" - Select Tab
 **Release Date**: October 7, 2026  
 **Build**: 20261007a  

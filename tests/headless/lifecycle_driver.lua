@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -84,6 +84,28 @@ function H.findButtonBesideLabel(text)
 		if M.D[sib].className == "TextButton" then return sib end
 	end
 	return nil
+end
+
+-- the window's root frame (the topmost frame under the ScreenGui holding its title)
+function H.windowRoot(name)
+	local node = H.find(function(_, dd) return dd.className == "TextLabel" and dd.props.Text == name end)
+	while node do
+		local parent = M.D[node].props.Parent
+		if not parent or M.isA(M.D[parent].className, "LayerCollector") then break end
+		node = parent
+	end
+	return node
+end
+
+-- the widget (a button or a text box) next to an element's label
+function H.widgetBesideLabel(text)
+	local lbl = H.find(function(_, dd) return dd.className == "TextLabel" and dd.props.Text == text end)
+	if not lbl then return nil, nil end
+	for _, sib in ipairs(M.D[M.D[lbl].props.Parent].children) do
+		local class = M.D[sib].className
+		if class == "TextButton" or class == "TextBox" then return lbl, sib end
+	end
+	return lbl, nil
 end
 
 -- the tab page (ScrollingFrame) holding the element with this label
@@ -176,6 +198,18 @@ end
 -- ── run ────────────────────────────────────────────────────────────
 M.echo = false -- RvrseUI is chatty; errors are still collected in M.errors
 local S = { closeCalls = { 0, 0 } }
+-- "mobile": a touch-only phone held sideways (750x381), set up before anything is built.
+local MOBILE_INSET = 36 -- what the mock's GuiService:GetGuiInset() says
+local function setScreen(w, h)
+	M.Viewport = M.V2(w, h)
+	local cam = workspace.CurrentCamera
+	if cam then M.D[cam].props.ViewportSize = M.V2(w, h) end
+end
+if H_SCENARIO == "mobile" then
+	local p = M.D[M.UserInputService].props
+	p.TouchEnabled, p.MouseEnabled, p.KeyboardEnabled = true, false, false
+	setScreen(750, 381)
+end
 local wantsLifecycle = H_SCENARIO == "reopen" or H_SCENARIO == "togglesoff" or H_SCENARIO == "track" or H_SCENARIO == "overlays"
 local okBuild = M.runThread(function()
 	S.RvrseUI = H.loadRvrseUI()
@@ -197,6 +231,13 @@ M.run(2)
 H.log("RvrseUI %s | lifecycle API: %s", tostring(S.RvrseUI and S.RvrseUI.Version and S.RvrseUI.Version.Full or "?"), tostring(H.hasLifecycle(S.W1)))
 H.check(H.errorsSince(0, "BUILD") == 0, "error(s) while building")
 local built = H.census("built")
+if H_SCENARIO ~= "mobile" then
+	-- v4.5.2 fits the window to the screen: a desktop screen still gets the 580x480 window.
+	local root = H.windowRoot("Harness Hub A")
+	local size = root and root.AbsoluteSize
+	H.check(size ~= nil and size.X == 580 and size.Y == 480,
+		"desktop window is " .. (size and (size.X .. "x" .. size.Y) or "missing") .. " (want 580x480)")
+end
 H.check(#built > 0, "no RvrseUI connections at all (harness is not seeing RvrseUI)")
 if wantsLifecycle then H.check(H.hasLifecycle(S.W1), "this build has no lifecycle API (Window:OnClose/Track/IsDestroyed)") end
 local errorsAtBuild = #M.errors
@@ -358,6 +399,89 @@ elseif H_SCENARIO == "selecttab" then
 		local okLate, late = pcall(W.SelectTab, W, 1)
 		H.check(okLate and late == false, "SelectTab after close: " .. tostring(okLate) .. ", " .. tostring(late) .. " (want no error, false)")
 	end
+elseif H_SCENARIO == "mobile" then
+	-- v4.5.2: everything of the window is on a phone's screen, below Roblox's top
+	-- bar: sideways (750x381), then the phone turned upright (381x750).
+	local function box(inst)
+		local p, s = inst.AbsolutePosition, inst.AbsoluteSize
+		return p.X, p.Y, p.X + s.X, p.Y + s.Y
+	end
+	local function fits(tag)
+		local root = H.windowRoot("Harness Hub A")
+		if not H.check(root ~= nil, tag .. ": no window root") then return 0, 0 end
+		local x0, y0, x1, y1 = box(root)
+		local v = M.Viewport
+		H.log("mobile %-9s| screen %dx%d | window x %d..%d y %d..%d (%dx%d)", tag, v.X, v.Y, x0, x1, y0, y1, x1 - x0, y1 - y0)
+		H.check(x0 >= 0 and x1 <= v.X and y0 >= MOBILE_INSET and y1 <= v.Y, tag .. ": the window is not all on the screen below the top bar")
+		return x1 - x0, y1 - y0
+	end
+	local w, h = fits("sideways")
+	H.check(w == 580 and h == 381 - MOBILE_INSET - 16, ("sideways: window %dx%d (want 580x%d)"):format(w, h, 381 - MOBILE_INSET - 16))
+	do -- centred in the room below the top bar: the same gap above and below
+		local _, y0, _, y1 = box(H.windowRoot("Harness Hub A"))
+		H.check(math.abs((y0 - MOBILE_INSET) - (M.Viewport.Y - y1)) <= 1,
+			("sideways: not centred below the top bar (gap above %d, below %d)"):format(y0 - MOBILE_INSET, M.Viewport.Y - y1))
+	end
+	-- the key button can be seen: its highlight gradient is off while idle
+	local _, keyBtn = H.widgetBesideLabel("Keybind")
+	local keyGradient = keyBtn and keyBtn:FindFirstChildOfClass("UIGradient")
+	H.check(keyGradient ~= nil and keyGradient.Enabled == false, "the key button is hidden by its highlight gradient")
+	-- a tap on the colour swatch: all of the panel is on the screen
+	local preview = H.findButtonBesideLabel("Color")
+	M.runThread(function() if preview then M.click(preview) end end, 5)
+	M.run(1.5)
+	local panel = H.find(function(inst, dd) return dd.props.Name == "ColorPickerPanel" and inst.Visible end)
+	if H.check(panel ~= nil, "the colour panel did not open") then
+		local scale = panel:FindFirstChildOfClass("UIScale")
+		local s = scale and scale.Scale or 1
+		local x0, y0, x1, y1 = box(panel)
+		local cy, half = (y0 + y1) / 2, (y1 - y0) * s / 2
+		H.log("mobile panel   | %dx%d at scale %.2f: y %d..%d", x1 - x0, y1 - y0, s, cy - half, cy + half)
+		H.check(cy - half >= 0 and cy + half <= M.Viewport.Y and x1 <= M.Viewport.X, "the colour panel runs off the screen")
+	end
+	M.runThread(function() if preview then M.click(preview) end end, 5)
+	M.run(1)
+	-- turned upright: the screen changes size and the window is fitted again
+	setScreen(381, 750)
+	local function sizesChanged()
+		for _, d in pairs(M.D) do
+			local sig = d.propSignals and d.propSignals.AbsoluteSize
+			if sig then M.fireSignal(sig) end
+		end
+	end
+	M.runThread(sizesChanged, 5)
+	M.run(0.5)
+	M.runThread(sizesChanged, 5) -- and the cards follow the window
+	M.run(0.5)
+	w, h = fits("upright")
+	H.check(w == 381 - 16 and h == 520, ("upright: window %dx%d (want %dx520)"):format(w, h, 381 - 16))
+	-- no control covers its own label, and each label keeps some room
+	for _, text in ipairs({ "Dropdown", "TextBox", "Keybind" }) do
+		local lbl, widget = H.widgetBesideLabel(text)
+		if H.check(lbl ~= nil and widget ~= nil, text .. ": label or widget not found") then
+			local lx0, _, lx1 = box(lbl)
+			local wx0 = box(widget)
+			H.log("mobile %-9s| label %d..%d, widget from %d", text, lx0, lx1, wx0)
+			H.check(lx1 - lx0 >= 40 and lx1 <= wx0, text .. ": the label is covered by its widget, or squeezed under 40px")
+		end
+	end
+	-- a new window where the last one was left, in the very top-left corner:
+	-- it is kept on the screen, below the top bar
+	S.RvrseUI._lastWindowPosition = UDim2.fromOffset(0, 0)
+	local okSecond = M.runThread(function()
+		S.W2 = H.buildWindow(S.RvrseUI, "Harness Hub B")
+		if H.hasLifecycle(S.W2) then S.W2:OnClose(function() S.closeCalls[2] += 1 end) end
+		S.W2:Show()
+	end, 60)
+	M.run(1)
+	local second = okSecond and H.windowRoot("Harness Hub B")
+	if H.check(second ~= nil, "the second window was not built") then
+		local x0, y0 = box(second)
+		H.log("mobile second  | left where the last was (0,0): now at %d,%d", x0, y0)
+		H.check(x0 >= 0 and y0 >= MOBILE_INSET, "a window put where the last one was left sits in the top bar")
+		H.close("x", S.W2, "Harness Hub B")
+	end
+	H.close("x", S.W1, "Harness Hub A")
 elseif H_SCENARIO == "quiet" then
 	-- Diagnostic lines must stay silent unless RvrseUI:EnableDebug(true) is on.
 	-- With it off, RvrseUI may print only its one-line status messages.

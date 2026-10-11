@@ -176,6 +176,7 @@ function Dropdown.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Dropdown"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Trigger button (wider for long labels)
@@ -190,7 +191,11 @@ function Dropdown.Create(o, dependencies)
 	btn.TextColor3 = pal3.Text
 	btn.AutoButtonColor = false
 	btn.ZIndex = 2
+	btn.TextTruncate = Enum.TextTruncate.AtEnd
 	btn.Parent = f
+	if dependencies.fitRow then
+		dependencies.fitRow(f, lbl, btn, 16) -- v4.5.2: never covers its label on a phone
+	end
 	corner(btn, 8)
 	stroke(btn, pal3.Border, 1)
 
@@ -488,13 +493,28 @@ function Dropdown.Create(o, dependencies)
 			local buttonSize = btn.AbsoluteSize
 			local screenSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
 
+			-- ✅ v4.5.2: Absolute positions start BELOW Roblox's top bar, the camera's
+			-- view starts at the top of the screen. The bounds used to mix the two,
+			-- so a list near the bottom ran off the screen by the bar's height (58px:
+			-- on a phone, a third of the list). Everything here is in absolute
+			-- pixels now: the room is from just below the top bar to the screen's
+			-- bottom edge, and a list taller than that room is made shorter (it
+			-- scrolls).
+			local inset = Vector2.new(0, 0)
+			pcall(function()
+				inset = game:GetService("GuiService"):GetGuiInset()
+			end)
+			local roomTop, roomBottom = 4, screenSize.Y - inset.Y - 4
+			local roomLeft, roomRight = -inset.X + 4, screenSize.X - inset.X - 4
+			height = math.max(0, math.min(height, roomBottom - roomTop))
+
 			local dropdownX = buttonPos.X - overlayOffset.X + buttonSize.X - width
 			local dropdownY = buttonPos.Y - overlayOffset.Y + buttonSize.Y + 4
 
-			local minX = -overlayOffset.X + 4
-			local maxX = screenSize.X - width - overlayOffset.X - 4
-			local minY = -overlayOffset.Y + buttonSize.Y
-			local maxY = screenSize.Y - height - overlayOffset.Y - 4
+			local minX = roomLeft - overlayOffset.X
+			local maxX = roomRight - width - overlayOffset.X
+			local minY = roomTop - overlayOffset.Y
+			local maxY = roomBottom - height - overlayOffset.Y
 
 			dropdownX = math.clamp(dropdownX, minX, math.max(minX, maxX))
 			dropdownY = math.clamp(dropdownY, minY, math.max(minY, maxY))

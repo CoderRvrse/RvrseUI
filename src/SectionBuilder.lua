@@ -119,12 +119,46 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		return c
 	end
 
+	-- ✅ v4.5.2 (phones): a control with a widget on its right (a list button, a
+	-- text box, a key) must never cover its own label. The widget keeps its
+	-- width while the label still has MIN_LABEL px; on a narrower card it gives
+	-- way, down to half the card, and the label gets the rest (cut with "..."
+	-- when even that is too short). `gap` = the room between the label's end and
+	-- the card's right edge that is not the widget. Wide cards look as before.
+	local MIN_LABEL = 110
+	local function fitRow(c, label, widget, gap)
+		local full = widget.Size.X.Offset
+		local function fit()
+			local inner = c.AbsoluteSize.X - 24 -- the card's padding: 12 each side
+			if inner <= 0 then
+				return
+			end
+			local width = math.min(full, math.max(math.floor(inner * 0.5), inner - MIN_LABEL - gap))
+			widget.Size = UDim2.new(0, width, widget.Size.Y.Scale, widget.Size.Y.Offset)
+			label.Size = UDim2.new(1, -(width + gap), label.Size.Y.Scale, label.Size.Y.Offset)
+		end
+		c:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+		fit()
+	end
+
+	-- ✅ v4.5.2: a card that holds wrapped text is as tall as its text really is
+	-- (it used to guess 50 characters a line, which cut the text on a phone).
+	local function fitHeight(c, label, minHeight)
+		local function fit()
+			c.Size = UDim2.new(1, 0, 0, math.max(minHeight, math.ceil(label.TextBounds.Y) + 24))
+		end
+		label:GetPropertyChangedSignal("TextBounds"):Connect(fit)
+		fit()
+	end
+
 	local SectionAPI = {}
 
 	-- Prepare element dependencies
 	local function getElementDeps()
 		return {
 			card = card,
+			fitRow = fitRow,
+			fitHeight = fitHeight,
 			corner = corner,
 			stroke = stroke,
 			padding = padding,

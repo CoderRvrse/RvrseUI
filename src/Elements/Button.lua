@@ -71,6 +71,7 @@ function Button.Create(o, dependencies)
 	textLabel.TextColor3 = o.TextColor or pal3.TextBright
 	textLabel.Text = o.Text or "Button"
 	textLabel.TextWrapped = false
+	textLabel.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2
 	textLabel.Parent = contentFrame
 
 	local cardPadding = f:FindFirstChildOfClass("UIPadding")

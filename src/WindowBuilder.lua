@@ -348,8 +348,17 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	-- Detect mobile/tablet
 	local isMobile = UIS.TouchEnabled and not UIS.MouseEnabled
-	local baseWidth = isMobile and 380 or 580
-	local baseHeight = isMobile and 520 or 480
+	local baseWidth = 580
+	local baseHeight = 480
+
+	-- ✅ v4.5.2: the window FITS THE SCREEN. A phone held sideways (almost every
+	-- Roblox game) is about 750x380, and Roblox's top bar takes the top 58 of
+	-- that: the old fixed 380x520 phone window was tall and narrow, ran 140px off
+	-- the bottom and sat in the top bar. Now the window asks for 580x480 (a touch
+	-- screen held upright: 380x520) and takes at most the room below the top bar,
+	-- less a margin, and it is fitted again when the screen changes size.
+	local SCREEN_MARGIN = isMobile and 8 or 20
+	local MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT = 300, 220
 
 	-- Root window
 	local root = Instance.new("Frame")
@@ -357,7 +366,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.AnchorPoint = Vector2.new(0, 0)  -- ✅ EXPLICIT top-left anchor (never assume default)
 	root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
 
+	-- The screen the window lives on, in the window host's own pixels: the host's
+	-- size (on a phone with a notch that is the safe area, narrower than the
+	-- camera's view), else the camera's.
 	local function getViewportSize()
+		local ok, hostSize = pcall(function()
+			return windowHost.AbsoluteSize
+		end)
+		if ok and typeof(hostSize) == "Vector2" and hostSize.X > 0 and hostSize.Y > 0 then
+			return hostSize
+		end
 		local camera = workspace.CurrentCamera
 		if camera and camera.ViewportSize then
 			return camera.ViewportSize
@@ -365,12 +383,39 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return Vector2.new(baseWidth, baseHeight)
 	end
 
+	-- How far down Roblox's top bar reaches into the host (0 for a host that is
+	-- already placed below it).
+	local function getTopInset()
+		local top = 0
+		pcall(function()
+			if windowHost:IsA("ScreenGui") and windowHost.IgnoreGuiInset then
+				top = GuiService:GetGuiInset().Y
+			end
+		end)
+		return top
+	end
+
+	-- The window's size for this screen.
+	local function getFittedSize()
+		local viewport = getViewportSize()
+		local top = getTopInset()
+		local wantWidth, wantHeight = baseWidth, baseHeight
+		if isMobile and viewport.Y > viewport.X then
+			wantWidth, wantHeight = 380, 520
+		end
+		local width = math.min(wantWidth, viewport.X - SCREEN_MARGIN * 2)
+		local height = math.min(wantHeight, viewport.Y - top - SCREEN_MARGIN * 2)
+		return UDim2.fromOffset(math.max(MIN_WINDOW_WIDTH, math.floor(width)), math.max(MIN_WINDOW_HEIGHT, math.floor(height)))
+	end
+
+	-- Centred in the room below the top bar.
 	local function getCenteredPosition(size)
 		local viewport = getViewportSize()
+		local top = getTopInset()
 		local width = size.X.Offset
 		local height = size.Y.Offset
 		local centerX = math.max(0, math.floor((viewport.X - width) / 2))
-		local centerY = math.max(0, math.floor((viewport.Y - height) / 2))
+		local centerY = math.max(top, math.floor(top + (viewport.Y - top - height) / 2))
 		return UDim2.fromOffset(centerX, centerY)
 	end
 
@@ -381,25 +426,28 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return UDim2.fromOffset(x, y)
 	end
 
-	-- Clamp position to keep window fully on-screen
-	local function clampToScreen(position, size)
+	-- Clamp position to keep window fully on-screen, below the top bar.
+	-- `padding` = the gap kept from each edge (default: the screen margin).
+	local function clampToScreen(position, size, padding)
 		local viewport = getViewportSize()
+		local top = getTopInset()
 		local pos = toScreenOffset(position)
 		local width = size.X.Offset
 		local height = size.Y.Offset
+		padding = padding or SCREEN_MARGIN
 
-		-- Add padding from edges (20px minimum)
-		local padding = 20
 		local maxX = viewport.X - width - padding
 		local maxY = viewport.Y - height - padding
 
-		-- Clamp X and Y within bounds
+		-- Clamp X and Y within bounds (a window bigger than the room keeps its
+		-- top-left corner on the screen)
 		local clampedX = math.max(padding, math.min(pos.X.Offset, maxX))
-		local clampedY = math.max(padding, math.min(pos.Y.Offset, maxY))
+		local clampedY = math.max(top + padding, math.min(pos.Y.Offset, maxY))
 
 		return UDim2.fromOffset(clampedX, clampedY)
 	end
 
+	root.Size = getFittedSize()
 	root.Position = getCenteredPosition(root.Size)
 	root.BackgroundColor3 = pal.Bg
 	root.BackgroundTransparency = 1  -- TRANSPARENT - let children show through
@@ -423,7 +471,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	if typeof(RvrseUI._lastWindowPosition) == "UDim2" then
-		root.Position = RvrseUI._lastWindowPosition
+		-- Where the last window was left, kept on this screen.
+		root.Position = clampToScreen(RvrseUI._lastWindowPosition, root.Size)
 		rememberWindowPosition(root.Position)
 	else
 		rememberWindowPosition(lastWindowPosition)
@@ -665,12 +714,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Helper to update window position
 	local function updateWindowPosition(input)
 		local delta = input.Position - dragStart
-		local newPos = UDim2.new(
+		-- ✅ v4.5.2: the window can't be dragged off the screen (on a phone a
+		-- window dragged away is lost: there is no mouse to get it back with).
+		local newPos = clampToScreen(UDim2.new(
 			startPos.X.Scale,
 			startPos.X.Offset + delta.X,
 			startPos.Y.Scale,
 			startPos.Y.Offset + delta.Y
-		)
+		), root.Size, 0)
 		root.Position = newPos
 		rememberWindowPosition(newPos)
 	end
@@ -1576,7 +1627,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		root.Visible = false
-		root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
+		root.Size = getFittedSize()
 		root.Position = chipTargetOffset
 		root.Rotation = 0
 
@@ -1618,10 +1669,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		shrinkTween.Completed:Wait()
 		controllerChip.Visible = false
 
-		local fallbackSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
-		local fallbackPos = getCenteredPosition(fallbackSize)
-
-		local targetSize = lastWindowSize or fallbackSize
+		-- Fitted to the screen as it is NOW (it may have turned while minimized).
+		local targetSize = getFittedSize()
+		local fallbackPos = getCenteredPosition(targetSize)
 		local storedPos = typeof(RvrseUI._lastWindowPosition) == "UDim2" and RvrseUI._lastWindowPosition or nil
 		local targetPos = storedPos or lastWindowPosition or fallbackPos
 
@@ -1666,6 +1716,24 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		task.delay(0.05, restoreDefaultClipping)
 	end
+
+	-- ✅ v4.5.2: the screen changed size (a phone turned, a resized game window):
+	-- the open window is fitted again and kept on the screen. A minimized one
+	-- is fitted when it comes back (restoreWindow). The host is shared by every
+	-- window, so its signal is tracked: it must not outlive this window.
+	local function refitWindow()
+		if isMinimized or isAnimating or not root.Parent then
+			return
+		end
+		local size = getFittedSize()
+		root.Size = size
+		root.Position = clampToScreen(root.Position, size)
+		lastWindowSize = size
+		rememberWindowPosition(root.Position)
+	end
+	pcall(function()
+		Lifecycle:Track(windowHost:GetPropertyChangedSignal("AbsoluteSize"):Connect(refitWindow))
+	end)
 
 	minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
 

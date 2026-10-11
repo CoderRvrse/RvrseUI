@@ -31,6 +31,7 @@ function TextBox.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Input"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Modern input container
@@ -48,7 +49,11 @@ function TextBox.Create(o, dependencies)
 	inputBox.PlaceholderColor3 = pal3.TextMuted
 	inputBox.Text = o.Default or ""
 	inputBox.ClearTextOnFocus = false
+	inputBox.TextTruncate = Enum.TextTruncate.AtEnd
 	inputBox.Parent = f
+	if dependencies.fitRow then
+		dependencies.fitRow(f, lbl, inputBox, 20) -- v4.5.2: never covers its label on a phone
+	end
 	corner(inputBox, "pill")
 
 	-- Subtle border (default state)

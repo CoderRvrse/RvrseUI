@@ -29,6 +29,9 @@ function Label.Create(o, dependencies)
 	lbl.Text = tostring(o.Text or "Label")
 	lbl.TextWrapped = true
 	lbl.Parent = f
+	if dependencies.fitHeight then
+		dependencies.fitHeight(f, lbl, 36) -- v4.5.2: as tall as its text
+	end
 
 	local ICON_MARGIN = 12
 	local ICON_SIZE = 24

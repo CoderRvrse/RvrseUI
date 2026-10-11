@@ -1,5 +1,5 @@
--- RvrseUI v4.5.1 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-08T19:28:48.177Z
+-- RvrseUI v4.5.2 | Modern Professional UI Framework
+-- Compiled from modular architecture on 2026-10-11T20:49:49.959Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -40,10 +40,10 @@ Version = {}
 Version.Data = {
 	Major = 4,
 	Minor = 5,
-	Patch = 1,
-	Build = "20261007a",  -- YYYYMMDD format
-	Full = "4.5.1",
-	Hash = "S3L7T4B1",  -- Release hash for integrity verification
+	Patch = 2,
+	Build = "20261011a",  -- YYYYMMDD format
+	Full = "4.5.2",
+	Hash = "M0B1L3F7",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -4679,6 +4679,7 @@ function Button.Create(o, dependencies)
 	textLabel.TextColor3 = o.TextColor or pal3.TextBright
 	textLabel.Text = o.Text or "Button"
 	textLabel.TextWrapped = false
+	textLabel.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2
 	textLabel.Parent = contentFrame
 
 	local cardPadding = f:FindFirstChildOfClass("UIPadding")
@@ -5007,6 +5008,7 @@ function Toggle.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Toggle"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Modern switch track (wider and taller)
@@ -5423,6 +5425,7 @@ function Dropdown.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Dropdown"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Trigger button (wider for long labels)
@@ -5437,7 +5440,11 @@ function Dropdown.Create(o, dependencies)
 	btn.TextColor3 = pal3.Text
 	btn.AutoButtonColor = false
 	btn.ZIndex = 2
+	btn.TextTruncate = Enum.TextTruncate.AtEnd
 	btn.Parent = f
+	if dependencies.fitRow then
+		dependencies.fitRow(f, lbl, btn, 16) -- v4.5.2: never covers its label on a phone
+	end
 	corner(btn, 8)
 	stroke(btn, pal3.Border, 1)
 
@@ -5735,13 +5742,28 @@ function Dropdown.Create(o, dependencies)
 			local buttonSize = btn.AbsoluteSize
 			local screenSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
 
+			-- ✅ v4.5.2: Absolute positions start BELOW Roblox's top bar, the camera's
+			-- view starts at the top of the screen. The bounds used to mix the two,
+			-- so a list near the bottom ran off the screen by the bar's height (58px:
+			-- on a phone, a third of the list). Everything here is in absolute
+			-- pixels now: the room is from just below the top bar to the screen's
+			-- bottom edge, and a list taller than that room is made shorter (it
+			-- scrolls).
+			local inset = Vector2.new(0, 0)
+			pcall(function()
+				inset = game:GetService("GuiService"):GetGuiInset()
+			end)
+			local roomTop, roomBottom = 4, screenSize.Y - inset.Y - 4
+			local roomLeft, roomRight = -inset.X + 4, screenSize.X - inset.X - 4
+			height = math.max(0, math.min(height, roomBottom - roomTop))
+
 			local dropdownX = buttonPos.X - overlayOffset.X + buttonSize.X - width
 			local dropdownY = buttonPos.Y - overlayOffset.Y + buttonSize.Y + 4
 
-			local minX = -overlayOffset.X + 4
-			local maxX = screenSize.X - width - overlayOffset.X - 4
-			local minY = -overlayOffset.Y + buttonSize.Y
-			local maxY = screenSize.Y - height - overlayOffset.Y - 4
+			local minX = roomLeft - overlayOffset.X
+			local maxX = roomRight - width - overlayOffset.X
+			local minY = roomTop - overlayOffset.Y
+			local maxY = roomBottom - height - overlayOffset.Y
 
 			dropdownX = math.clamp(dropdownX, minX, math.max(minX, maxX))
 			dropdownY = math.clamp(dropdownY, minY, math.max(minY, maxY))
@@ -6190,6 +6212,7 @@ function Slider.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = string.format("%s: %s", baseLabelText, tostring(value))
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the value on a narrow card
 	lbl.Parent = f
 
 	-- Value display (right-aligned)
@@ -6493,6 +6516,7 @@ function Keybind.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Keybind"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Modern key display button
@@ -6509,6 +6533,9 @@ function Keybind.Create(o, dependencies)
 	btn.Text = (o.Default and o.Default.Name) or "Set Key"
 	btn.AutoButtonColor = false
 	btn.Parent = f
+	if dependencies.fitRow then
+		dependencies.fitRow(f, lbl, btn, 10) -- v4.5.2: never covers its label on a phone
+	end
 	corner(btn, "pill")
 
 	-- Border stroke
@@ -6532,6 +6559,10 @@ function Keybind.Create(o, dependencies)
 		NumberSequenceKeypoint.new(0, 1),
 		NumberSequenceKeypoint.new(1, 1),
 	}
+	-- ✅ v4.5.2: OFF while idle. It used to sit at transparency 1 instead, and a
+	-- UIGradient also fades its button's background AND text, so the key button
+	-- was invisible on every device until it was clicked.
+	btnGradient.Enabled = false
 	btnGradient.Parent = btn
 
 	local capturing = false
@@ -6539,10 +6570,14 @@ function Keybind.Create(o, dependencies)
 
 	btn.MouseButton1Click:Connect(function()
 		if RvrseUI.Store:IsLocked(o.RespectLock) then return end
+		-- ✅ v4.5.2: a touch screen with no keyboard has no key to press: it would
+		-- wait for one for ever.
+		if not UIS.KeyboardEnabled then return end
 		capturing = true
 		btn.Text = "⌨️ Press any key..."
 
 		-- Activate gradient background (set directly - can't tween NumberSequence)
+		btnGradient.Enabled = true
 		btnGradient.Transparency = NumberSequence.new{
 			NumberSequenceKeypoint.new(0, 0.5),
 			NumberSequenceKeypoint.new(1, 0.5),
@@ -6570,6 +6605,7 @@ function Keybind.Create(o, dependencies)
 			btn.Text = io.KeyCode.Name
 
 			-- Deactivate gradient (set directly - can't tween NumberSequence)
+			btnGradient.Enabled = false
 			btnGradient.Transparency = NumberSequence.new{
 				NumberSequenceKeypoint.new(0, 1),
 				NumberSequenceKeypoint.new(1, 1),
@@ -6701,6 +6737,7 @@ function TextBox.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Input"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Modern input container
@@ -6718,7 +6755,11 @@ function TextBox.Create(o, dependencies)
 	inputBox.PlaceholderColor3 = pal3.TextMuted
 	inputBox.Text = o.Default or ""
 	inputBox.ClearTextOnFocus = false
+	inputBox.TextTruncate = Enum.TextTruncate.AtEnd
 	inputBox.Parent = f
+	if dependencies.fitRow then
+		dependencies.fitRow(f, lbl, inputBox, 20) -- v4.5.2: never covers its label on a phone
+	end
 	corner(inputBox, "pill")
 
 	-- Subtle border (default state)
@@ -7011,6 +7052,7 @@ function ColorPicker.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Color"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Circular preview button
@@ -7039,6 +7081,7 @@ function ColorPicker.Create(o, dependencies)
 	local pickerOpen = false
 	local overlayBlocker
 	local overlayBlockerConnection
+	local openPicker = nil -- setPickerOpen, for colorpickerAPI:SetOpen
 
 	if advancedMode then
 		-- Panel container
@@ -7055,6 +7098,17 @@ function ColorPicker.Create(o, dependencies)
 
 		-- Parent to overlay layer if available, otherwise to element card
 		local panelParent = baseOverlayLayer or f
+		if panelParent ~= f then
+			-- ✅ v4.5.2: on the right of the screen, centred top to bottom. It used to
+			-- start 52px below the middle and ran off the bottom: by ~60px on a
+			-- desktop, by more than half its height on a phone.
+			pickerPanel.AnchorPoint = Vector2.new(1, 0.5)
+			pickerPanel.Position = UDim2.new(1, -8, 0.5, 0)
+		end
+		-- ✅ v4.5.2: on a screen too short for the panel (a phone) it is drawn
+		-- smaller, so all of it is on the screen.
+		local panelScale = Instance.new("UIScale")
+		panelScale.Parent = pickerPanel
 		pickerPanel.Parent = panelParent
 		-- The panel lives in the overlay layer, outside the window: it (and the
 		-- shared blocker's click hook) must be removed when the window closes.
@@ -7095,11 +7149,21 @@ function ColorPicker.Create(o, dependencies)
 		panelLayout.Parent = pickerPanel
 
 		-- Helper: Create a slider row
+		-- ✅ v4.5.2: rows and titles in the order they are made (RGB, R, G, B, HSV,
+		-- H, S, V, Hex Code, the hex box). A row used to take the number of the
+		-- panel's children as its place, which counts the panel's own corner,
+		-- stroke, padding and layout too, so rows landed among the titles.
+		local layoutCount = 0
+		local function nextLayoutOrder()
+			layoutCount = layoutCount + 1
+			return layoutCount
+		end
+
 		local function createSlider(name, min, max, default, callback)
 			local row = Instance.new("Frame")
 			row.BackgroundTransparency = 1
 			row.Size = UDim2.new(1, 0, 0, 32)
-			row.LayoutOrder = #pickerPanel:GetChildren()
+			row.LayoutOrder = nextLayoutOrder()
 			row.Parent = pickerPanel
 
 			local label = Instance.new("TextLabel")
@@ -7279,7 +7343,7 @@ function ColorPicker.Create(o, dependencies)
 		rgbHeader.TextXAlignment = Enum.TextXAlignment.Left
 		rgbHeader.TextColor3 = pal3.Text
 		rgbHeader.Text = "RGB"
-		rgbHeader.LayoutOrder = 1
+		rgbHeader.LayoutOrder = nextLayoutOrder()
 		rgbHeader.Parent = pickerPanel
 
 		rSlider = createSlider("R:", 0, 255, r, function(value)
@@ -7306,7 +7370,7 @@ function ColorPicker.Create(o, dependencies)
 		hsvHeader.TextXAlignment = Enum.TextXAlignment.Left
 		hsvHeader.TextColor3 = pal3.Text
 		hsvHeader.Text = "HSV"
-		hsvHeader.LayoutOrder = 5
+		hsvHeader.LayoutOrder = nextLayoutOrder()
 		hsvHeader.Parent = pickerPanel
 
 		hSlider = createSlider("H:", 0, 360, h, function(value)
@@ -7333,13 +7397,13 @@ function ColorPicker.Create(o, dependencies)
 		hexHeader.TextXAlignment = Enum.TextXAlignment.Left
 		hexHeader.TextColor3 = pal3.Text
 		hexHeader.Text = "Hex Code"
-		hexHeader.LayoutOrder = 9
+		hexHeader.LayoutOrder = nextLayoutOrder()
 		hexHeader.Parent = pickerPanel
 
 		local hexRow = Instance.new("Frame")
 		hexRow.BackgroundTransparency = 1
 		hexRow.Size = UDim2.new(1, 0, 0, 36)
-		hexRow.LayoutOrder = 10
+		hexRow.LayoutOrder = nextLayoutOrder()
 		hexRow.Parent = pickerPanel
 
 		hexInput = Instance.new("TextBox")
@@ -7433,7 +7497,7 @@ function ColorPicker.Create(o, dependencies)
 				task.spawn(function()
 					-- Wait for layout to calculate content size
 					task.wait(0.05)
-					local targetHeight = panelLayout.AbsoluteContentSize.Y + 24
+					local targetHeight = panelLayout.AbsoluteContentSize.Y / math.max(panelScale.Scale, 0.01) + 24
 					dprint("[ColorPicker] Layout calculated, targetHeight =", targetHeight)
 
 					if targetHeight < 50 then
@@ -7441,6 +7505,9 @@ function ColorPicker.Create(o, dependencies)
 						targetHeight = 380
 						dprint("[ColorPicker] Using fallback height:", targetHeight)
 					end
+
+					local room = pickerPanel.Parent and pickerPanel.Parent.AbsoluteSize.Y - 16 or 0
+					panelScale.Scale = (pickerPanel.Parent ~= f and room > 0 and targetHeight > room) and (room / targetHeight) or 1
 
 					-- Animate to full height
 					dprint("[ColorPicker] Starting animation to height:", targetHeight)
@@ -7475,6 +7542,8 @@ function ColorPicker.Create(o, dependencies)
 				end)
 			end
 		end
+
+		openPicker = setPickerOpen
 
 		-- Toggle on preview click
 		preview.MouseButton1Click:Connect(function()
@@ -7594,6 +7663,13 @@ function ColorPicker.Create(o, dependencies)
 		Get = function()
 			return currentColor
 		end,
+		-- v4.5.2: open or close the picker panel from code (like a dropdown's
+		-- SetOpen). A colour picker in its simple mode has no panel: nothing happens.
+		SetOpen = function(_, state)
+			if openPicker then
+				openPicker(state == true)
+			end
+		end,
 		SetVisible = function(_, visible)
 			f.Visible = visible
 		end,
@@ -7666,6 +7742,9 @@ function Label.Create(o, dependencies)
 	lbl.Text = tostring(o.Text or "Label")
 	lbl.TextWrapped = true
 	lbl.Parent = f
+	if dependencies.fitHeight then
+		dependencies.fitHeight(f, lbl, 36) -- v4.5.2: as tall as its text
+	end
 
 	local ICON_MARGIN = 12
 	local ICON_SIZE = 24
@@ -7850,16 +7929,16 @@ function Paragraph.Create(o, dependencies)
 	local card = dependencies.card
 	local pal3 = dependencies.pal3
 	local RvrseUI = dependencies.RvrseUI
+	local fitHeight = dependencies.fitHeight
 
 	local text = o.Text or "Paragraph text"
+	-- A first guess; with fitHeight the card then takes its text's real height.
 	local lines = math.ceil(#text / 50)  -- Rough estimate
 	local height = math.max(48, lines * 18 + 16)
 	local f = card(height)
 
 	local lbl = Instance.new("TextLabel")
 	lbl.BackgroundTransparency = 1
-	lbl.Size = UDim2.new(1, -16, 1, -16)
-	lbl.Position = UDim2.new(0, 8, 0, 8)
 	lbl.Font = Enum.Font.Gotham
 	lbl.TextSize = 13
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -7867,14 +7946,29 @@ function Paragraph.Create(o, dependencies)
 	lbl.TextColor3 = pal3.TextSub
 	lbl.Text = text
 	lbl.TextWrapped = true
+	if fitHeight then
+		-- ✅ v4.5.2: the text fills the card's padded area and the card is as tall
+		-- as the text really is, on any screen (the guess above cut it on phones).
+		lbl.Size = UDim2.new(1, 0, 1, 0)
+		lbl.Position = UDim2.new(0, 0, 0, 0)
+		lbl.TextYAlignment = Enum.TextYAlignment.Center
+	else
+		lbl.Size = UDim2.new(1, -16, 1, -16)
+		lbl.Position = UDim2.new(0, 8, 0, 8)
+	end
 	lbl.Parent = f
+	if fitHeight then
+		fitHeight(f, lbl, 48)
+	end
 
 	local paragraphAPI = {
 		Set = function(_, txt)
 			lbl.Text = txt
-			local newLines = math.ceil(#txt / 50)
-			local newHeight = math.max(48, newLines * 18 + 16)
-			f.Size = UDim2.new(1, 0, 0, newHeight)
+			if not fitHeight then
+				local newLines = math.ceil(#txt / 50)
+				local newHeight = math.max(48, newLines * 18 + 16)
+				f.Size = UDim2.new(1, 0, 0, newHeight)
+			end
 		end,
 		Get = function()
 			return lbl.Text
@@ -8624,12 +8718,46 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 		return c
 	end
 
+	-- ✅ v4.5.2 (phones): a control with a widget on its right (a list button, a
+	-- text box, a key) must never cover its own label. The widget keeps its
+	-- width while the label still has MIN_LABEL px; on a narrower card it gives
+	-- way, down to half the card, and the label gets the rest (cut with "..."
+	-- when even that is too short). `gap` = the room between the label's end and
+	-- the card's right edge that is not the widget. Wide cards look as before.
+	local MIN_LABEL = 110
+	local function fitRow(c, label, widget, gap)
+		local full = widget.Size.X.Offset
+		local function fit()
+			local inner = c.AbsoluteSize.X - 24 -- the card's padding: 12 each side
+			if inner <= 0 then
+				return
+			end
+			local width = math.min(full, math.max(math.floor(inner * 0.5), inner - MIN_LABEL - gap))
+			widget.Size = UDim2.new(0, width, widget.Size.Y.Scale, widget.Size.Y.Offset)
+			label.Size = UDim2.new(1, -(width + gap), label.Size.Y.Scale, label.Size.Y.Offset)
+		end
+		c:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+		fit()
+	end
+
+	-- ✅ v4.5.2: a card that holds wrapped text is as tall as its text really is
+	-- (it used to guess 50 characters a line, which cut the text on a phone).
+	local function fitHeight(c, label, minHeight)
+		local function fit()
+			c.Size = UDim2.new(1, 0, 0, math.max(minHeight, math.ceil(label.TextBounds.Y) + 24))
+		end
+		label:GetPropertyChangedSignal("TextBounds"):Connect(fit)
+		fit()
+	end
+
 	local SectionAPI = {}
 
 	-- Prepare element dependencies
 	local function getElementDeps()
 		return {
 			card = card,
+			fitRow = fitRow,
+			fitHeight = fitHeight,
 			corner = corner,
 			stroke = stroke,
 			padding = padding,
@@ -9399,8 +9527,17 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	-- Detect mobile/tablet
 	local isMobile = UIS.TouchEnabled and not UIS.MouseEnabled
-	local baseWidth = isMobile and 380 or 580
-	local baseHeight = isMobile and 520 or 480
+	local baseWidth = 580
+	local baseHeight = 480
+
+	-- ✅ v4.5.2: the window FITS THE SCREEN. A phone held sideways (almost every
+	-- Roblox game) is about 750x380, and Roblox's top bar takes the top 58 of
+	-- that: the old fixed 380x520 phone window was tall and narrow, ran 140px off
+	-- the bottom and sat in the top bar. Now the window asks for 580x480 (a touch
+	-- screen held upright: 380x520) and takes at most the room below the top bar,
+	-- less a margin, and it is fitted again when the screen changes size.
+	local SCREEN_MARGIN = isMobile and 8 or 20
+	local MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT = 300, 220
 
 	-- Root window
 	local root = Instance.new("Frame")
@@ -9408,7 +9545,16 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.AnchorPoint = Vector2.new(0, 0)  -- ✅ EXPLICIT top-left anchor (never assume default)
 	root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
 
+	-- The screen the window lives on, in the window host's own pixels: the host's
+	-- size (on a phone with a notch that is the safe area, narrower than the
+	-- camera's view), else the camera's.
 	local function getViewportSize()
+		local ok, hostSize = pcall(function()
+			return windowHost.AbsoluteSize
+		end)
+		if ok and typeof(hostSize) == "Vector2" and hostSize.X > 0 and hostSize.Y > 0 then
+			return hostSize
+		end
 		local camera = workspace.CurrentCamera
 		if camera and camera.ViewportSize then
 			return camera.ViewportSize
@@ -9416,12 +9562,39 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return Vector2.new(baseWidth, baseHeight)
 	end
 
+	-- How far down Roblox's top bar reaches into the host (0 for a host that is
+	-- already placed below it).
+	local function getTopInset()
+		local top = 0
+		pcall(function()
+			if windowHost:IsA("ScreenGui") and windowHost.IgnoreGuiInset then
+				top = GuiService:GetGuiInset().Y
+			end
+		end)
+		return top
+	end
+
+	-- The window's size for this screen.
+	local function getFittedSize()
+		local viewport = getViewportSize()
+		local top = getTopInset()
+		local wantWidth, wantHeight = baseWidth, baseHeight
+		if isMobile and viewport.Y > viewport.X then
+			wantWidth, wantHeight = 380, 520
+		end
+		local width = math.min(wantWidth, viewport.X - SCREEN_MARGIN * 2)
+		local height = math.min(wantHeight, viewport.Y - top - SCREEN_MARGIN * 2)
+		return UDim2.fromOffset(math.max(MIN_WINDOW_WIDTH, math.floor(width)), math.max(MIN_WINDOW_HEIGHT, math.floor(height)))
+	end
+
+	-- Centred in the room below the top bar.
 	local function getCenteredPosition(size)
 		local viewport = getViewportSize()
+		local top = getTopInset()
 		local width = size.X.Offset
 		local height = size.Y.Offset
 		local centerX = math.max(0, math.floor((viewport.X - width) / 2))
-		local centerY = math.max(0, math.floor((viewport.Y - height) / 2))
+		local centerY = math.max(top, math.floor(top + (viewport.Y - top - height) / 2))
 		return UDim2.fromOffset(centerX, centerY)
 	end
 
@@ -9432,25 +9605,28 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		return UDim2.fromOffset(x, y)
 	end
 
-	-- Clamp position to keep window fully on-screen
-	local function clampToScreen(position, size)
+	-- Clamp position to keep window fully on-screen, below the top bar.
+	-- `padding` = the gap kept from each edge (default: the screen margin).
+	local function clampToScreen(position, size, padding)
 		local viewport = getViewportSize()
+		local top = getTopInset()
 		local pos = toScreenOffset(position)
 		local width = size.X.Offset
 		local height = size.Y.Offset
+		padding = padding or SCREEN_MARGIN
 
-		-- Add padding from edges (20px minimum)
-		local padding = 20
 		local maxX = viewport.X - width - padding
 		local maxY = viewport.Y - height - padding
 
-		-- Clamp X and Y within bounds
+		-- Clamp X and Y within bounds (a window bigger than the room keeps its
+		-- top-left corner on the screen)
 		local clampedX = math.max(padding, math.min(pos.X.Offset, maxX))
-		local clampedY = math.max(padding, math.min(pos.Y.Offset, maxY))
+		local clampedY = math.max(top + padding, math.min(pos.Y.Offset, maxY))
 
 		return UDim2.fromOffset(clampedX, clampedY)
 	end
 
+	root.Size = getFittedSize()
 	root.Position = getCenteredPosition(root.Size)
 	root.BackgroundColor3 = pal.Bg
 	root.BackgroundTransparency = 1  -- TRANSPARENT - let children show through
@@ -9474,7 +9650,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	end
 
 	if typeof(RvrseUI._lastWindowPosition) == "UDim2" then
-		root.Position = RvrseUI._lastWindowPosition
+		-- Where the last window was left, kept on this screen.
+		root.Position = clampToScreen(RvrseUI._lastWindowPosition, root.Size)
 		rememberWindowPosition(root.Position)
 	else
 		rememberWindowPosition(lastWindowPosition)
@@ -9716,12 +9893,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Helper to update window position
 	local function updateWindowPosition(input)
 		local delta = input.Position - dragStart
-		local newPos = UDim2.new(
+		-- ✅ v4.5.2: the window can't be dragged off the screen (on a phone a
+		-- window dragged away is lost: there is no mouse to get it back with).
+		local newPos = clampToScreen(UDim2.new(
 			startPos.X.Scale,
 			startPos.X.Offset + delta.X,
 			startPos.Y.Scale,
 			startPos.Y.Offset + delta.Y
-		)
+		), root.Size, 0)
 		root.Position = newPos
 		rememberWindowPosition(newPos)
 	end
@@ -10627,7 +10806,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 
 		root.Visible = false
-		root.Size = UDim2.new(0, baseWidth, 0, baseHeight)
+		root.Size = getFittedSize()
 		root.Position = chipTargetOffset
 		root.Rotation = 0
 
@@ -10669,10 +10848,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		shrinkTween.Completed:Wait()
 		controllerChip.Visible = false
 
-		local fallbackSize = isMobile and UDim2.new(0, 380, 0, 520) or UDim2.new(0, baseWidth, 0, baseHeight)
-		local fallbackPos = getCenteredPosition(fallbackSize)
-
-		local targetSize = lastWindowSize or fallbackSize
+		-- Fitted to the screen as it is NOW (it may have turned while minimized).
+		local targetSize = getFittedSize()
+		local fallbackPos = getCenteredPosition(targetSize)
 		local storedPos = typeof(RvrseUI._lastWindowPosition) == "UDim2" and RvrseUI._lastWindowPosition or nil
 		local targetPos = storedPos or lastWindowPosition or fallbackPos
 
@@ -10717,6 +10895,24 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		task.delay(0.05, restoreDefaultClipping)
 	end
+
+	-- ✅ v4.5.2: the screen changed size (a phone turned, a resized game window):
+	-- the open window is fitted again and kept on the screen. A minimized one
+	-- is fitted when it comes back (restoreWindow). The host is shared by every
+	-- window, so its signal is tracked: it must not outlive this window.
+	local function refitWindow()
+		if isMinimized or isAnimating or not root.Parent then
+			return
+		end
+		local size = getFittedSize()
+		root.Size = size
+		root.Position = clampToScreen(root.Position, size)
+		lastWindowSize = size
+		rememberWindowPosition(root.Position)
+	end
+	pcall(function()
+		Lifecycle:Track(windowHost:GetPropertyChangedSignal("AbsoluteSize"):Connect(refitWindow))
+	end)
 
 	minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
 

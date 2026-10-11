@@ -146,6 +146,7 @@ function ColorPicker.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Color"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Circular preview button
@@ -174,6 +175,7 @@ function ColorPicker.Create(o, dependencies)
 	local pickerOpen = false
 	local overlayBlocker
 	local overlayBlockerConnection
+	local openPicker = nil -- setPickerOpen, for colorpickerAPI:SetOpen
 
 	if advancedMode then
 		-- Panel container
@@ -190,6 +192,17 @@ function ColorPicker.Create(o, dependencies)
 
 		-- Parent to overlay layer if available, otherwise to element card
 		local panelParent = baseOverlayLayer or f
+		if panelParent ~= f then
+			-- ✅ v4.5.2: on the right of the screen, centred top to bottom. It used to
+			-- start 52px below the middle and ran off the bottom: by ~60px on a
+			-- desktop, by more than half its height on a phone.
+			pickerPanel.AnchorPoint = Vector2.new(1, 0.5)
+			pickerPanel.Position = UDim2.new(1, -8, 0.5, 0)
+		end
+		-- ✅ v4.5.2: on a screen too short for the panel (a phone) it is drawn
+		-- smaller, so all of it is on the screen.
+		local panelScale = Instance.new("UIScale")
+		panelScale.Parent = pickerPanel
 		pickerPanel.Parent = panelParent
 		-- The panel lives in the overlay layer, outside the window: it (and the
 		-- shared blocker's click hook) must be removed when the window closes.
@@ -230,11 +243,21 @@ function ColorPicker.Create(o, dependencies)
 		panelLayout.Parent = pickerPanel
 
 		-- Helper: Create a slider row
+		-- ✅ v4.5.2: rows and titles in the order they are made (RGB, R, G, B, HSV,
+		-- H, S, V, Hex Code, the hex box). A row used to take the number of the
+		-- panel's children as its place, which counts the panel's own corner,
+		-- stroke, padding and layout too, so rows landed among the titles.
+		local layoutCount = 0
+		local function nextLayoutOrder()
+			layoutCount = layoutCount + 1
+			return layoutCount
+		end
+
 		local function createSlider(name, min, max, default, callback)
 			local row = Instance.new("Frame")
 			row.BackgroundTransparency = 1
 			row.Size = UDim2.new(1, 0, 0, 32)
-			row.LayoutOrder = #pickerPanel:GetChildren()
+			row.LayoutOrder = nextLayoutOrder()
 			row.Parent = pickerPanel
 
 			local label = Instance.new("TextLabel")
@@ -414,7 +437,7 @@ function ColorPicker.Create(o, dependencies)
 		rgbHeader.TextXAlignment = Enum.TextXAlignment.Left
 		rgbHeader.TextColor3 = pal3.Text
 		rgbHeader.Text = "RGB"
-		rgbHeader.LayoutOrder = 1
+		rgbHeader.LayoutOrder = nextLayoutOrder()
 		rgbHeader.Parent = pickerPanel
 
 		rSlider = createSlider("R:", 0, 255, r, function(value)
@@ -441,7 +464,7 @@ function ColorPicker.Create(o, dependencies)
 		hsvHeader.TextXAlignment = Enum.TextXAlignment.Left
 		hsvHeader.TextColor3 = pal3.Text
 		hsvHeader.Text = "HSV"
-		hsvHeader.LayoutOrder = 5
+		hsvHeader.LayoutOrder = nextLayoutOrder()
 		hsvHeader.Parent = pickerPanel
 
 		hSlider = createSlider("H:", 0, 360, h, function(value)
@@ -468,13 +491,13 @@ function ColorPicker.Create(o, dependencies)
 		hexHeader.TextXAlignment = Enum.TextXAlignment.Left
 		hexHeader.TextColor3 = pal3.Text
 		hexHeader.Text = "Hex Code"
-		hexHeader.LayoutOrder = 9
+		hexHeader.LayoutOrder = nextLayoutOrder()
 		hexHeader.Parent = pickerPanel
 
 		local hexRow = Instance.new("Frame")
 		hexRow.BackgroundTransparency = 1
 		hexRow.Size = UDim2.new(1, 0, 0, 36)
-		hexRow.LayoutOrder = 10
+		hexRow.LayoutOrder = nextLayoutOrder()
 		hexRow.Parent = pickerPanel
 
 		hexInput = Instance.new("TextBox")
@@ -568,7 +591,7 @@ function ColorPicker.Create(o, dependencies)
 				task.spawn(function()
 					-- Wait for layout to calculate content size
 					task.wait(0.05)
-					local targetHeight = panelLayout.AbsoluteContentSize.Y + 24
+					local targetHeight = panelLayout.AbsoluteContentSize.Y / math.max(panelScale.Scale, 0.01) + 24
 					dprint("[ColorPicker] Layout calculated, targetHeight =", targetHeight)
 
 					if targetHeight < 50 then
@@ -576,6 +599,9 @@ function ColorPicker.Create(o, dependencies)
 						targetHeight = 380
 						dprint("[ColorPicker] Using fallback height:", targetHeight)
 					end
+
+					local room = pickerPanel.Parent and pickerPanel.Parent.AbsoluteSize.Y - 16 or 0
+					panelScale.Scale = (pickerPanel.Parent ~= f and room > 0 and targetHeight > room) and (room / targetHeight) or 1
 
 					-- Animate to full height
 					dprint("[ColorPicker] Starting animation to height:", targetHeight)
@@ -610,6 +636,8 @@ function ColorPicker.Create(o, dependencies)
 				end)
 			end
 		end
+
+		openPicker = setPickerOpen
 
 		-- Toggle on preview click
 		preview.MouseButton1Click:Connect(function()
@@ -728,6 +756,13 @@ function ColorPicker.Create(o, dependencies)
 		end,
 		Get = function()
 			return currentColor
+		end,
+		-- v4.5.2: open or close the picker panel from code (like a dropdown's
+		-- SetOpen). A colour picker in its simple mode has no panel: nothing happens.
+		SetOpen = function(_, state)
+			if openPicker then
+				openPicker(state == true)
+			end
 		end,
 		SetVisible = function(_, visible)
 			f.Visible = visible

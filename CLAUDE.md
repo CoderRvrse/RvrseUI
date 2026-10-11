@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.5.1)
+# RvrseUI – Maintainer Notes (v4.5.2)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -44,6 +44,23 @@ A window's `Lifecycle` (created at the top of `WindowBuilder:CreateWindow`) owns
 - Verify with the headless harness: `node tools/build.js && node tests/headless/run.js` (needs the `luau` CLI;
   see `tests/headless/README.md`) — 9 close scenarios, must report 0 live connections and 0 ScreenGuis after
   close. v4.3.31 fails it with 38 leaked connections per window.
+
+## 📱 WARNING #0c (v4.5.2): Everything must fit a PHONE held sideways
+
+Most Roblox players are on phones, held sideways: about 750x381, and Roblox's top bar takes the top 36-58 of
+that. Anything RvrseUI shows must fit there.
+
+- The window's size comes from `getFittedSize()` in WindowBuilder (580x480 asked; a touch screen held upright
+  380x520; never more than the room below the top bar, less `SCREEN_MARGIN`). Never set `root.Size` to a fixed
+  size. Positions go through `getCenteredPosition` / `clampToScreen`, which keep the window below the top bar.
+- A control with a widget on its right gets `dependencies.fitRow(card, label, widget, gap)`; every control label
+  gets `TextTruncate = AtEnd`. A card holding wrapped text gets `dependencies.fitHeight(card, label, minHeight)`.
+- Absolute positions start BELOW the top bar, `Camera.ViewportSize` starts at the top of the screen: never mix
+  them without `GuiService:GetGuiInset()` (the dropdown list ran off the screen by exactly the bar's height).
+- A `UIGradient` fades its parent's background AND text: switch one off with `Enabled = false`, never with
+  transparency 1 (the Keybind button was invisible for that reason).
+- Verify with `node tests/headless/run.js RvrseUI.lua mobile` (750x381 sideways, then turned upright) and look at it
+  in Studio with the Device emulator on a phone.
 
 ---
 
@@ -1018,7 +1035,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2026-10-07 (v4.5.1 - Window:SelectTab)
+**Last Updated:** 2026-10-11 (v4.5.2 - phone fit)
 
 ---
 

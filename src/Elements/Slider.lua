@@ -41,6 +41,7 @@ function Slider.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = string.format("%s: %s", baseLabelText, tostring(value))
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the value on a narrow card
 	lbl.Parent = f
 
 	-- Value display (right-aligned)
