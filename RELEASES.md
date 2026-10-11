@@ -18,7 +18,7 @@
 ### Verification
 - `node tests/headless/run.js`: new `ontop`, `ontop_hidden`, `ontop_coregui` and `ontop_playergui` scenarios (17 in all), each beside a game screen already at 2147483647: where the screens are (PlayerGui by default even when CoreGui is writable; the hidden folder / CoreGui / PlayerGui when `AlwaysOnTop` is asked for), their orders, the mouse freed while open and given back when minimised, nothing freed or drawn without a mouse, the pointer drawn only when the game hid its own and following the mouse, the Esc menu step-aside outside PlayerGui only, nothing left after close. `ontop` FAILS on 4.5.2 (16 checks); 15 of 16 mutations of the change are caught (the 16th is a second guard that the first already covers).
 - LUAVM-Rvrse `run_autoshutdown_tests.ps1`: a first design that moved the screens out of PlayerGui by default FAILED it (a hub that hooks its shutdown on the X in PlayerGui never restored the world). With PlayerGui as the default it passes.
-- Roblox Studio: CoreGui above a PlayerGui screen at 2147483647 (click test); 2147483648 is stored as -2147483648; writing `MouseBehavior` back on change leaves it locked at the end of every render step (120/120 frames), hence the Modal button.
+- Roblox Studio: CoreGui above a PlayerGui screen at 2147483647 (click test); a DisplayOrder set to 2147483657 is stored as -2147483648; writing `MouseBehavior` back on change leaves it locked at the end of every render step (120/120 frames), hence the Modal button.
 
 ## Version 4.5.2 "Fits Anywhere" - Phone Fit
 **Release Date**: October 11, 2026
