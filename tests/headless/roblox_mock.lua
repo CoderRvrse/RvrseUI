@@ -883,6 +883,10 @@ function M.setParent(self, parent)
 		error("Unable to assign property Parent. Object expected, got " .. M.nativeTypeof(parent), 3)
 	end
 	if parent == self then error("Attempt to set " .. tostring(d.props.Name) .. " as its own parent", 3) end
+	-- a plain game script can't write CoreGui (scenarios set M.coreGuiLocked to be one)
+	if M.coreGuiLocked and parent ~= nil and parent == M.CoreGui then
+		error("The current thread cannot write 'CoreGui' (lacking capability Plugin)", 3)
+	end
 	local old = d.props.Parent
 	if old == parent then return end
 	if old then

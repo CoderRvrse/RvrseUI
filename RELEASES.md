@@ -1,5 +1,25 @@
 # RvrseUI Releases
 
+## Version 4.6.0 "On Top, Mouse Free" - Always On Top
+**Release Date**: October 11, 2026
+**Build**: 20261011b
+**Hash**: `0NT0PM5E`
+**Channel**: Stable
+
+### Highlights
+- **Game screens no longer cover RvrseUI.** Its screens sat in PlayerGui at DisplayOrder 999 (100 in `init.lua`), so any game screen above that drew over the window and took its clicks. They now use the three largest orders (windows 2147483645, lists and colour panels 2147483646, the pointer 2147483647). They stay in PlayerGui, where hubs already out there look for the window (the X button, to hook their own shutdown).
+- **New: `CreateWindow{ AlwaysOnTop = true }`** moves RvrseUI's screens into the executor's hidden folder (`gethui`), else CoreGui. Roblox draws those above every PlayerGui screen whatever its order, and the game's own scripts can't see them. While Roblox's own Esc menu is open RvrseUI steps aside there, and comes back when it closes. Where neither folder takes a screen (a plain game script) the screens stay in PlayerGui.
+  **A hub that asks for it must use `Window:OnClose` for its shutdown**: a search of PlayerGui for the X button no longer finds it. That is why it is off by default.
+- **No more wrap-round.** 2147483647 is the largest DisplayOrder and one more wraps to the very bottom; the dropdown / colour-panel screen and the dropdown fallback screen now stop below it.
+- **The mouse is free in first-person games** while a window is on screen (an invisible `Modal` button: Roblox unlocks the mouse and locks it again when the window is minimised or closed; the game's mouse settings are never written). Only on a device with a mouse: a touch screen behaves exactly as before.
+- **RvrseUI's own pointer**: where the game hid the pointer, RvrseUI draws Roblox's own arrow at the mouse while a window is on screen, above everything.
+- `CreateWindow{ UnlockMouse = false }` leaves the mouse and the pointer to the game.
+
+### Verification
+- `node tests/headless/run.js`: new `ontop`, `ontop_hidden`, `ontop_coregui` and `ontop_playergui` scenarios (17 in all), each beside a game screen already at 2147483647: where the screens are (PlayerGui by default even when CoreGui is writable; the hidden folder / CoreGui / PlayerGui when `AlwaysOnTop` is asked for), their orders, the mouse freed while open and given back when minimised, nothing freed or drawn without a mouse, the pointer drawn only when the game hid its own and following the mouse, the Esc menu step-aside outside PlayerGui only, nothing left after close. `ontop` FAILS on 4.5.2 (16 checks); 15 of 16 mutations of the change are caught (the 16th is a second guard that the first already covers).
+- LUAVM-Rvrse `run_autoshutdown_tests.ps1`: a first design that moved the screens out of PlayerGui by default FAILED it (a hub that hooks its shutdown on the X in PlayerGui never restored the world). With PlayerGui as the default it passes.
+- Roblox Studio: CoreGui above a PlayerGui screen at 2147483647 (click test); 2147483648 is stored as -2147483648; writing `MouseBehavior` back on change leaves it locked at the end of every render step (120/120 frames), hence the Modal button.
+
 ## Version 4.5.2 "Fits Anywhere" - Phone Fit
 **Release Date**: October 11, 2026
 **Build**: 20261011a

@@ -11,6 +11,7 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local GuiService = game:GetService("GuiService")
 local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
 
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 
@@ -36,6 +37,7 @@ local TabBuilder = require(script.src.TabBuilder)
 local SectionBuilder = require(script.src.SectionBuilder)
 local WindowBuilder = require(script.src.WindowBuilder)
 local Overlay = require(script.src.Overlay)
+local Layers = require(script.src.Layers)
 
 local Elements = {
 	Button = require(script.src.Elements.Button),
@@ -103,18 +105,28 @@ Icons:Initialize({
 	LucideIcons = LucideIcons
 })
 
+-- Where RvrseUI's screens live: PlayerGui at the top orders (AlwaysOnTop moves them)
+Layers:Initialize({
+	UIS = UserInputService,
+	RunService = RunService,
+	GuiService = GuiService,
+	PlayerGui = PlayerGui,
+	CoreGui = CoreGui,
+	Debug = Debug
+})
+
 -- Create host ScreenGui for notifications and windows
 local host = Instance.new("ScreenGui")
 host.Name = Obfuscation.getObfuscatedName("gui")
 host.ResetOnSpawn = false
 host.IgnoreGuiInset = true
 host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-host.DisplayOrder = 100
-host.Parent = PlayerGui
+Layers:Mount(host, Layers.HOST)
 
 Overlay:Initialize({
-	PlayerGui = PlayerGui,
-	DisplayOrder = host.DisplayOrder + 10,
+	PlayerGui = Layers:GetParent(),
+	DisplayOrder = Layers.OVERLAY,
+	Layers = Layers,
 	Debug = Debug
 })
 local overlayLayer = Overlay:GetLayer()
@@ -173,6 +185,7 @@ local deps = {
 	Elements = Elements,
 	OverlayLayer = overlayLayer,
 	Overlay = Overlay,
+	Layers = Layers,
 
 	-- Services
 	UIS = UserInputService,
@@ -251,8 +264,7 @@ function RvrseUI:CreateWindow(cfg)
 		host.ResetOnSpawn = false
 		host.IgnoreGuiInset = true
 		host.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		host.DisplayOrder = 100
-		host.Parent = PlayerGui
+		Layers:Mount(host, Layers.HOST)
 
 		Notifications:Initialize({
 			host = host,
@@ -413,6 +425,7 @@ function RvrseUI:Destroy()
 			RvrseUI = self,
 			Host = host,
 			Overlay = Overlay,
+			Layers = Layers,
 			Hotkeys = Hotkeys,
 			Particles = Particles
 		})

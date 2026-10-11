@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-11T20:49:49.959Z
+-- Compiled from modular architecture on 2026-10-11T22:53:44.042Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -39,11 +39,11 @@ Version = {}
 
 Version.Data = {
 	Major = 4,
-	Minor = 5,
-	Patch = 2,
-	Build = "20261011a",  -- YYYYMMDD format
-	Full = "4.5.2",
-	Hash = "M0B1L3F7",  -- Release hash for integrity verification
+	Minor = 6,
+	Patch = 0,
+	Build = "20261011b",  -- YYYYMMDD format
+	Full = "4.6.0",
+	Hash = "0NT0PM5E",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -2907,6 +2907,322 @@ end
 
 
 -- ========================
+-- Layers Module
+-- ========================
+
+do
+-- Layers Module
+-- =========================
+-- Keeps RvrseUI above the game's screens and usable in any game.
+--
+-- WHERE (default): PlayerGui, at the three largest DisplayOrders. Only a game
+-- screen that itself uses one of those can still cover RvrseUI. PlayerGui stays
+-- the default because hubs already out there look for RvrseUI's window in it
+-- (the X button, to hook their own shutdown): moving it would silently stop
+-- those hubs cleaning up on close.
+--
+-- WHERE (CreateWindow{ AlwaysOnTop = true }): the executor's hidden folder
+-- (gethui), else CoreGui. A screen there sits ABOVE every PlayerGui screen
+-- whatever DisplayOrder the game uses (Studio, 2026-10-11: a CoreGui screen at
+-- order 0 took the click over a PlayerGui screen at 2147483647), and the game's
+-- own scripts can't see it. A hub that asks for this must use Window:OnClose
+-- for its shutdown, not a search of PlayerGui. Roblox's own Esc menu lives in
+-- CoreGui at order 0, under RvrseUI then: while it is open RvrseUI's screens
+-- step aside so Leave / Settings stay clickable.
+--
+-- MOUSE: while a window is on screen an invisible Modal button frees the mouse.
+-- The engine unlocks first-person / LockCenter games by itself and locks again
+-- when the window goes; the game's own MouseBehavior is never written (writing
+-- it back on every change leaves it locked at the end of each render step).
+-- Only on a device with a mouse: a touch screen is left exactly as it was.
+--
+-- POINTER: first-person games hide the pointer (MouseIconEnabled = false).
+-- While a window is on screen RvrseUI then draws Roblox's own arrow at the mouse.
+--
+-- 2147483647 is the largest DisplayOrder; one more wraps round to the very
+-- bottom (Studio-proven), so raised orders go through Layers.order().
+
+Layers = {}
+
+Layers.TOP = 2147483647
+Layers.HOST = Layers.TOP - 2 -- windows + notifications
+Layers.OVERLAY = Layers.TOP - 1 -- dropdown lists, colour panels: above the windows
+Layers.CURSOR = Layers.TOP -- RvrseUI's own pointer: above everything
+Layers.CURSOR_IMAGE = "rbxasset://textures/Cursors/KeyboardMouse/ArrowFarCursor.png"
+Layers.CURSOR_SIZE = 64 -- Roblox's arrow image; its tip is the image centre
+
+local UIS, RunService, GuiService, PlayerGui, CoreGui, Debug
+
+local chosenParent = nil -- nil = PlayerGui (the default)
+local mounted = setmetatable({}, { __mode = "k" }) -- our ScreenGuis (moved together, hidden together)
+local menuHidden = setmetatable({}, { __mode = "k" }) -- gui -> Enabled it had when the menu opened
+local menuOpen = false
+local menuConnections = {}
+local onScreen = {} -- window root -> true while that window is on screen
+local cursorGui, cursorImage, cursorConn
+
+local function dprint(...)
+	if Debug and Debug.printf then
+		Debug.printf(...)
+	end
+end
+
+function Layers.order(n)
+	return math.clamp(math.floor(n), -Layers.TOP, Layers.TOP)
+end
+
+function Layers:Initialize(opts)
+	opts = opts or {}
+	UIS = opts.UIS
+	RunService = opts.RunService
+	GuiService = opts.GuiService
+	PlayerGui = opts.PlayerGui
+	CoreGui = opts.CoreGui
+	Debug = opts.Debug
+end
+
+-- Where RvrseUI's screens are right now
+function Layers:GetParent()
+	return chosenParent or PlayerGui
+end
+
+-- The executor's hidden folder, else CoreGui; nil when neither takes a screen
+-- (a plain game script).
+local function findHiddenParent()
+	local candidates = {}
+	if type(gethui) == "function" then
+		local ok, hidden = pcall(gethui)
+		if ok and typeof(hidden) == "Instance" then
+			table.insert(candidates, hidden)
+		end
+	end
+	if CoreGui then
+		table.insert(candidates, CoreGui)
+	end
+
+	for _, parent in ipairs(candidates) do
+		local probe = Instance.new("ScreenGui")
+		local ok = pcall(function()
+			probe.Parent = parent
+		end)
+		local landed = ok and probe.Parent == parent
+		probe:Destroy()
+		if landed then
+			return parent
+		end
+	end
+	return nil
+end
+
+-- In PlayerGui Roblox's Esc menu is above us anyway: nothing to do there.
+local function stepAside()
+	menuOpen = true
+	for gui in pairs(mounted) do
+		if gui.Parent and gui.Parent ~= PlayerGui and menuHidden[gui] == nil then
+			menuHidden[gui] = gui.Enabled
+			gui.Enabled = false
+		end
+	end
+end
+
+local function comeBack()
+	menuOpen = false
+	for gui, wasEnabled in pairs(menuHidden) do
+		if gui.Parent then
+			gui.Enabled = wasEnabled
+		end
+	end
+	table.clear(menuHidden)
+end
+
+local function watchMenu()
+	if #menuConnections > 0 or not GuiService then
+		return
+	end
+	pcall(function()
+		table.insert(menuConnections, GuiService.MenuOpened:Connect(stepAside))
+		table.insert(menuConnections, GuiService.MenuClosed:Connect(comeBack))
+	end)
+	local ok, isOpen = pcall(function()
+		return GuiService.MenuIsOpen
+	end)
+	if ok and isOpen then
+		stepAside()
+	end
+end
+
+local function place(gui)
+	local parent = chosenParent or PlayerGui
+	local ok = pcall(function()
+		gui.Parent = parent
+	end)
+	if not ok or gui.Parent ~= parent then
+		gui.Parent = PlayerGui
+	end
+	if gui.Parent ~= PlayerGui then
+		watchMenu()
+		if menuOpen and menuHidden[gui] == nil then
+			menuHidden[gui] = gui.Enabled
+			gui.Enabled = false
+		end
+	end
+end
+
+-- Put one of RvrseUI's ScreenGuis where the others are (see GetParent), at the
+-- given order.
+function Layers:Mount(gui, order)
+	gui.DisplayOrder = Layers.order(order or Layers.HOST)
+	mounted[gui] = true
+	place(gui)
+	return gui.Parent
+end
+
+-- CreateWindow{ AlwaysOnTop = true }: move every RvrseUI screen to the executor's
+-- hidden folder / CoreGui (false: back to PlayerGui). Returns where they are now;
+-- still PlayerGui when neither takes a screen.
+function Layers:SetOnTop(on)
+	local parent = nil
+	if on then
+		parent = findHiddenParent()
+	end
+	if parent ~= chosenParent then
+		chosenParent = parent
+		local wasOpen = menuOpen
+		comeBack() -- anything hidden for the Esc menu is shown, then hidden again where it lands
+		menuOpen = wasOpen
+		for gui in pairs(mounted) do
+			if gui.Parent then
+				place(gui)
+			end
+		end
+		dprint("[Layers] RvrseUI screens moved to %s", self:GetParent():GetFullName())
+	end
+	return self:GetParent()
+end
+
+local function buildCursor()
+	cursorGui = Instance.new("ScreenGui")
+	cursorGui.Name = "RvrseUI_Cursor"
+	cursorGui.ResetOnSpawn = false
+	cursorGui.IgnoreGuiInset = true -- GetMouseLocation counts from the screen's top-left
+	cursorGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	cursorImage = Instance.new("ImageLabel")
+	cursorImage.Name = "Pointer"
+	cursorImage.BackgroundTransparency = 1
+	cursorImage.Image = Layers.CURSOR_IMAGE
+	cursorImage.Size = UDim2.fromOffset(Layers.CURSOR_SIZE, Layers.CURSOR_SIZE)
+	cursorImage.AnchorPoint = Vector2.new(0.5, 0.5)
+	cursorImage.Active = false
+	pcall(function()
+		cursorImage.Interactable = false -- never catches a click or a hover
+	end)
+	cursorImage.Visible = false
+	cursorImage.Parent = cursorGui
+
+	Layers:Mount(cursorGui, Layers.CURSOR)
+end
+
+-- Once a frame while a window is on screen: show our pointer only when the game
+-- hid the real one and there is a mouse to follow.
+local function drawCursor()
+	local show = UIS.MouseEnabled and not UIS.MouseIconEnabled
+	if show and not (cursorImage and cursorImage.Parent) then
+		buildCursor()
+	end
+	if cursorImage then
+		cursorImage.Visible = show
+		if show then
+			local at = UIS:GetMouseLocation()
+			cursorImage.Position = UDim2.fromOffset(at.X, at.Y)
+		end
+	end
+end
+
+local function updateCursorLoop()
+	local wanted = next(onScreen) ~= nil
+	if wanted and not cursorConn and RunService and UIS then
+		cursorConn = RunService.RenderStepped:Connect(drawCursor)
+		drawCursor()
+	elseif not wanted and cursorConn then
+		cursorConn:Disconnect()
+		cursorConn = nil
+		if cursorImage then
+			cursorImage.Visible = false
+		end
+	end
+end
+
+-- A window on screen frees the mouse and, where the game hid the pointer, shows
+-- RvrseUI's own. host = the window's ScreenGui, root = its main frame,
+-- track = the window's Lifecycle tracker (all of it goes when the window closes).
+function Layers:AttachWindow(host, root, track)
+	local unlock = Instance.new("TextButton")
+	unlock.Name = "MouseUnlock"
+	unlock.BackgroundTransparency = 1
+	unlock.Text = ""
+	unlock.AutoButtonColor = false
+	unlock.Selectable = false
+	unlock.Size = UDim2.fromOffset(0, 0)
+	unlock.Modal = false
+	unlock.Parent = host
+	track(unlock)
+
+	-- No mouse (a touch screen): nothing to free and no pointer to draw
+	local function sync()
+		local visible = root.Parent ~= nil and root.Visible and UIS ~= nil and UIS.MouseEnabled == true
+		unlock.Modal = visible
+		onScreen[root] = visible or nil
+		updateCursorLoop()
+	end
+
+	track(root:GetPropertyChangedSignal("Visible"):Connect(sync))
+	track(function()
+		onScreen[root] = nil
+		updateCursorLoop()
+	end)
+	sync()
+	return unlock
+end
+
+-- What the pointer / mouse side is doing (tests and the debug report)
+function Layers:GetState()
+	local windows = 0
+	for _ in pairs(onScreen) do
+		windows = windows + 1
+	end
+	return {
+		parent = self:GetParent(),
+		windowsOnScreen = windows,
+		cursorLoop = cursorConn ~= nil,
+		cursorShown = cursorImage ~= nil and cursorImage.Visible,
+		menuOpen = menuOpen,
+	}
+end
+
+-- Last window closed: stop the pointer loop and the Esc-menu listeners, remove
+-- the pointer screen. Mount() / AttachWindow() bring them back for a new window.
+function Layers:Teardown()
+	for _, conn in ipairs(menuConnections) do
+		conn:Disconnect()
+	end
+	table.clear(menuConnections)
+	if cursorConn then
+		cursorConn:Disconnect()
+		cursorConn = nil
+	end
+	if cursorGui then
+		cursorGui:Destroy()
+	end
+	cursorGui, cursorImage = nil, nil
+	table.clear(onScreen)
+	comeBack()
+	table.clear(mounted)
+end
+end
+
+
+-- ========================
 -- Overlay Module
 -- ========================
 
@@ -2978,6 +3294,11 @@ function Overlay:Initialize(opts)
 	else
 		popovers.DisplayOrder = math.max(popovers.DisplayOrder, desiredDisplayOrder)
 	end
+	-- v4.6.0: Layers puts it beside RvrseUI's other screens (above every game
+	-- screen) and hides it with them while Roblox's Esc menu is open
+	if opts.Layers then
+		opts.Layers:Mount(popovers, popovers.DisplayOrder)
+	end
 	self.Gui = popovers
 	self._displayOrderConnections = self._displayOrderConnections or {}
 
@@ -2996,14 +3317,17 @@ function Overlay:Initialize(opts)
 		end
 	end
 
+	-- v4.6.0: RvrseUI's own pointer screen (Layers) stays above the popovers, and
+	-- 2147483647 is the largest DisplayOrder: one more wraps round to the very
+	-- bottom, so the popovers stop one below it.
 	local function updateDisplayOrder()
 		local highest = opts.DisplayOrder or 0
 		for _, gui in ipairs(playerGui:GetChildren()) do
-			if gui:IsA("ScreenGui") and gui ~= popovers then
+			if gui:IsA("ScreenGui") and gui ~= popovers and gui.Name ~= "RvrseUI_Cursor" then
 				highest = math.max(highest, gui.DisplayOrder)
 			end
 		end
-		popovers.DisplayOrder = math.max(highest + 1, popovers.DisplayOrder, opts.DisplayOrder or 0)
+		popovers.DisplayOrder = math.min(math.max(highest + 1, popovers.DisplayOrder, opts.DisplayOrder or 0), 2147483646)
 	end
 
 	local function watchGui(gui)
@@ -5385,7 +5709,8 @@ function Dropdown.Create(o, dependencies)
 			hostGui.ResetOnSpawn = false
 			hostGui.IgnoreGuiInset = true
 			hostGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-			hostGui.DisplayOrder = maxDisplayOrder + 1000  -- Always on top
+			-- Always on top; 2147483647 is the largest order (one more wraps to the bottom)
+			hostGui.DisplayOrder = math.min(maxDisplayOrder + 1000, 2147483646)
 			hostGui.Parent = playerGui
 			fallbackOverlayGui = hostGui
 			trackCleanup(hostGui)
@@ -9185,7 +9510,7 @@ WindowBuilder = {}
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
-local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles
+local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles, Layers
 
 -- Roblox services (will be injected)
 local UIS, GuiService, RS, PlayerGui, HttpService, RunService
@@ -9211,6 +9536,7 @@ function WindowBuilder:Initialize(deps)
 	Overlay = deps.Overlay
 	KeySystem = deps.KeySystem
 	Particles = deps.Particles
+	Layers = deps.Layers
 
 	-- Services
 	UIS = deps.UIS
@@ -9224,6 +9550,14 @@ end
 -- Extract all the CreateWindow logic from RvrseUI.lua lines 1293-3922
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
+
+	-- ✅ v4.6.0: CreateWindow{ AlwaysOnTop = true } moves RvrseUI's screens out of
+	-- PlayerGui into the executor's hidden folder / CoreGui: above every game
+	-- screen whatever its DisplayOrder, and out of the game's sight. Off by
+	-- default: hubs that look for the window in PlayerGui keep working.
+	if Layers and cfg.AlwaysOnTop ~= nil then
+		Layers:SetOnTop(cfg.AlwaysOnTop == true)
+	end
 
 	-- Closing the last window tears the shared services down (no trace left);
 	-- bring them back if this script opens a new window afterwards.
@@ -9637,6 +9971,15 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.Parent = windowHost
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Accent, 2)
+
+	-- ✅ v4.6.0: while this window is on screen the mouse is free (first-person
+	-- games lock it) and, if the game hid the pointer, RvrseUI draws its own.
+	-- CreateWindow{ UnlockMouse = false } leaves the mouse to the game.
+	if Layers and cfg.UnlockMouse ~= false then
+		Layers:AttachWindow(windowHost, root, function(item)
+			return Lifecycle:Track(item)
+		end)
+	end
 
 	local lastWindowSize = root.Size
 	local lastWindowPosition = root.Position
@@ -11181,6 +11524,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					RvrseUI = RvrseUI,
 					Host = host,
 					Overlay = Overlay,
+					Layers = Layers,
 					Hotkeys = Hotkeys,
 					Particles = Particles,
 				})
@@ -11730,13 +12074,16 @@ end
 -- Remove RvrseUI's shared pieces once no window is open: the host ScreenGui
 -- (notifications), the overlay ScreenGui and its listeners, the hotkey
 -- listener and the particle loop. Idempotent; CreateWindow() rebuilds them.
--- shared = { RvrseUI, Host, Overlay, Hotkeys, Particles } (all optional)
+-- shared = { RvrseUI, Host, Overlay, Layers, Hotkeys, Particles } (all optional)
 function WindowBuilder:TeardownShared(shared)
 	if shared.Host and shared.Host.Parent then
 		shared.Host:Destroy()
 	end
 	if shared.Overlay and shared.Overlay.Teardown then
 		shared.Overlay:Teardown()
+	end
+	if shared.Layers and shared.Layers.Teardown then
+		shared.Layers:Teardown()
 	end
 	if shared.Hotkeys and shared.Hotkeys.Teardown then
 		shared.Hotkeys:Teardown()
@@ -11812,13 +12159,22 @@ Elements = {
 
 RvrseUI.NotificationsEnabled = true
 
+-- Where RvrseUI's screens live: PlayerGui at the top orders (AlwaysOnTop moves them)
+Layers:Initialize({
+    UIS = UIS,
+    RunService = RS,
+    GuiService = GuiService,
+    PlayerGui = PlayerGui,
+    CoreGui = CoreGui,
+    Debug = Debug
+})
+
 local DEFAULT_HOST = Instance.new("ScreenGui")
 DEFAULT_HOST.Name = Obfuscation.getObfuscatedName("gui")
 DEFAULT_HOST.ResetOnSpawn = false
 DEFAULT_HOST.IgnoreGuiInset = true
 DEFAULT_HOST.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-DEFAULT_HOST.DisplayOrder = 999
-DEFAULT_HOST.Parent = PlayerGui
+Layers:Mount(DEFAULT_HOST, Layers.HOST)
 
 local DEFAULT_OVERLAY = Instance.new("Frame")
 DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
@@ -11831,8 +12187,9 @@ DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
 DEFAULT_OVERLAY.Parent = DEFAULT_HOST
 
 Overlay:Initialize({
-    PlayerGui = PlayerGui,
-    DisplayOrder = DEFAULT_HOST.DisplayOrder + 10,
+    PlayerGui = Layers:GetParent(),
+    DisplayOrder = Layers.OVERLAY,
+    Layers = Layers,
     OverlayFrame = DEFAULT_OVERLAY,
     Debug = Debug
 })
@@ -11921,6 +12278,7 @@ function RvrseUI:CreateWindow(cfg)
         WindowManager = WindowManager,
         Notifications = Notifications,
         Overlay = Overlay,
+        Layers = Layers,
         KeySystem = KeySystem,
         Particles = Particles,
         Debug = Debug,
@@ -11947,8 +12305,7 @@ function RvrseUI:CreateWindow(cfg)
         DEFAULT_HOST.ResetOnSpawn = false
         DEFAULT_HOST.IgnoreGuiInset = true
         DEFAULT_HOST.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        DEFAULT_HOST.DisplayOrder = 999
-        DEFAULT_HOST.Parent = PlayerGui
+        Layers:Mount(DEFAULT_HOST, Layers.HOST)
 
         DEFAULT_OVERLAY = Instance.new("Frame")
         DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
@@ -12057,6 +12414,7 @@ function RvrseUI:Destroy()
             RvrseUI = self,
             Host = DEFAULT_HOST,
             Overlay = Overlay,
+            Layers = Layers,
             Hotkeys = Hotkeys,
             Particles = Particles
         })

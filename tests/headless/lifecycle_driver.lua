@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -131,9 +131,10 @@ end
 
 function H.guiCount()
 	local n = 0
-	for _, root in ipairs({ M.PlayerGui, M.CoreGui }) do
+	for _, root in ipairs({ M.PlayerGui, M.CoreGui, H.hidden }) do
 		for _, c in ipairs(M.D[root].children) do
-			if M.D[c].className == "ScreenGui" then n += 1 end
+			-- GameHud = the game's own screen in the ontop_playergui scenario
+			if M.D[c].className == "ScreenGui" and M.D[c].props.Name ~= "GameHud" then n += 1 end
 		end
 	end
 	return n
@@ -210,12 +211,35 @@ if H_SCENARIO == "mobile" then
 	p.TouchEnabled, p.MouseEnabled, p.KeyboardEnabled = true, false, false
 	setScreen(750, 381)
 end
+-- "ontop*": where RvrseUI's screens go. ontop = the default (PlayerGui, top
+-- orders). The others ask for CreateWindow{ AlwaysOnTop = true }: ontop_hidden =
+-- an executor with a hidden folder (gethui), ontop_coregui = one without (CoreGui
+-- writable), ontop_playergui = a plain game script (CoreGui refused).
+local ONTOP = H_SCENARIO == "ontop" or H_SCENARIO == "ontop_hidden" or H_SCENARIO == "ontop_coregui" or H_SCENARIO == "ontop_playergui"
+if ONTOP then
+	-- a game screen already at the largest order: RvrseUI must not go "one above"
+	-- it (Roblox wraps that round to the very bottom)
+	local greedy = Instance.new("ScreenGui")
+	greedy.Name = "GameHud"
+	greedy.DisplayOrder = 2147483647
+	greedy.Parent = M.PlayerGui
+end
+if H_SCENARIO == "ontop_hidden" then
+	H.hidden = Instance.new("Folder")
+	H.hidden.Name = "HiddenUI"
+	H.hidden.Parent = M.CoreGui
+	gethui = function() return H.hidden end
+elseif H_SCENARIO == "ontop_playergui" then
+	M.coreGuiLocked = true
+end
 local wantsLifecycle = H_SCENARIO == "reopen" or H_SCENARIO == "togglesoff" or H_SCENARIO == "track" or H_SCENARIO == "overlays"
 local okBuild = M.runThread(function()
 	S.RvrseUI = H.loadRvrseUI()
 	local extra = nil
 	if H_SCENARIO == "togglesoff" then
 		extra = { TurnOffTogglesOnClose = true, ConfigurationSaving = { Enabled = true, FolderName = "H", FileName = "h.json" } }
+	elseif ONTOP and H_SCENARIO ~= "ontop" then
+		extra = { AlwaysOnTop = true }
 	end
 	S.W1, S.ui1 = H.buildWindow(S.RvrseUI, "Harness Hub A", extra)
 	if H.hasLifecycle(S.W1) then S.W1:OnClose(function(reason) S.closeCalls[1] += 1 S.reason1 = reason end) end
@@ -482,6 +506,117 @@ elseif H_SCENARIO == "mobile" then
 		H.close("x", S.W2, "Harness Hub B")
 	end
 	H.close("x", S.W1, "Harness Hub A")
+elseif ONTOP then
+	-- v4.6.0: RvrseUI's screens sit at the top orders (PlayerGui by default, the
+	-- hidden folder / CoreGui when asked, stepping aside for Roblox's Esc menu
+	-- there), free the mouse while a window is on screen, and draw their own
+	-- pointer when the game hid the real one.
+	local TOP = 2147483647
+	local HOST = TOP - 2
+	local want = ({ ontop = M.PlayerGui, ontop_hidden = H.hidden, ontop_coregui = M.CoreGui, ontop_playergui = M.PlayerGui })[H_SCENARIO]
+	local wantName = ({ ontop = "PlayerGui", ontop_hidden = "the hidden folder", ontop_coregui = "CoreGui", ontop_playergui = "PlayerGui" })[H_SCENARIO]
+	local function named(name)
+		return H.find(function(_, dd) return dd.props.Name == name end)
+	end
+	local function shown(inst)
+		return inst ~= nil and inst.Visible == true
+	end
+	local root = H.windowRoot("Harness Hub A")
+	local host = root and root.Parent
+	local popovers = named("RvrseUI_Popovers")
+	local unlock = named("MouseUnlock")
+	local ui = M.D[M.UserInputService].props
+
+	-- where
+	H.check(host ~= nil and host.Parent == want, "window screen is in " .. tostring(host and host.Parent and host.Parent.Name) .. " (want " .. wantName .. ")")
+	H.check(host ~= nil and host.DisplayOrder == HOST, "window screen order " .. tostring(host and host.DisplayOrder) .. " (want " .. HOST .. ")")
+	H.check(popovers ~= nil and popovers.Parent == want, "popovers screen is not in " .. wantName)
+	H.check(popovers ~= nil and popovers.DisplayOrder > HOST and popovers.DisplayOrder < TOP,
+		"popovers order " .. tostring(popovers and popovers.DisplayOrder) .. " (want above the windows, below " .. TOP .. ")")
+
+	-- the mouse: free while the window is on screen, given back when it goes
+	H.check(unlock ~= nil and unlock.Parent == host, "no MouseUnlock button in the window's screen")
+	H.check(unlock ~= nil and unlock.Modal == true, "window open but MouseUnlock.Modal is not on")
+	H.check(named("RvrseUI_Cursor") == nil, "a pointer screen exists while the game shows its own pointer")
+
+	-- the pointer: the game hides it (first-person) -> ours follows the mouse
+	ui.MouseIconEnabled = false
+	M.mouseLocation = M.V2(321, 123)
+	M.run(0.2)
+	local cursorGui = named("RvrseUI_Cursor")
+	local pointer = cursorGui and named("Pointer")
+	H.check(cursorGui ~= nil and cursorGui.Parent == want, "no pointer screen in " .. wantName .. " after the game hid the pointer")
+	H.check(cursorGui ~= nil and cursorGui.DisplayOrder == TOP, "pointer screen order " .. tostring(cursorGui and cursorGui.DisplayOrder) .. " (want " .. TOP .. ")")
+	H.check(shown(pointer), "game hid the pointer, window open, but RvrseUI's pointer is not shown")
+	local function at(x, y)
+		return pointer ~= nil and pointer.Position.X.Offset == x and pointer.Position.Y.Offset == y
+	end
+	H.check(at(321, 123), "pointer is not at the mouse (321,123)")
+	M.mouseLocation = M.V2(40, 300)
+	M.run(0.2)
+	H.check(at(40, 300), "pointer did not follow the mouse to (40,300)")
+	H.check(popovers == nil or popovers.DisplayOrder < TOP, "popovers climbed to the pointer's order (wrap risk)")
+	ui.MouseIconEnabled = true
+	M.run(0.2)
+	H.check(not shown(pointer), "game shows its pointer again but RvrseUI's is still drawn (two pointers)")
+	ui.MouseIconEnabled = false
+	M.run(0.2)
+
+	-- minimised: the mouse goes back to the game and our pointer goes away
+	local frameConns = function()
+		local n = 0
+		for _, r in ipairs(M.liveConns({ src = "RvrseUI" })) do
+			if r.signal == "RenderStepped" then n += 1 end
+		end
+		return n
+	end
+	local loopsOpen = frameConns()
+	M.keyPress(Enum.KeyCode.K, false)
+	M.run(1)
+	H.check(root ~= nil and root.Visible == false, "toggle key did not minimise the window")
+	H.check(unlock ~= nil and unlock.Modal == false, "window minimised but the mouse is still held free")
+	H.check(not shown(pointer), "window minimised but RvrseUI's pointer is still drawn")
+	H.check(frameConns() == loopsOpen - 1, "pointer loop still running while minimised (" .. frameConns() .. " vs " .. loopsOpen .. " open)")
+	M.keyPress(Enum.KeyCode.K, false)
+	M.run(1)
+	H.check(root ~= nil and root.Visible == true and unlock ~= nil and unlock.Modal == true, "restored window did not free the mouse again")
+	H.check(shown(pointer), "restored window did not show RvrseUI's pointer again")
+
+	-- a touch screen (no mouse): nothing is freed, nothing is drawn
+	ui.MouseEnabled = false
+	M.keyPress(Enum.KeyCode.K, false)
+	M.run(1)
+	M.keyPress(Enum.KeyCode.K, false)
+	M.run(1)
+	H.check(unlock ~= nil and unlock.Modal == false, "no mouse on this device but MouseUnlock.Modal is on")
+	H.check(not shown(pointer), "no mouse on this device but RvrseUI's pointer is drawn")
+	ui.MouseEnabled = true
+	M.keyPress(Enum.KeyCode.K, false)
+	M.run(1)
+	M.keyPress(Enum.KeyCode.K, false)
+	M.run(1)
+	H.check(unlock ~= nil and unlock.Modal == true and shown(pointer), "mouse back but the window did not free it / draw the pointer")
+
+	-- Roblox's Esc menu. Out of PlayerGui RvrseUI is above it: every screen steps
+	-- aside, then comes back. In PlayerGui the menu is above anyway: nothing moves.
+	local screens = { host, popovers, cursorGui }
+	local wantHidden = want ~= M.PlayerGui and #screens or 0
+	M.fire(M.GuiService, "MenuOpened")
+	M.run(0.2)
+	local hidden = 0
+	for _, g in ipairs(screens) do if g and g.Enabled == false then hidden += 1 end end
+	H.check(hidden == wantHidden, hidden .. "/" .. #screens .. " RvrseUI screens stepped aside for the Esc menu (want " .. wantHidden .. ")")
+	M.fire(M.GuiService, "MenuClosed")
+	M.run(0.2)
+	local back = 0
+	for _, g in ipairs(screens) do if g and g.Enabled == true then back += 1 end end
+	H.check(back == #screens, back .. "/" .. #screens .. " RvrseUI screens on after the Esc menu")
+	H.log("ontop          | in %s | window %d, popovers %d, pointer %d | Modal %s | pointer at %d,%d | Esc menu hid %d",
+		wantName, host and host.DisplayOrder or -1, popovers and popovers.DisplayOrder or -1,
+		cursorGui and cursorGui.DisplayOrder or -1, tostring(unlock and unlock.Modal),
+		pointer and pointer.Position.X.Offset or -1, pointer and pointer.Position.Y.Offset or -1, hidden)
+	H.close("x", S.W1, "Harness Hub A")
+	H.check(named("RvrseUI_Cursor") == nil, "pointer screen left behind after close")
 elseif H_SCENARIO == "quiet" then
 	-- Diagnostic lines must stay silent unless RvrseUI:EnableDebug(true) is on.
 	-- With it off, RvrseUI may print only its one-line status messages.

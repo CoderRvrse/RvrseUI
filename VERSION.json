@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 5,
-    "patch": 2,
-    "full": "4.5.2",
-    "build": "20261011a",
-    "hash": "M0B1L3F7",
+    "minor": 6,
+    "patch": 0,
+    "full": "4.6.0",
+    "build": "20261011b",
+    "hash": "0NT0PM5E",
     "channel": "Stable"
   },
   "release": {
     "date": "2026-10-11",
-    "name": "Phone Fit",
-    "codename": "Fits Anywhere",
-    "notes": "The window fits the screen: on a phone held sideways it is wide and short and all of it is on the screen below Roblox's top bar, and it is fitted again when the screen changes size. Labels are never covered by their controls, text cards are as tall as their text, the colour panel and dropdown lists stay on the screen, and the key button can be seen."
+    "name": "Always On Top",
+    "codename": "On Top, Mouse Free",
+    "notes": "RvrseUI's screens sit at the very top DisplayOrders, so game screens no longer cover them. While a window is on screen the mouse is free in first-person games, and where the game hid the pointer RvrseUI draws Roblox's own arrow. New CreateWindow{ AlwaysOnTop = true } moves RvrseUI into the executor's hidden folder / CoreGui, above every game screen whatever its order."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -40,9 +40,23 @@
     "auto_save": true,
     "dynamic_obfuscation": true,
     "global_search": false,
-    "lifecycle_api": true
+    "lifecycle_api": true,
+    "always_on_top": true,
+    "first_person_mouse": true
   },
   "changelog": {
+    "4.6.0": {
+      "date": "2026-10-11",
+      "hash": "0NT0PM5E",
+      "changes": [
+        "🔝 FIX: game screens no longer cover RvrseUI. Its screens sat in PlayerGui at DisplayOrder 999 (100 in init.lua), so any game screen above that drew over the window and took its clicks. They now use the three largest orders (windows 2147483645, lists and colour panels 2147483646, the pointer 2147483647). They stay in PlayerGui, where hubs already out there look for the window (the X button, to hook their own shutdown).",
+        "🆕 CreateWindow{ AlwaysOnTop = true } moves RvrseUI's screens into the executor's hidden folder (gethui), else CoreGui. Roblox draws those above EVERY PlayerGui screen whatever its order (checked in Studio: a CoreGui screen at order 0 took the click over a PlayerGui screen at 2147483647), and the game's own scripts can't see them. A hub that asks for it must use Window:OnClose for its shutdown: a search of PlayerGui for the X no longer finds it. While Roblox's own Esc menu is open, RvrseUI's screens step aside there (Leave / Settings stay clickable) and come back when it closes. Where neither folder takes a screen (a plain game script) the screens stay in PlayerGui.",
+        "🛑 FIX: 2147483647 is the largest DisplayOrder and one more wraps round to the very bottom. The dropdown/colour-panel screen used to go 'one above the highest screen' and the dropdown fallback '+1000': both now stop below the largest order.",
+        "🖱️ NEW: while a window is on screen the mouse is free in first-person games (an invisible Modal button: Roblox unlocks the mouse itself and locks it again when the window is minimised or closed; the game's own mouse settings are never written). Only on a device with a mouse: a touch screen behaves exactly as before.",
+        "➚ NEW: where the game hid the pointer (MouseIconEnabled = false), RvrseUI draws Roblox's own arrow at the mouse while a window is on screen, above everything. It goes away when the game shows its pointer again.",
+        "⚙️ CreateWindow{ UnlockMouse = false } leaves the mouse and the pointer to the game."
+      ]
+    },
     "4.5.2": {
       "date": "2026-10-11",
       "hash": "M0B1L3F7",

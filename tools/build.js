@@ -20,6 +20,7 @@ const Modules = [
     "src/WindowManager.lua",
     "src/Hotkeys.lua",
     "src/Notifications.lua",
+    "src/Layers.lua",
     "src/Overlay.lua",
     "src/KeySystem.lua",
     "src/Particles.lua",
@@ -123,13 +124,22 @@ Elements = {
 
 RvrseUI.NotificationsEnabled = true
 
+-- Where RvrseUI's screens live: PlayerGui at the top orders (AlwaysOnTop moves them)
+Layers:Initialize({
+    UIS = UIS,
+    RunService = RS,
+    GuiService = GuiService,
+    PlayerGui = PlayerGui,
+    CoreGui = CoreGui,
+    Debug = Debug
+})
+
 local DEFAULT_HOST = Instance.new("ScreenGui")
 DEFAULT_HOST.Name = Obfuscation.getObfuscatedName("gui")
 DEFAULT_HOST.ResetOnSpawn = false
 DEFAULT_HOST.IgnoreGuiInset = true
 DEFAULT_HOST.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-DEFAULT_HOST.DisplayOrder = 999
-DEFAULT_HOST.Parent = PlayerGui
+Layers:Mount(DEFAULT_HOST, Layers.HOST)
 
 local DEFAULT_OVERLAY = Instance.new("Frame")
 DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
@@ -142,8 +152,9 @@ DEFAULT_OVERLAY.Size = UDim2.new(1, 0, 1, 0)
 DEFAULT_OVERLAY.Parent = DEFAULT_HOST
 
 Overlay:Initialize({
-    PlayerGui = PlayerGui,
-    DisplayOrder = DEFAULT_HOST.DisplayOrder + 10,
+    PlayerGui = Layers:GetParent(),
+    DisplayOrder = Layers.OVERLAY,
+    Layers = Layers,
     OverlayFrame = DEFAULT_OVERLAY,
     Debug = Debug
 })
@@ -233,6 +244,7 @@ function RvrseUI:CreateWindow(cfg)
         WindowManager = WindowManager,
         Notifications = Notifications,
         Overlay = Overlay,
+        Layers = Layers,
         KeySystem = KeySystem,
         Particles = Particles,
         Debug = Debug,
@@ -259,8 +271,7 @@ function RvrseUI:CreateWindow(cfg)
         DEFAULT_HOST.ResetOnSpawn = false
         DEFAULT_HOST.IgnoreGuiInset = true
         DEFAULT_HOST.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        DEFAULT_HOST.DisplayOrder = 999
-        DEFAULT_HOST.Parent = PlayerGui
+        Layers:Mount(DEFAULT_HOST, Layers.HOST)
 
         DEFAULT_OVERLAY = Instance.new("Frame")
         DEFAULT_OVERLAY.Name = "RvrseUI_Overlay"
@@ -369,6 +380,7 @@ function RvrseUI:Destroy()
             RvrseUI = self,
             Host = DEFAULT_HOST,
             Overlay = Overlay,
+            Layers = Layers,
             Hotkeys = Hotkeys,
             Particles = Particles
         })
