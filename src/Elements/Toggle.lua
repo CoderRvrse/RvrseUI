@@ -28,6 +28,7 @@ function Toggle.Create(o, dependencies)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.TextColor3 = pal3.Text
 	lbl.Text = o.Text or "Toggle"
+	lbl.TextTruncate = Enum.TextTruncate.AtEnd -- v4.5.2: never runs under the control on a narrow card
 	lbl.Parent = f
 
 	-- Modern switch track (wider and taller)
