@@ -6,7 +6,7 @@ local WindowBuilder = {}
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
-local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles
+local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles, Layers
 
 -- Roblox services (will be injected)
 local UIS, GuiService, RS, PlayerGui, HttpService, RunService
@@ -32,6 +32,7 @@ function WindowBuilder:Initialize(deps)
 	Overlay = deps.Overlay
 	KeySystem = deps.KeySystem
 	Particles = deps.Particles
+	Layers = deps.Layers
 
 	-- Services
 	UIS = deps.UIS
@@ -45,6 +46,14 @@ end
 -- Extract all the CreateWindow logic from RvrseUI.lua lines 1293-3922
 function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	cfg = cfg or {}
+
+	-- ✅ v4.6.0: CreateWindow{ AlwaysOnTop = true } moves RvrseUI's screens out of
+	-- PlayerGui into the executor's hidden folder / CoreGui: above every game
+	-- screen whatever its DisplayOrder, and out of the game's sight. Off by
+	-- default: hubs that look for the window in PlayerGui keep working.
+	if Layers and cfg.AlwaysOnTop ~= nil then
+		Layers:SetOnTop(cfg.AlwaysOnTop == true)
+	end
 
 	-- Closing the last window tears the shared services down (no trace left);
 	-- bring them back if this script opens a new window afterwards.
@@ -458,6 +467,15 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	root.Parent = windowHost
 	UIHelpers.corner(root, 16)
 	UIHelpers.stroke(root, pal.Accent, 2)
+
+	-- ✅ v4.6.0: while this window is on screen the mouse is free (first-person
+	-- games lock it) and, if the game hid the pointer, RvrseUI draws its own.
+	-- CreateWindow{ UnlockMouse = false } leaves the mouse to the game.
+	if Layers and cfg.UnlockMouse ~= false then
+		Layers:AttachWindow(windowHost, root, function(item)
+			return Lifecycle:Track(item)
+		end)
+	end
 
 	local lastWindowSize = root.Size
 	local lastWindowPosition = root.Position
@@ -2002,6 +2020,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					RvrseUI = RvrseUI,
 					Host = host,
 					Overlay = Overlay,
+					Layers = Layers,
 					Hotkeys = Hotkeys,
 					Particles = Particles,
 				})
@@ -2551,13 +2570,16 @@ end
 -- Remove RvrseUI's shared pieces once no window is open: the host ScreenGui
 -- (notifications), the overlay ScreenGui and its listeners, the hotkey
 -- listener and the particle loop. Idempotent; CreateWindow() rebuilds them.
--- shared = { RvrseUI, Host, Overlay, Hotkeys, Particles } (all optional)
+-- shared = { RvrseUI, Host, Overlay, Layers, Hotkeys, Particles } (all optional)
 function WindowBuilder:TeardownShared(shared)
 	if shared.Host and shared.Host.Parent then
 		shared.Host:Destroy()
 	end
 	if shared.Overlay and shared.Overlay.Teardown then
 		shared.Overlay:Teardown()
+	end
+	if shared.Layers and shared.Layers.Teardown then
+		shared.Layers:Teardown()
 	end
 	if shared.Hotkeys and shared.Hotkeys.Teardown then
 		shared.Hotkeys:Teardown()

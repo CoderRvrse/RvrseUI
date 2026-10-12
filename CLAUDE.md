@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.5.2)
+# RvrseUI – Maintainer Notes (v4.6.0)
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
@@ -61,6 +61,35 @@ that. Anything RvrseUI shows must fit there.
   transparency 1 (the Keybind button was invisible for that reason).
 - Verify with `node tests/headless/run.js RvrseUI.lua mobile` (750x381 sideways, then turned upright) and look at it
   in Studio with the Device emulator on a phone.
+
+## 🔝 WARNING #0d (v4.6.0): Screens go through `Layers`; PlayerGui stays the DEFAULT home
+
+`src/Layers.lua` decides where RvrseUI's ScreenGuis live and at which DisplayOrder.
+
+- **Default: PlayerGui, at the three largest orders** (`Layers.HOST` 2147483645, `Layers.OVERLAY` 2147483646,
+  `Layers.CURSOR` 2147483647). **Do not change the default home.** Hubs already out there find the window in
+  PlayerGui (title, then the `CloseButton` beside it) to hook their own shutdown. A first 4.6.0 design moved the
+  screens to `gethui()` / CoreGui by default and the LUAVM-Rvrse gate caught it: those hubs never restored the
+  world on close, with no error. Before pushing anything that moves or renames a screen, run LUAVM-Rvrse's
+  `pwsh luavm-rvrse-utils/run_autoshutdown_tests.ps1 -RvrseUI <this RvrseUI.lua>`.
+- **Opt-in: `CreateWindow{ AlwaysOnTop = true }`** (`Layers:SetOnTop`) moves every mounted screen to the
+  executor's hidden folder (`gethui()`), else CoreGui, else leaves it. CoreGui is drawn above EVERY PlayerGui
+  screen whatever its order (Studio, 2026-10-11: a CoreGui screen at order 0 took the click over a PlayerGui
+  screen at 2147483647). There RvrseUI is above Roblox's own Esc menu too (CoreGui, order 0), so mounted screens
+  step aside (`Enabled = false`) while it is open. A hub that opts in must use `Window:OnClose`.
+- A new RvrseUI ScreenGui: `Layers:Mount(gui, order)`, never `gui.Parent = PlayerGui`.
+- **2147483647 is the largest DisplayOrder; one more wraps round to the very bottom.** Never write `x + 1` /
+  `x + 1000` into a DisplayOrder without a cap (`Layers.order(n)` or `math.min(n, 2147483646)`).
+- The mouse: `Layers:AttachWindow(host, root, track)` gives each window an invisible zero-size `Modal` TextButton
+  that is on while `root.Visible` and `UIS.MouseEnabled` (Roblox frees a first-person / LockCenter mouse itself;
+  a touch screen is left alone). Never write `UIS.MouseBehavior` back on change: Studio showed the lock is still
+  set at the end of every render step.
+- The pointer: while a window is on screen and `UIS.MouseIconEnabled == false` (the game hid it), the
+  `RvrseUI_Cursor` screen draws `rbxasset://textures/Cursors/KeyboardMouse/ArrowFarCursor.png` (64x64, tip at the
+  centre) at `UIS:GetMouseLocation()`. One RenderStepped connection, only while a window is on screen.
+- `CreateWindow{ UnlockMouse = false }` turns mouse and pointer off. `Layers:Teardown()` runs in `TeardownShared`.
+- Studio's screenshot tool does NOT draw CoreGui and its mouse tool refuses to click into it.
+- Verify with `node tests/headless/run.js RvrseUI.lua ontop,ontop_hidden,ontop_coregui,ontop_playergui`.
 
 ---
 
@@ -1035,7 +1064,7 @@ git push origin main
 > **When in doubt, ask before changing core files.**
 > **Test thoroughly before pushing to main.**
 
-**Last Updated:** 2026-10-11 (v4.5.2 - phone fit)
+**Last Updated:** 2026-10-11 (v4.6.0 - always on top, mouse free)
 
 ---
 

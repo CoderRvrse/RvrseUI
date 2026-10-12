@@ -136,7 +136,8 @@ function Dropdown.Create(o, dependencies)
 			hostGui.ResetOnSpawn = false
 			hostGui.IgnoreGuiInset = true
 			hostGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-			hostGui.DisplayOrder = maxDisplayOrder + 1000  -- Always on top
+			-- Always on top; 2147483647 is the largest order (one more wraps to the bottom)
+			hostGui.DisplayOrder = math.min(maxDisplayOrder + 1000, 2147483646)
 			hostGui.Parent = playerGui
 			fallbackOverlayGui = hostGui
 			trackCleanup(hostGui)

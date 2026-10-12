@@ -66,6 +66,11 @@ function Overlay:Initialize(opts)
 	else
 		popovers.DisplayOrder = math.max(popovers.DisplayOrder, desiredDisplayOrder)
 	end
+	-- v4.6.0: Layers puts it beside RvrseUI's other screens (above every game
+	-- screen) and hides it with them while Roblox's Esc menu is open
+	if opts.Layers then
+		opts.Layers:Mount(popovers, popovers.DisplayOrder)
+	end
 	self.Gui = popovers
 	self._displayOrderConnections = self._displayOrderConnections or {}
 
@@ -84,14 +89,17 @@ function Overlay:Initialize(opts)
 		end
 	end
 
+	-- v4.6.0: RvrseUI's own pointer screen (Layers) stays above the popovers, and
+	-- 2147483647 is the largest DisplayOrder: one more wraps round to the very
+	-- bottom, so the popovers stop one below it.
 	local function updateDisplayOrder()
 		local highest = opts.DisplayOrder or 0
 		for _, gui in ipairs(playerGui:GetChildren()) do
-			if gui:IsA("ScreenGui") and gui ~= popovers then
+			if gui:IsA("ScreenGui") and gui ~= popovers and gui.Name ~= "RvrseUI_Cursor" then
 				highest = math.max(highest, gui.DisplayOrder)
 			end
 		end
-		popovers.DisplayOrder = math.max(highest + 1, popovers.DisplayOrder, opts.DisplayOrder or 0)
+		popovers.DisplayOrder = math.min(math.max(highest + 1, popovers.DisplayOrder, opts.DisplayOrder or 0), 2147483646)
 	end
 
 	local function watchGui(gui)
