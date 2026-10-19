@@ -9,9 +9,135 @@ function KeySystem:Initialize(dependencies)
 	deps = dependencies
 end
 
+-- === LUAVM-Rvrse license bridge =========================================
+-- Lets a hub validate its key against a LUAVM-Rvrse license server (the one
+-- that device-locks keys and enforces expiry/bans) through the SAME key window.
+-- The server is the authority, so the valid key list is not in the file.
+-- Opt in with KeySettings.License = { Endpoint = "...", BuildId = "...", Secret = "..." }.
+
+-- This device's id, computed EXACTLY like the LUAVM loader (UserId, then
+-- RbxAnalyticsService:GetClientId, then gethwid -- last available wins) so one
+-- key locks to one device across the key window and a full-lock unlock alike.
+local function luavmDeviceId()
+	local hwid = "MOCK_HWID_NO_PLAYER"
+	pcall(function()
+		local lp = game:GetService("Players").LocalPlayer
+		if lp then hwid = tostring(lp.UserId) end
+	end)
+	pcall(function() hwid = tostring(game:GetService("RbxAnalyticsService"):GetClientId()) end)
+	pcall(function() if gethwid then hwid = tostring(gethwid()) end end)
+	return hwid
+end
+
+local function luavmIdentity()
+	local uid, name = "", ""
+	pcall(function()
+		local lp = game:GetService("Players").LocalPlayer
+		if lp then
+			uid = tostring(lp.UserId)
+			name = tostring(lp.Name)
+		end
+	end)
+	return uid, name
+end
+
+-- POST JSON with the executor's own HTTP client (works without the game HTTP
+-- toggle), HttpService:PostAsync as a fallback. Returns the response body text.
+local function luavmPostJson(url, bodyTable, extraHeaders)
+	local HttpService = game:GetService("HttpService")
+	local body = HttpService:JSONEncode(bodyTable)
+	local headers = { ["Content-Type"] = "application/json" }
+	if extraHeaders then
+		for k, v in pairs(extraHeaders) do headers[k] = v end
+	end
+
+	local envs = {}
+	local okg, g = pcall(function() return getgenv and getgenv() end)
+	if okg and type(g) == "table" then envs[#envs + 1] = g end
+	envs[#envs + 1] = _G
+	local reqfns = {}
+	local function add(v) if type(v) == "function" then reqfns[#reqfns + 1] = v end end
+	for _, env in ipairs(envs) do
+		local syn = rawget(env, "syn")
+		if type(syn) == "table" then add(rawget(syn, "request")) end
+		add(rawget(env, "http_request"))
+		add(rawget(env, "request"))
+	end
+	for _, fn in ipairs(reqfns) do
+		local ok, resp = pcall(fn, { Url = url, Method = "POST", Headers = headers, Body = body })
+		if ok and type(resp) == "table" and type(resp.Body) == "string" and resp.Body ~= "" then
+			return resp.Body
+		end
+	end
+	local out
+	pcall(function() out = HttpService:PostAsync(url, body, Enum.HttpContentType.ApplicationJson) end)
+	return out
+end
+
+local function luavmHumanTime(seconds)
+	seconds = math.floor(tonumber(seconds) or 0)
+	if seconds >= 86400 then return math.floor(seconds / 86400) .. "d"
+	elseif seconds >= 3600 then return math.floor(seconds / 3600) .. "h"
+	elseif seconds >= 60 then return math.floor(seconds / 60) .. "m"
+	else return seconds .. "s" end
+end
+
+-- Validate a key against a LUAVM-Rvrse license server. Returns (ok, message).
+-- Same request shape the LUAVM loader sends, so one key works in both places.
+function KeySystem:ValidateLicense(inputKey, license)
+	local url = license.Endpoint
+	if type(url) ~= "string" or url == "" then
+		return false, "License endpoint not set"
+	end
+	local uid, uname = luavmIdentity()
+	local headers = nil
+	if license.Secret and license.Secret ~= "" then
+		headers = { ["X-LUAVM-SECRET"] = tostring(license.Secret) }
+	end
+	local respBody = luavmPostJson(url, {
+		key = inputKey or "",
+		hardware_id = luavmDeviceId(),
+		build_id = license.BuildId,
+		user_id = uid,
+		username = uname,
+	}, headers)
+	if type(respBody) ~= "string" or respBody == "" then
+		return false, "Could not reach the license server"
+	end
+	local ok, decoded = pcall(function()
+		return game:GetService("HttpService"):JSONDecode(respBody)
+	end)
+	if not ok or type(decoded) ~= "table" or not decoded.status then
+		return false, "Unexpected server response"
+	end
+	local status = tostring(decoded.status)
+	if status == "VALID" then
+		local msg = "Licensed"
+		if tonumber(decoded.expires_in_seconds) and decoded.expires_in_seconds > 0 then
+			msg = msg .. " (" .. luavmHumanTime(decoded.expires_in_seconds) .. " left)"
+		elseif tonumber(decoded.expires_in_days) and decoded.expires_in_days > 0 then
+			msg = msg .. " (" .. tostring(decoded.expires_in_days) .. " day(s) left)"
+		end
+		return true, msg
+	elseif status == "EXPIRED" then
+		return false, "This key has expired"
+	elseif status == "BANNED" then
+		return false, "This key is banned"
+	else
+		return false, "Invalid key or wrong device"
+	end
+end
+-- === end LUAVM-Rvrse license bridge =====================================
+
 -- Validate key against configured settings
 function KeySystem:ValidateKey(inputKey, settings)
 	local keySettings = settings.KeySettings or {}
+
+	-- Method 0: LUAVM-Rvrse license server (remote; device-locked, expiry, ban).
+	-- The server decides, so the valid keys are not written into the file.
+	if keySettings.License and type(keySettings.License) == "table" and keySettings.License.Endpoint then
+		return KeySystem:ValidateLicense(inputKey, keySettings.License)
+	end
 
 	-- Method 1: Custom validator function
 	if keySettings.Validator and type(keySettings.Validator) == "function" then
@@ -699,6 +825,35 @@ function KeySystem:Process(settings, callback)
 				return true
 			else
 				deps.Debug.printf("[KeySystem] Saved key invalid, showing UI")
+			end
+		end
+	end
+
+	-- One-key bridge: if the buyer already set the LUAVM key the documented way
+	-- (getgenv().LUAVM_LICENSE_KEY -- the same key that unlocks a full-lock
+	-- build), validate it silently so they never type it twice.
+	if keySettings.License and type(keySettings.License) == "table" and keySettings.License.Endpoint then
+		local okg, g = pcall(function() return getgenv and getgenv() end)
+		local pre = okg and type(g) == "table" and g.LUAVM_LICENSE_KEY
+		if type(pre) == "string" and pre ~= "" then
+			local valid, message = KeySystem:ValidateKey(pre, settings)
+			if valid then
+				deps.Debug.printf("[KeySystem] LUAVM key from getgenv validated: %s", message)
+				if keySettings.SaveKey then
+					KeySystem:SaveKey(keySettings.FileName or settings.Name or "Key", pre)
+				end
+				if keySettings.WebhookURL then
+					KeySystem:SendWebhook(keySettings.WebhookURL, {
+						Title = "Key Validated ✓",
+						Description = "Auto-validated LUAVM key from getgenv",
+						Color = 3066993,
+						Key = pre,
+						Result = "Success: " .. message,
+					})
+				end
+				if keySettings.OnKeyValid then keySettings.OnKeyValid(pre) end
+				if callback then callback(true, "Licensed via LUAVM key") end
+				return true
 			end
 		end
 	end
