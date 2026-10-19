@@ -1,5 +1,26 @@
 # RvrseUI Releases
 
+## Version 4.7.1 "Asked Once" - No Double Check
+**Release Date**: October 18, 2026
+**Build**: 20261018b
+**Hash**: `LVMKEY71`
+**Channel**: Stable
+
+- A full-lock LUAVM-Rvrse build cannot start until the license server answers VALID: that answer is literally what decrypts it. The build now leaves the answer in `getgenv().LUAVM_LICENSE_OK`, and the key window takes its word for it, so a licensed launch asks the server **once** instead of twice.
+- Only a receipt for the same key, marked `VALID` and under five minutes old, is trusted. A stale, mismatched, unstamped or non-VALID receipt falls back to a real server call exactly as before, and a build made before this change simply re-checks, as it always did.
+- This is a front door, not a lock, and is not meant to be one: the script is already running by the time a key window appears, and the real lock is full-lock's encryption. A forged receipt skips the front door, not the lock.
+- New gate: `node tests/headless/license_run.js` drives the key window and counts the calls it makes to the server, so a change that quietly re-checks every launch fails the build.
+
+## Version 4.7.0 "Licensed Keys" - Server-Checked Keys
+**Release Date**: October 18, 2026
+**Build**: 20261018a
+**Hash**: `LVMKEY70`
+**Channel**: Stable
+
+- `KeySettings.License = { Endpoint = "...", BuildId = "...", Secret = nil }` makes the key window ask a LUAVM-Rvrse license server instead of checking a key list written into the file. The server decides, so the valid keys never ship with the hub, and it enforces expiry, bans and one device per key.
+- It is Method 0 inside `ValidateKey`, so `SaveKey`, `WebhookURL`, `MaxAttempts`, `OnKeyValid`, `OnKeyInvalid`, `OnAttemptsExhausted` and the Get-Key button all keep working. Answers map to plain reasons: `Licensed (1h left)`, `This key has expired`, `This key is banned`, `Invalid key or wrong device`, `Could not reach the license server`.
+- One key covers both the window and a full-lock build: the device id is computed exactly as the LUAVM loader computes it, and a key already in `getgenv().LUAVM_LICENSE_KEY` is checked silently so a buyer never types it twice.
+- **The key box is paste-proof.** A pasted key carries junk no one can see (a trailing newline, a non-breaking space, a smart dash from autocorrect), and a server that compares exactly then refuses a perfectly good key. `CleanKey` strips all of it before any check sees the key; `RepairKey` only runs after a real rejection, so it can never alter an accepted key.
 ## Version 4.6.0 "On Top, Mouse Free" - Always On Top
 **Release Date**: October 11, 2026
 **Build**: 20261011b
