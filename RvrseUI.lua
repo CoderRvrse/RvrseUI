@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-19T00:46:49.919Z
+-- Compiled from modular architecture on 2026-10-19T01:09:12.156Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -3698,6 +3698,13 @@ end
 function KeySystem:ValidateKey(inputKey, settings)
 	local keySettings = settings.KeySettings or {}
 
+	-- A pasted key almost always carries a trailing newline or spaces (clipboard,
+	-- on-screen keyboards, a key copied out of chat). Trim before comparing or
+	-- sending it, or a perfectly good key is rejected and nobody can see why.
+	if type(inputKey) == "string" then
+		inputKey = inputKey:match("^%s*(.-)%s*$")
+	end
+
 	-- Method 0: LUAVM-Rvrse license server (remote; device-locked, expiry, ban).
 	-- The server decides, so the valid keys are not written into the file.
 	if keySettings.License and type(keySettings.License) == "table" and keySettings.License.Endpoint then
@@ -4209,7 +4216,9 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 
 	-- Validation function
 	local function validateInput()
-		local inputKey = InputBox.Text
+		-- Trim here too, so what gets saved and handed to the callbacks is the
+		-- clean key, not whatever the clipboard brought with it.
+		local inputKey = (InputBox.Text or ""):match("^%s*(.-)%s*$")
 
 		if inputKey == "" then
 			-- Shake animation
