@@ -9,9 +9,235 @@ function KeySystem:Initialize(dependencies)
 	deps = dependencies
 end
 
+-- === LUAVM-Rvrse license bridge =========================================
+-- Lets a hub validate its key against a LUAVM-Rvrse license server (the one
+-- that device-locks keys and enforces expiry/bans) through the SAME key window.
+-- The server is the authority, so the valid key list is not in the file.
+-- Opt in with KeySettings.License = { Endpoint = "...", BuildId = "...", Secret = "..." }.
+
+-- === paste-proofing ====================================================
+-- A key that travels through a clipboard, Discord, a browser or a phone
+-- keyboard picks up junk: a trailing newline, a non-breaking space, a
+-- zero-width character, a "smart" dash from autocorrect. The key then LOOKS
+-- right, is refused, and the person has no way to tell why. So we clean it.
+
+-- Characters that can never be part of a key. Byte sequences, so this works
+-- without utf8 support on any executor.
+local KEY_INVISIBLE = {
+	["\239\187\191"] = "",  -- U+FEFF byte-order mark / zero-width no-break space
+	["\226\128\139"] = "",  -- U+200B zero-width space
+	["\226\128\140"] = "",  -- U+200C zero-width non-joiner
+	["\226\128\141"] = "",  -- U+200D zero-width joiner
+	["\194\173"] = "",      -- U+00AD soft hyphen
+	["\194\160"] = " ",     -- U+00A0 non-breaking space
+	["\226\128\168"] = " ", -- U+2028 line separator
+	["\226\128\169"] = " ", -- U+2029 paragraph separator
+}
+-- Every dash that autocorrect or a web page substitutes for a plain hyphen.
+local KEY_DASHES = {
+	["\226\128\144"] = "-", -- U+2010 hyphen
+	["\226\128\145"] = "-", -- U+2011 non-breaking hyphen
+	["\226\128\146"] = "-", -- U+2012 figure dash
+	["\226\128\147"] = "-", -- U+2013 en dash
+	["\226\128\148"] = "-", -- U+2014 em dash
+	["\226\136\146"] = "-", -- U+2212 minus sign
+	["\239\188\141"] = "-", -- U+FF0D fullwidth hyphen
+}
+
+-- Safe clean: strips ONLY what can never belong to a key, so it is safe for
+-- any key system. Returns the clean key and whether anything was changed.
+function KeySystem:CleanKey(raw)
+	if type(raw) ~= "string" then return "", false end
+	local s = raw
+	for from, to in pairs(KEY_INVISIBLE) do s = s:gsub(from, to) end
+	for from, to in pairs(KEY_DASHES) do s = s:gsub(from, to) end
+	s = s:gsub("[\r\n\t]", " ")
+	s = s:match("^%s*(.-)%s*$") or s
+	-- a key copied together with its quotation marks
+	local unquoted = s:match('^"(.*)"$') or s:match("^'(.*)'$")
+	if unquoted then s = unquoted:match("^%s*(.-)%s*$") or unquoted end
+	return s, (s ~= raw)
+end
+
+-- Harder repair, only tried AFTER the clean key was refused, so it can never
+-- change the meaning of a key that was already accepted: drop spaces that were
+-- pasted into the middle, and (for our own keys) fix the case.
+function KeySystem:RepairKey(clean, ourFormat)
+	local s = (clean or ""):gsub("%s+", "")
+	if ourFormat then s = s:upper() end
+	return s
+end
+
+-- Say precisely what is wrong with a key of OUR shape
+-- (RVRSE-AB3CD-EF4GH-JK5MN, from an alphabet that leaves out 0, O, 1 and I).
+-- Advisory only -- the server is always the authority. Returns nil if fine.
+function KeySystem:ScreenKey(key)
+	key = key or ""
+	if key == "" then return "Please enter your key" end
+	-- Only advise about our own format; another server may use a different one.
+	if not key:upper():match("^RVRSE%-") then return nil end
+	local banned = key:upper():match("[01OI]")
+	if banned then
+		return ("Keys never contain 0, O, 1 or I - check the '%s' in yours"):format(banned)
+	end
+	local blocks = {}
+	for b in key:upper():gmatch("[^%-]+") do blocks[#blocks + 1] = b end
+	if #blocks ~= 4 or #blocks[2] ~= 5 or #blocks[3] ~= 5 or #blocks[4] ~= 5 then
+		return "A key looks like RVRSE-AB3CD-EF4GH-JK5MN (four blocks)"
+	end
+	return nil
+end
+
+-- This device's id, computed EXACTLY like the LUAVM loader (UserId, then
+-- RbxAnalyticsService:GetClientId, then gethwid -- last available wins) so one
+-- key locks to one device across the key window and a full-lock unlock alike.
+local function luavmDeviceId()
+	local hwid = "MOCK_HWID_NO_PLAYER"
+	pcall(function()
+		local lp = game:GetService("Players").LocalPlayer
+		if lp then hwid = tostring(lp.UserId) end
+	end)
+	pcall(function() hwid = tostring(game:GetService("RbxAnalyticsService"):GetClientId()) end)
+	pcall(function() if gethwid then hwid = tostring(gethwid()) end end)
+	return hwid
+end
+
+local function luavmIdentity()
+	local uid, name = "", ""
+	pcall(function()
+		local lp = game:GetService("Players").LocalPlayer
+		if lp then
+			uid = tostring(lp.UserId)
+			name = tostring(lp.Name)
+		end
+	end)
+	return uid, name
+end
+
+-- POST JSON with the executor's own HTTP client (works without the game HTTP
+-- toggle), HttpService:PostAsync as a fallback. Returns the response body text.
+local function luavmPostJson(url, bodyTable, extraHeaders)
+	local HttpService = game:GetService("HttpService")
+	local body = HttpService:JSONEncode(bodyTable)
+	local headers = { ["Content-Type"] = "application/json" }
+	if extraHeaders then
+		for k, v in pairs(extraHeaders) do headers[k] = v end
+	end
+
+	local envs = {}
+	local okg, g = pcall(function() return getgenv and getgenv() end)
+	if okg and type(g) == "table" then envs[#envs + 1] = g end
+	envs[#envs + 1] = _G
+	local reqfns = {}
+	local function add(v) if type(v) == "function" then reqfns[#reqfns + 1] = v end end
+	for _, env in ipairs(envs) do
+		local syn = rawget(env, "syn")
+		if type(syn) == "table" then add(rawget(syn, "request")) end
+		add(rawget(env, "http_request"))
+		add(rawget(env, "request"))
+	end
+	for _, fn in ipairs(reqfns) do
+		local ok, resp = pcall(fn, { Url = url, Method = "POST", Headers = headers, Body = body })
+		if ok and type(resp) == "table" and type(resp.Body) == "string" and resp.Body ~= "" then
+			return resp.Body
+		end
+	end
+	local out
+	pcall(function() out = HttpService:PostAsync(url, body, Enum.HttpContentType.ApplicationJson) end)
+	return out
+end
+
+local function luavmHumanTime(seconds)
+	seconds = math.floor(tonumber(seconds) or 0)
+	if seconds >= 86400 then return math.floor(seconds / 86400) .. "d"
+	elseif seconds >= 3600 then return math.floor(seconds / 3600) .. "h"
+	elseif seconds >= 60 then return math.floor(seconds / 60) .. "m"
+	else return seconds .. "s" end
+end
+
+-- Validate a key against a LUAVM-Rvrse license server. Returns (ok, message).
+-- Same request shape the LUAVM loader sends, so one key works in both places.
+function KeySystem:ValidateLicense(inputKey, license)
+	local url = license.Endpoint
+	if type(url) ~= "string" or url == "" then
+		return false, "License endpoint not set", "CONFIG"
+	end
+	local uid, uname = luavmIdentity()
+	local headers = nil
+	if license.Secret and license.Secret ~= "" then
+		headers = { ["X-LUAVM-SECRET"] = tostring(license.Secret) }
+	end
+	local respBody = luavmPostJson(url, {
+		key = inputKey or "",
+		hardware_id = luavmDeviceId(),
+		build_id = license.BuildId,
+		user_id = uid,
+		username = uname,
+	}, headers)
+	if type(respBody) ~= "string" or respBody == "" then
+		return false, "Could not reach the license server", "NETWORK"
+	end
+	local ok, decoded = pcall(function()
+		return game:GetService("HttpService"):JSONDecode(respBody)
+	end)
+	if not ok or type(decoded) ~= "table" or not decoded.status then
+		return false, "Unexpected server response", "BADRESPONSE"
+	end
+	local status = tostring(decoded.status)
+	if status == "VALID" then
+		local msg = "Licensed"
+		if tonumber(decoded.expires_in_seconds) and decoded.expires_in_seconds > 0 then
+			msg = msg .. " (" .. luavmHumanTime(decoded.expires_in_seconds) .. " left)"
+		elseif tonumber(decoded.expires_in_days) and decoded.expires_in_days > 0 then
+			msg = msg .. " (" .. tostring(decoded.expires_in_days) .. " day(s) left)"
+		end
+		return true, msg, "VALID"
+	elseif status == "EXPIRED" then
+		return false, "This key has expired", "EXPIRED"
+	elseif status == "BANNED" then
+		return false, "This key is banned", "BANNED"
+	else
+		return false, "Invalid key or wrong device", "INVALID"
+	end
+end
+-- === end LUAVM-Rvrse license bridge =====================================
+
 -- Validate key against configured settings
 function KeySystem:ValidateKey(inputKey, settings)
 	local keySettings = settings.KeySettings or {}
+
+	-- A pasted key almost always carries junk (a trailing newline, a hidden
+	-- character, a smart dash). Clean it before ANY method sees it, or a
+	-- perfectly good key is refused and nobody can see why.
+	inputKey = KeySystem:CleanKey(inputKey)
+
+	-- Method 0: LUAVM-Rvrse license server (remote; device-locked, expiry, ban).
+	-- The server decides, so the valid keys are not written into the file.
+	if keySettings.License and type(keySettings.License) == "table" and keySettings.License.Endpoint then
+		local ok, msg, status = KeySystem:ValidateLicense(inputKey, keySettings.License)
+		if ok then return true, msg end
+
+		-- Only a real "no" is worth a second try: a network blip, an expired or
+		-- a banned key would say the same thing again.
+		if status == "INVALID" then
+			local repaired = KeySystem:RepairKey(inputKey, true)
+			if repaired ~= "" and repaired ~= inputKey then
+				local ok2, msg2 = KeySystem:ValidateLicense(repaired, keySettings.License)
+				if ok2 then
+					-- A debug line must never be able to break a key check.
+					if deps and deps.Debug and deps.Debug.printf then
+						deps.Debug.printf("[KeySystem] key accepted after tidying it up")
+					end
+					return true, msg2
+				end
+			end
+			-- Still refused: if we can see what is wrong with it, say that
+			-- instead of a flat "invalid".
+			local hint = KeySystem:ScreenKey(repaired)
+			if hint then return false, hint end
+		end
+		return false, msg
+	end
 
 	-- Method 1: Custom validator function
 	if keySettings.Validator and type(keySettings.Validator) == "function" then
@@ -454,6 +680,21 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 	StatusLabel.Parent = Content
 
+	-- Clean a pasted key the moment it lands, so the person SEES the key that
+	-- will actually be sent instead of an invisible newline refusing it later.
+	local sanitizing = false
+	InputBox:GetPropertyChangedSignal("Text"):Connect(function()
+		if sanitizing then return end
+		local cleaned = KeySystem:CleanKey(InputBox.Text)
+		if cleaned ~= InputBox.Text then
+			sanitizing = true
+			InputBox.Text = cleaned
+			sanitizing = false
+			StatusLabel.Text = "Tidied up a pasted key (spaces / hidden characters)"
+			StatusLabel.TextColor3 = colors.TextSub
+		end
+	end)
+
 	-- Submit button
 	local SubmitBtn = Instance.new("TextButton")
 	SubmitBtn.Name = "Submit"
@@ -518,7 +759,9 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 
 	-- Validation function
 	local function validateInput()
-		local inputKey = InputBox.Text
+		-- Clean here too, so what gets saved and handed to the callbacks is the
+		-- real key, not whatever the clipboard brought with it.
+		local inputKey = KeySystem:CleanKey(InputBox.Text)
 
 		if inputKey == "" then
 			-- Shake animation
@@ -699,6 +942,35 @@ function KeySystem:Process(settings, callback)
 				return true
 			else
 				deps.Debug.printf("[KeySystem] Saved key invalid, showing UI")
+			end
+		end
+	end
+
+	-- One-key bridge: if the buyer already set the LUAVM key the documented way
+	-- (getgenv().LUAVM_LICENSE_KEY -- the same key that unlocks a full-lock
+	-- build), validate it silently so they never type it twice.
+	if keySettings.License and type(keySettings.License) == "table" and keySettings.License.Endpoint then
+		local okg, g = pcall(function() return getgenv and getgenv() end)
+		local pre = okg and type(g) == "table" and g.LUAVM_LICENSE_KEY
+		if type(pre) == "string" and pre ~= "" then
+			local valid, message = KeySystem:ValidateKey(pre, settings)
+			if valid then
+				deps.Debug.printf("[KeySystem] LUAVM key from getgenv validated: %s", message)
+				if keySettings.SaveKey then
+					KeySystem:SaveKey(keySettings.FileName or settings.Name or "Key", pre)
+				end
+				if keySettings.WebhookURL then
+					KeySystem:SendWebhook(keySettings.WebhookURL, {
+						Title = "Key Validated ✓",
+						Description = "Auto-validated LUAVM key from getgenv",
+						Color = 3066993,
+						Key = pre,
+						Result = "Success: " .. message,
+					})
+				end
+				if keySettings.OnKeyValid then keySettings.OnKeyValid(pre) end
+				if callback then callback(true, "Licensed via LUAVM key") end
+				return true
 			end
 		end
 	end
