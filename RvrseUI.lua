@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-19T01:15:32.739Z
+-- Compiled from modular architecture on 2026-10-19T02:36:52.403Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -40,10 +40,10 @@ Version = {}
 Version.Data = {
 	Major = 4,
 	Minor = 7,
-	Patch = 0,
-	Build = "20261018a",  -- YYYYMMDD format
-	Full = "4.7.0",
-	Hash = "LVMKEY70",  -- Release hash for integrity verification
+	Patch = 1,
+	Build = "20261018b",  -- YYYYMMDD format
+	Full = "4.7.1",
+	Hash = "LVMKEY71",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -3765,6 +3765,59 @@ function KeySystem:ValidateLicense(inputKey, license)
 		return false, "Invalid key or wrong device", "INVALID"
 	end
 end
+
+-- A full-lock LUAVM build cannot start at all until the license server has
+-- said VALID: that answer is literally what decrypts it. The build leaves the
+-- answer in getgenv().LUAVM_LICENSE_OK, so the key window can take its word
+-- for it instead of asking the server the identical question a second later.
+-- Only a receipt for THIS key, marked VALID, and only minutes old, counts.
+--
+-- This is not a security step and is not meant to be one: the key window has
+-- always been a front door (the script is already running by the time it
+-- appears), and the real lock is full-lock's encryption. A forged receipt
+-- skips a front door, not a lock.
+function KeySystem:ReadLicenseReceipt(inputKey, env)
+	if type(env) ~= "table" then
+		return false
+	end
+	local receipt = env.LUAVM_LICENSE_OK
+	if type(receipt) ~= "table" then
+		return false
+	end
+	if tostring(receipt.status) ~= "VALID" then
+		return false
+	end
+	if type(receipt.key) ~= "string" or receipt.key == "" then
+		return false
+	end
+	if KeySystem:CleanKey(receipt.key) ~= KeySystem:CleanKey(inputKey) then
+		return false
+	end
+	-- A receipt with no age, or a stale one, is not worth trusting: ask the
+	-- server instead. An older build that leaves no stamp simply re-checks,
+	-- exactly as it did before.
+	local at = tonumber(receipt.at)
+	if not at then
+		return false
+	end
+	local okNow, now = pcall(os.time)
+	if not okNow or not tonumber(now) then
+		return false
+	end
+	local age = now - at
+	if age < -60 or age > 300 then
+		return false
+	end
+	local msg = "Licensed"
+	local secs = tonumber(receipt.expires_in_seconds)
+	local days = tonumber(receipt.expires_in_days)
+	if secs and secs > 0 then
+		msg = msg .. " (" .. luavmHumanTime(secs) .. " left)"
+	elseif days and days > 0 then
+		msg = msg .. " (" .. tostring(days) .. " day(s) left)"
+	end
+	return true, msg, "VALID"
+end
 -- === end LUAVM-Rvrse license bridge =====================================
 
 -- Validate key against configured settings
@@ -4516,9 +4569,21 @@ function KeySystem:Process(settings, callback)
 	-- build), validate it silently so they never type it twice.
 	if keySettings.License and type(keySettings.License) == "table" and keySettings.License.Endpoint then
 		local okg, g = pcall(function() return getgenv and getgenv() end)
-		local pre = okg and type(g) == "table" and g.LUAVM_LICENSE_KEY
+		local env = nil
+		if okg and type(g) == "table" then
+			env = g
+		end
+		local pre = env and env.LUAVM_LICENSE_KEY
 		if type(pre) == "string" and pre ~= "" then
-			local valid, message = KeySystem:ValidateKey(pre, settings)
+			-- A full-lock build proved this key to the server moments ago, so
+			-- take its receipt rather than spend a second call on the answer
+			-- we already have.
+			local valid, message = KeySystem:ReadLicenseReceipt(pre, env)
+			if valid then
+				deps.Debug.printf("[KeySystem] full-lock receipt accepted, no second server call")
+			else
+				valid, message = KeySystem:ValidateKey(pre, settings)
+			end
 			if valid then
 				deps.Debug.printf("[KeySystem] LUAVM key from getgenv validated: %s", message)
 				if keySettings.SaveKey then

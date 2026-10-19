@@ -48,3 +48,23 @@ Strict where the engine is strict, so it catches real bugs:
 
 It is a model, not Roblox: layout (`AbsoluteSize` etc.) is approximate and rendering doesn't exist. Test on a real
 client before releasing; use this to catch lifecycle and build regressions first.
+
+## License bridge test (`license_run.js`)
+
+Runs the same built `RvrseUI.lua` in the same fake client, but drives the **key window** with a
+LUAVM-Rvrse `KeySettings.License` set, and **counts the calls it makes to the license server**.
+A change that quietly re-checks a key on every launch fails here.
+
+```bash
+node tests/headless/license_run.js                      # all scenarios against ./RvrseUI.lua
+node tests/headless/license_run.js RvrseUI.lua receipt   # one scenario
+```
+
+| Scenario | What it checks |
+| --- | --- |
+| `receipt` | A full-lock build's fresh receipt in `getgenv().LUAVM_LICENSE_OK` is trusted: **0** server calls |
+| `noreceipt` | No receipt (a plain VM or source build): exactly **1** call |
+| `stale` | A receipt ten minutes old is re-checked: 1 call |
+| `wrongkey` | A receipt for a different key is ignored: 1 call |
+| `badstatus` | A receipt that is not `VALID` is ignored: 1 call |
+| `unit` | `ReadLicenseReceipt` on its own: no stamp, clock skew either way, a pasted newline in the key, a lifetime key, and the message the buyer is shown |
