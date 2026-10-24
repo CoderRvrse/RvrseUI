@@ -7,7 +7,7 @@
 --     not VALID — falls back to a real server call, exactly as before.
 -- Every scenario counts the calls the window makes, so a regression that
 -- quietly re-checks every launch fails here.
--- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit
+-- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -164,6 +164,82 @@ elseif H_SCENARIO == "unit" then
 	local okLife, msgLife = reads({ status = "VALID", key = KEY, at = os.time() })
 	H.check(okLife == true, "a lifetime receipt: accepted")
 	H.check(msgLife == "Licensed", "a lifetime receipt says plain Licensed (" .. tostring(msgLife) .. ")")
+
+elseif H_SCENARIO == "freekey" then
+	-- Free keys paid for by ads. Every answer the licence server can give has
+	-- to be mapped, a reply that is not JSON must not take the window down,
+	-- and the opt-out must not touch the network at all.
+	local lastUrl, hits = nil, 0
+	local function answers(body)
+		lastUrl, hits = nil, 0
+		M.genv.request = function(req)
+			hits = hits + 1
+			lastUrl = req and req.Url
+			return { StatusCode = 200, Body = body }
+		end
+	end
+	local lic = {
+		Endpoint = "https://license.invalid/api/v1/licensing/validate",
+		BuildId = "testbuild",
+	}
+
+	H.check(type(KeySystem.StartFreeKey) == "function", "this build has StartFreeKey")
+	H.check(type(KeySystem.ClaimFreeKey) == "function", "this build has ClaimFreeKey")
+
+	-- The free routes are worked out from the endpoint the hub already sets,
+	-- so no hub ever has to be told a second URL.
+	answers('{"status":"go","loot_url":"https://loot.invalid/x?puid=abc","code":"abc","poll_after":5}')
+	local status, data = KeySystem:StartFreeKey(lic)
+	H.check(status == "go", "a go answer starts a run (got " .. tostring(status) .. ")")
+	H.check(data ~= nil and data.code == "abc", "the code comes back")
+	H.check(data ~= nil and data.loot_url == "https://loot.invalid/x?puid=abc", "the link comes back")
+	H.check(lastUrl == "https://license.invalid/api/v1/free/start",
+		"it asked the free route beside validate (asked " .. tostring(lastUrl) .. ")")
+
+	-- A device that still holds a live free key skips the ads entirely.
+	answers('{"status":"ready","key":"RVRSE-FREE1-FREE2-FREE3"}')
+	local st2, d2 = KeySystem:StartFreeKey(lic)
+	H.check(st2 == "ready", "a device with a live key is handed it straight back")
+	H.check(d2 ~= nil and d2.key == "RVRSE-FREE1-FREE2-FREE3", "that key comes back")
+
+	answers('{"status":"off"}')
+	H.check(KeySystem:StartFreeKey(lic) == "off", "a server without free keys says off")
+
+	answers('{"status":"slow_down"}')
+	H.check(KeySystem:StartFreeKey(lic) == "slow_down", "the rate limit is passed through")
+
+	answers('not json at all')
+	H.check(KeySystem:StartFreeKey(lic) == "error", "a reply that is not JSON is an error, not a crash")
+
+	answers('{"status":"go","code":"abc"}')
+	H.check(KeySystem:StartFreeKey(lic) == "error", "a go with no link is an error")
+
+	-- Opting out has to cost nothing: no call, and the window shows no button.
+	answers('{"status":"go","loot_url":"https://loot.invalid/x","code":"abc"}')
+	H.check(KeySystem:StartFreeKey({ Endpoint = lic.Endpoint, FreeKey = false }) == "off",
+		"FreeKey = false says off")
+	H.check(hits == 0, "FreeKey = false makes no server call (made " .. hits .. ")")
+
+	-- Claiming the key the ads paid for.
+	answers('{"status":"waiting"}')
+	H.check(KeySystem:ClaimFreeKey("abc", lic) == "waiting", "waiting is passed through")
+	H.check(lastUrl == "https://license.invalid/api/v1/free/claim",
+		"claim uses the claim route (asked " .. tostring(lastUrl) .. ")")
+
+	answers('{"status":"ready","key":"RVRSE-AAAAA-BBBBB-CCCCC"}')
+	local cs, ck = KeySystem:ClaimFreeKey("abc", lic)
+	H.check(cs == "ready", "a finished run hands over a key")
+	H.check(ck == "RVRSE-AAAAA-BBBBB-CCCCC", "the key comes back whole")
+
+	answers('{"status":"expired"}')
+	H.check(KeySystem:ClaimFreeKey("abc", lic) == "expired", "a stale code says expired")
+
+	answers('{"status":"ready"}')
+	H.check(KeySystem:ClaimFreeKey("abc", lic) == "error", "ready with no key is an error")
+
+	answers('{"status":"waiting"}')
+	H.check(KeySystem:ClaimFreeKey("", lic) == "error", "no code is refused")
+	H.check(hits == 0, "no code means no server call (made " .. hits .. ")")
 
 else
 	H.check(false, "unknown scenario " .. tostring(H_SCENARIO))
