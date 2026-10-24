@@ -155,6 +155,57 @@ local function luavmHumanTime(seconds)
 	else return seconds .. "s" end
 end
 
+-- What the free key button says before anything has happened. The flow changes
+-- it to an "I am done" prompt once a link has been handed over, and back again
+-- if that link goes stale.
+local FREE_KEY_LABEL = "🎟️  Get a free key (24 hours)"
+
+-- Free keys paid for by ads (LootLabs). The licence server mints a 24-hour key
+-- once a player finishes an ad run.
+--
+-- Nothing here is hub-specific on purpose: any hub that already sets
+-- KeySettings.License gets the button with no extra setup, and a server with
+-- free keys switched off answers {"status":"off"}, which makes the button take
+-- itself away. Opt out with License.FreeKey = false.
+--
+-- The free routes sit beside the validate route under the same /api/v1 prefix,
+-- so they are derived from the endpoint the hub already has.
+-- License.FreeEndpoint overrides the base if a server ever splits them apart.
+local function luavmFreeUrl(license, leaf)
+	if type(license) ~= "table" then return nil end
+	if license.FreeKey == false then return nil end
+	local base = license.FreeEndpoint
+	if type(base) ~= "string" or base == "" then
+		local ep = license.Endpoint
+		if type(ep) ~= "string" or ep == "" then return nil end
+		base = ep:match("^(.-)/api/v1/") or ep:match("^(https?://[^/]+)")
+	end
+	if type(base) ~= "string" or base == "" then return nil end
+	base = base:gsub("/+$", "")
+	return base .. "/api/v1/free/" .. leaf
+end
+
+-- An executor cannot open a browser, so the clipboard is the hand-off for the
+-- ad link. Executors spell this at least three ways; any one of them will do.
+local function luavmCopyText(text)
+	local copied = false
+	local envs = {}
+	local okg, g = pcall(function() return getgenv and getgenv() end)
+	if okg and type(g) == "table" then envs[#envs + 1] = g end
+	envs[#envs + 1] = _G
+	for _, env in ipairs(envs) do
+		for _, name in ipairs({ "setclipboard", "toclipboard", "set_clipboard" }) do
+			if not copied then
+				local fn = rawget(env, name)
+				if type(fn) == "function" then
+					copied = pcall(fn, text)
+				end
+			end
+		end
+	end
+	return copied
+end
+
 -- Validate a key against a LUAVM-Rvrse license server. Returns (ok, message).
 -- Same request shape the LUAVM loader sends, so one key works in both places.
 function KeySystem:ValidateLicense(inputKey, license)
@@ -452,6 +503,90 @@ function KeySystem:SendWebhook(webhookUrl, data)
 end
 
 -- Create key validation UI
+-- Start an ad run. Returns (status, data, message):
+--   "go"        data.loot_url + data.code -- send the player to the link
+--   "ready"     data.key -- this device already holds a live free key, no ads
+--   "off"       this server does not do free keys
+--   "slow_down" too many starts from this device or address
+--   "error"     message says what went wrong
+function KeySystem:StartFreeKey(license)
+	local url = luavmFreeUrl(license, "start")
+	if not url then return "off", nil, "Free keys are not set up" end
+	local uid, uname = luavmIdentity()
+	local respBody = luavmPostJson(url, {
+		hardware_id = luavmDeviceId(),
+		build_id = license.BuildId,
+		user_id = uid,
+		username = uname,
+	})
+	if type(respBody) ~= "string" or respBody == "" then
+		return "error", nil, "Could not reach the key server"
+	end
+	local ok, decoded = pcall(function()
+		return game:GetService("HttpService"):JSONDecode(respBody)
+	end)
+	if not ok or type(decoded) ~= "table" or not decoded.status then
+		return "error", nil, "Unexpected server response"
+	end
+	local status = tostring(decoded.status)
+	if status == "go" then
+		local hasLink = type(decoded.loot_url) == "string" and decoded.loot_url ~= ""
+		local hasCode = type(decoded.code) == "string" and decoded.code ~= ""
+		if not (hasLink and hasCode) then
+			return "error", nil, "The server did not send a link"
+		end
+		return "go", decoded, "Link ready"
+	elseif status == "ready" then
+		if type(decoded.key) ~= "string" or decoded.key == "" then
+			return "error", nil, "The server did not send a key"
+		end
+		return "ready", decoded, "You already have a free key"
+	elseif status == "slow_down" then
+		return "slow_down", nil, "Too many tries - wait a few minutes"
+	elseif status == "off" then
+		return "off", nil, "Free keys are not available right now"
+	end
+	return "error", nil, "Unexpected answer: " .. status
+end
+
+-- Ask whether the ads are finished. Returns (status, key, message):
+--   "ready"   the key (the same key if asked twice)
+--   "waiting" not finished yet, ask again
+--   "expired" unknown, stale, or another device's code
+--   "error"   message says what went wrong
+function KeySystem:ClaimFreeKey(code, license)
+	local url = luavmFreeUrl(license, "claim")
+	if not url then return "error", nil, "Free keys are not set up" end
+	if type(code) ~= "string" or code == "" then
+		return "error", nil, "No code to check"
+	end
+	local respBody = luavmPostJson(url, {
+		code = code,
+		hardware_id = luavmDeviceId(),
+	})
+	if type(respBody) ~= "string" or respBody == "" then
+		return "error", nil, "Could not reach the key server"
+	end
+	local ok, decoded = pcall(function()
+		return game:GetService("HttpService"):JSONDecode(respBody)
+	end)
+	if not ok or type(decoded) ~= "table" or not decoded.status then
+		return "error", nil, "Unexpected server response"
+	end
+	local status = tostring(decoded.status)
+	if status == "ready" then
+		if type(decoded.key) ~= "string" or decoded.key == "" then
+			return "error", nil, "The server did not send a key"
+		end
+		return "ready", decoded.key, "Free key received"
+	elseif status == "waiting" then
+		return "waiting", nil, "Still waiting for the ads to finish..."
+	elseif status == "expired" then
+		return "expired", nil, "That link timed out"
+	end
+	return "error", nil, "Unexpected answer: " .. status
+end
+
 function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	local keySettings = settings.KeySettings or {}
 
@@ -775,8 +910,42 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	SubmitGradient.Rotation = 45
 	SubmitGradient.Parent = SubmitBtn
 
+	-- Free key button. Shown whenever the hub points at a licence server: the
+	-- server decides whether free keys exist, and the button removes itself if
+	-- they do not, so no hub ever has to configure or build this.
+	local freeButtonHeight = 0
+	local FreeBtn = nil
+	if luavmFreeUrl(keySettings.License, "start") then
+		freeButtonHeight = 52
+
+		FreeBtn = Instance.new("TextButton")
+		FreeBtn.Name = "FreeKeyButton"
+		FreeBtn.Size = UDim2.new(1, 0, 0, 44)
+		FreeBtn.Position = UDim2.new(0, 0, 0, 199 + noteButtonHeight)
+		FreeBtn.BackgroundColor3 = colors.Surface
+		FreeBtn.BorderSizePixel = 0
+		FreeBtn.Font = Enum.Font.GothamMedium
+		FreeBtn.Text = FREE_KEY_LABEL
+		FreeBtn.TextColor3 = colors.Accent
+		FreeBtn.TextSize = 14
+		FreeBtn.AutoButtonColor = false
+		FreeBtn.Parent = Content
+
+		local FreeCorner = Instance.new("UICorner")
+		FreeCorner.CornerRadius = UDim.new(0, 10)
+		FreeCorner.Parent = FreeBtn
+
+		local FreeStroke = Instance.new("UIStroke")
+		FreeStroke.Color = colors.Accent
+		FreeStroke.Thickness = 1.5
+		FreeStroke.Transparency = 0.7
+		FreeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		FreeStroke.LineJoinMode = Enum.LineJoinMode.Round
+		FreeStroke.Parent = FreeBtn
+	end
+
 	-- Calculate final container height
-	local finalHeight = 320 + noteButtonHeight
+	local finalHeight = 320 + noteButtonHeight + freeButtonHeight
 
 	-- Animate container entrance
 	Container.Size = UDim2.new(0, 500, 0, 0)
@@ -793,6 +962,10 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	SubmitBtn.BackgroundTransparency = 1
 	SubmitBtn.TextTransparency = 1
 	Border.Transparency = 1
+	if FreeBtn then
+		FreeBtn.BackgroundTransparency = 1
+		FreeBtn.TextTransparency = 1
+	end
 
 	task.wait(0.1)
 
@@ -808,6 +981,9 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	deps.Animator:Tween(InputBox, {BackgroundTransparency = 0, TextTransparency = 0}, deps.Animator.Spring.Glide)
 	deps.Animator:Tween(InputStroke, {Transparency = 0.5}, deps.Animator.Spring.Glide)
 	deps.Animator:Tween(SubmitBtn, {BackgroundTransparency = 0, TextTransparency = 0}, deps.Animator.Spring.Glide)
+	if FreeBtn then
+		deps.Animator:Tween(FreeBtn, {BackgroundTransparency = 0, TextTransparency = 0}, deps.Animator.Spring.Glide)
+	end
 	deps.Animator:Tween(Border, {Transparency = 0.5}, deps.Animator.Spring.Glide)
 
 	-- Validation function
@@ -870,6 +1046,9 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 			deps.Animator:Tween(StatusLabel, {TextTransparency = 1}, deps.Animator.Spring.Expo)
 			deps.Animator:Tween(InputBox, {BackgroundTransparency = 1, TextTransparency = 1}, deps.Animator.Spring.Expo)
 			deps.Animator:Tween(SubmitBtn, {BackgroundTransparency = 1, TextTransparency = 1}, deps.Animator.Spring.Expo)
+			if FreeBtn then
+				deps.Animator:Tween(FreeBtn, {BackgroundTransparency = 1, TextTransparency = 1}, deps.Animator.Spring.Expo)
+			end
 			deps.Animator:Tween(Border, {Transparency = 1}, deps.Animator.Spring.Expo)
 
 			task.wait(0.6)
@@ -942,6 +1121,106 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 
 	-- Submit button click
 	SubmitBtn.MouseButton1Click:Connect(validateInput)
+
+	-- Free key flow. One button walks the whole way: ask the server for the ad
+	-- link, copy it, then watch for the key by itself and hand it to the normal
+	-- validate path -- so saving, webhooks and callbacks behave exactly as they
+	-- do for a key the player typed. Tapping again checks straight away for
+	-- anyone who does not want to wait for the next poll.
+	if FreeBtn then
+		local freeCode = nil
+		local freeWatching = false
+
+		local function say(text, colour)
+			StatusLabel.Text = text
+			StatusLabel.TextColor3 = colour or colors.TextSub
+		end
+
+		local function label(text, colour)
+			FreeBtn.Text = text
+			FreeBtn.TextColor3 = colour or colors.Accent
+		end
+
+		-- Hand the key to the ordinary path instead of repeating any of it.
+		local function takeKey(key)
+			freeWatching = false
+			InputBox.Text = key
+			say("Free key received - checking it...", colors.Success)
+			validateInput()
+		end
+
+		-- Returns true when the waiting is over, either way.
+		local function checkOnce()
+			local status, key, message = KeySystem:ClaimFreeKey(freeCode, keySettings.License)
+			if status == "ready" then
+				takeKey(key)
+				return true
+			elseif status == "expired" then
+				freeWatching = false
+				freeCode = nil
+				label(FREE_KEY_LABEL)
+				say("That link timed out. Tap to start again.", colors.Warning)
+				return true
+			end
+			say(message or "Still waiting for the ads to finish...", colors.TextSub)
+			return false
+		end
+
+		FreeBtn.MouseButton1Click:Connect(function()
+			-- Already holding a code: this tap means "I am done".
+			if freeCode then
+				checkOnce()
+				return
+			end
+
+			label("Asking the server...", colors.TextSub)
+			local status, data, message = KeySystem:StartFreeKey(keySettings.License)
+
+			if status == "ready" then
+				-- This device still has a live free key: no ads needed.
+				takeKey(data.key)
+				return
+			elseif status == "go" then
+				freeCode = data.code
+				local copied = luavmCopyText(data.loot_url)
+				label("I am done - check now", colors.Success)
+				if copied then
+					say("Link copied. Open it in your browser, finish the tasks, then come back - this checks by itself.", colors.TextSub)
+				else
+					say("Could not copy the link. Open this: " .. data.loot_url, colors.Warning)
+				end
+
+				if not freeWatching then
+					freeWatching = true
+					local gap = tonumber(data.poll_after) or 5
+					if gap < 3 then gap = 3 end
+					task.spawn(function()
+						local waited = 0
+						while freeWatching and waited < 300 do
+							task.wait(gap)
+							waited = waited + gap
+							-- The window may have closed under us.
+							if not freeWatching or not FreeBtn.Parent then break end
+							if checkOnce() then return end
+						end
+						if freeWatching then
+							freeWatching = false
+							say("Stopped checking. Tap I am done once the tasks are finished.", colors.Warning)
+						end
+					end)
+				end
+				return
+			elseif status == "off" then
+				-- This server does not do free keys; stop offering them.
+				FreeBtn.Visible = false
+				say(message or "Free keys are not available right now.", colors.Warning)
+				return
+			end
+
+			label(FREE_KEY_LABEL)
+			say(message or "Could not start. Try again.", colors.Warning)
+		end)
+	end
 
 	-- Enter key support
 	InputBox.FocusLost:Connect(function(enterPressed)
