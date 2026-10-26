@@ -1,5 +1,19 @@
 # RvrseUI Releases
 
+## Version 4.8.0 "Free Pass" - A Free Key Button, Built In
+**Release Date**: October 23, 2026
+**Build**: 20261023a
+**Hash**: `LVMFREE80`
+**Channel**: Stable
+
+- **The key window can now hand out a free 24-hour key, paid for by ads.** One button walks the whole way: it asks the licence server for an ad link, copies it to the clipboard (an executor cannot open a browser), then watches for the key by itself and fills it in. The player types nothing.
+- **No hub has to build or configure any of this.** Any hub that already sets `KeySettings.License` gets the button. The free routes are worked out from the endpoint the hub already has, so there is no second URL to set, and a server with free keys switched off answers `off`, which makes the button take itself away. Opt out with `License.FreeKey = false` - which makes no server call at all.
+- **A device that still holds a live free key is handed it straight back**, with no ad run, so a reinstall does not cost a player anything and keys cannot be farmed.
+- The key goes through the ordinary validate path, so saving, webhooks and the `OnKeyValid` callback behave exactly as they do for a key somebody typed.
+- Tapping the button again checks immediately, for anyone who does not want to wait for the next poll. It stops checking after five minutes and says so.
+- New: `KeySystem:StartFreeKey(license)` and `KeySystem:ClaimFreeKey(code, license)` for anyone driving this themselves.
+- Gate: a `freekey` scenario in `node tests/headless/license_run.js` covers every answer the server can give, a reply that is not JSON, and the opt-out making no call.
+
 ## Version 4.7.1 "Asked Once" - No Double Check
 **Release Date**: October 18, 2026
 **Build**: 20261018b
