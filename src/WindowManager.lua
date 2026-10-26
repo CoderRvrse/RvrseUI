@@ -10,6 +10,14 @@ local PlayerGui = LP:WaitForChild("PlayerGui")
 
 local WindowManager = {}
 
+-- Diagnostic lines: silent unless RvrseUI:EnableDebug(true) is on
+local function dprint(...)
+	local dbg = WindowManager.Debug
+	if dbg and dbg.IsEnabled and dbg:IsEnabled() then
+		print(...)
+	end
+end
+
 -- Initialize the WindowManager with dependencies
 function WindowManager:Init(obfuscatedNames)
 	self._host = nil
@@ -40,7 +48,7 @@ function WindowManager:CreateHost()
 		warn("[RvrseUI] No CoreGui access, using PlayerGui (may render under some Roblox UI)")
 		host.Parent = PlayerGui
 	else
-		print("[RvrseUI] Successfully mounted to CoreGui - guaranteed on top!")
+		dprint("[RvrseUI] Successfully mounted to CoreGui - guaranteed on top!")
 	end
 
 	-- Store global reference for destruction and visibility control
@@ -73,7 +81,7 @@ function WindowManager:Destroy()
 		-- Clear all references
 		table.clear(self._windows)
 
-		print("[RvrseUI] All interfaces destroyed - No trace remaining")
+		dprint("[RvrseUI] All interfaces destroyed - No trace remaining")
 		return true
 	end
 	return false
@@ -121,7 +129,10 @@ function WindowManager:ClearListeners(lockListeners, themeListeners, toggleTarge
 end
 
 -- Initialize method (called by init.lua)
-function WindowManager:Initialize()
+-- opts is optional so older callers keep working; it carries Debug so this
+-- module's diagnostic lines can be gated like every other module's.
+function WindowManager:Initialize(opts)
+	self.Debug = (opts and opts.Debug) or self.Debug
 	-- WindowManager is ready to use
 	-- _host and _windows will be set when CreateHost is called
 end

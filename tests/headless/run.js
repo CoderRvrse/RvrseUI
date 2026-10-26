@@ -54,17 +54,14 @@ const ALLOWED_PRINTS = {
         'print("[Particles] State changed:", currentState)',
         'print("[Particles] Config updated:", key, "=", value)',
     ],
-    'src/WindowManager.lua': [
-        'print("[RvrseUI] Successfully mounted to CoreGui - guaranteed on top!")',
-        'print("[RvrseUI] All interfaces destroyed - No trace remaining")',
-    ],
-    'src/WindowBuilder.lua': [
-        'print("[RvrseUI] ✨ UI visible - all settings applied")',
-        'print("[RvrseUI] Interface destroyed - No trace remaining")',
-        'print("[RvrseUI] Window closed:", name)',
-        'print("[RvrseUI] ⚠️ Config load warning:", message)',
-        'print("[RvrseUI]", notifyPayload.Title .. ":", notifyPayload.Message)',
-    ],
+    // Only the gated dprint helper. The two status lines that used to sit here
+    // ("Successfully mounted to CoreGui", "All interfaces destroyed") printed in
+    // every user's console on every launch and now go through dprint.
+    'src/WindowManager.lua': ['print(...)'],
+    // WindowBuilder has no allowed bare print any more: the status lines go
+    // through Debug.printf, and the two real failures (a config that would not
+    // load, a Notify that threw) go through warn(), which is Roblox's channel
+    // for a problem rather than a line in everyone's output.
 };
 function luaFiles(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

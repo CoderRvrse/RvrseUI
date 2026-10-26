@@ -147,7 +147,7 @@ Hotkeys:Initialize({
 })
 
 -- Initialize WindowManager
-WindowManager:Initialize()
+WindowManager:Initialize({ Debug = Debug })
 
 -- Initialize KeySystem (needs dependencies)
 KeySystem:Initialize({
