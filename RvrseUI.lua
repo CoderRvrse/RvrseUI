@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-24T02:53:48.986Z
+-- Compiled from modular architecture on 2026-10-26T21:29:12.125Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -40,10 +40,10 @@ Version = {}
 Version.Data = {
 	Major = 4,
 	Minor = 8,
-	Patch = 0,
-	Build = "20261023a",  -- YYYYMMDD format
-	Full = "4.8.0",
-	Hash = "LVMFREE80",  -- Release hash for integrity verification
+	Patch = 1,
+	Build = "20261026a",  -- YYYYMMDD format
+	Full = "4.8.1",
+	Hash = "RVQUIET81",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -2325,6 +2325,14 @@ local PlayerGui = LP:WaitForChild("PlayerGui")
 
 WindowManager = {}
 
+-- Diagnostic lines: silent unless RvrseUI:EnableDebug(true) is on
+local function dprint(...)
+	local dbg = WindowManager.Debug
+	if dbg and dbg.IsEnabled and dbg:IsEnabled() then
+		print(...)
+	end
+end
+
 -- Initialize the WindowManager with dependencies
 function WindowManager:Init(obfuscatedNames)
 	self._host = nil
@@ -2355,7 +2363,7 @@ function WindowManager:CreateHost()
 		warn("[RvrseUI] No CoreGui access, using PlayerGui (may render under some Roblox UI)")
 		host.Parent = PlayerGui
 	else
-		print("[RvrseUI] Successfully mounted to CoreGui - guaranteed on top!")
+		dprint("[RvrseUI] Successfully mounted to CoreGui - guaranteed on top!")
 	end
 
 	-- Store global reference for destruction and visibility control
@@ -2388,7 +2396,7 @@ function WindowManager:Destroy()
 		-- Clear all references
 		table.clear(self._windows)
 
-		print("[RvrseUI] All interfaces destroyed - No trace remaining")
+		dprint("[RvrseUI] All interfaces destroyed - No trace remaining")
 		return true
 	end
 	return false
@@ -2436,7 +2444,10 @@ function WindowManager:ClearListeners(lockListeners, themeListeners, toggleTarge
 end
 
 -- Initialize method (called by init.lua)
-function WindowManager:Initialize()
+-- opts is optional so older callers keep working; it carries Debug so this
+-- module's diagnostic lines can be gated like every other module's.
+function WindowManager:Initialize(opts)
+	self.Debug = (opts and opts.Debug) or self.Debug
 	-- WindowManager is ready to use
 	-- _host and _windows will be set when CreateHost is called
 end
@@ -11328,6 +11339,13 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- Splash screen
 	local splash
 	local splashHidden = false
+	-- The window becoming visible is a one-off event, but Show() is not: RvrseUI
+	-- reveals the window itself (the task.defer at the end of this builder) AND
+	-- hubs are told to call Window:Show() last, so Show() legitimately arrives
+	-- twice on launch. Without this flag the reveal ran twice -- two particle
+	-- bursts, two layout snapshots and two log lines in every user's console.
+	-- setHidden(true) clears it, so hiding and showing again reveals properly.
+	local rootRevealed = false
 	splash = Instance.new("Frame")
 	splash.BackgroundColor3 = pal.Elevated
 	splash.BorderSizePixel = 0
@@ -11400,6 +11418,13 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		root.Visible = true
 
+		-- Everything below is the REVEAL itself and must happen once per
+		-- appearance, not once per Show() call. See rootRevealed above.
+		if rootRevealed then
+			return
+		end
+		rootRevealed = true
+
 		-- Start particle system with expand burst on initial show
 		if Particles then
 			Particles:Play("expand")
@@ -11414,7 +11439,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		task.defer(function()
 			snapshotLayout("post-show")
 		end)
-		print("[RvrseUI] ✨ UI visible - all settings applied")
+		Debug.printf("✨ UI visible - all settings applied")
 	end
 
 	-- Mobile chip
@@ -11435,6 +11460,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local function setHidden(hidden)
 		if hidden and Overlay then
 			Overlay:HideBlocker(true)
+		end
+		if hidden then
+			-- Showing it again is a fresh appearance, so let the reveal run.
+			rootRevealed = false
 		end
 		root.Visible = not hidden
 		chip.Visible = hidden
@@ -12144,9 +12173,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					Hotkeys = Hotkeys,
 					Particles = Particles,
 				})
-				print("[RvrseUI] Interface destroyed - No trace remaining")
+				Debug.printf("Interface destroyed - No trace remaining")
 			else
-				print("[RvrseUI] Window closed:", name)
+				Debug.printf("Window closed: %s", tostring(name))
 			end
 		end)
 		return true
@@ -12199,7 +12228,10 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					if success then
 						Debug.printf("✅ Configuration loaded successfully")
 					else
-						print("[RvrseUI] ⚠️ Config load warning:", message)
+						-- A real failure the developer needs to see, so it stays
+						-- visible -- but through warn(), which is Roblox's channel
+						-- for it, not a bare print in everyone's output.
+						warn("[RvrseUI] Config load warning:", message)
 					end
 					task.wait(0.1)
 				end
@@ -12272,7 +12304,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 						return RvrseUI:Notify(notifyPayload)
 					end)
 					if not okNotify then
-						print("[RvrseUI]", notifyPayload.Title .. ":", notifyPayload.Message)
+						-- Last resort: Notify itself threw, so the message would
+						-- otherwise be lost. Only fires on a real failure.
+						warn("[RvrseUI]", notifyPayload.Title .. ":", notifyPayload.Message)
 					end
 				end
 

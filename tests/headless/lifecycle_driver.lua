@@ -619,8 +619,13 @@ elseif ONTOP then
 	H.check(named("RvrseUI_Cursor") == nil, "pointer screen left behind after close")
 elseif H_SCENARIO == "quiet" then
 	-- Diagnostic lines must stay silent unless RvrseUI:EnableDebug(true) is on.
-	-- With it off, RvrseUI may print only its one-line status messages.
-	local STATUS = { "UI visible - all settings applied", "Interface destroyed - No trace remaining", "[RvrseUI] Window closed:" }
+	-- With it off, RvrseUI prints NOTHING. It used to be allowed three "status"
+	-- lines, but a status line is still a line in every hub user's console --
+	-- "UI visible - all settings applied" was showing up (twice) in real
+	-- players' output. They now go through Debug.printf, and the two genuine
+	-- failures go through warn(), so this list is deliberately empty: any print
+	-- at all with debug off is a regression.
+	local STATUS = {}
 	local function noise(from)
 		local found = {}
 		for i = from + 1, #M.prints do

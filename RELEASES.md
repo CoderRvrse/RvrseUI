@@ -1,5 +1,17 @@
 # RvrseUI Releases
 
+## Version 4.8.1 "Quiet" - Nothing in the Player's Console
+**Release Date**: October 26, 2026
+**Build**: 20261026a
+**Hash**: `RVQUIET81`
+**Channel**: Stable
+
+- **RvrseUI no longer prints anything with debug off.** `[RvrseUI] ✨ UI visible - all settings applied` was showing in every hub user's console on every launch, along with `Successfully mounted to CoreGui`, `Window closed:`, `Interface destroyed` and `All interfaces destroyed`. All five were bare `print` calls; they now go through the gated `Debug.printf` / `dprint` like every other diagnostic, so `RvrseUI:EnableDebug(true)` still shows them and nobody else sees them.
+- **The window reveal ran twice on every launch, and now runs once.** RvrseUI shows the window itself, and hubs are told to call `Window:Show()` last - both are correct, so `Show()` legitimately arrives twice. The reveal is now guarded, so the particle burst, the layout snapshot and the log happen once per appearance instead of once per call. Hiding and showing again still reveals properly.
+- The two genuine failures - a configuration that would not load, and a `Notify` that threw - stay visible but go through `warn()`, which is Roblox's channel for a problem rather than a line in everyone's output.
+- `WindowManager` gained the same gated `dprint` the other modules use, wired through `WindowManager:Initialize({ Debug = Debug })`. The argument is optional, so older callers keep working.
+- Gate: the `quiet` scenario in `node tests/headless/run.js` now allows **zero** prints with debug off, instead of excusing three "status" lines, and reports `debug off: build=0 use=0`. The source guard's allow-list shrank to the gated helper alone.
+
 ## Version 4.8.0 "Free Pass" - A Free Key Button, Built In
 **Release Date**: October 23, 2026
 **Build**: 20261023a

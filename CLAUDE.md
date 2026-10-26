@@ -93,6 +93,28 @@ that. Anything RvrseUI shows must fit there.
 
 ---
 
+## 🔇 WARNING #0e (v4.8.1): Nothing prints with debug off, and the reveal runs ONCE
+
+Two separate rules, both learned from a real player's console showing
+`[RvrseUI] ✨ UI visible - all settings applied` **twice** on every launch.
+
+- **No bare `print(` in `src/`.** Every diagnostic goes through `Debug.printf` or a
+  module's gated `dprint` (`local dbg = Module.Debug; if dbg and dbg:IsEnabled() then`).
+  A new module that wants one takes `Debug` through its `Initialize(opts)`, the way
+  `WindowManager`, `Overlay` and `Hotkeys` do. A genuine failure the developer must see
+  uses `warn()`, never `print`. There is no such thing as an acceptable "status line":
+  it is still a line in every hub user's output.
+- **`Show()` is not a one-off, but the reveal is.** RvrseUI reveals the window itself
+  (the `task.defer` at the end of `WindowBuilder`) **and** hubs are told to call
+  `Window:Show()` last, so `Show()` legitimately arrives twice on launch. Anything that
+  should happen once per *appearance* — the particle burst, `snapshotLayout("post-show")`,
+  the log — sits behind the `rootRevealed` flag in `WindowBuilder`. `setHidden(true)`
+  clears it so hiding and showing again reveals properly. Do not add work to
+  `hideSplashAndShowRoot` above that guard unless it is genuinely idempotent.
+- Verify with `node tests/headless/run.js` — the `quiet` scenario allows **zero** prints
+  with debug off (`debug off: build=0 use=0`) and the source guard's allow-list contains
+  only gated helpers. Both must stay that way.
+
 ## 🔥 Migration Handoff – Luau-First Initiative (Completed ✅)
 
 - **Mission Status:** Toolchain migration complete! All Luau tools (Stylua, Selene, Rojo, Wally) now install via **Aftman** (the preferred Roblox toolchain manager). Configuration lives in `aftman.toml` at repo root. CI workflow `.github/workflows/luau-ci.yml` uses Aftman v0.2.7 to manage tool versions declaratively. No more manual cargo installs or brittle download scripts.
