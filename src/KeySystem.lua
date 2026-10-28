@@ -5,6 +5,21 @@
 local KeySystem = {}
 local deps
 
+-- The reason the key window reports when the PLAYER closed it, rather than a
+-- key being refused. The host tells one from the other: a refused key is a
+-- mistake, a closed window means stop everything (see WindowBuilder).
+KeySystem.ClosedReason = "key window closed"
+
+-- How the free-key watcher paces itself. It used to give up after 5 minutes,
+-- which is shorter than the ads it waits for (4-6 minutes measured) and far
+-- shorter than the 60-minute wait the provider sometimes offers instead. The
+-- player was told "go back to the game, it unlocks by itself" and then had to
+-- come back and tap anyway. It now slows down instead of stopping, and the
+-- SERVER decides when a run is over.
+local FREE_FAST_FOR = 300   -- check every poll_after seconds for 5 minutes...
+local FREE_SLOW_GAP = 20    -- ...then every 20 seconds, for as long as it takes
+local FREE_GIVE_UP = 7200   -- a safety net only: the server's run dies long before
+
 function KeySystem:Initialize(dependencies)
 	deps = dependencies
 end
@@ -739,6 +754,182 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	Subtitle.TextXAlignment = Enum.TextXAlignment.Left
 	Subtitle.Parent = Header
 
+	-- ============================================
+	-- LIFECYCLE (v4.8.2)
+	-- The key window used to leave its global listeners connected for the
+	-- rest of the session. Everything it starts is now registered here and
+	-- released by ONE teardown, however it closes: the X, a valid key, or
+	-- the last attempt.
+	-- ============================================
+	local keyClosed = false
+	local keyItems = {}
+	
+	local function trackKeyItem(item)
+		if item ~= nil then
+			table.insert(keyItems, item)
+		end
+		return item
+	end
+	
+	local function releaseKeyItems()
+		local items = keyItems
+		keyItems = {}
+		for i = #items, 1, -1 do
+			local item = items[i]
+			pcall(function()
+				if typeof(item) == "RBXScriptConnection" then
+					if item.Connected then
+						item:Disconnect()
+					end
+				elseif type(item) == "function" then
+					item()
+				end
+			end)
+		end
+	end
+	
+	-- Takes the window away and leaves nothing of it running. Safe to call
+	-- twice; returns true only for the call that actually closed it.
+	local function teardownKeyWindow()
+		if keyClosed then
+			return false
+		end
+		keyClosed = true
+		releaseKeyItems()
+		pcall(function()
+			KeyGui:Destroy()
+		end)
+		return true
+	end
+	
+	-- Close button (v4.8.2): the key window is a window, so it closes like
+	-- one. Telling the host it was CLOSED rather than refused is what arms
+	-- the hub's shutdown -- before this there was no way out but a key.
+	local CloseBtn = Instance.new("TextButton")
+	CloseBtn.Name = "CloseButton"
+	CloseBtn.AnchorPoint = Vector2.new(1, 0)
+	CloseBtn.Position = UDim2.new(1, -16, 0, 16)
+	CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+	CloseBtn.BackgroundColor3 = colors.Card
+	CloseBtn.BorderSizePixel = 0
+	CloseBtn.Font = Enum.Font.GothamBold
+	CloseBtn.Text = "X"
+	CloseBtn.TextColor3 = colors.Error
+	CloseBtn.TextSize = 16
+	CloseBtn.AutoButtonColor = false
+	CloseBtn.ZIndex = 3
+	CloseBtn.Parent = Header
+	
+	local CloseCorner = Instance.new("UICorner")
+	CloseCorner.CornerRadius = UDim.new(0, 8)
+	CloseCorner.Parent = CloseBtn
+	
+	local CloseStroke = Instance.new("UIStroke")
+	CloseStroke.Color = colors.Error
+	CloseStroke.Thickness = 1
+	CloseStroke.Transparency = 0.4
+	CloseStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	CloseStroke.Parent = CloseBtn
+
+	CloseBtn.MouseEnter:Connect(function()
+		deps.Animator:Tween(CloseBtn, {BackgroundColor3 = colors.Error}, deps.Animator.Spring.Lightning)
+		CloseBtn.TextColor3 = colors.TextBright
+	end)
+	CloseBtn.MouseLeave:Connect(function()
+		deps.Animator:Tween(CloseBtn, {BackgroundColor3 = colors.Card}, deps.Animator.Spring.Lightning)
+		CloseBtn.TextColor3 = colors.Error
+	end)
+	
+	CloseBtn.MouseButton1Click:Connect(function()
+		if teardownKeyWindow() and onFailure then
+			onFailure(KeySystem.ClosedReason)
+		end
+	end)
+	
+	-- ============================================
+	-- DRAG + SCREEN FIT (v4.8.2)
+	-- The main window learned both in 4.5.2; the key window never did, so
+	-- it sat wherever it opened at a fixed 500 wide -- wider than a phone
+	-- held upright, and taller than one held sideways.
+	-- ============================================
+	local KeyUIS = game:GetService("UserInputService")
+	local dragging = false
+	local dragInput = nil
+	local dragStart = nil
+	local dragFrom = nil
+	
+	-- The screen, in the key window's own pixels.
+	local function keyViewportSize()
+		local size = nil
+		pcall(function()
+			local absolute = KeyGui.AbsoluteSize
+			if typeof(absolute) == "Vector2" and absolute.X > 0 and absolute.Y > 0 then
+				size = absolute
+			end
+		end)
+		if not size then
+			pcall(function()
+				local camera = workspace.CurrentCamera
+				if camera and camera.ViewportSize.X > 0 then
+					size = camera.ViewportSize
+				end
+			end)
+		end
+		return size
+	end
+	
+	-- The window is centred, so its position is an offset from the middle of
+	-- the screen. Keep it on the screen: on a phone there is no mouse to
+	-- fetch back a window that has been dragged into the void.
+	local function clampKeyOffset(x, y)
+		local view = keyViewportSize()
+		if not view then
+			return x, y
+		end
+		local size = Container.AbsoluteSize
+		local maxX = math.max(0, (view.X - size.X) / 2)
+		local maxY = math.max(0, (view.Y - size.Y) / 2)
+		return math.clamp(x, -maxX, maxX), math.clamp(y, -maxY, maxY)
+	end
+	
+	local function keyOffset()
+		return Container.Position.X.Offset, Container.Position.Y.Offset
+	end
+	
+	local function moveKeyWindow(x, y)
+		local cx, cy = clampKeyOffset(x, y)
+		Container.Position = UDim2.new(0.5, cx, 0.5, cy)
+	end
+	
+	Header.Active = true
+	trackKeyItem(Header.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			dragFrom = Vector2.new(keyOffset())
+			trackKeyItem(input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end))
+		end
+	end))
+	
+	trackKeyItem(Header.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end))
+	
+	trackKeyItem(KeyUIS.InputChanged:Connect(function(input)
+		if input == dragInput and dragging and dragFrom then
+			local delta = input.Position - dragStart
+			moveKeyWindow(dragFrom.X + delta.X, dragFrom.Y + delta.Y)
+		end
+	end))
+
 	-- Content area
 	local Content = Instance.new("Frame")
 	Content.Name = "Content"
@@ -947,6 +1138,43 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	-- Calculate final container height
 	local finalHeight = 320 + noteButtonHeight + freeButtonHeight
 
+	-- The window asks for 500 x finalHeight. A phone held upright is about
+	-- 380 across, and one held sideways has about 320 of height below
+	-- Roblox's top bar, so the key window was cut off on exactly the
+	-- devices most players use. Scale it to the room there is -- the whole
+	-- window at once, so the design is never re-laid-out -- and do it again
+	-- whenever the screen changes (rotation, a resized emulator window).
+	local KEY_BASE_WIDTH = 500
+	local KEY_MARGIN = (KeyUIS.TouchEnabled and not KeyUIS.MouseEnabled) and 8 or 20
+	local KeyScale = Instance.new("UIScale")
+	KeyScale.Parent = Container
+	
+	local function fitKeyWindow()
+		local view = keyViewportSize()
+		if not view then
+			return
+		end
+		local roomX = view.X - KEY_MARGIN * 2
+		local roomY = view.Y - KEY_MARGIN * 2
+		if roomX <= 0 or roomY <= 0 then
+			return
+		end
+		local scale = math.min(1, roomX / KEY_BASE_WIDTH, roomY / finalHeight)
+		-- Below this it is too small to read, and a player who cannot read it
+		-- cannot type a key: better to overflow than to be illegible.
+		KeyScale.Scale = math.max(0.5, scale)
+		moveKeyWindow(keyOffset())
+	end
+	
+	fitKeyWindow()
+	trackKeyItem(KeyGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitKeyWindow))
+	pcall(function()
+		local camera = workspace.CurrentCamera
+		if camera then
+			trackKeyItem(camera:GetPropertyChangedSignal("ViewportSize"):Connect(fitKeyWindow))
+		end
+	end)
+
 	-- Animate container entrance
 	Container.Size = UDim2.new(0, 500, 0, 0)
 	Container.BackgroundTransparency = 1
@@ -994,11 +1222,14 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 
 		if inputKey == "" then
 			-- Shake animation
-			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 10, 0.5, 0)}, deps.Animator.Spring.Lightning)
+			-- Shake where the window IS: it can be dragged now, and a shake that
+			-- tweened back to the middle used to teleport it there.
+			local shakeX, shakeY = keyOffset()
+			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, shakeX + 10, 0.5, shakeY)}, deps.Animator.Spring.Lightning)
 			task.wait(0.05)
-			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, -10, 0.5, 0)}, deps.Animator.Spring.Lightning)
+			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, shakeX - 10, 0.5, shakeY)}, deps.Animator.Spring.Lightning)
 			task.wait(0.05)
-			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 0, 0.5, 0)}, deps.Animator.Spring.Lightning)
+			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, shakeX, 0.5, shakeY)}, deps.Animator.Spring.Lightning)
 
 			StatusLabel.Text = "⚠️ Please enter a key!"
 			StatusLabel.TextColor3 = colors.Warning
@@ -1052,7 +1283,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 			deps.Animator:Tween(Border, {Transparency = 1}, deps.Animator.Spring.Expo)
 
 			task.wait(0.6)
-			KeyGui:Destroy()
+			teardownKeyWindow()
 
 			-- Success callback
 			if onSuccess then
@@ -1063,11 +1294,14 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 			attemptsRemaining = attemptsRemaining - 1
 
 			-- Shake animation
-			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 15, 0.5, 0)}, deps.Animator.Spring.Lightning)
+			-- Shake where the window IS: it can be dragged now, and a shake that
+			-- tweened back to the middle used to teleport it there.
+			local shakeX, shakeY = keyOffset()
+			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, shakeX + 15, 0.5, shakeY)}, deps.Animator.Spring.Lightning)
 			task.wait(0.05)
-			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, -15, 0.5, 0)}, deps.Animator.Spring.Lightning)
+			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, shakeX - 15, 0.5, shakeY)}, deps.Animator.Spring.Lightning)
 			task.wait(0.05)
-			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, 0, 0.5, 0)}, deps.Animator.Spring.Lightning)
+			deps.Animator:Tween(Container, {Position = UDim2.new(0.5, shakeX, 0.5, shakeY)}, deps.Animator.Spring.Lightning)
 
 			-- Send webhook if configured
 			if keySettings.WebhookURL then
@@ -1102,7 +1336,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 					game.Players.LocalPlayer:Kick("Key validation failed - No attempts remaining")
 				end
 
-				KeyGui:Destroy()
+				teardownKeyWindow()
 
 				-- Failure callback
 				if onFailure then
@@ -1130,6 +1364,12 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 	if FreeBtn then
 		local freeCode = nil
 		local freeWatching = false
+
+		-- Closing the window stops the watcher at once, rather than leaving
+		-- it to notice on its next pass.
+		trackKeyItem(function()
+			freeWatching = false
+		end)
 
 		local function say(text, colour)
 			StatusLabel.Text = text
@@ -1194,18 +1434,28 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 					freeWatching = true
 					local gap = tonumber(data.poll_after) or 5
 					if gap < 3 then gap = 3 end
+					-- Keep watching until the SERVER says the run is over: checkOnce
+					-- returns true both for "ready" and for an expired run. Slowing
+					-- down rather than stopping is what makes the promise on the ad
+					-- page -- "go back to the game, the hub unlocks by itself" -- true
+					-- for a 60-minute wait as well as for a 5-minute one.
 					task.spawn(function()
 						local waited = 0
-						while freeWatching and waited < 300 do
+						while freeWatching do
 							task.wait(gap)
 							waited = waited + gap
 							-- The window may have closed under us.
 							if not freeWatching or not FreeBtn.Parent then break end
 							if checkOnce() then return end
-						end
-						if freeWatching then
-							freeWatching = false
-							say("Stopped checking. Tap I am done once the tasks are finished.", colors.Warning)
+							if waited >= FREE_FAST_FOR and gap < FREE_SLOW_GAP then
+								gap = FREE_SLOW_GAP
+								say("Taking your time is fine - this keeps checking by itself.", colors.TextSub)
+							end
+							if waited >= FREE_GIVE_UP then
+								freeWatching = false
+								say("Stopped checking. Tap I am done once the tasks are finished.", colors.Warning)
+								break
+							end
 						end
 					end)
 				end
@@ -1351,7 +1601,9 @@ function KeySystem:Process(settings, callback)
 		callback(passthrough, errorMsg or "Key validated")
 	end
 
-	return passthrough
+	-- The reason comes back too: the host needs to tell a player who closed
+	-- the window from a key that was refused.
+	return passthrough, errorMsg
 end
 
 return KeySystem

@@ -77,6 +77,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 		if not success then
 			Debug.printf("[KeySystem] Key validation failed: %s", tostring(message or "No attempts remaining"))
+			-- Why the window is not opening: the player closed the key window, or
+			-- the key was refused once too often. Passed to whatever was hooked to
+			-- the window's close so a shutdown can say which it was.
+			local closeReason = message or KeySystem.ClosedReason
+			
 			-- Return a dummy window object with no-op methods to prevent script errors
 			-- This allows user scripts to continue without crashing
 			local DummySection = {
@@ -102,11 +107,24 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 				SetTheme = function() end,
 				Minimize = function() end,
 				Restore = function() end,
-				OnClose = function() end,
+				-- The window never opened, so anything hooked to its close must run
+				-- NOW -- this is the call that arms a hub's shutdown. While this was
+				-- a no-op, a player who closed the key window (or ran out of
+				-- attempts) left the hub's own loops running with nothing able to
+				-- stop them: the hub had been refused, but it had not stopped.
+				OnClose = function(_, fn)
+					if type(fn) ~= "function" then
+						return
+					end
+					local ok, err = pcall(fn, closeReason)
+					if not ok then
+						warn("[RvrseUI] close hook error:", err)
+					end
+				end,
 				Track = function(_, item) return item end,
 				IsDestroyed = function() return true end
 			}
-			warn("[RvrseUI] Key validation failed - Window creation blocked")
+			warn("[RvrseUI] Key system: " .. tostring(closeReason) .. " - window not opened")
 			return DummyWindow
 		end
 

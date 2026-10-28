@@ -7,7 +7,7 @@
 --     not VALID — falls back to a real server call, exactly as before.
 -- Every scenario counts the calls the window makes, so a regression that
 -- quietly re-checks every launch fails here.
--- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey
+-- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -77,7 +77,7 @@ end
 
 -- Load the build. KeySystem is a global in the bundle, so it is reachable
 -- here once RvrseUI has run.
-assert(loadstring(RVRSEUI_SRC, "=RvrseUI"))()
+local RvrseUI = assert(loadstring(RVRSEUI_SRC, "=RvrseUI"))()
 H.check(type(KeySystem) == "table", "the build exposes KeySystem")
 H.check(type(KeySystem.ReadLicenseReceipt) == "function", "this build has ReadLicenseReceipt")
 
@@ -241,6 +241,109 @@ elseif H_SCENARIO == "freekey" then
 	H.check(KeySystem:ClaimFreeKey("", lic) == "error", "no code is refused")
 	H.check(hits == 0, "no code means no server call (made " .. hits .. ")")
 
+elseif H_SCENARIO == "keywindow" then
+	-- The key window is a window like any other: it has to fit the screen,
+	-- move, close, and take everything it started away with it.
+	--
+	-- Closing it is also the only way out of a key-gated hub, so the window
+	-- the hub is handed back must report that close AT ONCE: that call is
+	-- what arms a hub's shutdown. While it was a no-op, a player who closed
+	-- the key screen left the hub's own loops running with nothing able to
+	-- stop them.
+	local function find(pred)
+		for _, root in ipairs({ M.PlayerGui, M.CoreGui }) do
+			for _, d in ipairs(M.descendants(root)) do
+				if pred(d, M.D[d]) then return d end
+			end
+		end
+		return nil
+	end
+	local function named(name)
+		return find(function(_, d) return d.props.Name == name end)
+	end
+	
+	-- A touch phone held upright: 381 across, where the window asks for 500.
+	local ui = M.D[M.UserInputService].props
+	ui.TouchEnabled, ui.MouseEnabled, ui.KeyboardEnabled = true, false, false
+	M.Viewport = M.V2(381, 750)
+	if workspace.CurrentCamera then
+		M.D[workspace.CurrentCamera].props.ViewportSize = M.V2(381, 750)
+	end
+	
+	-- Every key is refused here, and free keys are off: this scenario is
+	-- about the window, and the free button would start a watcher.
+	M.genv.request = function()
+		return { StatusCode = 200, Body = '{"status":"INVALID"}' }
+	end
+	
+	-- Let the library settle whatever it starts on its own first, so the count
+	-- below is the KEY WINDOW's doing and nothing else.
+	M.run(1)
+	local mark = M.frame
+	local W, came_back = nil, false
+	local co = coroutine.create(function()
+		W = RvrseUI:CreateWindow({
+			Name = "KeyWindowTest",
+			KeySystem = true,
+			KeySettings = {
+				Title = "KeyWindowTest",
+				SaveKey = false,
+				KickOnFailure = false,
+				License = {
+					Endpoint = "https://license.invalid/api/v1/licensing/validate",
+					FreeKey = false,
+				},
+			},
+		})
+		came_back = true
+	end)
+	M.resume(co)
+	M.run(2)
+	
+	local container = named("Container")
+	local header = named("Header")
+	local closeBtn = named("CloseButton")
+	H.check(container ~= nil, "the key window opened")
+	H.check(closeBtn ~= nil, "the key window has an X")
+	H.check(header ~= nil and M.D[header].props.Active == true,
+		"the header takes drag input (Active)")
+	
+	-- It fits the phone it is on: 500 wide does not.
+	local scale = find(function(_, d) return d.className == "UIScale" end)
+	H.check(scale ~= nil, "the key window has a UIScale to fit the screen with")
+	if scale and container then
+		local factor = M.D[scale].props.Scale
+		local wide = M.D[container].props.Size.X.Offset * factor
+		H.check(wide <= 381,
+			string.format("it fits across a 381 phone (%d wide, scale %.2f)", wide, factor))
+		H.log("fit: %d wide at scale %.2f", wide, factor)
+	end
+	
+	-- Closing it leaves nothing of it behind.
+	if closeBtn then
+		M.click(closeBtn)
+		M.run(2)
+	end
+	H.check(came_back == true, "CreateWindow came back once the window was closed")
+	H.check(container == nil or M.D[container].destroyed == true,
+		"the key screen is gone")
+	local leaked = #M.liveConns({ since = mark })
+	H.check(leaked == 0, leaked .. " connection(s) left running after the key window closed")
+	
+	-- THE SHUTDOWN. The hub hooks the window it was given; that hook has to
+	-- run, because there is no later close to wait for.
+	local fired, reason = 0, nil
+	H.check(type(W) == "table", "a window object came back")
+	if type(W) == "table" and type(W.OnClose) == "function" then
+		W:OnClose(function(r)
+			fired = fired + 1
+			reason = r
+		end)
+	end
+	H.check(fired == 1, "OnClose fired at once (" .. fired .. ") -- this is what arms a hub's shutdown")
+	H.check(reason == KeySystem.ClosedReason,
+		"it says the player closed the window, not that a key was refused (said " .. tostring(reason) .. ")")
+	
 else
 	H.check(false, "unknown scenario " .. tostring(H_SCENARIO))
 end
