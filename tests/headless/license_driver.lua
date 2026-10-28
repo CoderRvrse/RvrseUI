@@ -7,7 +7,7 @@
 --     not VALID — falls back to a real server call, exactly as before.
 -- Every scenario counts the calls the window makes, so a regression that
 -- quietly re-checks every launch fails here.
--- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow
+-- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow,dummyparity
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -343,6 +343,102 @@ elseif H_SCENARIO == "keywindow" then
 	H.check(fired == 1, "OnClose fired at once (" .. fired .. ") -- this is what arms a hub's shutdown")
 	H.check(reason == KeySystem.ClosedReason,
 		"it says the player closed the window, not that a key was refused (said " .. tostring(reason) .. ")")
+	
+elseif H_SCENARIO == "dummyparity" then
+	-- When a key is refused, or the player closes the key window, CreateWindow
+	-- hands the hub a DUMMY window so its script does not explode. That only
+	-- works if the dummy can do everything a real window can.
+	--
+	-- It could not. SelectTab was missing, and on a real device (2026-10-28)
+	-- closing the key screen printed:
+	--
+	--   [RvrseUI] Key system: key window closed - window not opened
+	--   hub errored on startup: attempt to call missing method 'SelectTab'
+	--
+	-- Every hub that calls Window:SelectTab died right there -- and anything
+	-- it meant to do afterwards, INCLUDING ARMING ITS SHUTDOWN, never ran. So
+	-- the crash did not just lose a tab; it lost the no-trace shutdown too.
+	local function find(pred)
+		for _, root in ipairs({ M.PlayerGui, M.CoreGui }) do
+			for _, d in ipairs(M.descendants(root)) do
+				if pred(d, M.D[d]) then return d end
+			end
+		end
+		return nil
+	end
+	
+	-- 1. A REAL window, and every method it offers.
+	local real = RvrseUI:CreateWindow({ Name = "RealWindow" })
+	H.check(type(real) == "table", "a real window was built")
+	local realMethods = {}
+	local realCount = 0
+	if type(real) == "table" then
+		for k, v in pairs(real) do
+			if type(v) == "function" then
+				realMethods[k] = true
+				realCount = realCount + 1
+			end
+		end
+	end
+	H.check(realCount > 0, "the real window exposes methods to compare against")
+	if real and real.Destroy then real:Destroy() end
+	M.run(2)
+	
+	-- 2. The DUMMY, got the way a player gets one: by closing the key window.
+	M.genv.request = function()
+		return { StatusCode = 200, Body = '{"status":"INVALID"}' }
+	end
+	local dummy
+	local co = coroutine.create(function()
+		dummy = RvrseUI:CreateWindow({
+			Name = "KeyGated",
+			KeySystem = true,
+			KeySettings = {
+				Title = "KeyGated",
+				SaveKey = false,
+				KickOnFailure = false,
+				License = { Endpoint = "https://license.invalid/v", FreeKey = false },
+			},
+		})
+	end)
+	M.resume(co)
+	M.run(2)
+	local closeBtn = find(function(_, d) return d.props.Name == "CloseButton" end)
+	if closeBtn then
+		M.click(closeBtn)
+		M.run(2)
+	end
+	H.check(type(dummy) == "table", "a dummy window came back after the key window closed")
+	
+	-- 3. Parity. This is the whole point.
+	local missing = {}
+	if type(dummy) == "table" then
+		for name in pairs(realMethods) do
+			if type(dummy[name]) ~= "function" then
+				table.insert(missing, name)
+			end
+		end
+	end
+	table.sort(missing)
+	H.check(#missing == 0,
+		"the dummy window is missing " .. #missing .. " method(s) a real window has: "
+		.. table.concat(missing, ", ")
+		.. " -- a hub calling one of these CRASHES when a player closes the key window")
+	H.log("compared %d real window methods, all present on the dummy", realCount)
+	
+	-- 4. And they have to be CALLABLE, not merely present.
+	if type(dummy) == "table" then
+		local failed = {}
+		for name in pairs(realMethods) do
+			if type(dummy[name]) == "function" then
+				local ok = pcall(function() return dummy[name](dummy) end)
+				if not ok then table.insert(failed, name) end
+			end
+		end
+		table.sort(failed)
+		H.check(#failed == 0,
+			"these dummy methods raise when called: " .. table.concat(failed, ", "))
+	end
 	
 else
 	H.check(false, "unknown scenario " .. tostring(H_SCENARIO))

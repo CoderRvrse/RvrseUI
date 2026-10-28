@@ -122,7 +122,29 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 					end
 				end,
 				Track = function(_, item) return item end,
-				IsDestroyed = function() return true end
+				IsDestroyed = function() return true end,
+
+				-- EVERY method the real window has must exist here too, or a hub
+				-- that calls one CRASHES the moment a player closes the key
+				-- window. That is not hypothetical: SelectTab was missing, and on
+				-- a real device closing the key screen gave
+				--
+				--   attempt to call missing method 'SelectTab' of table
+				--
+				-- straight after "[RvrseUI] Key system: key window closed". Every
+				-- hub that calls Window:SelectTab (UniversalHub v2 does, and it
+				-- has since 4.5.1) died there -- and anything the hub meant to do
+				-- after that line, INCLUDING ARMING ITS SHUTDOWN, never ran.
+				--
+				-- TestTheDummyWindowCanDoEverythingARealOneCan (the `dummyparity`
+				-- headless scenario) compares this table against the real window
+				-- and fails if a new method is ever added without one here.
+				SelectTab = function() return false end,
+				SetTitle = function() end,
+				Hide = function() end,
+				SetIcon = function() end,
+				SetTokenIcon = function() end,
+				GetTokenIcon = function() return nil end
 			}
 			warn("[RvrseUI] Key system: " .. tostring(closeReason) .. " - window not opened")
 			return DummyWindow
