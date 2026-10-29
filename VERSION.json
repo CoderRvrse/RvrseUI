@@ -2,15 +2,15 @@
   "version": {
     "major": 4,
     "minor": 8,
-    "patch": 2,
-    "full": "4.8.2",
-    "build": "20261028a",
-    "hash": "RVKEYWIN82",
+    "patch": 3,
+    "full": "4.8.3",
+    "build": "20261029a",
+    "hash": "RVSAVED83",
     "channel": "Stable"
   },
   "release": {
-    "date": "2026-10-28",
-    "name": "Key Window",
+    "date": "2026-10-29",
+    "name": "Remembered Key",
     "codename": "A Window Like Any Other",
     "notes": "RvrseUI no longer prints anything with debug off. Five bare prints shipped always-on -- 'UI visible - all settings applied', 'Window closed:', 'Interface destroyed', 'Successfully mounted to CoreGui' and 'All interfaces destroyed' -- so every user of every hub saw them; they now go through the gated Debug.printf/dprint. The two genuine failures (a configuration that would not load, a Notify that threw) moved to warn(). Separately, the window reveal ran TWICE on every launch, because RvrseUI shows the window itself and hubs are told to call Window:Show() last; it is now guarded so the particle burst, layout snapshot and log happen once per appearance."
   },
@@ -46,6 +46,13 @@
     "luavm_license": true
   },
   "changelog": {
+    "4.8.3": {
+      "date": "2026-10-29",
+      "hash": "RVSAVED83",
+      "changes": [
+        "A REMEMBERED KEY NOW TELLS THE HUB. Every way a key succeeds calls OnKeyValid -- a typed key does, and so does the getgenv one-key bridge -- except the saved-key path, which returned true and said nothing. So anything a hub hangs on OnKeyValid worked on a player's FIRST launch and silently did nothing on every launch after it, once SaveKey had remembered the key. Found when a key gate validated a saved key, never heard about it, and left the player looking at an empty window."
+      ]
+    },
     "4.8.2": {
       "date": "2026-10-28",
       "hash": "RVKEYWIN82",

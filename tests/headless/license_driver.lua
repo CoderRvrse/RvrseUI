@@ -7,7 +7,7 @@
 --     not VALID — falls back to a real server call, exactly as before.
 -- Every scenario counts the calls the window makes, so a regression that
 -- quietly re-checks every launch fails here.
--- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow,dummyparity
+-- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow,dummyparity,savedkey
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -440,6 +440,54 @@ elseif H_SCENARIO == "dummyparity" then
 			"these dummy methods raise when called: " .. table.concat(failed, ", "))
 	end
 	
+elseif H_SCENARIO == "savedkey" then
+	-- A REMEMBERED KEY MUST STILL TELL THE HUB.
+	--
+	-- Every way a key succeeds calls OnKeyValid -- a typed key does, and so
+	-- does the getgenv one-key bridge -- except the saved-key path, which
+	-- returned true and said nothing. Anything a hub hangs on OnKeyValid
+	-- therefore worked on a player's FIRST launch and silently did nothing on
+	-- every launch after it, once SaveKey had remembered the key.
+	--
+	-- That is not hypothetical: the UniversalHub key gate sets
+	-- getgenv().LUAVM_LICENSE_KEY from OnKeyValid and then loads the hub. On a
+	-- second launch it never heard, never loaded, and left the player looking
+	-- at an empty window.
+	M.files["RvrseUI/KeySystem/SavedKeyTest.key"] = "RVRSE-SAVED-KEY-0001"
+
+	local asked = {}
+	M.genv.request = function(req)
+		asked[#asked + 1] = req.Url
+		return { StatusCode = 200, Body = '{"status":"VALID","tier":"free"}' }
+	end
+
+	local told, toldKey = 0, nil
+	local co = coroutine.create(function()
+		RvrseUI:CreateWindow({
+			Name = "SavedKeyTest",
+			KeySystem = true,
+			KeySettings = {
+				Title = "SavedKeyTest",
+				SaveKey = true,
+				FileName = "SavedKeyTest",
+				License = { Endpoint = "https://license.invalid/api/v1/licensing/validate" },
+				OnKeyValid = function(k)
+					told = told + 1
+					toldKey = k
+				end,
+			},
+		})
+	end)
+	M.resume(co)
+	M.run(3)
+
+	H.check(#asked > 0, "the saved key was checked with the server")
+	H.check(told == 1,
+		"OnKeyValid fired for the remembered key (" .. told .. ") -- a hub that "
+		.. "hangs anything on it must hear about EVERY way a key succeeds")
+	H.check(toldKey == "RVRSE-SAVED-KEY-0001",
+		"it was told the key itself, not something else (" .. tostring(toldKey) .. ")")
+
 else
 	H.check(false, "unknown scenario " .. tostring(H_SCENARIO))
 end
