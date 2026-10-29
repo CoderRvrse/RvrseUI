@@ -1424,8 +1424,21 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 				freeCode = data.code
 				local copied = luavmCopyText(data.loot_url)
 				label("I am done - check now", colors.Success)
+				-- THE WAIT PATH NEEDS ITS OWN SENTENCE. The ad provider does not
+				-- offer everybody the same thing: some players get "Watch Ads",
+				-- others are offered ONLY a subscription or a 60-minute wait
+				-- (seen on a real device, 2026-10-28). A player who takes the
+				-- wait and then reads "come back" naturally comes back to the
+				-- GAME -- and nothing happens, because the wait hands nothing
+				-- over by itself. They have to open the SAME link again when the
+				-- timer ends.
+				--
+				-- That is an hour of someone's evening spent for nothing, with
+				-- no error anywhere, and it is indistinguishable to them from
+				-- the bug this release fixed. So say it plainly, up front.
 				if copied then
-					say("Link copied. Open it in your browser, finish the tasks, then come back - this checks by itself.", colors.TextSub)
+					say("Link copied. Open it in your browser and finish the steps - this keeps checking by itself.", colors.TextSub)
+					say("If it offers a long wait instead of ads: open the SAME link again when the timer ends, or it hands over nothing.", colors.Warning)
 				else
 					say("Could not copy the link. Open this: " .. data.loot_url, colors.Warning)
 				end
@@ -1518,6 +1531,17 @@ function KeySystem:Process(settings, callback)
 			if valid then
 				deps.Debug.printf("[KeySystem] Loaded saved key: %s", message)
 
+				-- OnKeyValid belongs here too, and its absence was a real bug.
+				-- Every OTHER way a key succeeds calls it -- a typed key does,
+				-- and so does the getgenv one-key bridge -- so a hub that hangs
+				-- anything on OnKeyValid worked on a player's FIRST launch and
+				-- silently did nothing on every launch after it, once SaveKey
+				-- had remembered the key. That is exactly how it was found: the
+				-- key gate validated a saved key, never heard about it, and left
+				-- the player looking at an empty window.
+				if keySettings.OnKeyValid then
+					keySettings.OnKeyValid(savedKey)
+				end
 				if callback then
 					callback(true, "Saved key validated")
 				end
