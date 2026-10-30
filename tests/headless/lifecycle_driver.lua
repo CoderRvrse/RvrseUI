@@ -511,6 +511,30 @@ elseif H_SCENARIO == "mobile" then
 		H.check(x0 >= 0 and y0 >= MOBILE_INSET, "a window put where the last one was left sits in the top bar")
 		H.close("x", S.W2, "Harness Hub B")
 	end
+
+	-- The footer bar has to be BIGGER on a phone than on a desktop, because the
+	-- pointer is a thumb. This is the case that prompted the whole redesign: the
+	-- old pair of tiles were 16 and 14 pixels tall on every device, and on a real
+	-- phone they were reported as "too hard click and read". The desktop sizes
+	-- are checked in the `discord` scenario; this is the one that matters.
+	local footerHalf = nil
+	local mobileRoot = H.windowRoot("Harness Hub A")
+	if mobileRoot then
+		for _, d in ipairs(M.descendants(mobileRoot)) do
+			local dd = M.D[d]
+			if dd.className == "TextButton"
+				and type(dd.props.Text) == "string"
+				and dd.props.Text:match("^v%d+%.%d+%.%d+$") ~= nil then
+				footerHalf = d
+			end
+		end
+	end
+	H.check(footerHalf ~= nil, "mobile: the window has no version chip")
+	local fs = footerHalf and footerHalf.AbsoluteSize
+	H.check(fs ~= nil and fs.Y >= 26, string.format(
+		"mobile: the footer is only %d tall -- a thumb needs more than a mouse does",
+		fs and fs.Y or -1))
+	H.log("mobile footer  | version chip %dx%d (desktop is 52x22)", fs.X, fs.Y)
 	H.close("x", S.W1, "Harness Hub A")
 elseif ONTOP then
 	-- v4.6.0: RvrseUI's screens sit at the top orders (PlayerGui by default, the
@@ -695,45 +719,79 @@ elseif H_SCENARIO == "quiet" then
 	H.log("quiet          | debug off: build=%d use=%d | debug on: overlay=%d hotkey=%d | off again + destroy key=%d",
 		atBuild, inUse, overlayOn, hotkeyOn, afterOff)
 elseif H_SCENARIO == "discord" then
-	-- The Discord badge: a tiny button above the version badge that puts the
-	-- invite on the clipboard, because Roblox cannot open a browser.
+	-- The footer bar: the Discord badge and the version chip, in ONE box, side
+	-- by side.
 	--
-	-- Two halves, and the SECOND one is the one worth having. RvrseUI is
-	-- loaded live by hubs we do not own, so a window whose hub named no
-	-- invite must show NO badge at all -- a badge that copies an empty string,
-	-- or somebody else's server, is worse than no badge. The default is empty
-	-- for exactly that reason, and this proves the empty default stays silent.
-	local function badgeIn(windowName)
+	-- They started life as two separate tiles stacked in the corner, 16 and 14
+	-- pixels tall, and on a real phone they were unreadable and nearly
+	-- unhittable. So the checks here are mostly about SIZE and ARRANGEMENT:
+	-- those are the things that were wrong, and nothing else in the suite looks
+	-- at them. A badge that works perfectly and cannot be pressed is still broken.
+	local function inWindow(windowName, pred)
 		local root = H.windowRoot(windowName)
 		if not root then return nil end
 		for _, d in ipairs(M.descendants(root)) do
-			local dd = M.D[d]
-			if dd.className == "TextButton" and dd.props.BackgroundColor3 == BLURPLE then
-				return d
-			end
+			if pred(d, M.D[d]) then return d end
 		end
 		return nil
 	end
+	local function discordIn(windowName)
+		return inWindow(windowName, function(_, dd)
+			return dd.className == "TextButton" and dd.props.BackgroundColor3 == BLURPLE
+		end)
+	end
+	local function versionIn(windowName)
+		return inWindow(windowName, function(_, dd)
+			return dd.className == "TextButton"
+				and type(dd.props.Text) == "string"
+				and dd.props.Text:match("^v%d+%.%d+%.%d+$") ~= nil
+		end)
+	end
+	-- Absolute geometry is COMPUTED by the mock and read off the instance, not
+	-- stored in props -- M.D[d].props.AbsolutePosition is simply nil.
+	local function box(d)
+		return d.AbsolutePosition, d.AbsoluteSize
+	end
 
-	local badge = badgeIn("Harness Hub A")
+	local badge = discordIn("Harness Hub A")
+	local version = versionIn("Harness Hub A")
 	H.check(badge ~= nil, "the window names an invite but has no Discord badge")
+	H.check(version ~= nil, "the window has no version chip")
 
-	-- Above the version badge, not on top of it and not off the window.
-	local bp, bs = M.D[badge].props.Position, M.D[badge].props.Size
-	H.check(bp.Y.Offset < -24, string.format(
-		"the Discord badge sits at y %d, which is not above the version badge at -24", bp.Y.Offset))
-	H.check(bs.X.Offset > 0 and bs.X.Offset <= 24 and bs.Y.Offset > 0 and bs.Y.Offset <= 24,
-		string.format("the Discord badge is %dx%d, which is not a tiny icon",
-			bs.X.Offset, bs.Y.Offset))
-	-- Something has to actually be DRAWN in it: the badge's own glyph, or an
-	-- image it holds.
-	--
-	-- This check has been wrong twice, both times by being too generous, so be
-	-- exact about what counts. Counting descendants does not work -- corner()
-	-- and stroke() each add one. Counting any TextLabel underneath does not
-	-- work either, because createTooltip parents the TOOLTIP to the badge, and
-	-- a tooltip is not something the player can see on the badge. So: the
-	-- button's own Text, or a DIRECT child ImageLabel with a real image.
+	-- ONE box. This is the whole point of the change: two tiles floating in the
+	-- corner read as debris, a single bar reads as part of the window.
+	H.check(M.D[badge].props.Parent == M.D[version].props.Parent,
+		"the Discord badge and the version chip are not in the same box")
+
+	-- Side by side, not stacked and not overlapping.
+	local bp, bs = box(badge)
+	local vp, vs = box(version)
+	H.check(bp ~= nil and vp ~= nil, "the harness could not measure the footer")
+	H.check(math.abs(bp.Y - vp.Y) <= 1, string.format(
+		"the two halves are at y %d and %d -- they are stacked, not side by side",
+		bp.Y, vp.Y))
+	H.check(bp.X + bs.X <= vp.X + 1, string.format(
+		"the Discord half (x %d..%d) overlaps the version chip (x %d..%d)",
+		bp.X, bp.X + bs.X, vp.X, vp.X + vs.X))
+
+	-- Big enough to press with a thumb, and to read. The old pair were 16 and
+	-- 14 tall, which is what prompted all of this.
+	H.check(bs.Y >= 20 and vs.Y >= 20, string.format(
+		"the footer is only %dx%d / %dx%d -- too small to hit",
+		bs.X, bs.Y, vs.X, vs.Y))
+	H.check(bs.X >= 24, string.format("the Discord half is %d wide, too narrow to hit", bs.X))
+	H.check(vs.X >= 40, string.format("the version chip is %d wide, too narrow to read", vs.X))
+
+	-- Inside the window, at the bottom.
+	local rp, rs = box(H.windowRoot("Harness Hub A"))
+	H.check(bp.X >= rp.X and bp.Y + bs.Y <= rp.Y + rs.Y + 1,
+		"the footer is not inside the window")
+	H.check(bp.Y > rp.Y + rs.Y / 2, "the footer is not in the bottom half of the window")
+
+	-- Something has to actually be DRAWN in the Discord half: its own glyph, or
+	-- an image it holds. Counting children does not work (corner/stroke add one
+	-- each, and so does the joiner), and counting TextLabels underneath does not
+	-- either, because createTooltip parents the TOOLTIP to the button.
 	local drawsSomething = (M.D[badge].props.Text or "") ~= ""
 	for _, kid in ipairs(M.D[badge].children) do
 		local kd = M.D[kid]
@@ -743,27 +801,22 @@ elseif H_SCENARIO == "discord" then
 	end
 	H.check(drawsSomething, "the Discord badge draws nothing at all -- no icon and no glyph")
 
-	-- Clicking it copies the invite. This is the whole point of the button:
-	-- there is nothing else it could usefully do.
+	-- Each half does its own job.
 	M.clipboard = nil
 	M.click(badge)
 	M.run(2)
 	H.check(M.clipboard == H_INVITE, "clicking the Discord badge put " ..
 		tostring(M.clipboard) .. " on the clipboard, not the invite")
 
-	-- A hub that names NOTHING carries the library's own invite. That is the
-	-- point of having a default, and it is also the case that reaches the most
-	-- people: every hub built on RvrseUI that never thinks about this.
-	--
-	-- The expected value is read back out of the source rather than written
-	-- here, because a second copy of the invite in the tests is just the drift
-	-- bug again, one file further along.
+	-- A hub that names NOTHING carries the library's own invite. The expected
+	-- value is read back out of the source rather than written here, because a
+	-- second copy of the invite in the tests is just the drift bug again, one
+	-- file further along.
 	local DEFAULT = RVRSEUI_SRC:match('local DEFAULT_DISCORD_INVITE = "([^"]*)"')
 	H.check(DEFAULT ~= nil,
 		"could not find DEFAULT_DISCORD_INVITE in the source -- did it get renamed?")
 	H.check(DEFAULT:match("^https://discord%.gg/%w+$") ~= nil,
-		"the library default is " .. tostring(DEFAULT) ..
-		", which is not a Discord invite link")
+		"the library default is " .. tostring(DEFAULT) .. ", which is not a Discord invite link")
 
 	local W2 = nil
 	local okSecond = M.runThread(function()
@@ -772,7 +825,7 @@ elseif H_SCENARIO == "discord" then
 	end, 60)
 	H.check(okSecond, "building the second window did not finish")
 	M.run(2)
-	local badge2 = badgeIn("Harness Hub B")
+	local badge2 = discordIn("Harness Hub B")
 	H.check(badge2 ~= nil, "a hub that named no invite got no badge at all")
 	M.clipboard = nil
 	M.click(badge2)
@@ -780,9 +833,9 @@ elseif H_SCENARIO == "discord" then
 	H.check(M.clipboard == DEFAULT, "a hub that named no invite copied " ..
 		tostring(M.clipboard) .. ", not the library default " .. tostring(DEFAULT))
 
-	-- And a hub can refuse it outright. Somebody else's community does not
-	-- belong in their window if they do not want it there, and `false` is the
-	-- way to say so -- distinct from naming no invite at all.
+	-- And a hub can refuse it outright. THE VERSION CHIP MUST SURVIVE THAT:
+	-- opting out of the Discord badge must not cost the window its version
+	-- chip, which every build has always had and now shares a box with.
 	local W3 = nil
 	local okThird = M.runThread(function()
 		W3 = (H.buildWindow(S.RvrseUI, "Harness Hub C", { DiscordInvite = false }))
@@ -790,12 +843,17 @@ elseif H_SCENARIO == "discord" then
 	end, 60)
 	H.check(okThird, "building the third window did not finish")
 	M.run(2)
-	H.check(badgeIn("Harness Hub C") == nil,
+	H.check(discordIn("Harness Hub C") == nil,
 		"a hub that set DiscordInvite = false still shows a Discord badge")
+	local v3 = versionIn("Harness Hub C")
+	H.check(v3 ~= nil, "opting out of the Discord badge also removed the version chip")
+	local v3p, v3s = box(v3)
+	H.check(v3s.Y >= 20 and v3s.X >= 40, string.format(
+		"with no Discord half the version chip is %dx%d -- too small", v3s.X, v3s.Y))
 
-	H.log("discord        | badge at y %d, %dx%d | hub's own invite copied | "
-		.. "no invite named = the library default (%s) | DiscordInvite = false = no badge",
-		bp.Y.Offset, bs.X.Offset, bs.Y.Offset, DEFAULT)
+	H.log("discord        | one box: discord %dx%d at x %d, version %dx%d at x %d (same y) | "
+		.. "hub invite copied | no invite = default (%s) | false = no badge, chip survives %dx%d",
+		bs.X, bs.Y, bp.X, vs.X, vs.Y, vp.X, DEFAULT, v3s.X, v3s.Y)
 	H.close("x", W3, "Harness Hub C")
 	H.close("x", W2, "Harness Hub B")
 	H.close("x", S.W1, "Harness Hub A", S.RvrseUI)

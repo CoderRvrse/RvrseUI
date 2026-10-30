@@ -1085,21 +1085,48 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		Animator:Tween(themeToggle, {BackgroundColor3 = currentPal.Elevated}, Animator.Spring.Fast)
 	end)
 
-	-- Version badge
+	-- Footer bar: the Discord badge and the version chip, side by side
+	--
+	-- These used to be two separate little tiles stacked on top of each other in
+	-- the corner, 16 and 14 pixels tall. On a phone that is unreadable and very
+	-- nearly unhittable -- the owner's word was "too hard click and read" -- and
+	-- two floating tiles read as debris rather than as part of the window. One
+	-- bar, with each half its own button and a divider between them, is legible,
+	-- is obviously a thing you can press, and grows on touch devices where the
+	-- pointer is a thumb.
+	local footH = isMobile and 28 or 22
+	local discordW = isMobile and 34 or 28
+	local versionW = isMobile and 62 or 52
+
+	local discordInvite = cfg.DiscordInvite
+	if discordInvite == nil then
+		discordInvite = DEFAULT_DISCORD_INVITE
+	end
+	local showDiscord = type(discordInvite) == "string" and discordInvite ~= ""
+
+	local footer = Instance.new("Frame")
+	footer.Name = Obfuscation.getObfuscatedName("footer")
+	footer.BackgroundColor3 = pal.Card
+	footer.BackgroundTransparency = 0.25
+	footer.BorderSizePixel = 0
+	footer.Position = UDim2.new(0, 8, 1, -(footH + 8))
+	footer.Size = UDim2.new(0, (showDiscord and discordW or 0) + versionW, 0, footH)
+	footer.Parent = root
+	UIHelpers.corner(footer, 6)
+	UIHelpers.stroke(footer, pal.Border, 1)
+
+	-- Version chip: the right-hand half, or the whole bar when there is no invite.
 	local versionBadge = Instance.new("TextButton")
 	versionBadge.Name = Obfuscation.getObfuscatedName("badge")
-	versionBadge.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
-	versionBadge.BackgroundTransparency = 0.9
-	versionBadge.Position = UDim2.new(0, 8, 1, -24)
-	versionBadge.Size = UDim2.new(0, 38, 0, 14)
+	versionBadge.BackgroundTransparency = 1
+	versionBadge.Position = UDim2.new(0, showDiscord and discordW or 0, 0, 0)
+	versionBadge.Size = UDim2.new(0, versionW, 1, 0)
 	versionBadge.Font = Enum.Font.GothamBold
-	versionBadge.TextSize = 7
-	versionBadge.TextColor3 = Color3.fromRGB(0, 255, 200)
+	versionBadge.TextSize = isMobile and 11 or 10
+	versionBadge.TextColor3 = pal.Accent
 	versionBadge.Text = "v" .. Version.Full
 	versionBadge.AutoButtonColor = false
-	versionBadge.Parent = root
-	UIHelpers.corner(versionBadge, 5)
-	UIHelpers.stroke(versionBadge, Color3.fromRGB(0, 255, 200), 1)
+	versionBadge.Parent = footer
 
 	local versionTooltip = UIHelpers.createTooltip(versionBadge, string.format(
 		"Version: %s | Build: %s | Hash: %s | Channel: %s",
@@ -1111,11 +1138,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	versionBadge.MouseEnter:Connect(function()
 		versionTooltip.Visible = true
-		Animator:Tween(versionBadge, {BackgroundTransparency = 0.7}, Animator.Spring.Fast)
+		Animator:Tween(footer, {BackgroundTransparency = 0.05}, Animator.Spring.Fast)
 	end)
 	versionBadge.MouseLeave:Connect(function()
 		versionTooltip.Visible = false
-		Animator:Tween(versionBadge, {BackgroundTransparency = 0.9}, Animator.Spring.Fast)
+		Animator:Tween(footer, {BackgroundTransparency = 0.25}, Animator.Spring.Fast)
 	end)
 
 	versionBadge.MouseButton1Click:Connect(function()
@@ -1130,28 +1157,43 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end)
 
-	-- Discord badge, sitting just above the version badge
+	-- Discord half: the left end of the bar, in blurple so it reads as itself.
 	--
-	-- Roblox cannot open a browser, so the only thing a button like this can
-	-- usefully do is put the invite on the clipboard. The notification repeats
-	-- the invite in full on purpose: executors that expose no clipboard
-	-- function at all still leave the player something they can read and type.
-	local discordInvite = cfg.DiscordInvite
-	if discordInvite == nil then
-		discordInvite = DEFAULT_DISCORD_INVITE
-	end
-	if type(discordInvite) == "string" and discordInvite ~= "" then
+	-- Roblox cannot open a browser, so the only thing this can usefully do is
+	-- put the invite on the clipboard. The notification repeats the invite in
+	-- full on purpose: an executor with no clipboard function at all still
+	-- leaves the player something they can read and type.
+	if showDiscord then
 		local discordBadge = Instance.new("TextButton")
 		discordBadge.Name = Obfuscation.getObfuscatedName("badge")
 		discordBadge.BackgroundColor3 = Color3.fromRGB(88, 101, 242)  -- Discord blurple
-		discordBadge.BackgroundTransparency = 0.85
-		discordBadge.Position = UDim2.new(0, 8, 1, -42)
-		discordBadge.Size = UDim2.new(0, 16, 0, 16)
+		discordBadge.BackgroundTransparency = 0.15
+		discordBadge.BorderSizePixel = 0
+		discordBadge.Position = UDim2.new(0, 0, 0, 0)
+		discordBadge.Size = UDim2.new(0, discordW, 1, 0)
 		discordBadge.Text = ""
 		discordBadge.AutoButtonColor = false
-		discordBadge.Parent = root
-		UIHelpers.corner(discordBadge, 5)
-		UIHelpers.stroke(discordBadge, Color3.fromRGB(88, 101, 242), 1)
+		discordBadge.Parent = footer
+		UIHelpers.corner(discordBadge, 6)
+
+		-- Square off the inner edge so the two halves meet flush instead of
+		-- leaving a rounded notch in the middle of the bar.
+		local joiner = Instance.new("Frame")
+		joiner.BackgroundColor3 = discordBadge.BackgroundColor3
+		joiner.BackgroundTransparency = discordBadge.BackgroundTransparency
+		joiner.BorderSizePixel = 0
+		joiner.Position = UDim2.new(1, -6, 0, 0)
+		joiner.Size = UDim2.new(0, 6, 1, 0)
+		joiner.ZIndex = discordBadge.ZIndex
+		joiner.Parent = discordBadge
+
+		local divider = Instance.new("Frame")
+		divider.BackgroundColor3 = pal.Border
+		divider.BackgroundTransparency = 0.4
+		divider.BorderSizePixel = 0
+		divider.Position = UDim2.new(0, discordW, 0, 4)
+		divider.Size = UDim2.new(0, 1, 1, -8)
+		divider.Parent = footer
 
 		local badgeIcon, badgeIconType = Icons.resolveIcon(cfg.DiscordIcon or "icon://chat")
 		if badgeIconType == "image" or badgeIconType == "sprite" then
@@ -1159,7 +1201,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			img.BackgroundTransparency = 1
 			img.AnchorPoint = Vector2.new(0.5, 0.5)
 			img.Position = UDim2.new(0.5, 0, 0.5, 0)
-			img.Size = UDim2.new(0, 10, 0, 10)
+			img.Size = UDim2.new(0, footH - 10, 0, footH - 10)
 			img.ImageColor3 = Color3.fromRGB(255, 255, 255)
 			if badgeIconType == "sprite" then
 				img.Image = "rbxassetid://" .. badgeIcon.id
@@ -1168,23 +1210,27 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			else
 				img.Image = badgeIcon
 			end
+			img.ZIndex = discordBadge.ZIndex + 1
 			img.Parent = discordBadge
 		else
 			discordBadge.Font = Enum.Font.GothamBold
-			discordBadge.TextSize = 9
+			discordBadge.TextSize = isMobile and 14 or 12
 			discordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
 			discordBadge.Text = tostring(badgeIcon)
+			discordBadge.ZIndex = discordBadge.ZIndex + 1
 		end
 
 		local discordTooltip = UIHelpers.createTooltip(discordBadge, "Discord - click to copy the invite")
 
 		discordBadge.MouseEnter:Connect(function()
 			discordTooltip.Visible = true
-			Animator:Tween(discordBadge, {BackgroundTransparency = 0.55}, Animator.Spring.Fast)
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0}, Animator.Spring.Fast)
+			Animator:Tween(joiner, {BackgroundTransparency = 0}, Animator.Spring.Fast)
 		end)
 		discordBadge.MouseLeave:Connect(function()
 			discordTooltip.Visible = false
-			Animator:Tween(discordBadge, {BackgroundTransparency = 0.85}, Animator.Spring.Fast)
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0.15}, Animator.Spring.Fast)
+			Animator:Tween(joiner, {BackgroundTransparency = 0.15}, Animator.Spring.Fast)
 		end)
 
 		discordBadge.MouseButton1Click:Connect(function()
