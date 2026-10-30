@@ -201,24 +201,18 @@ local function luavmFreeUrl(license, leaf)
 end
 
 -- An executor cannot open a browser, so the clipboard is the hand-off for the
--- ad link. Executors spell this at least three ways; any one of them will do.
+-- ad link.
+--
+-- This used to carry its own copy of the search, which read the environment
+-- with rawget and so missed every executor that serves setclipboard through a
+-- metatable -- indistinguishable, to the player, from an executor that cannot
+-- copy at all, on the one screen where losing the link costs them the key.
+-- UIHelpers.copyText is now the only implementation; do not reintroduce one.
 local function luavmCopyText(text)
-	local copied = false
-	local envs = {}
-	local okg, g = pcall(function() return getgenv and getgenv() end)
-	if okg and type(g) == "table" then envs[#envs + 1] = g end
-	envs[#envs + 1] = _G
-	for _, env in ipairs(envs) do
-		for _, name in ipairs({ "setclipboard", "toclipboard", "set_clipboard" }) do
-			if not copied then
-				local fn = rawget(env, name)
-				if type(fn) == "function" then
-					copied = pcall(fn, text)
-				end
-			end
-		end
+	if deps and deps.UIHelpers and deps.UIHelpers.copyText then
+		return deps.UIHelpers.copyText(text)
 	end
-	return copied
+	return false
 end
 
 -- Validate a key against a LUAVM-Rvrse license server. Returns (ok, message).

@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-29T17:40:35.682Z
+-- Compiled from modular architecture on 2026-10-30T20:41:56.957Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -39,11 +39,11 @@ Version = {}
 
 Version.Data = {
 	Major = 4,
-	Minor = 8,
-	Patch = 3,
-	Build = "20261029a",  -- YYYYMMDD format
-	Full = "4.8.3",
-	Hash = "RVSAVED83",  -- Release hash for integrity verification
+	Minor = 9,
+	Patch = 0,
+	Build = "20261030a",  -- YYYYMMDD format
+	Full = "4.9.0",
+	Hash = "RVDISCORD90",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -1579,6 +1579,47 @@ function UIHelpers:Initialize(deps)
 	-- UIHelpers is ready to use
 	-- Dependencies (Animator, Theme, Icons, PlayerGui) are passed but not stored
 	-- Helper functions are self-contained and don't need initialization
+end
+
+-- Put text on the player's clipboard, using whichever name their executor
+-- gives the function.
+--
+-- Roblox cannot open a browser, so copying is the only way to hand somebody a
+-- link they can actually follow. Every executor spells this differently and
+-- some expose it only on getgenv(), so try the lot and report honestly whether
+-- any of them worked -- a button that silently does nothing is worse than one
+-- that says it could not.
+function UIHelpers.copyText(text)
+	if type(text) ~= "string" or text == "" then
+		return false
+	end
+	-- Everywhere the function might live, in the order worth trying.
+	--
+	-- Read with plain indexing inside a pcall, NOT rawget: executors commonly
+	-- serve these through a metatable on the script environment, and rawget
+	-- walks straight past one -- which looks exactly like "this executor cannot
+	-- copy" on an executor that can. getgenv/getfenv may not exist at all, so
+	-- even fetching the environment is wrapped.
+	local envs = {}
+	local ok, env = pcall(function() return getgenv() end)
+	if ok and type(env) == "table" then
+		envs[#envs + 1] = env
+	end
+	ok, env = pcall(function() return getfenv(0) end)
+	if ok and type(env) == "table" then
+		envs[#envs + 1] = env
+	end
+	envs[#envs + 1] = _G
+
+	for _, e in ipairs(envs) do
+		for _, name in ipairs({ "setclipboard", "toclipboard", "set_clipboard" }) do
+			local okRead, fn = pcall(function() return e[name] end)
+			if okRead and type(fn) == "function" and pcall(fn, text) then
+				return true
+			end
+		end
+	end
+	return false
 end
 end
 
@@ -3777,24 +3818,18 @@ local function luavmFreeUrl(license, leaf)
 end
 
 -- An executor cannot open a browser, so the clipboard is the hand-off for the
--- ad link. Executors spell this at least three ways; any one of them will do.
+-- ad link.
+--
+-- This used to carry its own copy of the search, which read the environment
+-- with rawget and so missed every executor that serves setclipboard through a
+-- metatable -- indistinguishable, to the player, from an executor that cannot
+-- copy at all, on the one screen where losing the link costs them the key.
+-- UIHelpers.copyText is now the only implementation; do not reintroduce one.
 local function luavmCopyText(text)
-	local copied = false
-	local envs = {}
-	local okg, g = pcall(function() return getgenv and getgenv() end)
-	if okg and type(g) == "table" then envs[#envs + 1] = g end
-	envs[#envs + 1] = _G
-	for _, env in ipairs(envs) do
-		for _, name in ipairs({ "setclipboard", "toclipboard", "set_clipboard" }) do
-			if not copied then
-				local fn = rawget(env, name)
-				if type(fn) == "function" then
-					copied = pcall(fn, text)
-				end
-			end
-		end
+	if deps and deps.UIHelpers and deps.UIHelpers.copyText then
+		return deps.UIHelpers.copyText(text)
 	end
-	return copied
+	return false
 end
 
 -- Validate a key against a LUAVM-Rvrse license server. Returns (ok, message).
@@ -10411,6 +10446,17 @@ do
 
 WindowBuilder = {}
 
+-- The community invite the Discord badge copies, for hubs that do not name
+-- their own with `DiscordInvite` in CreateWindow.
+--
+-- RvrseUI is loaded live by hubs we do not own, so this is the one string in
+-- the library that points at somebody's community. Leave it EMPTY rather than
+-- pointing it at a guess: an empty invite hides the badge, which is honest,
+-- while a wrong one hands every player of every hub a dead link. A never
+-- expiring invite is the only kind worth putting here -- a 7-day default
+-- stops working a week after a hub ships and nobody finds out.
+local DEFAULT_DISCORD_INVITE = ""
+
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles, Layers
@@ -11523,6 +11569,78 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			})
 		end
 	end)
+
+	-- Discord badge, sitting just above the version badge
+	--
+	-- Roblox cannot open a browser, so the only thing a button like this can
+	-- usefully do is put the invite on the clipboard. The notification repeats
+	-- the invite in full on purpose: executors that expose no clipboard
+	-- function at all still leave the player something they can read and type.
+	local discordInvite = cfg.DiscordInvite
+	if discordInvite == nil then
+		discordInvite = DEFAULT_DISCORD_INVITE
+	end
+	if type(discordInvite) == "string" and discordInvite ~= "" then
+		local discordBadge = Instance.new("TextButton")
+		discordBadge.Name = Obfuscation.getObfuscatedName("badge")
+		discordBadge.BackgroundColor3 = Color3.fromRGB(88, 101, 242)  -- Discord blurple
+		discordBadge.BackgroundTransparency = 0.85
+		discordBadge.Position = UDim2.new(0, 8, 1, -42)
+		discordBadge.Size = UDim2.new(0, 16, 0, 16)
+		discordBadge.Text = ""
+		discordBadge.AutoButtonColor = false
+		discordBadge.Parent = root
+		UIHelpers.corner(discordBadge, 5)
+		UIHelpers.stroke(discordBadge, Color3.fromRGB(88, 101, 242), 1)
+
+		local badgeIcon, badgeIconType = Icons.resolveIcon(cfg.DiscordIcon or "icon://chat")
+		if badgeIconType == "image" or badgeIconType == "sprite" then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.Position = UDim2.new(0.5, 0, 0.5, 0)
+			img.Size = UDim2.new(0, 10, 0, 10)
+			img.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			if badgeIconType == "sprite" then
+				img.Image = "rbxassetid://" .. badgeIcon.id
+				img.ImageRectSize = badgeIcon.imageRectSize
+				img.ImageRectOffset = badgeIcon.imageRectOffset
+			else
+				img.Image = badgeIcon
+			end
+			img.Parent = discordBadge
+		else
+			discordBadge.Font = Enum.Font.GothamBold
+			discordBadge.TextSize = 9
+			discordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
+			discordBadge.Text = tostring(badgeIcon)
+		end
+
+		local discordTooltip = UIHelpers.createTooltip(discordBadge, "Discord - click to copy the invite")
+
+		discordBadge.MouseEnter:Connect(function()
+			discordTooltip.Visible = true
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0.55}, Animator.Spring.Fast)
+		end)
+		discordBadge.MouseLeave:Connect(function()
+			discordTooltip.Visible = false
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0.85}, Animator.Spring.Fast)
+		end)
+
+		discordBadge.MouseButton1Click:Connect(function()
+			local copied = UIHelpers.copyText(discordInvite)
+			if NotificationsService and NotificationsService.Notify then
+				NotificationsService:Notify({
+					Title = copied and "Discord invite copied" or "Discord invite",
+					Message = copied
+						and (discordInvite .. " - paste it into your browser")
+						or (discordInvite .. " (your executor has no clipboard, so type it in)"),
+					Duration = 6,
+					Type = copied and "success" or "info"
+				})
+			end
+		end)
+	end
 
 	-- Sleek vertical icon-only tab rail
 	local railWidth = 80 -- Narrower for icon-only design

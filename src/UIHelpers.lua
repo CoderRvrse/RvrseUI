@@ -185,4 +185,45 @@ function UIHelpers:Initialize(deps)
 	-- Helper functions are self-contained and don't need initialization
 end
 
+-- Put text on the player's clipboard, using whichever name their executor
+-- gives the function.
+--
+-- Roblox cannot open a browser, so copying is the only way to hand somebody a
+-- link they can actually follow. Every executor spells this differently and
+-- some expose it only on getgenv(), so try the lot and report honestly whether
+-- any of them worked -- a button that silently does nothing is worse than one
+-- that says it could not.
+function UIHelpers.copyText(text)
+	if type(text) ~= "string" or text == "" then
+		return false
+	end
+	-- Everywhere the function might live, in the order worth trying.
+	--
+	-- Read with plain indexing inside a pcall, NOT rawget: executors commonly
+	-- serve these through a metatable on the script environment, and rawget
+	-- walks straight past one -- which looks exactly like "this executor cannot
+	-- copy" on an executor that can. getgenv/getfenv may not exist at all, so
+	-- even fetching the environment is wrapped.
+	local envs = {}
+	local ok, env = pcall(function() return getgenv() end)
+	if ok and type(env) == "table" then
+		envs[#envs + 1] = env
+	end
+	ok, env = pcall(function() return getfenv(0) end)
+	if ok and type(env) == "table" then
+		envs[#envs + 1] = env
+	end
+	envs[#envs + 1] = _G
+
+	for _, e in ipairs(envs) do
+		for _, name in ipairs({ "setclipboard", "toclipboard", "set_clipboard" }) do
+			local okRead, fn = pcall(function() return e[name] end)
+			if okRead and type(fn) == "function" and pcall(fn, text) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 return UIHelpers

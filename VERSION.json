@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 8,
-    "patch": 3,
-    "full": "4.8.3",
-    "build": "20261029a",
-    "hash": "RVSAVED83",
+    "minor": 9,
+    "patch": 0,
+    "full": "4.9.0",
+    "build": "20261030a",
+    "hash": "RVDISCORD90",
     "channel": "Stable"
   },
   "release": {
-    "date": "2026-10-29",
-    "name": "Remembered Key",
-    "codename": "A Window Like Any Other",
-    "notes": "RvrseUI no longer prints anything with debug off. Five bare prints shipped always-on -- 'UI visible - all settings applied', 'Window closed:', 'Interface destroyed', 'Successfully mounted to CoreGui' and 'All interfaces destroyed' -- so every user of every hub saw them; they now go through the gated Debug.printf/dprint. The two genuine failures (a configuration that would not load, a Notify that threw) moved to warn(). Separately, the window reveal ran TWICE on every launch, because RvrseUI shows the window itself and hubs are told to call Window:Show() last; it is now guarded so the particle burst, layout snapshot and log happen once per appearance."
+    "date": "2026-10-30",
+    "name": "Come and Say Hello",
+    "codename": "One Tap to the Invite",
+    "notes": "A tiny Discord badge now sits just above the version badge and puts a community invite on the player's clipboard, because Roblox cannot open a browser and copying is the only hand-off available. Hubs name their own with DiscordInvite in CreateWindow; a hub that names none shows no badge at all, since RvrseUI is loaded live by hubs we do not own and a badge pointing at the wrong server is worse than no badge. The search for the executor's clipboard function moved into UIHelpers.copyText as the single implementation, and was fixed on the way: it read the environment with rawget, which walks straight past a metatable, so on every executor that serves setclipboard through one the key window reported that it could not copy the ad link -- on an executor that copies perfectly well. That is the one screen where losing the link costs the player their free key."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -43,7 +43,8 @@
     "lifecycle_api": true,
     "always_on_top": true,
     "first_person_mouse": true,
-    "luavm_license": true
+    "luavm_license": true,
+    "discord_badge": true
   },
   "changelog": {
     "4.8.3": {
@@ -635,6 +636,17 @@
       "hash": "V6P1R4Z7",
       "changes": [
         "🔁 CI installs stylua/selene/rojo/wally using cargo to avoid third-party actions."
+      ]
+    },
+    "4.9.0": {
+      "date": "2026-10-30",
+      "hash": "RVDISCORD90",
+      "changes": [
+        "Added: a Discord badge above the version badge, 16x16, which copies the invite on click and says so in a notification (the notification repeats the invite in full, so a player whose executor has no clipboard at all still has something to read).",
+        "Added: CreateWindow options DiscordInvite (the link; no link means no badge) and DiscordIcon (defaults to icon://chat, accepts any icon the library resolves).",
+        "Added: UIHelpers.copyText, now the only clipboard implementation in the library.",
+        "Fixed: the clipboard search read the environment with rawget, so it missed every executor that serves setclipboard through a metatable -- which looked exactly like an executor that cannot copy. This was in the key window's ad-link hand-off, where it costs the player a free key.",
+        "Tests: harness scenario 'discord' (badge present, above the version badge, tiny, draws something, click copies, and NO badge when a hub names no invite) and licence scenarios 'adlink' / 'adlink_meta' (the ad link reaches the clipboard, including through a metatable). All verified by mutation."
       ]
     }
   },

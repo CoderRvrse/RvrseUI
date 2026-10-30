@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui,discord
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -232,6 +232,10 @@ if H_SCENARIO == "ontop_hidden" then
 elseif H_SCENARIO == "ontop_playergui" then
 	M.coreGuiLocked = true
 end
+-- What the badge copies in this run, and the blurple it is drawn in.
+local H_INVITE = "https://discord.gg/harness-test"
+local BLURPLE = Color3.fromRGB(88, 101, 242)
+
 local wantsLifecycle = H_SCENARIO == "reopen" or H_SCENARIO == "togglesoff" or H_SCENARIO == "track" or H_SCENARIO == "overlays"
 local okBuild = M.runThread(function()
 	S.RvrseUI = H.loadRvrseUI()
@@ -240,6 +244,8 @@ local okBuild = M.runThread(function()
 		extra = { TurnOffTogglesOnClose = true, ConfigurationSaving = { Enabled = true, FolderName = "H", FileName = "h.json" } }
 	elseif ONTOP and H_SCENARIO ~= "ontop" then
 		extra = { AlwaysOnTop = true }
+	elseif H_SCENARIO == "discord" then
+		extra = { DiscordInvite = H_INVITE }
 	end
 	S.W1, S.ui1 = H.buildWindow(S.RvrseUI, "Harness Hub A", extra)
 	if H.hasLifecycle(S.W1) then S.W1:OnClose(function(reason) S.closeCalls[1] += 1 S.reason1 = reason end) end
@@ -688,6 +694,78 @@ elseif H_SCENARIO == "quiet" then
 	local afterOff = quiet(mark, "after debug was switched off again")
 	H.log("quiet          | debug off: build=%d use=%d | debug on: overlay=%d hotkey=%d | off again + destroy key=%d",
 		atBuild, inUse, overlayOn, hotkeyOn, afterOff)
+elseif H_SCENARIO == "discord" then
+	-- The Discord badge: a tiny button above the version badge that puts the
+	-- invite on the clipboard, because Roblox cannot open a browser.
+	--
+	-- Two halves, and the SECOND one is the one worth having. RvrseUI is
+	-- loaded live by hubs we do not own, so a window whose hub named no
+	-- invite must show NO badge at all -- a badge that copies an empty string,
+	-- or somebody else's server, is worse than no badge. The default is empty
+	-- for exactly that reason, and this proves the empty default stays silent.
+	local function badgeIn(windowName)
+		local root = H.windowRoot(windowName)
+		if not root then return nil end
+		for _, d in ipairs(M.descendants(root)) do
+			local dd = M.D[d]
+			if dd.className == "TextButton" and dd.props.BackgroundColor3 == BLURPLE then
+				return d
+			end
+		end
+		return nil
+	end
+
+	local badge = badgeIn("Harness Hub A")
+	H.check(badge ~= nil, "the window names an invite but has no Discord badge")
+
+	-- Above the version badge, not on top of it and not off the window.
+	local bp, bs = M.D[badge].props.Position, M.D[badge].props.Size
+	H.check(bp.Y.Offset < -24, string.format(
+		"the Discord badge sits at y %d, which is not above the version badge at -24", bp.Y.Offset))
+	H.check(bs.X.Offset > 0 and bs.X.Offset <= 24 and bs.Y.Offset > 0 and bs.Y.Offset <= 24,
+		string.format("the Discord badge is %dx%d, which is not a tiny icon",
+			bs.X.Offset, bs.Y.Offset))
+	-- Something has to actually be DRAWN in it: the badge's own glyph, or an
+	-- image it holds.
+	--
+	-- This check has been wrong twice, both times by being too generous, so be
+	-- exact about what counts. Counting descendants does not work -- corner()
+	-- and stroke() each add one. Counting any TextLabel underneath does not
+	-- work either, because createTooltip parents the TOOLTIP to the badge, and
+	-- a tooltip is not something the player can see on the badge. So: the
+	-- button's own Text, or a DIRECT child ImageLabel with a real image.
+	local drawsSomething = (M.D[badge].props.Text or "") ~= ""
+	for _, kid in ipairs(M.D[badge].children) do
+		local kd = M.D[kid]
+		if kd.className == "ImageLabel" and (kd.props.Image or "") ~= "" then
+			drawsSomething = true
+		end
+	end
+	H.check(drawsSomething, "the Discord badge draws nothing at all -- no icon and no glyph")
+
+	-- Clicking it copies the invite. This is the whole point of the button:
+	-- there is nothing else it could usefully do.
+	M.clipboard = nil
+	M.click(badge)
+	M.run(2)
+	H.check(M.clipboard == H_INVITE, "clicking the Discord badge put " ..
+		tostring(M.clipboard) .. " on the clipboard, not the invite")
+
+	-- A hub that names no invite gets no badge.
+	local W2, _ = nil, nil
+	local okSecond = M.runThread(function()
+		W2 = (H.buildWindow(S.RvrseUI, "Harness Hub B"))
+		W2:Show()
+	end, 60)
+	H.check(okSecond, "building the second window did not finish")
+	M.run(2)
+	H.check(badgeIn("Harness Hub B") == nil,
+		"a window whose hub named NO invite still shows a Discord badge")
+
+	H.log("discord        | badge at y %d, %dx%d | click copied the invite | no invite named = no badge",
+		bp.Y.Offset, bs.X.Offset, bs.Y.Offset)
+	H.close("x", W2, "Harness Hub B")
+	H.close("x", S.W1, "Harness Hub A", S.RvrseUI)
 else
 	H.close(H_SCENARIO, S.W1, "Harness Hub A", S.RvrseUI)
 end

@@ -4,6 +4,17 @@
 
 local WindowBuilder = {}
 
+-- The community invite the Discord badge copies, for hubs that do not name
+-- their own with `DiscordInvite` in CreateWindow.
+--
+-- RvrseUI is loaded live by hubs we do not own, so this is the one string in
+-- the library that points at somebody's community. Leave it EMPTY rather than
+-- pointing it at a guess: an empty invite hides the badge, which is honest,
+-- while a wrong one hands every player of every hub a dead link. A never
+-- expiring invite is the only kind worth putting here -- a 7-day default
+-- stops working a week after a hub ships and nobody finds out.
+local DEFAULT_DISCORD_INVITE = ""
+
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles, Layers
@@ -1116,6 +1127,78 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 			})
 		end
 	end)
+
+	-- Discord badge, sitting just above the version badge
+	--
+	-- Roblox cannot open a browser, so the only thing a button like this can
+	-- usefully do is put the invite on the clipboard. The notification repeats
+	-- the invite in full on purpose: executors that expose no clipboard
+	-- function at all still leave the player something they can read and type.
+	local discordInvite = cfg.DiscordInvite
+	if discordInvite == nil then
+		discordInvite = DEFAULT_DISCORD_INVITE
+	end
+	if type(discordInvite) == "string" and discordInvite ~= "" then
+		local discordBadge = Instance.new("TextButton")
+		discordBadge.Name = Obfuscation.getObfuscatedName("badge")
+		discordBadge.BackgroundColor3 = Color3.fromRGB(88, 101, 242)  -- Discord blurple
+		discordBadge.BackgroundTransparency = 0.85
+		discordBadge.Position = UDim2.new(0, 8, 1, -42)
+		discordBadge.Size = UDim2.new(0, 16, 0, 16)
+		discordBadge.Text = ""
+		discordBadge.AutoButtonColor = false
+		discordBadge.Parent = root
+		UIHelpers.corner(discordBadge, 5)
+		UIHelpers.stroke(discordBadge, Color3.fromRGB(88, 101, 242), 1)
+
+		local badgeIcon, badgeIconType = Icons.resolveIcon(cfg.DiscordIcon or "icon://chat")
+		if badgeIconType == "image" or badgeIconType == "sprite" then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.Position = UDim2.new(0.5, 0, 0.5, 0)
+			img.Size = UDim2.new(0, 10, 0, 10)
+			img.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			if badgeIconType == "sprite" then
+				img.Image = "rbxassetid://" .. badgeIcon.id
+				img.ImageRectSize = badgeIcon.imageRectSize
+				img.ImageRectOffset = badgeIcon.imageRectOffset
+			else
+				img.Image = badgeIcon
+			end
+			img.Parent = discordBadge
+		else
+			discordBadge.Font = Enum.Font.GothamBold
+			discordBadge.TextSize = 9
+			discordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
+			discordBadge.Text = tostring(badgeIcon)
+		end
+
+		local discordTooltip = UIHelpers.createTooltip(discordBadge, "Discord - click to copy the invite")
+
+		discordBadge.MouseEnter:Connect(function()
+			discordTooltip.Visible = true
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0.55}, Animator.Spring.Fast)
+		end)
+		discordBadge.MouseLeave:Connect(function()
+			discordTooltip.Visible = false
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0.85}, Animator.Spring.Fast)
+		end)
+
+		discordBadge.MouseButton1Click:Connect(function()
+			local copied = UIHelpers.copyText(discordInvite)
+			if NotificationsService and NotificationsService.Notify then
+				NotificationsService:Notify({
+					Title = copied and "Discord invite copied" or "Discord invite",
+					Message = copied
+						and (discordInvite .. " - paste it into your browser")
+						or (discordInvite .. " (your executor has no clipboard, so type it in)"),
+					Duration = 6,
+					Type = copied and "success" or "info"
+				})
+			end
+		end)
+	end
 
 	-- Sleek vertical icon-only tab rail
 	local railWidth = 80 -- Narrower for icon-only design
