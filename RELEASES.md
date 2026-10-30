@@ -1,5 +1,40 @@
 # RvrseUI Releases
 
+## Version 4.9.0 "Come and Say Hello" - One Tap to the Invite
+**Release Date**: October 30, 2026
+**Build**: 20261030a
+**Hash**: `RVDISCORD90`
+**Channel**: Stable
+
+- **A Discord badge now sits in a bar at the bottom-left of every window, beside the version chip.** Clicking it puts a community invite on the player's clipboard. Roblox cannot open a browser, so copying is the only hand-off a hub has; the notification repeats the invite in full on purpose, so an executor with no clipboard function at all still leaves the player something they can read and type.
+- **Hovering it opens a drawer that slides down out of the bar, past the bottom edge of the hub, showing the invite itself** - and says "Copied" in its own body when you take it. A 22-pixel icon in a corner cannot tell anyone what it does, and a tooltip is no answer on a phone, where there is no hover at all.
+- **New `CreateWindow` options.** `DiscordInvite = "https://discord.gg/..."` names a hub's own invite; `DiscordInvite = false` opts out entirely and shows no badge; naming nothing carries the library's own. `DiscordIcon` overrides the glyph (default `icon://chat`, and it accepts anything the icon system resolves).
+- **Only ever put a NEVER-EXPIRING invite in `DEFAULT_DISCORD_INVITE`.** A 7-day link dies a week after a hub ships and nobody finds out, because a dead invite looks exactly like a working one until somebody taps it. Verify with `GET /api/v10/invites/<code>?with_expiration=true` - `expires_at: null` means permanent.
+- **Fixed: the clipboard search could not see an executor that serves `setclipboard` through a metatable.** It read the environment with `rawget`, which walks straight past one - and serving globals that way is a normal thing for an executor to do. On those executors the KEY WINDOW reported that it could not copy the ad link, on an executor that copies perfectly well. That is the one screen where losing the link costs the player their free key, and nothing anywhere reported a fault. The search now reads with plain indexing inside a `pcall` and lives in exactly one place, `UIHelpers.copyText`; KeySystem's duplicate is gone. **Do not write a second clipboard search.**
+- **Mobile.** The drawer measures on every open and flips upward into the window when there is no room below. Held upright a phone leaves 186 pixels under the window; held sideways it leaves EIGHT, so a drawer that always dropped downward would open almost entirely off-screen - which to the player is identical to a button that does nothing. It also clamps its width to the window so it cannot run off a narrow screen, and because it re-measures each time, rotating the phone cannot strand it. A tap opens the drawer as well as copying, since a phone never sends a hover.
+- The bar is sized off `railWidth` so it fits inside the tab rail's column rather than overhanging it, sits on the window's bottom line, and is larger on touch devices than on desktop: 58x20 with a 22-wide Discord half on a desktop, 58x26 with a 26-wide half on a phone.
+- **New gate: `src/Version.lua` and `VERSION.json` must agree.** The version is written down twice - one is what every hub and player sees, the other is what the changelog is read from - and nothing kept them equal. They had already drifted three releases apart once. The headless suite now fails on a mismatch.
+
+## Version 4.8.3 "Remembered Key" - A Window Like Any Other
+**Release Date**: October 29, 2026
+**Build**: 20261029a
+**Hash**: `RVSAVED83`
+**Channel**: Stable
+
+- **A remembered key now tells the hub.** Every way a key succeeds calls `OnKeyValid` - a typed key does, and so does the `getgenv` one-key bridge - except the saved-key path, which silently skipped it. A player who had used the hub before got in, but the hub was never told, so anything wired to `OnKeyValid` simply did not run for returning users.
+
+## Version 4.8.2 "Key Window" - It Fits, It Closes, It Waits
+**Release Date**: October 28, 2026
+**Build**: 20261028a
+**Hash**: `RVKEYWIN82`
+**Channel**: Stable
+
+- **The key window is now a window.** It fits the screen (a `UIScale` sized from the room there is - it asked for 500 across on a phone that is 381 across), it can be dragged, and it takes everything it started away with it.
+- **Shutdown: closing the key window, or running out of attempts, now fires the close hook on the window `CreateWindow` hands back.** That hook was a no-op, so a player who closed the key screen left the hub's own loops running with nothing able to stop them.
+- **Free keys: the watcher no longer gives up after 5 minutes.** The ads take 4-6 minutes and the provider sometimes offers a 60-minute wait instead.
+- The key window releases everything it starts - its drag and fit listeners used to stay connected for the rest of the session.
+- **The dummy window can now do everything a real one can**, so a hub handed one after a refused key cannot crash on a method it expected to exist.
+
 ## Version 4.8.1 "Quiet" - Nothing in the Player's Console
 **Release Date**: October 26, 2026
 **Build**: 20261026a
