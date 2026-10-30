@@ -8,12 +8,14 @@ local WindowBuilder = {}
 -- their own with `DiscordInvite` in CreateWindow.
 --
 -- RvrseUI is loaded live by hubs we do not own, so this is the one string in
--- the library that points at somebody's community. Leave it EMPTY rather than
--- pointing it at a guess: an empty invite hides the badge, which is honest,
--- while a wrong one hands every player of every hub a dead link. A never
--- expiring invite is the only kind worth putting here -- a 7-day default
--- stops working a week after a hub ships and nobody finds out.
-local DEFAULT_DISCORD_INVITE = ""
+-- the library that points at somebody's community, and every hub that does not
+-- set its own carries it. A never expiring invite is the ONLY kind that belongs
+-- here: a 7-day link dies a week after a hub ships, and nobody finds out,
+-- because a dead invite looks exactly like a working one until someone taps it.
+--
+-- Verified permanent when it went in (Discord reports expires_at: null).
+-- A hub opts out with `DiscordInvite = false`, and names its own with a string.
+local DEFAULT_DISCORD_INVITE = "https://discord.gg/FJxrnAcawn"
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService

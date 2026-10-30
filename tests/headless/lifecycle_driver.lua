@@ -751,19 +751,52 @@ elseif H_SCENARIO == "discord" then
 	H.check(M.clipboard == H_INVITE, "clicking the Discord badge put " ..
 		tostring(M.clipboard) .. " on the clipboard, not the invite")
 
-	-- A hub that names no invite gets no badge.
-	local W2, _ = nil, nil
+	-- A hub that names NOTHING carries the library's own invite. That is the
+	-- point of having a default, and it is also the case that reaches the most
+	-- people: every hub built on RvrseUI that never thinks about this.
+	--
+	-- The expected value is read back out of the source rather than written
+	-- here, because a second copy of the invite in the tests is just the drift
+	-- bug again, one file further along.
+	local DEFAULT = RVRSEUI_SRC:match('local DEFAULT_DISCORD_INVITE = "([^"]*)"')
+	H.check(DEFAULT ~= nil,
+		"could not find DEFAULT_DISCORD_INVITE in the source -- did it get renamed?")
+	H.check(DEFAULT:match("^https://discord%.gg/%w+$") ~= nil,
+		"the library default is " .. tostring(DEFAULT) ..
+		", which is not a Discord invite link")
+
+	local W2 = nil
 	local okSecond = M.runThread(function()
 		W2 = (H.buildWindow(S.RvrseUI, "Harness Hub B"))
 		W2:Show()
 	end, 60)
 	H.check(okSecond, "building the second window did not finish")
 	M.run(2)
-	H.check(badgeIn("Harness Hub B") == nil,
-		"a window whose hub named NO invite still shows a Discord badge")
+	local badge2 = badgeIn("Harness Hub B")
+	H.check(badge2 ~= nil, "a hub that named no invite got no badge at all")
+	M.clipboard = nil
+	M.click(badge2)
+	M.run(2)
+	H.check(M.clipboard == DEFAULT, "a hub that named no invite copied " ..
+		tostring(M.clipboard) .. ", not the library default " .. tostring(DEFAULT))
 
-	H.log("discord        | badge at y %d, %dx%d | click copied the invite | no invite named = no badge",
-		bp.Y.Offset, bs.X.Offset, bs.Y.Offset)
+	-- And a hub can refuse it outright. Somebody else's community does not
+	-- belong in their window if they do not want it there, and `false` is the
+	-- way to say so -- distinct from naming no invite at all.
+	local W3 = nil
+	local okThird = M.runThread(function()
+		W3 = (H.buildWindow(S.RvrseUI, "Harness Hub C", { DiscordInvite = false }))
+		W3:Show()
+	end, 60)
+	H.check(okThird, "building the third window did not finish")
+	M.run(2)
+	H.check(badgeIn("Harness Hub C") == nil,
+		"a hub that set DiscordInvite = false still shows a Discord badge")
+
+	H.log("discord        | badge at y %d, %dx%d | hub's own invite copied | "
+		.. "no invite named = the library default (%s) | DiscordInvite = false = no badge",
+		bp.Y.Offset, bs.X.Offset, bs.Y.Offset, DEFAULT)
+	H.close("x", W3, "Harness Hub C")
 	H.close("x", W2, "Harness Hub B")
 	H.close("x", S.W1, "Harness Hub A", S.RvrseUI)
 else

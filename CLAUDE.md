@@ -77,12 +77,14 @@ that. Anything RvrseUI shows must fit there.
   screen whatever its order (Studio, 2026-10-11: a CoreGui screen at order 0 took the click over a PlayerGui
   screen at 2147483647). There RvrseUI is above Roblox's own Esc menu too (CoreGui, order 0), so mounted screens
   step aside (`Enabled = false`) while it is open. A hub that opts in must use `Window:OnClose`.
-- **Opt-in: `CreateWindow{ DiscordInvite = "https://discord.gg/..." }`** draws a 16x16 badge above the version
-  badge that copies the invite (`UIHelpers.copyText`); `DiscordIcon` overrides the glyph, default `icon://chat`.
-  **No invite means no badge, and `DEFAULT_DISCORD_INVITE` in `WindowBuilder.lua` is deliberately empty.**
-  RvrseUI is loaded live by hubs we do not own, so a badge pointing at the wrong community is worse than none;
-  only ever put a *never expiring* invite there, since a 7-day default dies a week after a hub ships and nobody
-  finds out. Gate: harness scenario `discord`.
+- **A 16x16 Discord badge sits above the version badge** and copies an invite (`UIHelpers.copyText`).
+  `CreateWindow{ DiscordInvite = "https://discord.gg/..." }` names a hub's own; `DiscordInvite = false` opts out
+  entirely; naming nothing carries `DEFAULT_DISCORD_INVITE` in `WindowBuilder.lua`, which is **our** server, so
+  **every hub built on RvrseUI shows it unless it says otherwise.** `DiscordIcon` overrides the glyph (default
+  `icon://chat`). **Only ever put a *never expiring* invite in that constant** -- a 7-day link dies a week after
+  a hub ships and nobody finds out, because a dead invite looks exactly like a working one until someone taps it.
+  Verify with `GET /api/v10/invites/<code>?with_expiration=true` (`expires_at: null` = permanent). Gate: harness
+  scenario `discord`, which reads the constant back out of the built source rather than keeping a second copy.
 - **The clipboard lives in ONE place: `UIHelpers.copyText`.** Do not write another search for `setclipboard`.
   Read the environment with plain indexing inside a `pcall`, never `rawget`: executors commonly serve these
   through a metatable, and `rawget` walks past one, which is indistinguishable to the player from an executor
