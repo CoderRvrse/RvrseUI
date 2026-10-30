@@ -534,7 +534,7 @@ elseif H_SCENARIO == "mobile" then
 	H.check(fs ~= nil and fs.Y >= 26, string.format(
 		"mobile: the footer is only %d tall -- a thumb needs more than a mouse does",
 		fs and fs.Y or -1))
-	H.log("mobile footer  | version chip %dx%d (desktop is 52x22)", fs.X, fs.Y)
+	H.log("mobile footer  | version chip %dx%d", fs.X, fs.Y)
 
 	-- THE INVITE DRAWER HAS TO STAY ON THE SCREEN, IN BOTH ORIENTATIONS.
 	--
@@ -850,6 +850,30 @@ elseif H_SCENARIO == "discord" then
 		bs.X, bs.Y, vs.X, vs.Y))
 	H.check(bs.X >= 24, string.format("the Discord half is %d wide, too narrow to hit", bs.X))
 	H.check(vs.X >= 40, string.format("the version chip is %d wide, too narrow to read", vs.X))
+
+	-- The bar must sit INSIDE the tab rail's column, never stick out past it.
+	--
+	-- That is what was wrong on the phone: at 96 wide against an 80-wide rail it
+	-- overhung the column and read as a separate floating thing. It is measured
+	-- against the RAIL, not against a tab button, on purpose -- the rail carries
+	-- a UIPadding (12 left, 8 right) and the tabs are sized `(1, -16)` off the
+	-- padded area, so a real tab is 44 wide while this mock, which does not
+	-- subtract padding, reports 64. A check against a tab would pass here and be
+	-- wrong on a real device, which is worse than no check at all.
+	local rail = nil
+	for _, d in ipairs(M.descendants(H.windowRoot("Harness Hub A"))) do
+		if M.D[d].props.Name == "TabRail" then rail = d end
+	end
+	if H.check(rail ~= nil, "no tab rail to measure the footer against") then
+		local railP, railS = box(rail)
+		local barP, barS = box(M.D[badge].props.Parent)
+		H.check(barS.X <= railS.X, string.format(
+			"the footer bar is %d wide against a %d-wide tab rail -- it overhangs the column",
+			barS.X, railS.X))
+		H.check(barP.X >= railP.X and barP.X + barS.X <= railP.X + railS.X + 1, string.format(
+			"the footer spans x %d..%d but the rail is x %d..%d",
+			barP.X, barP.X + barS.X, railP.X, railP.X + railS.X))
+	end
 
 	-- Inside the window, at the bottom.
 	local rp, rs = box(H.windowRoot("Harness Hub A"))
