@@ -4,6 +4,19 @@
 
 local WindowBuilder = {}
 
+-- The community invite the Discord badge copies, for hubs that do not name
+-- their own with `DiscordInvite` in CreateWindow.
+--
+-- RvrseUI is loaded live by hubs we do not own, so this is the one string in
+-- the library that points at somebody's community, and every hub that does not
+-- set its own carries it. A never expiring invite is the ONLY kind that belongs
+-- here: a 7-day link dies a week after a hub ships, and nobody finds out,
+-- because a dead invite looks exactly like a working one until someone taps it.
+--
+-- Verified permanent when it went in (Discord reports expires_at: null).
+-- A hub opts out with `DiscordInvite = false`, and names its own with a string.
+local DEFAULT_DISCORD_INVITE = "https://discord.gg/FJxrnAcawn"
+
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
 local Debug, Obfuscation, Hotkeys, Version, Elements, OverlayLayer, Overlay, KeySystem, Particles, Layers
@@ -1072,21 +1085,65 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		Animator:Tween(themeToggle, {BackgroundColor3 = currentPal.Elevated}, Animator.Spring.Fast)
 	end)
 
-	-- Version badge
+	-- Footer bar: the Discord badge and the version chip, side by side
+	--
+	-- These used to be two separate little tiles stacked on top of each other in
+	-- the corner, 16 and 14 pixels tall. On a phone that is unreadable and very
+	-- nearly unhittable -- the owner's word was "too hard click and read" -- and
+	-- two floating tiles read as debris rather than as part of the window. One
+	-- bar, with each half its own button and a divider between them, is legible,
+	-- is obviously a thing you can press, and grows on touch devices where the
+	-- pointer is a thumb.
+	-- The bar lines up with the tab rail: same width as a tab button, same left
+	-- edge, so it reads as the bottom of that column rather than as a separate
+	-- thing of its own size. Both widths come off `railWidth` for that reason --
+	-- write 64 here and it silently stops matching the day the rail changes.
+	local railWidth = 80 -- Narrower for icon-only design
+	local tabWidth = railWidth - 16 -- TabBuilder: tabBtn.Size = (1, -16, 0, 56)
+
+	-- Trimmed a little from the first fitted size, and sat down on the window's
+	-- own bottom line rather than floating above it. The phone keeps the larger
+	-- of each number: a thumb needs the room a mouse does not.
+	local footH = isMobile and 26 or 20
+	local barW = tabWidth - 6
+	local discordW = isMobile and 26 or 22
+	local versionW = barW - discordW
+	local footGap = 3 -- the sliver left between the bar and the window's edge
+
+	local discordInvite = cfg.DiscordInvite
+	if discordInvite == nil then
+		discordInvite = DEFAULT_DISCORD_INVITE
+	end
+	local showDiscord = type(discordInvite) == "string" and discordInvite ~= ""
+
+	local footer = Instance.new("Frame")
+	footer.Name = Obfuscation.getObfuscatedName("footer")
+	footer.BackgroundColor3 = pal.Card
+	footer.BackgroundTransparency = 0.25
+	footer.BorderSizePixel = 0
+	footer.Position = UDim2.new(0, 8, 1, -(footH + footGap))
+	footer.Size = UDim2.new(0, barW, 0, footH)
+	-- ABOVE the tab rail. The rail is `Size = (0, railWidth, 1, 0)` -- full
+	-- height, and the bar sits in the same corner, so without this the bar is
+	-- drawn underneath it and reads as a smudge behind the tab icons.
+	footer.ZIndex = root.ZIndex + 5
+	footer.Parent = root
+	UIHelpers.corner(footer, 6)
+	UIHelpers.stroke(footer, pal.Border, 1)
+
+	-- Version chip: the right-hand half, or the whole bar when there is no invite.
 	local versionBadge = Instance.new("TextButton")
 	versionBadge.Name = Obfuscation.getObfuscatedName("badge")
-	versionBadge.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
-	versionBadge.BackgroundTransparency = 0.9
-	versionBadge.Position = UDim2.new(0, 8, 1, -24)
-	versionBadge.Size = UDim2.new(0, 38, 0, 14)
+	versionBadge.BackgroundTransparency = 1
+	versionBadge.Position = UDim2.new(0, showDiscord and discordW or 0, 0, 0)
+	versionBadge.Size = UDim2.new(0, showDiscord and versionW or barW, 1, 0)
 	versionBadge.Font = Enum.Font.GothamBold
-	versionBadge.TextSize = 7
-	versionBadge.TextColor3 = Color3.fromRGB(0, 255, 200)
+	versionBadge.TextSize = isMobile and 11 or 10
+	versionBadge.TextColor3 = pal.Accent
 	versionBadge.Text = "v" .. Version.Full
 	versionBadge.AutoButtonColor = false
-	versionBadge.Parent = root
-	UIHelpers.corner(versionBadge, 5)
-	UIHelpers.stroke(versionBadge, Color3.fromRGB(0, 255, 200), 1)
+	versionBadge.ZIndex = footer.ZIndex + 1
+	versionBadge.Parent = footer
 
 	local versionTooltip = UIHelpers.createTooltip(versionBadge, string.format(
 		"Version: %s | Build: %s | Hash: %s | Channel: %s",
@@ -1098,11 +1155,11 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 
 	versionBadge.MouseEnter:Connect(function()
 		versionTooltip.Visible = true
-		Animator:Tween(versionBadge, {BackgroundTransparency = 0.7}, Animator.Spring.Fast)
+		Animator:Tween(footer, {BackgroundTransparency = 0.05}, Animator.Spring.Fast)
 	end)
 	versionBadge.MouseLeave:Connect(function()
 		versionTooltip.Visible = false
-		Animator:Tween(versionBadge, {BackgroundTransparency = 0.9}, Animator.Spring.Fast)
+		Animator:Tween(footer, {BackgroundTransparency = 0.25}, Animator.Spring.Fast)
 	end)
 
 	versionBadge.MouseButton1Click:Connect(function()
@@ -1117,8 +1174,202 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		end
 	end)
 
+	-- Discord half: the left end of the bar, in blurple so it reads as itself.
+	--
+	-- Roblox cannot open a browser, so the only thing this can usefully do is
+	-- put the invite on the clipboard. The notification repeats the invite in
+	-- full on purpose: an executor with no clipboard function at all still
+	-- leaves the player something they can read and type.
+	if showDiscord then
+		local discordBadge = Instance.new("TextButton")
+		discordBadge.Name = Obfuscation.getObfuscatedName("badge")
+		discordBadge.BackgroundColor3 = Color3.fromRGB(88, 101, 242)  -- Discord blurple
+		discordBadge.BackgroundTransparency = 0.15
+		discordBadge.BorderSizePixel = 0
+		discordBadge.Position = UDim2.new(0, 0, 0, 0)
+		discordBadge.Size = UDim2.new(0, discordW, 1, 0)
+		discordBadge.Text = ""
+		discordBadge.AutoButtonColor = false
+		discordBadge.ZIndex = footer.ZIndex + 1
+		discordBadge.Parent = footer
+		UIHelpers.corner(discordBadge, 6)
+
+		-- Square off the inner edge so the two halves meet flush instead of
+		-- leaving a rounded notch in the middle of the bar.
+		local joiner = Instance.new("Frame")
+		joiner.BackgroundColor3 = discordBadge.BackgroundColor3
+		joiner.BackgroundTransparency = discordBadge.BackgroundTransparency
+		joiner.BorderSizePixel = 0
+		joiner.Position = UDim2.new(1, -6, 0, 0)
+		joiner.Size = UDim2.new(0, 6, 1, 0)
+		joiner.ZIndex = discordBadge.ZIndex
+		joiner.Parent = discordBadge
+
+		local divider = Instance.new("Frame")
+		divider.BackgroundColor3 = pal.Border
+		divider.BackgroundTransparency = 0.4
+		divider.BorderSizePixel = 0
+		divider.Position = UDim2.new(0, discordW, 0, 4)
+		divider.Size = UDim2.new(0, 1, 1, -8)
+		divider.ZIndex = footer.ZIndex + 2
+		divider.Parent = footer
+
+		local badgeIcon, badgeIconType = Icons.resolveIcon(cfg.DiscordIcon or "icon://chat")
+		if badgeIconType == "image" or badgeIconType == "sprite" then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.Position = UDim2.new(0.5, 0, 0.5, 0)
+			img.Size = UDim2.new(0, footH - 10, 0, footH - 10)
+			img.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			if badgeIconType == "sprite" then
+				img.Image = "rbxassetid://" .. badgeIcon.id
+				img.ImageRectSize = badgeIcon.imageRectSize
+				img.ImageRectOffset = badgeIcon.imageRectOffset
+			else
+				img.Image = badgeIcon
+			end
+			img.ZIndex = discordBadge.ZIndex + 1
+			img.Parent = discordBadge
+		else
+			discordBadge.Font = Enum.Font.GothamBold
+			discordBadge.TextSize = isMobile and 14 or 12
+			discordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
+			discordBadge.Text = tostring(badgeIcon)
+		end
+
+		-- The invite drawer: slides DOWN out of the bar and past the bottom edge
+		-- of the hub, showing the invite itself.
+		--
+		-- A 28-pixel icon in a corner cannot tell anyone what it does, and the
+		-- owner's reading of the fixed bar was that it "still falls short and
+		-- blends in" -- you cannot tell you are on the invite link. A tooltip is
+		-- no answer either: there is no hover on a phone. So the drawer shows the
+		-- actual address, moves when you touch it so the control obviously
+		-- belongs to you, and says "Copied" in its own body rather than only in a
+		-- notification that may be off somewhere else on screen.
+		--
+		-- It hangs OUTSIDE the window on purpose. There are 8 pixels between the
+		-- bar and the bottom edge, nowhere near enough, and both `root` and
+		-- `content` have ClipsDescendants = false, so it is free to overhang.
+		local inviteText = discordInvite:gsub("^https?://", "")
+		local drawerH = isMobile and 26 or 22
+		local drawerW = math.max(barW, (isMobile and 7 or 6) * #inviteText + 20)
+
+		local drawer = Instance.new("TextLabel")
+		drawer.Name = Obfuscation.getObfuscatedName("badge")
+		drawer.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+		drawer.BackgroundTransparency = 1
+		drawer.BorderSizePixel = 0
+		drawer.AnchorPoint = Vector2.new(0, 0)
+		drawer.Position = UDim2.new(0, 0, 1, 0)
+		drawer.Size = UDim2.new(0, drawerW, 0, 0)
+		drawer.Font = Enum.Font.GothamBold
+		drawer.TextSize = isMobile and 11 or 10
+		drawer.TextColor3 = Color3.fromRGB(255, 255, 255)
+		drawer.TextTransparency = 1
+		drawer.TextTruncate = Enum.TextTruncate.AtEnd
+		drawer.Text = inviteText
+		drawer.ClipsDescendants = true
+		drawer.ZIndex = footer.ZIndex + 3
+		drawer.Parent = footer
+		UIHelpers.corner(drawer, 6)
+
+		-- Each open/close gets a number, so a "Copied" state that is still
+		-- waiting to time out cannot close a drawer the player has since opened
+		-- again, or touch one whose window has been destroyed underneath it.
+		local drawerTurn = 0
+		local drawerUp = false
+
+		-- Which way it opens, and how wide, worked out EVERY time rather than
+		-- once at build.
+		--
+		-- Hanging below the window is fine on a desktop and fine on a phone held
+		-- upright, but a phone held SIDEWAYS leaves about eight pixels between
+		-- the window and the bottom of the screen -- the drawer would open almost
+		-- entirely off-screen, which to the player is identical to it not working.
+		-- So when there is no room below, it opens upward into the window
+		-- instead. Recomputing also means rotating the phone, or a resize, cannot
+		-- strand it: the next open is measured afresh.
+		local function measureDrawer()
+			local vp = getViewportSize()
+			local bottom = root.AbsolutePosition.Y + root.AbsoluteSize.Y
+			local fits = (bottom + 6 + drawerH) <= (vp.Y - 4)
+			-- Never wider than the window it hangs off, or it runs off the side of
+			-- a narrow screen.
+			local maxW = math.max(120, root.AbsoluteSize.X - 16)
+			return not fits, math.min(drawerW, maxW)
+		end
+
+		local function openDrawer(copied)
+			drawerTurn += 1
+			local mine = drawerTurn
+			local up, w = measureDrawer()
+			drawerUp = up
+			drawer.Text = copied and "Copied - paste it in your browser" or inviteText
+			drawer.BackgroundColor3 = copied and pal.Success or Color3.fromRGB(88, 101, 242)
+			Animator:Tween(drawer, {
+				Size = UDim2.new(0, w, 0, drawerH),
+				Position = up and UDim2.new(0, 0, 0, -(drawerH + 6)) or UDim2.new(0, 0, 1, 6),
+				BackgroundTransparency = 0.05,
+				TextTransparency = 0,
+			}, copied and Animator.Spring.Bounce or Animator.Spring.Snappy)
+			return mine
+		end
+		local function closeDrawer()
+			drawerTurn += 1
+			Animator:Tween(drawer, {
+				Size = UDim2.new(0, drawer.Size.X.Offset, 0, 0),
+				-- Collapse back into the edge it came out of, or it slides sideways.
+				Position = drawerUp and UDim2.new(0, 0, 0, 0) or UDim2.new(0, 0, 1, 0),
+				BackgroundTransparency = 1,
+				TextTransparency = 1,
+			}, Animator.Spring.Snappy)
+		end
+
+		discordBadge.MouseEnter:Connect(function()
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0}, Animator.Spring.Fast)
+			Animator:Tween(joiner, {BackgroundTransparency = 0}, Animator.Spring.Fast)
+			Animator:Tween(footer, {BackgroundTransparency = 0.05}, Animator.Spring.Fast)
+			openDrawer(false)
+		end)
+		discordBadge.MouseLeave:Connect(function()
+			Animator:Tween(discordBadge, {BackgroundTransparency = 0.15}, Animator.Spring.Fast)
+			Animator:Tween(joiner, {BackgroundTransparency = 0.15}, Animator.Spring.Fast)
+			Animator:Tween(footer, {BackgroundTransparency = 0.25}, Animator.Spring.Fast)
+			closeDrawer()
+		end)
+
+		discordBadge.MouseButton1Click:Connect(function()
+			local copied = UIHelpers.copyText(discordInvite)
+
+			-- On a phone there is no hover, so the tap has to do both jobs: open
+			-- the drawer AND report what happened. It closes itself afterwards,
+			-- because a touch never sends MouseLeave.
+			local mine = openDrawer(copied)
+			if not copied then
+				drawer.Text = "No clipboard - " .. inviteText
+			end
+			task.delay(copied and 2.5 or 5, function()
+				if drawer.Parent and drawerTurn == mine then
+					closeDrawer()
+				end
+			end)
+
+			if NotificationsService and NotificationsService.Notify then
+				NotificationsService:Notify({
+					Title = copied and "Discord invite copied" or "Discord invite",
+					Message = copied
+						and (discordInvite .. " - paste it into your browser")
+						or (discordInvite .. " (your executor has no clipboard, so type it in)"),
+					Duration = 6,
+					Type = copied and "success" or "info"
+				})
+			end
+		end)
+	end
+
 	-- Sleek vertical icon-only tab rail
-	local railWidth = 80 -- Narrower for icon-only design
 	local tabBar = Instance.new("ScrollingFrame")
 	tabBar.Name = "TabRail"
 	tabBar.BackgroundColor3 = pal.Card

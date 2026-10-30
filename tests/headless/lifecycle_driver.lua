@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui,discord
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -232,6 +232,10 @@ if H_SCENARIO == "ontop_hidden" then
 elseif H_SCENARIO == "ontop_playergui" then
 	M.coreGuiLocked = true
 end
+-- What the badge copies in this run, and the blurple it is drawn in.
+local H_INVITE = "https://discord.gg/harness-test"
+local BLURPLE = Color3.fromRGB(88, 101, 242)
+
 local wantsLifecycle = H_SCENARIO == "reopen" or H_SCENARIO == "togglesoff" or H_SCENARIO == "track" or H_SCENARIO == "overlays"
 local okBuild = M.runThread(function()
 	S.RvrseUI = H.loadRvrseUI()
@@ -240,6 +244,8 @@ local okBuild = M.runThread(function()
 		extra = { TurnOffTogglesOnClose = true, ConfigurationSaving = { Enabled = true, FolderName = "H", FileName = "h.json" } }
 	elseif ONTOP and H_SCENARIO ~= "ontop" then
 		extra = { AlwaysOnTop = true }
+	elseif H_SCENARIO == "discord" then
+		extra = { DiscordInvite = H_INVITE }
 	end
 	S.W1, S.ui1 = H.buildWindow(S.RvrseUI, "Harness Hub A", extra)
 	if H.hasLifecycle(S.W1) then S.W1:OnClose(function(reason) S.closeCalls[1] += 1 S.reason1 = reason end) end
@@ -505,6 +511,113 @@ elseif H_SCENARIO == "mobile" then
 		H.check(x0 >= 0 and y0 >= MOBILE_INSET, "a window put where the last one was left sits in the top bar")
 		H.close("x", S.W2, "Harness Hub B")
 	end
+
+	-- The footer bar has to be BIGGER on a phone than on a desktop, because the
+	-- pointer is a thumb. This is the case that prompted the whole redesign: the
+	-- old pair of tiles were 16 and 14 pixels tall on every device, and on a real
+	-- phone they were reported as "too hard click and read". The desktop sizes
+	-- are checked in the `discord` scenario; this is the one that matters.
+	local footerHalf = nil
+	local mobileRoot = H.windowRoot("Harness Hub A")
+	if mobileRoot then
+		for _, d in ipairs(M.descendants(mobileRoot)) do
+			local dd = M.D[d]
+			if dd.className == "TextButton"
+				and type(dd.props.Text) == "string"
+				and dd.props.Text:match("^v%d+%.%d+%.%d+$") ~= nil then
+				footerHalf = d
+			end
+		end
+	end
+	H.check(footerHalf ~= nil, "mobile: the window has no version chip")
+	local mobileBadgeEarly = nil
+	if mobileRoot then
+		for _, d in ipairs(M.descendants(mobileRoot)) do
+			if M.D[d].className == "TextButton" and M.D[d].props.BackgroundColor3 == BLURPLE then
+				mobileBadgeEarly = d
+			end
+		end
+	end
+	local fs = footerHalf and footerHalf.AbsoluteSize
+	H.check(fs ~= nil and fs.Y >= 26, string.format(
+		"mobile: the footer is only %d tall -- a thumb needs more than a mouse does",
+		fs and fs.Y or -1))
+	local mobileTap = mobileBadgeEarly and mobileBadgeEarly.AbsoluteSize
+	if mobileTap then
+		H.check(mobileTap.X >= 26 and mobileTap.Y >= 26, string.format(
+			"mobile: the Discord half is %dx%d -- a thumb needs at least 26",
+			mobileTap.X, mobileTap.Y))
+	end
+	H.log("mobile footer  | version chip %dx%d", fs.X, fs.Y)
+
+	-- THE INVITE DRAWER HAS TO STAY ON THE SCREEN, IN BOTH ORIENTATIONS.
+	--
+	-- It normally hangs below the window, which is fine on a desktop and fine
+	-- on a phone held upright. Held SIDEWAYS there are about eight pixels
+	-- between the window and the bottom of the screen, so a drawer that always
+	-- dropped downward would open almost entirely off-screen -- and to the
+	-- player that is indistinguishable from a button that does nothing. It is
+	-- also the single most likely thing to be wrong on a real Android or iOS
+	-- device while every desktop check passes, which is exactly why it is here.
+	local mobileBadge = nil
+	if mobileRoot then
+		for _, d in ipairs(M.descendants(mobileRoot)) do
+			if M.D[d].className == "TextButton" and M.D[d].props.BackgroundColor3 == BLURPLE then
+				mobileBadge = d
+			end
+		end
+	end
+	H.check(mobileBadge ~= nil, "mobile: the window has no Discord badge")
+
+	local mobileDrawer = nil
+	if mobileBadge then
+		for _, kid in ipairs(M.D[M.D[mobileBadge].props.Parent].children) do
+			local kd = M.D[kid]
+			if kd.className == "TextLabel" and type(kd.props.Text) == "string"
+				and kd.props.Text:find("discord.gg", 1, true) then
+				mobileDrawer = kid
+			end
+		end
+	end
+	H.check(mobileDrawer ~= nil, "mobile: the Discord badge has no invite drawer")
+
+	-- `want` is "down" or "up": the DIRECTION matters, not only that the drawer
+	-- landed somewhere visible. Opening upward is always on-screen, so a change
+	-- that made it open upward everywhere would pass every other check here
+	-- while quietly undoing the drop-down the bar was redesigned around.
+	local function drawerOnScreen(tag, want)
+		-- A phone sends no MouseEnter, so the TAP is the only way it ever opens.
+		M.click(mobileBadge)
+		M.run(1)
+		local p, sz = mobileDrawer.AbsolutePosition, mobileDrawer.AbsoluteSize
+		local v = M.Viewport
+		H.check(sz.Y >= 18, ("%s: tapping the badge did not open the drawer (%d tall)"):format(tag, sz.Y))
+		H.check(p.Y >= 0 and p.Y + sz.Y <= v.Y, ("%s: the drawer is off the screen vertically "
+			.. "(y %d..%d, screen is %d tall)"):format(tag, p.Y, p.Y + sz.Y, v.Y))
+		H.check(p.X >= 0 and p.X + sz.X <= v.X, ("%s: the drawer runs off the side "
+			.. "(x %d..%d, screen is %d wide)"):format(tag, p.X, p.X + sz.X, v.X))
+		local _, barTop, _, barBottom = box(M.D[mobileBadge].props.Parent)
+		local _, _, _, windowBottom = box(mobileRoot)
+	local went = p.Y >= barBottom and "down" or "up"
+		H.log("mobile drawer  | %-8s drawer %dx%d at y %d..%d (bar %d..%d, window ends %d, screen %d) -> %s",
+			tag, sz.X, sz.Y, p.Y, p.Y + sz.Y, barTop, barBottom, windowBottom, v.Y,
+			went == "down" and "dropped DOWN" or "flipped UP")
+		H.check(went == want, ("%s: the drawer went %s, wanted %s -- with %d pixels below the "
+			.. "window and a %d-tall drawer, %s is the only way it stays on screen")
+			:format(tag, went, want, v.Y - windowBottom, sz.Y, want))
+	end
+
+	-- Upright there is room below, so it must drop DOWN and hang outside the bar.
+	drawerOnScreen("upright", "down")
+
+	-- and the cramped one: turned sideways, the window very nearly fills the
+	-- screen top to bottom.
+	setScreen(750, 381)
+	M.runThread(sizesChanged, 5)
+	M.run(0.5)
+	M.runThread(sizesChanged, 5)
+	M.run(0.5)
+	drawerOnScreen("sideways", "up")
 	H.close("x", S.W1, "Harness Hub A")
 elseif ONTOP then
 	-- v4.6.0: RvrseUI's screens sit at the top orders (PlayerGui by default, the
@@ -688,6 +801,257 @@ elseif H_SCENARIO == "quiet" then
 	local afterOff = quiet(mark, "after debug was switched off again")
 	H.log("quiet          | debug off: build=%d use=%d | debug on: overlay=%d hotkey=%d | off again + destroy key=%d",
 		atBuild, inUse, overlayOn, hotkeyOn, afterOff)
+elseif H_SCENARIO == "discord" then
+	-- The footer bar: the Discord badge and the version chip, in ONE box, side
+	-- by side.
+	--
+	-- They started life as two separate tiles stacked in the corner, 16 and 14
+	-- pixels tall, and on a real phone they were unreadable and nearly
+	-- unhittable. So the checks here are mostly about SIZE and ARRANGEMENT:
+	-- those are the things that were wrong, and nothing else in the suite looks
+	-- at them. A badge that works perfectly and cannot be pressed is still broken.
+	local function inWindow(windowName, pred)
+		local root = H.windowRoot(windowName)
+		if not root then return nil end
+		for _, d in ipairs(M.descendants(root)) do
+			if pred(d, M.D[d]) then return d end
+		end
+		return nil
+	end
+	local function discordIn(windowName)
+		return inWindow(windowName, function(_, dd)
+			return dd.className == "TextButton" and dd.props.BackgroundColor3 == BLURPLE
+		end)
+	end
+	local function versionIn(windowName)
+		return inWindow(windowName, function(_, dd)
+			return dd.className == "TextButton"
+				and type(dd.props.Text) == "string"
+				and dd.props.Text:match("^v%d+%.%d+%.%d+$") ~= nil
+		end)
+	end
+	-- Absolute geometry is COMPUTED by the mock and read off the instance, not
+	-- stored in props -- M.D[d].props.AbsolutePosition is simply nil.
+	local function box(d)
+		return d.AbsolutePosition, d.AbsoluteSize
+	end
+
+	local badge = discordIn("Harness Hub A")
+	local version = versionIn("Harness Hub A")
+	H.check(badge ~= nil, "the window names an invite but has no Discord badge")
+	H.check(version ~= nil, "the window has no version chip")
+
+	-- ONE box. This is the whole point of the change: two tiles floating in the
+	-- corner read as debris, a single bar reads as part of the window.
+	H.check(M.D[badge].props.Parent == M.D[version].props.Parent,
+		"the Discord badge and the version chip are not in the same box")
+
+	-- Side by side, not stacked and not overlapping.
+	local bp, bs = box(badge)
+	local vp, vs = box(version)
+	H.check(bp ~= nil and vp ~= nil, "the harness could not measure the footer")
+	H.check(math.abs(bp.Y - vp.Y) <= 1, string.format(
+		"the two halves are at y %d and %d -- they are stacked, not side by side",
+		bp.Y, vp.Y))
+	H.check(bp.X + bs.X <= vp.X + 1, string.format(
+		"the Discord half (x %d..%d) overlaps the version chip (x %d..%d)",
+		bp.X, bp.X + bs.X, vp.X, vp.X + vs.X))
+
+	-- Big enough to press with a thumb, and to read. The old pair were 16 and
+	-- 14 tall, which is what prompted all of this.
+	H.check(bs.Y >= 20 and vs.Y >= 20, string.format(
+		"the footer is only %dx%d / %dx%d -- too small to hit",
+		bs.X, bs.Y, vs.X, vs.Y))
+	H.check(bs.X >= 20, string.format("the Discord half is %d wide, too narrow for a mouse", bs.X))
+
+	-- "Wide enough to read" measured against the text it actually holds, rather
+	-- than against a number picked to match whatever was shipped last. Gotham
+	-- Bold runs about 0.55 of its TextSize per character for digits and dots,
+	-- so this also fails the day the version string grows a digit and quietly
+	-- stops fitting -- which no fixed floor would catch.
+	local vText = M.D[version].props.Text
+	local vSize = M.D[version].props.TextSize
+	local needed = math.ceil(#vText * vSize * 0.55)
+	H.check(vs.X >= needed, string.format(
+		"the version chip is %d wide but %q at text size %d needs about %d",
+		vs.X, vText, vSize, needed))
+
+	-- Sitting on the window's own bottom line, not floating above it.
+	do
+		-- NB: this scenario's box() returns (position, size) -- two values. The
+		-- mobile scenario further down has its OWN box() returning four edges.
+		local wp2, ws2 = box(H.windowRoot("Harness Hub A"))
+		local gap = (wp2.Y + ws2.Y) - (vp.Y + vs.Y)
+		H.check(gap >= 0 and gap <= 5, string.format(
+			"the bar leaves a %d pixel gap under it -- it should sit on the hub's line", gap))
+	end
+
+	-- The bar must sit INSIDE the tab rail's column, never stick out past it.
+	--
+	-- That is what was wrong on the phone: at 96 wide against an 80-wide rail it
+	-- overhung the column and read as a separate floating thing. It is measured
+	-- against the RAIL, not against a tab button, on purpose -- the rail carries
+	-- a UIPadding (12 left, 8 right) and the tabs are sized `(1, -16)` off the
+	-- padded area, so a real tab is 44 wide while this mock, which does not
+	-- subtract padding, reports 64. A check against a tab would pass here and be
+	-- wrong on a real device, which is worse than no check at all.
+	local rail = nil
+	for _, d in ipairs(M.descendants(H.windowRoot("Harness Hub A"))) do
+		if M.D[d].props.Name == "TabRail" then rail = d end
+	end
+	if H.check(rail ~= nil, "no tab rail to measure the footer against") then
+		local railP, railS = box(rail)
+		local barP, barS = box(M.D[badge].props.Parent)
+		H.check(barS.X <= railS.X, string.format(
+			"the footer bar is %d wide against a %d-wide tab rail -- it overhangs the column",
+			barS.X, railS.X))
+		H.check(barP.X >= railP.X and barP.X + barS.X <= railP.X + railS.X + 1, string.format(
+			"the footer spans x %d..%d but the rail is x %d..%d",
+			barP.X, barP.X + barS.X, railP.X, railP.X + railS.X))
+	end
+
+	-- Inside the window, at the bottom.
+	local rp, rs = box(H.windowRoot("Harness Hub A"))
+	H.check(bp.X >= rp.X and bp.Y + bs.Y <= rp.Y + rs.Y + 1,
+		"the footer is not inside the window")
+	H.check(bp.Y > rp.Y + rs.Y / 2, "the footer is not in the bottom half of the window")
+
+	-- Something has to actually be DRAWN in the Discord half: its own glyph, or
+	-- an image it holds. Counting children does not work (corner/stroke add one
+	-- each, and so does the joiner), and counting TextLabels underneath does not
+	-- either, because createTooltip parents the TOOLTIP to the button.
+	local drawsSomething = (M.D[badge].props.Text or "") ~= ""
+	for _, kid in ipairs(M.D[badge].children) do
+		local kd = M.D[kid]
+		if kd.className == "ImageLabel" and (kd.props.Image or "") ~= "" then
+			drawsSomething = true
+		end
+	end
+	H.check(drawsSomething, "the Discord badge draws nothing at all -- no icon and no glyph")
+
+	-- The drawer: it must be SHUT until you touch the badge, drop DOWN out of
+	-- the bar when you do, show the actual address, and shut again when you
+	-- leave. A drawer that is always open is no better than the cramped corner
+	-- it replaced, and one that never opens is the state this whole change
+	-- exists to get out of -- so both ends are checked, not just the open one.
+	local drawer = nil
+	for _, kid in ipairs(M.D[M.D[badge].props.Parent].children) do
+		local kd = M.D[kid]
+		if kd.className == "TextLabel" and type(kd.props.Text) == "string"
+			and kd.props.Text:find("discord.gg", 1, true) then
+			drawer = kid
+		end
+	end
+	H.check(drawer ~= nil, "the Discord badge has no invite drawer")
+
+	local function drawerHeight() return drawer.AbsoluteSize.Y end
+	H.check(drawerHeight() <= 1 and M.D[drawer].props.BackgroundTransparency == 1,
+		string.format("the drawer is already open at rest (%d tall)", drawerHeight()))
+
+	M.fire(badge, "MouseEnter")
+	M.run(2)
+	local openH = drawerHeight()
+	H.check(openH >= 18, string.format(
+		"hovering the Discord badge opened the drawer to only %d -- it did not drop down", openH))
+	H.check(M.D[drawer].props.BackgroundTransparency < 1, "the open drawer is invisible")
+	H.check(M.D[drawer].props.Text:find(H_INVITE:gsub("^https://", ""), 1, true) ~= nil,
+		"the open drawer does not show the invite, it says: " .. tostring(M.D[drawer].props.Text))
+
+	-- DOWN and OUT: below the bar, hanging past the bottom of the window.
+	-- Nothing clips it (root and content both set ClipsDescendants = false),
+	-- and there are only 8 pixels between the bar and the edge, so if it ever
+	-- starts being clipped this is what notices.
+	local fp, fs = box(M.D[badge].props.Parent)
+	H.check(drawer.AbsolutePosition.Y >= fp.Y + fs.Y, string.format(
+		"the drawer opens at y %d but the bar ends at y %d -- it is not dropping DOWN",
+		drawer.AbsolutePosition.Y, fp.Y + fs.Y))
+	local wp, ws = box(H.windowRoot("Harness Hub A"))
+	H.check(drawer.AbsolutePosition.Y + openH > wp.Y + ws.Y, string.format(
+		"the drawer ends at y %d, inside the window (bottom %d) -- it is not hanging OUT",
+		drawer.AbsolutePosition.Y + openH, wp.Y + ws.Y))
+
+	M.fire(badge, "MouseLeave")
+	M.run(2)
+	H.check(drawerHeight() <= 1, string.format(
+		"the drawer stayed %d tall after the pointer left", drawerHeight()))
+
+	-- Each half does its own job. The tap has to open the drawer AS WELL as
+	-- copy: a phone never sends MouseEnter, so the tap is the only chance the
+	-- player gets to be told it worked.
+	M.clipboard = nil
+	M.click(badge)
+	M.run(2)
+	H.check(M.clipboard == H_INVITE, "clicking the Discord badge put " ..
+		tostring(M.clipboard) .. " on the clipboard, not the invite")
+	H.check(drawerHeight() >= 18, string.format(
+		"tapping the badge left the drawer %d tall -- a phone gets no hover, so the "
+		.. "tap is the only feedback there is", drawerHeight()))
+	H.check(M.D[drawer].props.Text:lower():find("copied", 1, true) ~= nil,
+		"after copying, the drawer does not say so: " .. tostring(M.D[drawer].props.Text))
+
+	-- A hub that names NOTHING carries the library's own invite. The expected
+	-- value is read back out of the source rather than written here, because a
+	-- second copy of the invite in the tests is just the drift bug again, one
+	-- file further along.
+	local DEFAULT = RVRSEUI_SRC:match('local DEFAULT_DISCORD_INVITE = "([^"]*)"')
+	H.check(DEFAULT ~= nil,
+		"could not find DEFAULT_DISCORD_INVITE in the source -- did it get renamed?")
+	H.check(DEFAULT:match("^https://discord%.gg/%w+$") ~= nil,
+		"the library default is " .. tostring(DEFAULT) .. ", which is not a Discord invite link")
+
+	local W2 = nil
+	local okSecond = M.runThread(function()
+		W2 = (H.buildWindow(S.RvrseUI, "Harness Hub B"))
+		W2:Show()
+	end, 60)
+	H.check(okSecond, "building the second window did not finish")
+	M.run(2)
+	local badge2 = discordIn("Harness Hub B")
+	H.check(badge2 ~= nil, "a hub that named no invite got no badge at all")
+	M.clipboard = nil
+	M.click(badge2)
+	M.run(2)
+	H.check(M.clipboard == DEFAULT, "a hub that named no invite copied " ..
+		tostring(M.clipboard) .. ", not the library default " .. tostring(DEFAULT))
+
+	-- And a hub can refuse it outright. THE VERSION CHIP MUST SURVIVE THAT:
+	-- opting out of the Discord badge must not cost the window its version
+	-- chip, which every build has always had and now shares a box with.
+	local W3 = nil
+	local okThird = M.runThread(function()
+		W3 = (H.buildWindow(S.RvrseUI, "Harness Hub C", { DiscordInvite = false }))
+		W3:Show()
+	end, 60)
+	H.check(okThird, "building the third window did not finish")
+	M.run(2)
+	H.check(discordIn("Harness Hub C") == nil,
+		"a hub that set DiscordInvite = false still shows a Discord badge")
+	local v3 = versionIn("Harness Hub C")
+	H.check(v3 ~= nil, "opting out of the Discord badge also removed the version chip")
+	local v3p, v3s = box(v3)
+	H.check(v3s.Y >= 20 and v3s.X >= 40, string.format(
+		"with no Discord half the version chip is %dx%d -- too small", v3s.X, v3s.Y))
+
+	H.log("discord        | one box: discord %dx%d at x %d, version %dx%d at x %d (same y) | "
+		.. "hub invite copied | no invite = default (%s) | false = no badge, chip survives %dx%d",
+		bs.X, bs.Y, bp.X, vs.X, vs.Y, vp.X, DEFAULT, v3s.X, v3s.Y)
+	-- A tap arms a timer that shuts the drawer a couple of seconds later. If
+	-- the player closes the hub in between -- which is exactly what someone
+	-- does after copying an invite -- that timer still fires, on a window that
+	-- no longer exists. This project has shipped a hook onto a dead field
+	-- before and heard about it from users, so prove the timer is harmless
+	-- rather than assuming the guard is right: tap, close, then sit through
+	-- longer than the timer and require that nothing threw.
+	local errorsBeforeTimer = #M.errors
+	M.click(badge2)
+	M.run(0.2)
+	H.close("x", W2, "Harness Hub B")
+	M.run(4)
+	H.check(H.errorsSince(errorsBeforeTimer, "DRAWER-TIMER") == 0,
+		"the drawer's close timer threw after its window was destroyed")
+
+	H.close("x", W3, "Harness Hub C")
+	H.close("x", S.W1, "Harness Hub A", S.RvrseUI)
 else
 	H.close(H_SCENARIO, S.W1, "Harness Hub A", S.RvrseUI)
 end

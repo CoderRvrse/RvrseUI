@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 8,
-    "patch": 3,
-    "full": "4.8.3",
-    "build": "20261029a",
-    "hash": "RVSAVED83",
+    "minor": 9,
+    "patch": 0,
+    "full": "4.9.0",
+    "build": "20261030a",
+    "hash": "RVDISCORD90",
     "channel": "Stable"
   },
   "release": {
-    "date": "2026-10-29",
-    "name": "Remembered Key",
-    "codename": "A Window Like Any Other",
-    "notes": "RvrseUI no longer prints anything with debug off. Five bare prints shipped always-on -- 'UI visible - all settings applied', 'Window closed:', 'Interface destroyed', 'Successfully mounted to CoreGui' and 'All interfaces destroyed' -- so every user of every hub saw them; they now go through the gated Debug.printf/dprint. The two genuine failures (a configuration that would not load, a Notify that threw) moved to warn(). Separately, the window reveal ran TWICE on every launch, because RvrseUI shows the window itself and hubs are told to call Window:Show() last; it is now guarded so the particle burst, layout snapshot and log happen once per appearance."
+    "date": "2026-10-30",
+    "name": "Come and Say Hello",
+    "codename": "One Tap to the Invite",
+    "notes": "A tiny Discord badge now sits just above the version badge and puts a community invite on the player's clipboard, because Roblox cannot open a browser and copying is the only hand-off available. Every hub built on RvrseUI carries the library's invite unless it names its own with DiscordInvite, or refuses it with DiscordInvite = false. Only a never-expiring invite belongs in that default: a 7-day link dies a week after a hub ships and nobody finds out, because a dead invite looks exactly like a working one until someone taps it. The search for the executor's clipboard function moved into UIHelpers.copyText as the single implementation, and was fixed on the way: it read the environment with rawget, which walks straight past a metatable, so on every executor that serves setclipboard through one the key window reported that it could not copy the ad link -- on an executor that copies perfectly well. That is the one screen where losing the link costs the player their free key."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -43,7 +43,8 @@
     "lifecycle_api": true,
     "always_on_top": true,
     "first_person_mouse": true,
-    "luavm_license": true
+    "luavm_license": true,
+    "discord_badge": true
   },
   "changelog": {
     "4.8.3": {
@@ -106,535 +107,546 @@
       "date": "2026-10-11",
       "hash": "0NT0PM5E",
       "changes": [
-        "🔝 FIX: game screens no longer cover RvrseUI. Its screens sat in PlayerGui at DisplayOrder 999 (100 in init.lua), so any game screen above that drew over the window and took its clicks. They now use the three largest orders (windows 2147483645, lists and colour panels 2147483646, the pointer 2147483647). They stay in PlayerGui, where hubs already out there look for the window (the X button, to hook their own shutdown).",
-        "🆕 CreateWindow{ AlwaysOnTop = true } moves RvrseUI's screens into the executor's hidden folder (gethui), else CoreGui. Roblox draws those above EVERY PlayerGui screen whatever its order (checked in Studio: a CoreGui screen at order 0 took the click over a PlayerGui screen at 2147483647), and the game's own scripts can't see them. A hub that asks for it must use Window:OnClose for its shutdown: a search of PlayerGui for the X no longer finds it. While Roblox's own Esc menu is open, RvrseUI's screens step aside there (Leave / Settings stay clickable) and come back when it closes. Where neither folder takes a screen (a plain game script) the screens stay in PlayerGui.",
-        "🛑 FIX: 2147483647 is the largest DisplayOrder and one more wraps round to the very bottom. The dropdown/colour-panel screen used to go 'one above the highest screen' and the dropdown fallback '+1000': both now stop below the largest order.",
-        "🖱️ NEW: while a window is on screen the mouse is free in first-person games (an invisible Modal button: Roblox unlocks the mouse itself and locks it again when the window is minimised or closed; the game's own mouse settings are never written). Only on a device with a mouse: a touch screen behaves exactly as before.",
-        "➚ NEW: where the game hid the pointer (MouseIconEnabled = false), RvrseUI draws Roblox's own arrow at the mouse while a window is on screen, above everything. It goes away when the game shows its pointer again.",
-        "⚙️ CreateWindow{ UnlockMouse = false } leaves the mouse and the pointer to the game."
+        "\ud83d\udd1d FIX: game screens no longer cover RvrseUI. Its screens sat in PlayerGui at DisplayOrder 999 (100 in init.lua), so any game screen above that drew over the window and took its clicks. They now use the three largest orders (windows 2147483645, lists and colour panels 2147483646, the pointer 2147483647). They stay in PlayerGui, where hubs already out there look for the window (the X button, to hook their own shutdown).",
+        "\ud83c\udd95 CreateWindow{ AlwaysOnTop = true } moves RvrseUI's screens into the executor's hidden folder (gethui), else CoreGui. Roblox draws those above EVERY PlayerGui screen whatever its order (checked in Studio: a CoreGui screen at order 0 took the click over a PlayerGui screen at 2147483647), and the game's own scripts can't see them. A hub that asks for it must use Window:OnClose for its shutdown: a search of PlayerGui for the X no longer finds it. While Roblox's own Esc menu is open, RvrseUI's screens step aside there (Leave / Settings stay clickable) and come back when it closes. Where neither folder takes a screen (a plain game script) the screens stay in PlayerGui.",
+        "\ud83d\uded1 FIX: 2147483647 is the largest DisplayOrder and one more wraps round to the very bottom. The dropdown/colour-panel screen used to go 'one above the highest screen' and the dropdown fallback '+1000': both now stop below the largest order.",
+        "\ud83d\uddb1\ufe0f NEW: while a window is on screen the mouse is free in first-person games (an invisible Modal button: Roblox unlocks the mouse itself and locks it again when the window is minimised or closed; the game's own mouse settings are never written). Only on a device with a mouse: a touch screen behaves exactly as before.",
+        "\u279a NEW: where the game hid the pointer (MouseIconEnabled = false), RvrseUI draws Roblox's own arrow at the mouse while a window is on screen, above everything. It goes away when the game shows its pointer again.",
+        "\u2699\ufe0f CreateWindow{ UnlockMouse = false } leaves the mouse and the pointer to the game."
       ]
     },
     "4.5.2": {
       "date": "2026-10-11",
       "hash": "M0B1L3F7",
       "changes": [
-        "📱 FIX: the window fits the screen. It asks for 580x480 (a touch screen held upright: 380x520) and takes at most the room below Roblox's top bar, less a margin. On a phone held sideways (about 750x381) the old fixed 380x520 window was tall and narrow, ran 140px off the bottom and sat in the top bar; now it is 580 wide and fits. A desktop still gets 580x480.",
-        "🔄 The window is fitted again when the screen changes size (a phone turned, a resized game window), and can't be dragged off the screen. A window opened where the last one was left is kept on the screen.",
-        "🏷️ FIX: a control's label is never covered by its control. On a narrow card the dropdown button, text box and key button give way (down to half the card); every label is cut with '...' instead of running under the control.",
-        "📝 FIX: Paragraph and Label cards are as tall as their text (they guessed 50 characters a line and cut the text on phones).",
-        "🎨 FIX: the colour picker panel opens on the right of the screen, centred top to bottom (it started 52px below the middle and ran off the bottom, on desktops too), drawn smaller on a screen too short for it; its rows are in order again (RGB, HSV, Hex Code: rows used to land among the titles).",
-        "📋 FIX: a dropdown list near the bottom of the screen stays on it (the bounds mixed screen and top-bar-shifted pixels and let it run off by the bar's height).",
-        "⌨️ FIX: the Keybind button can be seen (its highlight gradient hid the button and its text until clicked). On a touch screen with no keyboard a tap no longer waits for a key forever.",
-        "🆕 ColorPicker:SetOpen(state) opens or closes the picker panel from code, like a dropdown's SetOpen."
+        "\ud83d\udcf1 FIX: the window fits the screen. It asks for 580x480 (a touch screen held upright: 380x520) and takes at most the room below Roblox's top bar, less a margin. On a phone held sideways (about 750x381) the old fixed 380x520 window was tall and narrow, ran 140px off the bottom and sat in the top bar; now it is 580 wide and fits. A desktop still gets 580x480.",
+        "\ud83d\udd04 The window is fitted again when the screen changes size (a phone turned, a resized game window), and can't be dragged off the screen. A window opened where the last one was left is kept on the screen.",
+        "\ud83c\udff7\ufe0f FIX: a control's label is never covered by its control. On a narrow card the dropdown button, text box and key button give way (down to half the card); every label is cut with '...' instead of running under the control.",
+        "\ud83d\udcdd FIX: Paragraph and Label cards are as tall as their text (they guessed 50 characters a line and cut the text on phones).",
+        "\ud83c\udfa8 FIX: the colour picker panel opens on the right of the screen, centred top to bottom (it started 52px below the middle and ran off the bottom, on desktops too), drawn smaller on a screen too short for it; its rows are in order again (RGB, HSV, Hex Code: rows used to land among the titles).",
+        "\ud83d\udccb FIX: a dropdown list near the bottom of the screen stays on it (the bounds mixed screen and top-bar-shifted pixels and let it run off by the bar's height).",
+        "\u2328\ufe0f FIX: the Keybind button can be seen (its highlight gradient hid the button and its text until clicked). On a touch screen with no keyboard a tap no longer waits for a key forever.",
+        "\ud83c\udd95 ColorPicker:SetOpen(state) opens or closes the picker panel from code, like a dropdown's SetOpen."
       ]
     },
     "4.5.1": {
       "date": "2026-10-07",
       "hash": "S3L7T4B1",
       "changes": [
-        "🆕 Window:SelectTab(target): switch tabs from code. target = position (1 = the first tab created), tab Title, or the tab CreateTab returned. Returns true/false; an unknown target warns and returns false, it never errors.",
-        "🐛 FIX: scripts that call Window:SelectTab(1) no longer stop with 'attempt to call a nil value' (the method did not exist).",
-        "🔇 ColorPicker diagnostics print only when debug is on (RvrseUI:EnableDebug(true)). Live on main since 2026-10-07, first listed here."
+        "\ud83c\udd95 Window:SelectTab(target): switch tabs from code. target = position (1 = the first tab created), tab Title, or the tab CreateTab returned. Returns true/false; an unknown target warns and returns false, it never errors.",
+        "\ud83d\udc1b FIX: scripts that call Window:SelectTab(1) no longer stop with 'attempt to call a nil value' (the method did not exist).",
+        "\ud83d\udd07 ColorPicker diagnostics print only when debug is on (RvrseUI:EnableDebug(true)). Live on main since 2026-10-07, first listed here."
       ]
     },
     "4.5.0": {
       "date": "2026-10-05",
       "hash": "L1F3C7Y5",
       "changes": [
-        "🧹 FIX: Closing a window no longer leaves RvrseUI running. Before, every close path left ~38 live connections (global input listeners per Slider/Dropdown/Keybind/ColorPicker, the window and chip drag listeners, a per-frame Heartbeat for the chip shine and the particle loop) plus the overlay ScreenGui. Now: zero.",
-        "🪟 FIX: Closing one window no longer destroys every other RvrseUI window (the X used to destroy the shared host). The last window to close still removes everything.",
-        "🧩 FIX: Dropdown lists and ColorPicker panels that are open in the overlay layer at close time are removed with their window.",
-        "🔁 One teardown path for the X button, Window:Destroy(), RvrseUI:Destroy() and the destroy key. Window:Destroy() no longer yields; closing twice is harmless.",
-        "🆕 Window:OnClose(fn) / CreateWindow{ OnClose = fn } — runs once with the reason (\"close-button\", \"destroy\", \"destroy-key\", \"rvrseui-destroy\") however the window closes.",
-        "🆕 Window:Track(item) — hand RvrseUI a connection, thread, Instance or cleanup function; it is released when the window closes.",
-        "🆕 Window:IsDestroyed().",
-        "🆕 CreateWindow{ TurnOffTogglesOnClose = true } — every ON toggle runs its own OnChanged(false) on close so features switch themselves off; a per-toggle TurnOffOnClose overrides it. Saved configs keep the ON state.",
-        "🔨 BUILD FIX: tools/build.js and tools/build.lua wrap each module in do...end again (as the v4.3.x monolith did). Without it, WindowBuilder.lua's private `local Theme, Obfuscation, ...` shadowed the real modules and the monolith died at load with \"attempt to index nil with Initialize\" — the 4.4.x executor breakage. build.lua now matches build.js byte-for-byte (it also missed FilterableList).",
-        "📦 FilterableList (from 4.4.0) ships in the live build for the first time. The 4.4.1 global search stays removed (reverted in c213c10).",
-        "🧪 NEW tests/headless (node tests/headless/run.js): runs the real RvrseUI.lua in a strict fake Roblox client. 9 close scenarios (X, Window:Destroy, RvrseUI:Destroy, destroy key, two windows, open overlays, reopen after close, TurnOffTogglesOnClose with config saving, Window:Track) — 0 leftover connections, 0 ScreenGuis, 0 errors."
+        "\ud83e\uddf9 FIX: Closing a window no longer leaves RvrseUI running. Before, every close path left ~38 live connections (global input listeners per Slider/Dropdown/Keybind/ColorPicker, the window and chip drag listeners, a per-frame Heartbeat for the chip shine and the particle loop) plus the overlay ScreenGui. Now: zero.",
+        "\ud83e\ude9f FIX: Closing one window no longer destroys every other RvrseUI window (the X used to destroy the shared host). The last window to close still removes everything.",
+        "\ud83e\udde9 FIX: Dropdown lists and ColorPicker panels that are open in the overlay layer at close time are removed with their window.",
+        "\ud83d\udd01 One teardown path for the X button, Window:Destroy(), RvrseUI:Destroy() and the destroy key. Window:Destroy() no longer yields; closing twice is harmless.",
+        "\ud83c\udd95 Window:OnClose(fn) / CreateWindow{ OnClose = fn } \u2014 runs once with the reason (\"close-button\", \"destroy\", \"destroy-key\", \"rvrseui-destroy\") however the window closes.",
+        "\ud83c\udd95 Window:Track(item) \u2014 hand RvrseUI a connection, thread, Instance or cleanup function; it is released when the window closes.",
+        "\ud83c\udd95 Window:IsDestroyed().",
+        "\ud83c\udd95 CreateWindow{ TurnOffTogglesOnClose = true } \u2014 every ON toggle runs its own OnChanged(false) on close so features switch themselves off; a per-toggle TurnOffOnClose overrides it. Saved configs keep the ON state.",
+        "\ud83d\udd28 BUILD FIX: tools/build.js and tools/build.lua wrap each module in do...end again (as the v4.3.x monolith did). Without it, WindowBuilder.lua's private `local Theme, Obfuscation, ...` shadowed the real modules and the monolith died at load with \"attempt to index nil with Initialize\" \u2014 the 4.4.x executor breakage. build.lua now matches build.js byte-for-byte (it also missed FilterableList).",
+        "\ud83d\udce6 FilterableList (from 4.4.0) ships in the live build for the first time. The 4.4.1 global search stays removed (reverted in c213c10).",
+        "\ud83e\uddea NEW tests/headless (node tests/headless/run.js): runs the real RvrseUI.lua in a strict fake Roblox client. 9 close scenarios (X, Window:Destroy, RvrseUI:Destroy, destroy key, two windows, open overlays, reopen after close, TurnOffTogglesOnClose with config saving, Window:Track) \u2014 0 leftover connections, 0 ScreenGuis, 0 errors."
       ]
     },
     "4.4.1": {
       "date": "2025-12-09",
       "hash": "G2S8R5C1",
       "changes": [
-        "🔍 NEW: Global Search - Search button in window header with Ctrl+F keyboard shortcut!",
-        "⚡ Real-time search across all tabs, sections, and elements with debounced input",
-        "🎯 Click search results to navigate directly to the element and highlight it",
-        "📋 Results show element type, path (Tab > Section), and icon preview",
-        "⌨️ Press Escape to close search overlay"
+        "\ud83d\udd0d NEW: Global Search - Search button in window header with Ctrl+F keyboard shortcut!",
+        "\u26a1 Real-time search across all tabs, sections, and elements with debounced input",
+        "\ud83c\udfaf Click search results to navigate directly to the element and highlight it",
+        "\ud83d\udccb Results show element type, path (Tab > Section), and icon preview",
+        "\u2328\ufe0f Press Escape to close search overlay"
       ]
     },
     "4.4.0": {
       "date": "2025-12-09",
       "hash": "F1L7R4B9",
       "changes": [
-        "🎯 NEW ELEMENT: FilterableList - Live-filterable scrollable lists with real-time search!",
-        "🔍 Built-in search input with debounced filtering (configurable delay)",
-        "📋 Scrollable item list with smooth animations and hover effects",
-        "🎨 Full Lucide icon support for list items (lucide://, rbxassetid://, emoji)",
-        "⚡ API methods: SetItems, AddItem, RemoveItem, Clear, SetQuery, GetFilteredItems",
-        "🛠️ Custom filter function support via OnFilter callback",
-        "📊 Optional count display shows filtered/total items",
-        "🎮 Perfect for: Item fetchers, player lists, teleport locations, command browsers",
-        "📦 Module count: 30 → 31 (+1 FilterableList element)",
-        "📈 Element count: 10 → 11 UI elements",
-        "🧪 New example: examples/test-filterable-list.lua with 6 demo tabs",
-        "📚 Updated CLAUDE.md with new module statistics and element count"
+        "\ud83c\udfaf NEW ELEMENT: FilterableList - Live-filterable scrollable lists with real-time search!",
+        "\ud83d\udd0d Built-in search input with debounced filtering (configurable delay)",
+        "\ud83d\udccb Scrollable item list with smooth animations and hover effects",
+        "\ud83c\udfa8 Full Lucide icon support for list items (lucide://, rbxassetid://, emoji)",
+        "\u26a1 API methods: SetItems, AddItem, RemoveItem, Clear, SetQuery, GetFilteredItems",
+        "\ud83d\udee0\ufe0f Custom filter function support via OnFilter callback",
+        "\ud83d\udcca Optional count display shows filtered/total items",
+        "\ud83c\udfae Perfect for: Item fetchers, player lists, teleport locations, command browsers",
+        "\ud83d\udce6 Module count: 30 \u2192 31 (+1 FilterableList element)",
+        "\ud83d\udcc8 Element count: 10 \u2192 11 UI elements",
+        "\ud83e\uddea New example: examples/test-filterable-list.lua with 6 demo tabs",
+        "\ud83d\udcda Updated CLAUDE.md with new module statistics and element count"
       ]
     },
     "4.3.31": {
       "date": "2025-12-02",
       "hash": "F8A2C9D4",
       "changes": [
-        "🖼️ Added `favicon.svg` with a neon gradient 'R' logo to replace the missing favicon.",
-        "🌐 Updated `index.html` to link the new SVG favicon, resolving browser 404 errors."
+        "\ud83d\uddbc\ufe0f Added `favicon.svg` with a neon gradient 'R' logo to replace the missing favicon.",
+        "\ud83c\udf10 Updated `index.html` to link the new SVG favicon, resolving browser 404 errors."
       ]
     },
     "4.3.30": {
       "date": "2025-12-02",
       "hash": "E5F8A2C9",
       "changes": [
-        "🔊 Added native video controls to the hero showcase so users can unmute and replay the video manually.",
-        "🔧 Clarified autoplay behavior: video must start muted to bypass browser blocking policies."
+        "\ud83d\udd0a Added native video controls to the hero showcase so users can unmute and replay the video manually.",
+        "\ud83d\udd27 Clarified autoplay behavior: video must start muted to bypass browser blocking policies."
       ]
     },
     "4.3.29": {
       "date": "2025-12-02",
       "hash": "B2D5F8A1",
       "changes": [
-        "🫧 Bubble field now features a dual-tone split: Cyan on the left, Magenta on the right, matching the RvrseUI banner aesthetic.",
-        "🎨 Updated bubble shimmer and glow effects to respect the new color variables.",
-        "🔢 Bumped version metadata to v4.3.29."
+        "\ud83e\udee7 Bubble field now features a dual-tone split: Cyan on the left, Magenta on the right, matching the RvrseUI banner aesthetic.",
+        "\ud83c\udfa8 Updated bubble shimmer and glow effects to respect the new color variables.",
+        "\ud83d\udd22 Bumped version metadata to v4.3.29."
       ]
     },
     "4.3.28": {
       "date": "2025-12-02",
       "hash": "9F6C1E3B",
       "changes": [
-        "🎬 Replaced the static hero banner with an automated MP4 showcase that loops inline without controls.",
-        "🫧 Bubble field densified with more nodes, shimmer animations, and varied timing so the backdrop feels alive.",
-        "📼 Added the RvrseUI.mp4 asset to the repo for GitHub Pages hosting.",
-        "🔢 Updated hero/footer badges plus version metadata to satisfy the guarded push workflow."
+        "\ud83c\udfac Replaced the static hero banner with an automated MP4 showcase that loops inline without controls.",
+        "\ud83e\udee7 Bubble field densified with more nodes, shimmer animations, and varied timing so the backdrop feels alive.",
+        "\ud83d\udcfc Added the RvrseUI.mp4 asset to the repo for GitHub Pages hosting.",
+        "\ud83d\udd22 Updated hero/footer badges plus version metadata to satisfy the guarded push workflow."
       ]
     },
     "4.3.27": {
       "date": "2025-12-02",
       "hash": "C1E8D4A6",
       "changes": [
-        "🌀 Global scrollbar styling now matches the neon palette with rounded rails and gradient thumbs for a modern feel.",
-        "📜 Code blocks and mini demos received slimmer scrollbars so horizontal snippets look premium instead of default browser chrome.",
-        "🔢 Hero badge + footer bumped to v4.3.27 to stay in sync with the release guard.",
-        "⚙️ Version metadata updated to satisfy the push policy."
+        "\ud83c\udf00 Global scrollbar styling now matches the neon palette with rounded rails and gradient thumbs for a modern feel.",
+        "\ud83d\udcdc Code blocks and mini demos received slimmer scrollbars so horizontal snippets look premium instead of default browser chrome.",
+        "\ud83d\udd22 Hero badge + footer bumped to v4.3.27 to stay in sync with the release guard.",
+        "\u2699\ufe0f Version metadata updated to satisfy the push policy."
       ]
     },
     "4.3.26": {
       "date": "2025-12-01",
       "hash": "F4D1B7E9",
       "changes": [
-        "🛰️ Navigation bar now has a neon shell, animated link underlines, and condenses as you scroll for a cockpit-like feel.",
-        "⬆️ Added a floating 'Back to top' control with smooth scrolling so long docs are easier to navigate on executors and browsers.",
-        "📘 Developer doc section rewritten into three precise operator steps (boot, persist, gate) with context bullets instead of vague playbooks.",
-        "🧾 Hero badge + footer updated to v4.3.26 so the site mirrors repository metadata.",
-        "⚙️ Release metadata bumped to satisfy the protected main push guard."
+        "\ud83d\udef0\ufe0f Navigation bar now has a neon shell, animated link underlines, and condenses as you scroll for a cockpit-like feel.",
+        "\u2b06\ufe0f Added a floating 'Back to top' control with smooth scrolling so long docs are easier to navigate on executors and browsers.",
+        "\ud83d\udcd8 Developer doc section rewritten into three precise operator steps (boot, persist, gate) with context bullets instead of vague playbooks.",
+        "\ud83e\uddfe Hero badge + footer updated to v4.3.26 so the site mirrors repository metadata.",
+        "\u2699\ufe0f Release metadata bumped to satisfy the protected main push guard."
       ]
     },
     "4.3.25": {
       "date": "2025-12-01",
       "hash": "A8E5C9B2",
       "changes": [
-        "🧊 Element reference tiles now have expanded spacing, better typography, and taller code wells so longer snippets stay readable.",
-        "📋 Added one-tap copy buttons to the quick start, every demo card, and each developer doc playbook snippet for faster sharing.",
-        "🛡️ Clipboard helper script debounces clicks, gives visual feedback, and keeps the site self-contained without extra JS deps.",
-        "🔢 Hero badge + footer now display the current release (v4.3.25) to match repo metadata.",
-        "🌐 Updated release files so GitHub Pages rebuilds pull the neon enhancements without tripping the version gate."
+        "\ud83e\uddca Element reference tiles now have expanded spacing, better typography, and taller code wells so longer snippets stay readable.",
+        "\ud83d\udccb Added one-tap copy buttons to the quick start, every demo card, and each developer doc playbook snippet for faster sharing.",
+        "\ud83d\udee1\ufe0f Clipboard helper script debounces clicks, gives visual feedback, and keeps the site self-contained without extra JS deps.",
+        "\ud83d\udd22 Hero badge + footer now display the current release (v4.3.25) to match repo metadata.",
+        "\ud83c\udf10 Updated release files so GitHub Pages rebuilds pull the neon enhancements without tripping the version gate."
       ]
     },
     "4.3.24": {
       "date": "2025-12-01",
       "hash": "D2F7A5C1",
       "changes": [
-        "🌐 Launched a GitHub Pages microsite with redesigned hero, quick start, and resources navigation.",
-        "🧱 Added copy/paste ready demo cards for every UI element so builders can grab snippets instantly.",
-        "📚 Introduced developer doc playbooks that walk through booting, profile saves, and the key system.",
-        "🪪 Trimmed the README down to the banner + links so all documentation now lives on the site.",
-        "📝 Updated release metadata to track the documentation overhaul."
+        "\ud83c\udf10 Launched a GitHub Pages microsite with redesigned hero, quick start, and resources navigation.",
+        "\ud83e\uddf1 Added copy/paste ready demo cards for every UI element so builders can grab snippets instantly.",
+        "\ud83d\udcda Introduced developer doc playbooks that walk through booting, profile saves, and the key system.",
+        "\ud83e\udeaa Trimmed the README down to the banner + links so all documentation now lives on the site.",
+        "\ud83d\udcdd Updated release metadata to track the documentation overhaul."
       ]
     },
     "4.3.23": {
       "date": "2025-11-06",
       "hash": "W9K5N7R3",
       "changes": [
-        "🎯 CRITICAL FIX: Window now stays fully visible on-screen during restore.",
-        "📏 New clampToScreen() function keeps window within viewport bounds (20px padding).",
-        "🚫 Prevents half-off-screen bug when chip dragged to screen edges.",
-        "✨ Clamps BOTH chip position AND target position for smooth bounded animation.",
-        "📐 Constraints: min 20px from any edge, max viewport - windowSize - 20px.",
-        "🎬 Visual flow: Chip shrinks → Window appears at clamped chip position → Slides to clamped original position.",
-        "💾 Saves clamped position so future restores stay within bounds.",
-        "✅ User experience: Window always fully visible, no matter where chip is dragged."
+        "\ud83c\udfaf CRITICAL FIX: Window now stays fully visible on-screen during restore.",
+        "\ud83d\udccf New clampToScreen() function keeps window within viewport bounds (20px padding).",
+        "\ud83d\udeab Prevents half-off-screen bug when chip dragged to screen edges.",
+        "\u2728 Clamps BOTH chip position AND target position for smooth bounded animation.",
+        "\ud83d\udcd0 Constraints: min 20px from any edge, max viewport - windowSize - 20px.",
+        "\ud83c\udfac Visual flow: Chip shrinks \u2192 Window appears at clamped chip position \u2192 Slides to clamped original position.",
+        "\ud83d\udcbe Saves clamped position so future restores stay within bounds.",
+        "\u2705 User experience: Window always fully visible, no matter where chip is dragged."
       ]
     },
     "4.3.22": {
       "date": "2025-11-06",
       "hash": "C8P4L9X2",
       "changes": [
-        "🎯 CORRECT FIX: Window restores FROM chip center TO original position with smooth animation.",
-        "✨ Calculates chip center position BEFORE shrinking (toScreenOffset).",
-        "🎬 Window spawns at chipCenterPos, then animates to targetPos smoothly.",
-        "⏱️ Animation: 0.4s Quad EaseOut for buttery smooth transition.",
-        "🔧 Fixed v4.3.21 bug where window appeared instantly (no animation from chip).",
-        "📍 Chip center calculation preserves dragged position correctly.",
-        "🎨 Visual flow: Chip shrinks → Window appears at chip center → Slides to original position.",
-        "🐛 BUG: Window could restore half off-screen if chip dragged to edges (fixed in v4.3.23)."
+        "\ud83c\udfaf CORRECT FIX: Window restores FROM chip center TO original position with smooth animation.",
+        "\u2728 Calculates chip center position BEFORE shrinking (toScreenOffset).",
+        "\ud83c\udfac Window spawns at chipCenterPos, then animates to targetPos smoothly.",
+        "\u23f1\ufe0f Animation: 0.4s Quad EaseOut for buttery smooth transition.",
+        "\ud83d\udd27 Fixed v4.3.21 bug where window appeared instantly (no animation from chip).",
+        "\ud83d\udccd Chip center calculation preserves dragged position correctly.",
+        "\ud83c\udfa8 Visual flow: Chip shrinks \u2192 Window appears at chip center \u2192 Slides to original position.",
+        "\ud83d\udc1b BUG: Window could restore half off-screen if chip dragged to edges (fixed in v4.3.23)."
       ]
     },
     "4.3.21": {
       "date": "2025-11-06",
       "hash": "R5X2M8N4",
       "changes": [
-        "❌ REVERTED: Window appeared instantly at original position (no animation).",
-        "🐛 Bug: Removed animation entirely - window teleported without smooth transition.",
-        "📝 This version was incorrect - users expected animation FROM chip TO original position."
+        "\u274c REVERTED: Window appeared instantly at original position (no animation).",
+        "\ud83d\udc1b Bug: Removed animation entirely - window teleported without smooth transition.",
+        "\ud83d\udcdd This version was incorrect - users expected animation FROM chip TO original position."
       ]
     },
     "4.3.20": {
       "date": "2025-10-22",
       "hash": "H8B3D6E0",
       "changes": [
-        "✅ Fixed Aftman 404 error by using official setup-aftman@v0.4.2 GitHub Action instead of manual installation.",
-        "🔧 Updated to Aftman v0.3.0 (latest stable release, v0.2.7 URL was broken).",
-        "🚀 Simplified CI workflow - official action handles all installation complexity automatically.",
-        "📦 Cleaner workflow (3 steps instead of complex manual curl/unzip logic).",
-        "⚡ Faster tool installation with automatic GitHub Action caching support."
+        "\u2705 Fixed Aftman 404 error by using official setup-aftman@v0.4.2 GitHub Action instead of manual installation.",
+        "\ud83d\udd27 Updated to Aftman v0.3.0 (latest stable release, v0.2.7 URL was broken).",
+        "\ud83d\ude80 Simplified CI workflow - official action handles all installation complexity automatically.",
+        "\ud83d\udce6 Cleaner workflow (3 steps instead of complex manual curl/unzip logic).",
+        "\u26a1 Faster tool installation with automatic GitHub Action caching support."
       ]
     },
     "4.3.10": {
       "date": "2025-10-22",
       "hash": "X8R3T6U0",
       "changes": [
-        "🚀 Migrated CI to Aftman toolchain manager (official Roblox recommendation).",
-        "📦 Added aftman.toml configuration file for declarative tool management.",
-        "🔧 Refactored CI workflow to use Aftman instead of cargo/manual downloads."
+        "\ud83d\ude80 Migrated CI to Aftman toolchain manager (official Roblox recommendation).",
+        "\ud83d\udce6 Added aftman.toml configuration file for declarative tool management.",
+        "\ud83d\udd27 Refactored CI workflow to use Aftman instead of cargo/manual downloads."
       ]
     },
     "4.3.9": {
       "date": "2025-10-22",
       "hash": "W7Q2S5T9",
       "changes": [
-        "🔧 Fixed critical bash syntax errors in CI workflow (replaced `end` with `fi` in shell conditionals).",
-        "📌 Pinned Wally installation to v0.3.2 (stable release) to avoid GitHub release artifact instability.",
-        "🛠️ Updated Wally download URL to correct artifact format for reliable CI builds.",
-        "📊 Added verbose logging and improved error handling in toolchain installation steps.",
-        "✅ CI pipeline now fully functional with cargo-based stylua/selene/rojo + pinned Wally."
+        "\ud83d\udd27 Fixed critical bash syntax errors in CI workflow (replaced `end` with `fi` in shell conditionals).",
+        "\ud83d\udccc Pinned Wally installation to v0.3.2 (stable release) to avoid GitHub release artifact instability.",
+        "\ud83d\udee0\ufe0f Updated Wally download URL to correct artifact format for reliable CI builds.",
+        "\ud83d\udcca Added verbose logging and improved error handling in toolchain installation steps.",
+        "\u2705 CI pipeline now fully functional with cargo-based stylua/selene/rojo + pinned Wally."
       ]
     },
     "4.3.5": {
       "date": "2025-10-21",
       "hash": "M9Q4T7S1",
       "changes": [
-        "🎨 Capsule surfaces rebuilt: pill radii now follow container height, preventing mismatched corners on toggles, sliders, color previews, and keybind buttons.",
-        "🖌️ UIStroke joins switched to round across elements so outlines stay smooth even under scaling and animation.",
-        "🌞 Light theme cards, buttons, and inputs render fully opaque by default, eliminating the premultiplied alpha halo that appeared on pale backgrounds."
+        "\ud83c\udfa8 Capsule surfaces rebuilt: pill radii now follow container height, preventing mismatched corners on toggles, sliders, color previews, and keybind buttons.",
+        "\ud83d\udd8c\ufe0f UIStroke joins switched to round across elements so outlines stay smooth even under scaling and animation.",
+        "\ud83c\udf1e Light theme cards, buttons, and inputs render fully opaque by default, eliminating the premultiplied alpha halo that appeared on pale backgrounds."
       ]
     },
     "4.3.4": {
       "date": "2025-10-21",
       "hash": "Q8L6Y1F2",
       "changes": [
-        "📘 Complete hub example now initializes getgenv() state, wires flags, and prints hydrated values so the auto-save pipeline is demonstrated inline."
+        "\ud83d\udcd8 Complete hub example now initializes getgenv() state, wires flags, and prints hydrated values so the auto-save pipeline is demonstrated inline."
       ]
     },
     "4.3.3": {
       "date": "2025-10-21",
       "hash": "J7P5Z2K4",
       "changes": [
-        "📚 README surfaces the Codex-5 agent memo in `examples/AGENTS.md`, giving builders a direct link to the bundled monolith guidance."
+        "\ud83d\udcda README surfaces the Codex-5 agent memo in `examples/AGENTS.md`, giving builders a direct link to the bundled monolith guidance."
       ]
     },
     "4.3.2": {
       "date": "2025-10-21",
       "hash": "H4N2B8M1",
       "changes": [
-        "💾 Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
-        "🛠️ Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
-        "🧪 New example: examples/test-config-hydration.lua demonstrates the zero-boilerplate workflow.",
-        "📚 README/AGENTS/DEV_NOTES refreshed to explain hydration behavior and opt-out strategy.",
-        "🧱 Internal Set APIs accept a fireCallback flag so programmatic updates stay silent unless explicitly fired."
+        "\ud83d\udcbe Config hydration now auto-fires each element's OnChanged callback after load (sliders, toggles, color pickers, text boxes).",
+        "\ud83d\udee0\ufe0f Added optional FireOnConfigLoad=false escape hatch and documented manual Hydrate() usage for advanced control.",
+        "\ud83e\uddea New example: examples/test-config-hydration.lua demonstrates the zero-boilerplate workflow.",
+        "\ud83d\udcda README/AGENTS/DEV_NOTES refreshed to explain hydration behavior and opt-out strategy.",
+        "\ud83e\uddf1 Internal Set APIs accept a fireCallback flag so programmatic updates stay silent unless explicitly fired."
       ]
     },
     "4.3.1": {
       "date": "2025-10-20",
       "hash": "V6N8R1C7",
       "changes": [
-        "🎮 Controller chip now uses the Lucide icon resolver—supports `lucide://`, emoji, `rbxassetid://`, or numeric IDs with automatic Unicode fallback.",
-        "🪄 New APIs: `RvrseUI:SetTokenIcon` / `GetTokenIcon` and `Window:SetTokenIcon` / `GetTokenIcon` for per-hub or per-window customization.",
-        "🎨 Theme-friendly tinting with optional color overrides; fallbacks remain visible even if the sprite sheet fails to load.",
-        "📘 README updated with token customization examples plus refreshed badges/build stats.",
-        "🧾 Version metadata bumped to v4.3.1 (build 20251020c) for release tracking."
+        "\ud83c\udfae Controller chip now uses the Lucide icon resolver\u2014supports `lucide://`, emoji, `rbxassetid://`, or numeric IDs with automatic Unicode fallback.",
+        "\ud83e\ude84 New APIs: `RvrseUI:SetTokenIcon` / `GetTokenIcon` and `Window:SetTokenIcon` / `GetTokenIcon` for per-hub or per-window customization.",
+        "\ud83c\udfa8 Theme-friendly tinting with optional color overrides; fallbacks remain visible even if the sprite sheet fails to load.",
+        "\ud83d\udcd8 README updated with token customization examples plus refreshed badges/build stats.",
+        "\ud83e\uddfe Version metadata bumped to v4.3.1 (build 20251020c) for release tracking."
       ]
     },
     "4.3.0": {
       "date": "2025-10-20",
       "hash": "P7R1L8Z3",
       "changes": [
-        "🪄 Lucide icons now render across ALL UI elements (Tabs, Notifications, Buttons, Labels) with consistent spacing and dedicated icon holders.",
-        "🖼️ Added rbxassetid:// image support to IconResolver so Roblox-hosted sprites render alongside lucide:// and emoji schemes.",
-        "🧩 Buttons and Labels reserve a 24px icon lane with dynamic padding that prevents overlap when fallbacks or emojis are used.",
-        "🧵 Lucide sprite data is embedded into RvrseUI.lua and init build so executors load the sheet without extra HTTP calls.",
-        "🧪 Refreshed examples/test-lucide-icons.lua to showcase Buttons, Labels, Notifications, and Roblox asset icons in one scene.",
-        "📚 README.md now ships with a dedicated Lucide Icon System section, updated quick-start badges, and direct example links.",
-        "🗒️ CLAUDE.md gains a developer log plus advanced guidance for regenerating lucide sprites and wiring new icons.",
-        "🔖 VERSION metadata updated for v4.3.0 (build 20251020b, codename \"Neon Atlas\").",
-        "🪟 Minimize/restore flow tweaked so the window reopens from the controller chip at the exact saved position.",
-        "🧰 Profiles tab now leverages the modern dropdown with single-select guards and ships with `examples/test-config-profiles.lua` for regression testing."
+        "\ud83e\ude84 Lucide icons now render across ALL UI elements (Tabs, Notifications, Buttons, Labels) with consistent spacing and dedicated icon holders.",
+        "\ud83d\uddbc\ufe0f Added rbxassetid:// image support to IconResolver so Roblox-hosted sprites render alongside lucide:// and emoji schemes.",
+        "\ud83e\udde9 Buttons and Labels reserve a 24px icon lane with dynamic padding that prevents overlap when fallbacks or emojis are used.",
+        "\ud83e\uddf5 Lucide sprite data is embedded into RvrseUI.lua and init build so executors load the sheet without extra HTTP calls.",
+        "\ud83e\uddea Refreshed examples/test-lucide-icons.lua to showcase Buttons, Labels, Notifications, and Roblox asset icons in one scene.",
+        "\ud83d\udcda README.md now ships with a dedicated Lucide Icon System section, updated quick-start badges, and direct example links.",
+        "\ud83d\uddd2\ufe0f CLAUDE.md gains a developer log plus advanced guidance for regenerating lucide sprites and wiring new icons.",
+        "\ud83d\udd16 VERSION metadata updated for v4.3.0 (build 20251020b, codename \"Neon Atlas\").",
+        "\ud83e\ude9f Minimize/restore flow tweaked so the window reopens from the controller chip at the exact saved position.",
+        "\ud83e\uddf0 Profiles tab now leverages the modern dropdown with single-select guards and ships with `examples/test-config-profiles.lua` for regression testing."
       ]
     },
     "4.2.0": {
       "date": "2025-10-18",
       "hash": "L6I9C3U5",
       "changes": [
-        "🎨 LUCIDE ICON LIBRARY INTEGRATION - 500+ professional icons via lucide:// protocol!",
-        "✨ NEW: LucideIcons.lua module (287 lines) - Lucide icon resolution with Unicode fallbacks",
-        "🔍 Icon resolution chain: Asset map → Unicode fallback → Text display",
-        "📦 100+ Unicode fallbacks pre-mapped for common icons (home, settings, arrows, etc.)",
-        "🚀 Zero setup required - works immediately with automatic fallbacks",
-        "🎯 Advanced: Upload custom Lucide SVGs as Roblox assets and map in LucideIcons.AssetMap",
-        "🔧 5 icon formats supported: lucide://, icon://, emoji, rbxassetid://, asset ID number",
-        "📚 Icons.lua enhanced with lucide:// protocol support",
-        "🌐 HttpService integration for future SVG fetching capabilities",
-        "📖 Complete documentation: docs/LUCIDE_ICONS_GUIDE.md (347 lines)",
-        "🧪 Two example scripts: test-lucide-icons.lua (308 lines), test-lucide-simple.lua (71 lines)",
-        "🔨 Build system updated: Added LucideIcons to module order + HttpService to services",
-        "📊 Module count: 28 → 29 (+1 LucideIcons)",
-        "📈 File size: 264 KB → 272 KB (+8 KB for icon system)",
-        "✅ ORGANIC PARTICLE SYSTEM - 'Spore Bubble' floating particles with Perlin noise drift!",
-        "🎨 NEW: Particles.lua module (698 lines) - Complete Perlin noise implementation for organic motion",
-        "🌊 Perlin noise 3D with octave layering - particles drift with lateral curl (no straight lines)",
-        "🫧 Size distribution: 60% small (3-8px), 30% medium (9-16px), 10% large (18-28px bubbles)",
-        "🎭 Opacity range: 0.15-0.35 base with cubic easing (in: t³, out: 1-(1-t)³)",
-        "⏱️ Lifetime: 2.8-5.2s random, fade in 120-180ms, fade out 180-220ms",
-        "🎯 Motion: Base upward 20-45 px/s + Perlin lateral drift ±8-18 px/s + vertical noise ±6 px/s",
-        "🎨 HSL color jitter: ±6° hue, ±8% lightness from theme accent for variety",
-        "♻️ Object pooling: Zero per-frame allocation, particles reused from pool",
-        "📊 Adaptive density: 40-80 desktop, 20-40 mobile, auto-reduces if FPS < 50",
-        "🎬 State-driven spawning: 'expand' (+30% burst), 'idle' (10% trickle), 'dragging' (50% throttle)",
-        "⚡ RunService heartbeat updates - <0.8ms render budget per frame",
-        "🔧 Configurable: Particles.Enabled, Density (low/med/high), Blend (alpha/additive)",
-        "🪟 Integrated with WindowBuilder: plays on show/restore, stops on minimize, throttles on drag",
-        "📦 Module count: 28 (up from 27) +1 Particles module",
-        "📈 File size: 264 KB (up from 247 KB, +17 KB for complete Perlin noise system)"
+        "\ud83c\udfa8 LUCIDE ICON LIBRARY INTEGRATION - 500+ professional icons via lucide:// protocol!",
+        "\u2728 NEW: LucideIcons.lua module (287 lines) - Lucide icon resolution with Unicode fallbacks",
+        "\ud83d\udd0d Icon resolution chain: Asset map \u2192 Unicode fallback \u2192 Text display",
+        "\ud83d\udce6 100+ Unicode fallbacks pre-mapped for common icons (home, settings, arrows, etc.)",
+        "\ud83d\ude80 Zero setup required - works immediately with automatic fallbacks",
+        "\ud83c\udfaf Advanced: Upload custom Lucide SVGs as Roblox assets and map in LucideIcons.AssetMap",
+        "\ud83d\udd27 5 icon formats supported: lucide://, icon://, emoji, rbxassetid://, asset ID number",
+        "\ud83d\udcda Icons.lua enhanced with lucide:// protocol support",
+        "\ud83c\udf10 HttpService integration for future SVG fetching capabilities",
+        "\ud83d\udcd6 Complete documentation: docs/LUCIDE_ICONS_GUIDE.md (347 lines)",
+        "\ud83e\uddea Two example scripts: test-lucide-icons.lua (308 lines), test-lucide-simple.lua (71 lines)",
+        "\ud83d\udd28 Build system updated: Added LucideIcons to module order + HttpService to services",
+        "\ud83d\udcca Module count: 28 \u2192 29 (+1 LucideIcons)",
+        "\ud83d\udcc8 File size: 264 KB \u2192 272 KB (+8 KB for icon system)",
+        "\u2705 ORGANIC PARTICLE SYSTEM - 'Spore Bubble' floating particles with Perlin noise drift!",
+        "\ud83c\udfa8 NEW: Particles.lua module (698 lines) - Complete Perlin noise implementation for organic motion",
+        "\ud83c\udf0a Perlin noise 3D with octave layering - particles drift with lateral curl (no straight lines)",
+        "\ud83e\udee7 Size distribution: 60% small (3-8px), 30% medium (9-16px), 10% large (18-28px bubbles)",
+        "\ud83c\udfad Opacity range: 0.15-0.35 base with cubic easing (in: t\u00b3, out: 1-(1-t)\u00b3)",
+        "\u23f1\ufe0f Lifetime: 2.8-5.2s random, fade in 120-180ms, fade out 180-220ms",
+        "\ud83c\udfaf Motion: Base upward 20-45 px/s + Perlin lateral drift \u00b18-18 px/s + vertical noise \u00b16 px/s",
+        "\ud83c\udfa8 HSL color jitter: \u00b16\u00b0 hue, \u00b18% lightness from theme accent for variety",
+        "\u267b\ufe0f Object pooling: Zero per-frame allocation, particles reused from pool",
+        "\ud83d\udcca Adaptive density: 40-80 desktop, 20-40 mobile, auto-reduces if FPS < 50",
+        "\ud83c\udfac State-driven spawning: 'expand' (+30% burst), 'idle' (10% trickle), 'dragging' (50% throttle)",
+        "\u26a1 RunService heartbeat updates - <0.8ms render budget per frame",
+        "\ud83d\udd27 Configurable: Particles.Enabled, Density (low/med/high), Blend (alpha/additive)",
+        "\ud83e\ude9f Integrated with WindowBuilder: plays on show/restore, stops on minimize, throttles on drag",
+        "\ud83d\udce6 Module count: 28 (up from 27) +1 Particles module",
+        "\ud83d\udcc8 File size: 264 KB (up from 247 KB, +17 KB for complete Perlin noise system)"
       ]
     },
     "4.1.0": {
       "date": "2025-10-18",
       "hash": "U7M5D3W9",
       "changes": [
-        "🎯 UNIFIED DROPDOWN SYSTEM - Major architectural cleanup!",
-        "🗑️ Removed DropdownLegacy.lua (404 lines) - eliminated broken single-select system",
-        "✂️ Cleaned Dropdown.lua - removed ALL single-select logic and Rayfield compatibility code (reduced from 1021 to 801 lines)",
-        "🔧 Updated SectionBuilder.lua - CreateDropdown() now ALWAYS uses modern multi-select system (removed UseModernDropdown flag)",
-        "📦 Module count: 27 (down from 28) - cleaner codebase",
-        "📉 File size: 246 KB (down from 260 KB - 5% smaller!)",
-        "📊 Net code reduction: 1,459 lines deleted (-1775 deletions, +316 additions)",
-        "✅ Modern multi-select is now the ONLY dropdown system - users select one OR multiple items by clicking",
-        "🎨 Checkbox interface - visual checkboxes for all dropdown items",
-        "🚫 Removed ALL Rayfield compatibility code and documentation",
-        "📝 Updated README.md - removed 'Single-Select vs Multi-Select' confusion, clarified unified system",
-        "🧹 Deleted TEST_DROPDOWN_LONG_LABELS.lua (166 lines) - broken test file",
-        "🔄 Updated build.js and build.lua - removed DropdownLegacy from pipeline",
-        "📚 Updated all documentation to reflect unified system (README, badges, version info)",
-        "🎯 API CONSISTENCY: OnChanged ALWAYS receives a table (e.g., {'Item1', 'Item2'})",
-        "✨ Dynamic overlay rendering - dropdowns always appear above all other UI",
-        "🛡️ No ZIndex issues - proper DisplayOrder calculation ensures topmost rendering",
-        "🔧 Breaking Changes: NONE - existing code continues to work (backwards compatible)"
+        "\ud83c\udfaf UNIFIED DROPDOWN SYSTEM - Major architectural cleanup!",
+        "\ud83d\uddd1\ufe0f Removed DropdownLegacy.lua (404 lines) - eliminated broken single-select system",
+        "\u2702\ufe0f Cleaned Dropdown.lua - removed ALL single-select logic and Rayfield compatibility code (reduced from 1021 to 801 lines)",
+        "\ud83d\udd27 Updated SectionBuilder.lua - CreateDropdown() now ALWAYS uses modern multi-select system (removed UseModernDropdown flag)",
+        "\ud83d\udce6 Module count: 27 (down from 28) - cleaner codebase",
+        "\ud83d\udcc9 File size: 246 KB (down from 260 KB - 5% smaller!)",
+        "\ud83d\udcca Net code reduction: 1,459 lines deleted (-1775 deletions, +316 additions)",
+        "\u2705 Modern multi-select is now the ONLY dropdown system - users select one OR multiple items by clicking",
+        "\ud83c\udfa8 Checkbox interface - visual checkboxes for all dropdown items",
+        "\ud83d\udeab Removed ALL Rayfield compatibility code and documentation",
+        "\ud83d\udcdd Updated README.md - removed 'Single-Select vs Multi-Select' confusion, clarified unified system",
+        "\ud83e\uddf9 Deleted TEST_DROPDOWN_LONG_LABELS.lua (166 lines) - broken test file",
+        "\ud83d\udd04 Updated build.js and build.lua - removed DropdownLegacy from pipeline",
+        "\ud83d\udcda Updated all documentation to reflect unified system (README, badges, version info)",
+        "\ud83c\udfaf API CONSISTENCY: OnChanged ALWAYS receives a table (e.g., {'Item1', 'Item2'})",
+        "\u2728 Dynamic overlay rendering - dropdowns always appear above all other UI",
+        "\ud83d\udee1\ufe0f No ZIndex issues - proper DisplayOrder calculation ensures topmost rendering",
+        "\ud83d\udd27 Breaking Changes: NONE - existing code continues to work (backwards compatible)"
       ]
     },
     "4.0.4": {
       "date": "2025-10-18",
       "hash": "R9B4K3X7",
       "changes": [
-        "🎯 CRITICAL FIX: Complete drag system rewrite - back to basics!",
-        "🐛 ROOT CAUSE: Overcomplicated drag logic with AbsolutePosition/AnchorPoint math introduced offset bugs",
-        "✨ SOLUTION: Replaced ~600 lines of complex code with ~140 lines of classic Roblox drag pattern",
-        "📐 Simple delta calculation: delta = currentPosition - startPosition, apply to original UDim2",
-        "🪟 Window header drag now uses basic InputBegan → store start → calculate delta pattern",
-        "🎮 Controller chip drag simplified to same pattern - no offset calculations needed",
-        "🚫 Removed: AbsolutePosition math, GUI inset handling, AnchorPoint conversions, coordinate space mixing",
-        "🚫 Removed: Size locking system, hover animation blocking, complex pointer tracking",
-        "✅ Kept: Animation blocking (isAnimating flag) to prevent drag during minimize/restore tweens",
-        "📊 Code reduction: 65% smaller (400 lines → 140 lines)",
-        "🎯 User confirmed: 'that was it that was the fix back to the basics!'",
-        "📝 Created SIMPLE_DRAG_REFERENCE.lua as reference for future drag implementations",
-        "📚 Created DRAG_FIX_PROPOSAL.md documenting architectural analysis",
-        "🧪 Verified: No jumps, no offset drift, cursor stays glued to grab point"
+        "\ud83c\udfaf CRITICAL FIX: Complete drag system rewrite - back to basics!",
+        "\ud83d\udc1b ROOT CAUSE: Overcomplicated drag logic with AbsolutePosition/AnchorPoint math introduced offset bugs",
+        "\u2728 SOLUTION: Replaced ~600 lines of complex code with ~140 lines of classic Roblox drag pattern",
+        "\ud83d\udcd0 Simple delta calculation: delta = currentPosition - startPosition, apply to original UDim2",
+        "\ud83e\ude9f Window header drag now uses basic InputBegan \u2192 store start \u2192 calculate delta pattern",
+        "\ud83c\udfae Controller chip drag simplified to same pattern - no offset calculations needed",
+        "\ud83d\udeab Removed: AbsolutePosition math, GUI inset handling, AnchorPoint conversions, coordinate space mixing",
+        "\ud83d\udeab Removed: Size locking system, hover animation blocking, complex pointer tracking",
+        "\u2705 Kept: Animation blocking (isAnimating flag) to prevent drag during minimize/restore tweens",
+        "\ud83d\udcca Code reduction: 65% smaller (400 lines \u2192 140 lines)",
+        "\ud83c\udfaf User confirmed: 'that was it that was the fix back to the basics!'",
+        "\ud83d\udcdd Created SIMPLE_DRAG_REFERENCE.lua as reference for future drag implementations",
+        "\ud83d\udcda Created DRAG_FIX_PROPOSAL.md documenting architectural analysis",
+        "\ud83e\uddea Verified: No jumps, no offset drift, cursor stays glued to grab point"
       ]
     },
     "4.0.3": {
       "date": "2025-10-17",
       "hash": "P8X4N7Q2",
       "changes": [
-        "🎉 CRITICAL FIX: Multi-select dropdown blocker now works perfectly!",
-        "🐛 ROOT CAUSE: Lua closure upvalue capture bug - closures capture VALUES not references",
-        "🔧 Wrapper function closeDropdown() captured setOpen as nil at definition time",
-        "✅ SOLUTION: Use inline anonymous functions at connection point (inside setOpen body)",
-        "📊 Evidence: Logs showed setOpen was 'function' when connecting, 'nil' when handler fired",
-        "🧪 Test confirms fix: Blocker clicks now close dropdown successfully",
-        "🔍 Added comprehensive debug logging to track exact blocker click flow",
-        "📝 Documented Lua closure scoping bug in CLAUDE.md (Warning #3)",
-        "🔢 Build number properly incremented to 20251017b"
+        "\ud83c\udf89 CRITICAL FIX: Multi-select dropdown blocker now works perfectly!",
+        "\ud83d\udc1b ROOT CAUSE: Lua closure upvalue capture bug - closures capture VALUES not references",
+        "\ud83d\udd27 Wrapper function closeDropdown() captured setOpen as nil at definition time",
+        "\u2705 SOLUTION: Use inline anonymous functions at connection point (inside setOpen body)",
+        "\ud83d\udcca Evidence: Logs showed setOpen was 'function' when connecting, 'nil' when handler fired",
+        "\ud83e\uddea Test confirms fix: Blocker clicks now close dropdown successfully",
+        "\ud83d\udd0d Added comprehensive debug logging to track exact blocker click flow",
+        "\ud83d\udcdd Documented Lua closure scoping bug in CLAUDE.md (Warning #3)",
+        "\ud83d\udd22 Build number properly incremented to 20251017b"
       ]
     },
     "4.0.2": {
       "date": "2025-10-17",
       "hash": "D3F7K9M2",
       "changes": [
-        "🐛 CRITICAL FIX: Modern Dropdown multi-select blocker close crash",
-        "🔧 Fixed forward-declaration scoping issue in Dropdown.lua",
-        "⚡ Added 'local setOpen' forward declaration before showOverlayBlocker()",
-        "✅ Multi-select dropdowns now close properly when clicking outside",
-        "🎯 BLOCKER FIX: Set Modal=false and Active=false in Overlay:ShowBlocker",
-        "🔧 Dropdown.lua and ColorPicker.lua now explicitly pass Modal=false",
-        "📝 Documented that DropdownLegacy does NOT support multi-select",
-        "🧪 Updated test suite to reflect Legacy Dropdown limitations",
-        "🚨 Error fixed: ':3853: attempt to call a nil value' when closing multi-select",
-        "🖱️ Blocker click events now fire correctly (was blocked by Active=true)"
+        "\ud83d\udc1b CRITICAL FIX: Modern Dropdown multi-select blocker close crash",
+        "\ud83d\udd27 Fixed forward-declaration scoping issue in Dropdown.lua",
+        "\u26a1 Added 'local setOpen' forward declaration before showOverlayBlocker()",
+        "\u2705 Multi-select dropdowns now close properly when clicking outside",
+        "\ud83c\udfaf BLOCKER FIX: Set Modal=false and Active=false in Overlay:ShowBlocker",
+        "\ud83d\udd27 Dropdown.lua and ColorPicker.lua now explicitly pass Modal=false",
+        "\ud83d\udcdd Documented that DropdownLegacy does NOT support multi-select",
+        "\ud83e\uddea Updated test suite to reflect Legacy Dropdown limitations",
+        "\ud83d\udea8 Error fixed: ':3853: attempt to call a nil value' when closing multi-select",
+        "\ud83d\uddb1\ufe0f Blocker click events now fire correctly (was blocked by Active=true)"
       ]
     },
     "4.0.1": {
       "date": "2025-10-17",
       "hash": "C9P2X5L8",
       "changes": [
-        "🎨 ColorPicker Phase 2 - Advanced mode fixes (RGB/HSV sliders + Hex input)",
-        "🔧 Fixed Overlay module missing from build pipeline - was never compiled into monolith",
-        "🐛 Fixed ColorPicker panel visibility issues (ClipsDescendants, parenting, transparency)",
-        "⚡ Optimized slider callbacks - only fire on user interaction, not programmatic updates",
-        "📊 Added comprehensive GUI architecture documentation (UI-ARCHITECTURE.md, DEBUGGING-WORKFLOW.md)",
-        "🛠️ Created GUI inspector tools (visual + console-based) for debugging layer issues",
-        "🎯 Added visual debug test with color-coded layers for troubleshooting blocker issues",
-        "📝 Enhanced debug logging throughout ColorPicker and Overlay modules"
+        "\ud83c\udfa8 ColorPicker Phase 2 - Advanced mode fixes (RGB/HSV sliders + Hex input)",
+        "\ud83d\udd27 Fixed Overlay module missing from build pipeline - was never compiled into monolith",
+        "\ud83d\udc1b Fixed ColorPicker panel visibility issues (ClipsDescendants, parenting, transparency)",
+        "\u26a1 Optimized slider callbacks - only fire on user interaction, not programmatic updates",
+        "\ud83d\udcca Added comprehensive GUI architecture documentation (UI-ARCHITECTURE.md, DEBUGGING-WORKFLOW.md)",
+        "\ud83d\udee0\ufe0f Created GUI inspector tools (visual + console-based) for debugging layer issues",
+        "\ud83c\udfaf Added visual debug test with color-coded layers for troubleshooting blocker issues",
+        "\ud83d\udcdd Enhanced debug logging throughout ColorPicker and Overlay modules"
       ]
     },
     "4.0.0": {
       "date": "2025-10-10",
       "hash": "V8N3X7C2",
       "changes": [
-        "🎨 COMPLETE VISUAL REDESIGN - Vibrant cyberpunk neon aesthetic (Purple→Pink→Cyan gradients everywhere)",
-        "🌈 New Theme.lua v4.0 - Electric purple, hot magenta, cyber cyan palette with 50+ new color variants",
-        "🎬 Enhanced Animator.lua v4.0 - 8 animation presets (Butter, Lightning, Glide, Spring, Pop, Expo, Snappy, Bounce)",
-        "✨ 5 new animation effects - Shimmer (sweeping highlight), Pulse (scale), Glow (dynamic stroke), SlideIn, FadeIn",
-        "🔘 Button.lua v4.0 - Gradient background + 4 simultaneous effects (ripple + shimmer + pulse + border flash)",
-        "🔀 Toggle.lua v4.0 - Modern iOS-style switch with gradient track and glowing thumb (56×30px)",
-        "📏 Slider.lua v4.0 - Gradient fill bar, growing/glowing thumb (22px→28px when dragging)",
-        "⌨️ TextBox.lua v4.0 - Gradient underline expands from center on focus + glowing border",
-        "🎹 Keybind.lua v4.0 - Gradient background activates during key capture mode",
-        "🎨 ColorPicker.lua v4.0 - Circular preview (40×40px) with glow effects and pulse animation",
-        "📝 Label.lua v4.0 - Minimal refinement with better spacing",
-        "🪟 WindowBuilder.lua v4.0 - Animated rotating gradient border (360° continuous) + gradient topbar",
-        "📱 TabBuilder.lua v4.0 - Icon-only vertical rail (80px wide, down from 176px) with centered icons",
-        "🎯 Tab active state - Gradient overlay + glowing 2px border + 4px indicator line with Spring animation",
-        "❌ Removed Light theme - Focus on one perfect dark theme with vibrant colors",
-        "📦 File size: 187 KB (only +13 KB for complete redesign, 7.5% increase)"
+        "\ud83c\udfa8 COMPLETE VISUAL REDESIGN - Vibrant cyberpunk neon aesthetic (Purple\u2192Pink\u2192Cyan gradients everywhere)",
+        "\ud83c\udf08 New Theme.lua v4.0 - Electric purple, hot magenta, cyber cyan palette with 50+ new color variants",
+        "\ud83c\udfac Enhanced Animator.lua v4.0 - 8 animation presets (Butter, Lightning, Glide, Spring, Pop, Expo, Snappy, Bounce)",
+        "\u2728 5 new animation effects - Shimmer (sweeping highlight), Pulse (scale), Glow (dynamic stroke), SlideIn, FadeIn",
+        "\ud83d\udd18 Button.lua v4.0 - Gradient background + 4 simultaneous effects (ripple + shimmer + pulse + border flash)",
+        "\ud83d\udd00 Toggle.lua v4.0 - Modern iOS-style switch with gradient track and glowing thumb (56\u00d730px)",
+        "\ud83d\udccf Slider.lua v4.0 - Gradient fill bar, growing/glowing thumb (22px\u219228px when dragging)",
+        "\u2328\ufe0f TextBox.lua v4.0 - Gradient underline expands from center on focus + glowing border",
+        "\ud83c\udfb9 Keybind.lua v4.0 - Gradient background activates during key capture mode",
+        "\ud83c\udfa8 ColorPicker.lua v4.0 - Circular preview (40\u00d740px) with glow effects and pulse animation",
+        "\ud83d\udcdd Label.lua v4.0 - Minimal refinement with better spacing",
+        "\ud83e\ude9f WindowBuilder.lua v4.0 - Animated rotating gradient border (360\u00b0 continuous) + gradient topbar",
+        "\ud83d\udcf1 TabBuilder.lua v4.0 - Icon-only vertical rail (80px wide, down from 176px) with centered icons",
+        "\ud83c\udfaf Tab active state - Gradient overlay + glowing 2px border + 4px indicator line with Spring animation",
+        "\u274c Removed Light theme - Focus on one perfect dark theme with vibrant colors",
+        "\ud83d\udce6 File size: 187 KB (only +13 KB for complete redesign, 7.5% increase)"
       ]
     },
     "3.0.4": {
       "date": "2025-10-10",
       "hash": "K7M3P9X1",
       "changes": [
-        "🎯 Redesigned window header drag to cache exact grab offset and maintain cursor lock throughout drag operations.",
-        "🎮 Upgraded controller chip drag with grab-point preservation using AnchorPoint-optimized positioning.",
-        "📐 Added sub-pixel precision rounding (math.floor + 0.5) to both drag systems for smooth movement.",
-        "🔍 Implemented consistent UI-space coordinate calculations with proper GUI inset handling for all host types.",
-        "🖱️ Unified touch and mouse input support with active input tracking to prevent cross-contamination.",
-        "🐛 Fixed drag offset drift issues that caused cursor to slip away from initial grab point.",
-        "📝 Added debug logging for drag offset caching and position tracking when debug mode enabled.",
-        "📦 Embedded the init bootstrap in the monolith build and updated README/CLAUDE guidance to keep `src/` and the bundled file aligned.",
-        "📚 Comprehensive CLAUDE.md rewrite documenting architecture, build system, common pitfalls, troubleshooting, and AI assistant guidelines."
+        "\ud83c\udfaf Redesigned window header drag to cache exact grab offset and maintain cursor lock throughout drag operations.",
+        "\ud83c\udfae Upgraded controller chip drag with grab-point preservation using AnchorPoint-optimized positioning.",
+        "\ud83d\udcd0 Added sub-pixel precision rounding (math.floor + 0.5) to both drag systems for smooth movement.",
+        "\ud83d\udd0d Implemented consistent UI-space coordinate calculations with proper GUI inset handling for all host types.",
+        "\ud83d\uddb1\ufe0f Unified touch and mouse input support with active input tracking to prevent cross-contamination.",
+        "\ud83d\udc1b Fixed drag offset drift issues that caused cursor to slip away from initial grab point.",
+        "\ud83d\udcdd Added debug logging for drag offset caching and position tracking when debug mode enabled.",
+        "\ud83d\udce6 Embedded the init bootstrap in the monolith build and updated README/CLAUDE guidance to keep `src/` and the bundled file aligned.",
+        "\ud83d\udcda Comprehensive CLAUDE.md rewrite documenting architecture, build system, common pitfalls, troubleshooting, and AI assistant guidelines."
       ]
     },
     "3.0.3": {
       "date": "2025-10-11",
       "hash": "N8P4Q6R2",
       "changes": [
-        "💾 Added configurable auto-save toggle so manual loads can restore snapshots without immediate overwrites.",
-        "🧷 Guarded minimization chip drag against inset/viewport drift for precise cursor alignment.",
-        "🎛️ Hardened hotkey listeners to avoid duplicate bindings and keep destroy/toggle keys reliable.",
-        "📚 Documented maintainer rules for persistence and new AutoSave option across README/CLAUDE notes.",
-        "📂 Injected an in-app Profiles tab for listing, saving, loading, and deleting configuration files.",
-        "📝 Refreshed README/CLAUDE documentation to capture overlay dropdowns and profile management workflows."
+        "\ud83d\udcbe Added configurable auto-save toggle so manual loads can restore snapshots without immediate overwrites.",
+        "\ud83e\uddf7 Guarded minimization chip drag against inset/viewport drift for precise cursor alignment.",
+        "\ud83c\udf9b\ufe0f Hardened hotkey listeners to avoid duplicate bindings and keep destroy/toggle keys reliable.",
+        "\ud83d\udcda Documented maintainer rules for persistence and new AutoSave option across README/CLAUDE notes.",
+        "\ud83d\udcc2 Injected an in-app Profiles tab for listing, saving, loading, and deleting configuration files.",
+        "\ud83d\udcdd Refreshed README/CLAUDE documentation to capture overlay dropdowns and profile management workflows."
       ]
     },
     "3.0.2": {
       "date": "2025-10-10",
       "hash": "Z4X7C2V1",
       "changes": [
-        "🧠 Routed configuration save/load through the active RvrseUI instance so element flags serialize correctly.",
-        "🪝 Restored last-profile folder/file parsing for boolean ConfigurationSaving setups.",
-        "🎨 Theme cache now syncs back to the live UI context during loads, ensuring visual state matches disk.",
-        "📄 Updated docs and build scripts to advertise v3.0.2 hotfix release."
+        "\ud83e\udde0 Routed configuration save/load through the active RvrseUI instance so element flags serialize correctly.",
+        "\ud83e\ude9d Restored last-profile folder/file parsing for boolean ConfigurationSaving setups.",
+        "\ud83c\udfa8 Theme cache now syncs back to the live UI context during loads, ensuring visual state matches disk.",
+        "\ud83d\udcc4 Updated docs and build scripts to advertise v3.0.2 hotfix release."
       ]
     },
     "3.0.1": {
       "date": "2025-10-10",
       "hash": "Q1W2E3R4",
       "changes": [
-        "🐛 Fixed configuration initialization so logging hooks exist prior to save/load calls.",
-        "🔁 Restored auto-load profile detection so last saved configs reattach folder and filename correctly.",
-        "⚙️ Ensured Config module receives State/Theme dependencies during bootstrap to eliminate nil reference errors.",
-        "📄 Updated documentation and build headers to reflect v3.0.1 release metadata."
+        "\ud83d\udc1b Fixed configuration initialization so logging hooks exist prior to save/load calls.",
+        "\ud83d\udd01 Restored auto-load profile detection so last saved configs reattach folder and filename correctly.",
+        "\u2699\ufe0f Ensured Config module receives State/Theme dependencies during bootstrap to eliminate nil reference errors.",
+        "\ud83d\udcc4 Updated documentation and build headers to reflect v3.0.1 release metadata."
       ]
     },
     "3.0.0": {
       "date": "2025-10-09",
       "hash": "M6D8A3L1",
       "changes": [
-        "🧹 Removed legacy test/demo scripts and retired outdated harnesses.",
-        "🧪 Added TEST_ALL_FEATURES.lua – single master suite covering 12 elements, notifications, locks, theme toggles, and config workflow.",
-        "📝 Rebuilt README.md and CLAUDE.md to match the modular architecture and new testing flow.",
-        "📚 Updated ancillary guides (STATUS.md, TESTING_GUIDE.md, build instructions) to point at the new workflow."
+        "\ud83e\uddf9 Removed legacy test/demo scripts and retired outdated harnesses.",
+        "\ud83e\uddea Added TEST_ALL_FEATURES.lua \u2013 single master suite covering 12 elements, notifications, locks, theme toggles, and config workflow.",
+        "\ud83d\udcdd Rebuilt README.md and CLAUDE.md to match the modular architecture and new testing flow.",
+        "\ud83d\udcda Updated ancillary guides (STATUS.md, TESTING_GUIDE.md, build instructions) to point at the new workflow."
       ]
     },
     "2.13.0": {
       "date": "2025-10-02",
       "hash": "D8Y2K5M3",
       "changes": [
-        "🔧 WINDOW:SHOW() METHOD - Proper Config Loading!",
-        "✅ Config now loads after elements exist (Window:Show()).",
-        "✅ Hotkey and element state persistence restored.",
-        "📋 Usage: Create window, build UI, then call Window:Show()."
+        "\ud83d\udd27 WINDOW:SHOW() METHOD - Proper Config Loading!",
+        "\u2705 Config now loads after elements exist (Window:Show()).",
+        "\u2705 Hotkey and element state persistence restored.",
+        "\ud83d\udccb Usage: Create window, build UI, then call Window:Show()."
       ]
     },
     "2.12.2": {
       "date": "2025-10-02",
       "hash": "C7X4N9L2",
       "changes": [
-        "👻 Invisible pre-load system prevents flash of default values.",
-        "✅ Splash screen handles config load then reveals UI.",
-        "🎯 Perfect first-frame experience for saved layouts."
+        "\ud83d\udc7b Invisible pre-load system prevents flash of default values.",
+        "\u2705 Splash screen handles config load then reveals UI.",
+        "\ud83c\udfaf Perfect first-frame experience for saved layouts."
       ]
     },
     "4.3.6": {
       "date": "2025-10-22",
       "hash": "S4L7U9A2",
       "changes": [
-        "🛠️ Bootstrap Rojo + Wally project files so the library can build from pure Luau.",
-        "🧹 Added repo hygiene (.editorconfig, linguist overrides) to keep GitHub language stats at 100% Lua.",
-        "✅ Wired stylua/selene/rojo/TestEZ checks into CI as the future enforcement pipeline."
+        "\ud83d\udee0\ufe0f Bootstrap Rojo + Wally project files so the library can build from pure Luau.",
+        "\ud83e\uddf9 Added repo hygiene (.editorconfig, linguist overrides) to keep GitHub language stats at 100% Lua.",
+        "\u2705 Wired stylua/selene/rojo/TestEZ checks into CI as the future enforcement pipeline."
       ]
     },
     "4.3.7": {
       "date": "2025-10-22",
       "hash": "T5M8L2Q3",
       "changes": [
-        "📚 Updated documentation to reference the new Luau build pipeline and removed the legacy shell injector.",
-        "🧰 Repository now ships a single Luau build entry point (`lua tools/build.lua`)."
+        "\ud83d\udcda Updated documentation to reference the new Luau build pipeline and removed the legacy shell injector.",
+        "\ud83e\uddf0 Repository now ships a single Luau build entry point (`lua tools/build.lua`)."
       ]
     },
     "4.3.8": {
       "date": "2025-10-22",
       "hash": "V6P1R4Z7",
       "changes": [
-        "🔁 CI installs stylua/selene/rojo/wally using cargo to avoid third-party actions."
+        "\ud83d\udd01 CI installs stylua/selene/rojo/wally using cargo to avoid third-party actions."
+      ]
+    },
+    "4.9.0": {
+      "date": "2026-10-30",
+      "hash": "RVDISCORD90",
+      "changes": [
+        "Added: a Discord badge above the version badge, 16x16, which copies the invite on click and says so in a notification (the notification repeats the invite in full, so a player whose executor has no clipboard at all still has something to read).",
+        "Added: CreateWindow options DiscordInvite (a hub's own link, or false to opt out; naming nothing carries the library default) and DiscordIcon (defaults to icon://chat, accepts any icon the library resolves).",
+        "Added: UIHelpers.copyText, now the only clipboard implementation in the library.",
+        "Fixed: the clipboard search read the environment with rawget, so it missed every executor that serves setclipboard through a metatable -- which looked exactly like an executor that cannot copy. This was in the key window's ad-link hand-off, where it costs the player a free key.",
+        "Tests: harness scenario 'discord' (badge present, above the version badge, tiny, draws something, a hub's own invite wins, no invite named carries the library default, and DiscordInvite = false shows no badge) and licence scenarios 'adlink' / 'adlink_meta' (the ad link reaches the clipboard, including through a metatable). All verified by mutation."
       ]
     }
   },

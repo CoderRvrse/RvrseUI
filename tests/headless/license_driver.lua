@@ -7,7 +7,7 @@
 --     not VALID — falls back to a real server call, exactly as before.
 -- Every scenario counts the calls the window makes, so a regression that
 -- quietly re-checks every launch fails here.
--- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow,dummyparity,savedkey
+-- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow,dummyparity,savedkey,adlink,adlink_meta
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -240,6 +240,92 @@ elseif H_SCENARIO == "freekey" then
 	answers('{"status":"waiting"}')
 	H.check(KeySystem:ClaimFreeKey("", lic) == "error", "no code is refused")
 	H.check(hits == 0, "no code means no server call (made " .. hits .. ")")
+
+elseif H_SCENARIO == "adlink" or H_SCENARIO == "adlink_meta" then
+	-- The ad link has to reach the CLIPBOARD, because that is the only way it
+	-- reaches the player: Roblox cannot open a browser, and the window does not
+	-- print the link. If the copy silently fails, the player is looking at
+	-- "I am done - check now" with nothing to have been done, and no error
+	-- anywhere says so. They lose the key and we hear "free keys are broken".
+	--
+	-- The second half is the regression that prompted this test. The search for
+	-- the executor's clipboard function used to read the environment with
+	-- rawget, which walks straight past a metatable -- and serving globals
+	-- through a metatable on getgenv() is a normal thing for an executor to do.
+	-- On one of those, every player saw "could not copy" on an executor that
+	-- copies perfectly well.
+	local LOOT = "https://loot.invalid/ad?puid=xyz"
+	local function keyWindow()
+		local W
+		local co = coroutine.create(function()
+			W = RvrseUI:CreateWindow({
+				Name = "AdLinkTest",
+				KeySystem = true,
+				KeySettings = {
+					Title = "AdLinkTest",
+					SaveKey = false,
+					KickOnFailure = false,
+					License = {
+						Endpoint = "https://license.invalid/api/v1/licensing/validate",
+						FreeKey = true,
+					},
+				},
+			})
+		end)
+		M.resume(co)
+		M.run(3)
+		return W
+	end
+	local function freeButton()
+		for _, root in ipairs({ M.PlayerGui, M.CoreGui }) do
+			for _, d in ipairs(M.descendants(root)) do
+				if M.D[d].props.Name == "FreeKeyButton" then return d end
+			end
+		end
+		return nil
+	end
+
+	-- The server offers a run and hands over a link.
+	M.genv.request = function(req)
+		if req and req.Url and req.Url:find("/free/start", 1, true) then
+			return { StatusCode = 200, Body = '{"status":"go","loot_url":"' .. LOOT ..
+				'","code":"abc","poll_after":5,"expires_in":14400}' }
+		end
+		return { StatusCode = 200, Body = '{"status":"pending"}' }
+	end
+
+	-- adlink_meta is the regression case: the SAME clipboard function, moved so
+	-- that the ONLY way to reach it is through a metatable on getgenv(). It gets
+	-- a process of its own because a key window cannot be taken down again from
+	-- the outside, and a second window in the same run would find the FIRST
+	-- window's button -- which polls instead of starting, copies nothing, and
+	-- would fail for a reason that has nothing to do with the clipboard.
+	if H_SCENARIO == "adlink_meta" then
+		local realSet = M.env.setclipboard
+		H.check(type(realSet) == "function", "the harness has no setclipboard to hide")
+		M.env.setclipboard, M.env.toclipboard, M.env.set_clipboard = nil, nil, nil
+		M.genv.setclipboard, M.genv.toclipboard, M.genv.set_clipboard = nil, nil, nil
+		setmetatable(M.genv, { __index = { setclipboard = realSet } })
+	end
+
+	keyWindow()
+	local btn = freeButton()
+	H.check(btn ~= nil, "the key window has no free key button to press")
+	M.clipboard = nil
+	M.click(btn)
+	M.run(4)
+
+	if H_SCENARIO == "adlink_meta" then
+		H.check(M.clipboard == LOOT,
+			"an executor that serves setclipboard through a metatable got " ..
+			tostring(M.clipboard) .. " -- the clipboard search is reading with rawget again")
+		H.log("adlink_meta    | ad link copied when the executor serves setclipboard "
+			.. "through a metatable")
+	else
+		H.check(M.clipboard == LOOT, "pressing the free key button put " ..
+			tostring(M.clipboard) .. " on the clipboard, not the ad link")
+		H.log("adlink         | ad link reached the clipboard")
+	end
 
 elseif H_SCENARIO == "keywindow" then
 	-- The key window is a window like any other: it has to fit the screen,

@@ -96,6 +96,78 @@ if (stray.length > 0) {
     console.log('   Send a diagnostic through Debug.printf or a gated dprint; a deliberate status line goes in ALLOWED_PRINTS.');
     allPass = false;
 }
+
+// The version is written down TWICE -- in src/Version.lua, which is what every
+// hub and every player actually sees, and in VERSION.json, which is what the
+// release notes and the changelog are read from. Nothing kept them equal, and
+// they have drifted before.
+//
+// Two copies of one fact with no gate between them is the single bug shape this
+// project keeps paying for: a stale copy is silent, looks fine locally, and is
+// only noticed once it is live. A mismatch here is cheap to catch and cheap to
+// fix, so catch it.
+const versionDrift = (() => {
+    const root = path.join(here, '..', '..');
+    let lua, json;
+    try {
+        lua = fs.readFileSync(path.join(root, 'src', 'Version.lua'), 'utf8');
+        json = JSON.parse(fs.readFileSync(path.join(root, 'VERSION.json'), 'utf8'));
+    } catch (e) {
+        return [`could not read both version files: ${e.message}`];
+    }
+    // Read one field out of the Version.Data table. Deliberately no regex:
+    // a pattern built from a string has to survive the escaping of whatever
+    // writes this file, and it already silently matched nothing once, which
+    // made the guard report every field as missing instead of comparing it.
+    const field = (name) => {
+        for (const raw of lua.split(String.fromCharCode(10))) {
+            const line = raw.trim();
+            if (!line.startsWith(name)) continue;
+            const rest = line.slice(name.length).trim();
+            if (!rest.startsWith('=')) continue;
+            let value = rest.slice(1).trim();
+            const comment = value.indexOf('--');
+            if (comment >= 0) value = value.slice(0, comment).trim();
+            if (value.endsWith(',')) value = value.slice(0, -1).trim();
+            if (value.length >= 2 && value[0] === '"' && value[value.length - 1] === '"') {
+                value = value.slice(1, -1);
+            }
+            return value;
+        }
+        return null;
+    };
+
+    const v = json.version || {};
+    const pairs = [
+        ['Full', field('Full'), v.full],
+        ['Major', field('Major'), v.major === undefined ? undefined : String(v.major)],
+        ['Minor', field('Minor'), v.minor === undefined ? undefined : String(v.minor)],
+        ['Patch', field('Patch'), v.patch === undefined ? undefined : String(v.patch)],
+        ['Build', field('Build'), v.build],
+        ['Hash', field('Hash'), v.hash],
+        ['Channel', field('Channel'), v.channel],
+    ];
+    const bad = [];
+    for (const [name, inLua, inJson] of pairs) {
+        if (String(inLua) !== String(inJson)) {
+            bad.push(`${name}: src/Version.lua says ${inLua}, VERSION.json says ${inJson}`);
+        }
+    }
+    // Full must also agree with its own parts, or GetString and Check disagree.
+    const parts = `${field('Major')}.${field('Minor')}.${field('Patch')}`;
+    if (field('Full') !== parts) {
+        bad.push(`Full is ${field('Full')} but Major.Minor.Patch is ${parts}`);
+    }
+    return bad;
+})();
+console.log(`--- version guard (src/Version.lua matches VERSION.json): ${versionDrift.length === 0 ? 'PASS' : 'FAIL'}`);
+for (const line of versionDrift) {
+    console.log(`   ${line}`);
+}
+if (versionDrift.length > 0) {
+    console.log('   Change BOTH files together: Version.lua is what players see, VERSION.json is what the changelog is read from.');
+    allPass = false;
+}
 for (const scenario of scenarios) {
     const source = [
         'local M = (function()',

@@ -8,11 +8,11 @@ local Version = {}
 
 Version.Data = {
 	Major = 4,
-	Minor = 8,
-	Patch = 3,
-	Build = "20261029a",  -- YYYYMMDD format
-	Full = "4.8.3",
-	Hash = "RVSAVED83",  -- Release hash for integrity verification
+	Minor = 9,
+	Patch = 0,
+	Build = "20261030a",  -- YYYYMMDD format
+	Full = "4.9.0",
+	Hash = "RVDISCORD90",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 

@@ -77,6 +77,38 @@ that. Anything RvrseUI shows must fit there.
   screen whatever its order (Studio, 2026-10-11: a CoreGui screen at order 0 took the click over a PlayerGui
   screen at 2147483647). There RvrseUI is above Roblox's own Esc menu too (CoreGui, order 0), so mounted screens
   step aside (`Enabled = false`) while it is open. A hub that opts in must use `Window:OnClose`.
+- **The footer bar** (bottom-left of every window): a Discord badge and the version chip in ONE box, sized off
+  `railWidth` so it fits inside the tab rail's column, sitting on the window's bottom line. 58x20 on desktop
+  (22-wide Discord half), 58x26 on touch (26-wide) -- **the phone keeps the larger of every number; a thumb needs
+  room a mouse does not.** They began as two 16/14-pixel tiles stacked in the corner and were reported from a
+  real phone as "too hard click and read"; do not shrink them back.
+- **`CreateWindow{ DiscordInvite = "https://discord.gg/..." }`** names a hub's own invite; `DiscordInvite = false`
+  opts out entirely; naming nothing carries `DEFAULT_DISCORD_INVITE` in `WindowBuilder.lua`, which is **our**
+  server, so **every hub built on RvrseUI shows it unless it says otherwise.** `DiscordIcon` overrides the glyph
+  (default `icon://chat`). **Only ever put a *never expiring* invite in that constant** -- a 7-day link dies a
+  week after a hub ships and nobody finds out, because a dead invite looks exactly like a working one until
+  someone taps it. Verify with `GET /api/v10/invites/<code>?with_expiration=true` (`expires_at: null` =
+  permanent).
+- **The invite drawer** slides DOWN out of the bar and past the window's bottom edge on hover, showing the
+  address, and says "Copied" in its own body. It hangs outside the window deliberately -- there are 3 pixels
+  under the bar, and `root`/`content` both set `ClipsDescendants = false`. **It must measure on every open:**
+  a phone held upright leaves ~186 pixels below the window, but held SIDEWAYS leaves EIGHT, so it flips upward
+  into the window when there is no room below, and clamps its width to the window. **A tap must open it as well
+  as copy** -- a phone never sends `MouseEnter`, so the tap is the only feedback a touch user ever gets.
+- Gates for all of the above: harness scenarios `discord` and `mobile`. They read `DEFAULT_DISCORD_INVITE` back
+  out of the built source rather than keeping a second copy, check the drawer's DIRECTION and not just that it
+  is on screen (opening upward is always on screen, so "always flip up" would pass every other check while
+  undoing the drop-down), and size the version chip against its OWN text and TextSize rather than a fixed floor.
+  **Measure the bar against the RAIL, never against a tab button:** the rail carries a `UIPadding` (12/8) that
+  the headless mock does not subtract, so a real tab is 44 wide where the mock says 64 -- a tab-based check
+  passes in the harness and is wrong on a device.
+- **The clipboard lives in ONE place: `UIHelpers.copyText`.** Do not write another search for `setclipboard`.
+  Read the environment with plain indexing inside a `pcall`, never `rawget`: executors commonly serve these
+  through a metatable, and `rawget` walks past one, which is indistinguishable to the player from an executor
+  that cannot copy. That bug shipped in the key window's ad-link hand-off -- the one screen where losing the
+  link costs someone their free key. Gates: licence scenarios `adlink` and `adlink_meta`.
+- **The version is written twice** (`src/Version.lua`, which players see; `VERSION.json`, which the changelog is
+  read from). Change both together -- the `version guard` in `tests/headless/run.js` fails the suite otherwise.
 - A new RvrseUI ScreenGui: `Layers:Mount(gui, order)`, never `gui.Parent = PlayerGui`.
 - **2147483647 is the largest DisplayOrder; one more wraps round to the very bottom.** Never write `x + 1` /
   `x + 1000` into a DisplayOrder without a cap (`Layers.order(n)` or `math.min(n, 2147483646)`).
@@ -1103,3 +1135,65 @@ git push origin main
 - **Element Count:** 11 UI elements
 - **Total Lines (compiled):** ~6,500 lines in RvrseUI.lua
 - **File Size:** ~450 KB (RvrseUI.lua monolith)
+
+---
+
+# Releasing a change
+
+Every hub loads `main/RvrseUI.lua` **live**, so merging to `main` IS the deploy.
+A bad merge breaks every hub instantly, with no rebuild on their side and no way
+to stage it. Treat the merge as the riskiest step, not the last formality.
+
+1. **Edit `src/`, never `RvrseUI.lua`.** The monolith is generated. Rebuild with
+   `node tools/build.js`. (Build from `D:\` — a stray `package.json` in
+   `C:\Users\Franc` sets `"type":"module"` and breaks Node scripts there. One-off
+   scripts must be `.cjs`.)
+2. **Bump BOTH `src/Version.lua` and `VERSION.json`.** They are two copies of one
+   fact and have drifted three releases apart before; the `version guard` in the
+   headless suite fails on a mismatch. Write `VERSION.json` with
+   `ensure_ascii=True` — older entries hold unpaired surrogates, and dumping raw
+   UTF-8 raises `UnicodeEncodeError` and **truncates the file**.
+3. **Write the release up in `RELEASES.md`** — what changed and *why it mattered*,
+   in terms a hub author reading it cold would follow.
+4. **Run every gate.** `LUAU` must point at a `luau` CLI
+   (`LUAU=D:/LUAVM-Rvrse/.tools/luau.exe`):
+   - `node tests/headless/run.js` — lifecycle, close paths, mobile, on-top,
+     quiet, discord. Must end `ALL PASS`, with **0 live connections and 0
+     ScreenGuis** after close.
+   - `node tests/headless/license_run.js` — the key window, licence receipts,
+     free keys, and the ad-link clipboard.
+   - `pwsh luavm-rvrse-utils/run_autoshutdown_tests.ps1 -RvrseUI <this RvrseUI.lua>`
+     from LUAVM-Rvrse. **Pass `-RvrseUI` explicitly** — without it the gate tests
+     `RvrseUI-main`, not your branch, and reports PASS for code you did not change.
+5. **Mutation-test anything new.** A gate nobody has broken on purpose is a gate
+   nobody knows works. Several checks in this repo passed while asserting nothing:
+   counting a badge's descendants (`corner()`/`stroke()` add one each), counting
+   TextLabels under it (`createTooltip` parents the tooltip to the button), and
+   checking a drawer is on screen without checking which way it opened. If a
+   mutation does not fail the suite, say so plainly rather than claiming cover.
+6. **Test on a real device, by LINK.** Copy `examples/UniversalHub_v2.lua`, point
+   its `HttpGet` at your branch commit instead of `main`, build with
+   `obfuscate.ps1 -Mode vm`, publish with `publish_delta_build.ps1`, and run
+   `dist/delta_loader_*.lua`. **Never hand anyone a protected build to paste** —
+   over 524,288 bytes it silently does nothing on Delta. Check the byte count the
+   loader prints matches the one the publish script printed.
+7. **Merge only on the owner's explicit go**, then verify the live raw URL serves
+   the new version and re-copy `.tools/rvrseui/RvrseUI-main.lua` in LUAVM-Rvrse.
+
+## Things that have cost real time here
+
+- **`git add -A` picks up a stray `nul` file** in the repo root. Add files by name.
+- **Quoted heredocs (`<<'EOF'`) still eat one backslash level** in this shell, so
+  `\b` and `\n` written into a generated `.js` arrive as `\b` and a literal
+  newline — a regex that matches nothing, and an unterminated string. Avoid
+  escapes in generated code (parse lines instead of regex,
+  `String.fromCharCode(10)` instead of `'\n'`) and verify with `cat -A`.
+- **Anchor on the newline when patching the test driver.** Scenario names appear
+  twice — once in the window-config branch, once in the checks block — and
+  matching the bare text silently destroys the wrong one.
+- **The driver has two different `box()` helpers.** The `discord` scenario's
+  returns `(position, size)`; the `mobile` scenario's returns four edges.
+- **`AbsolutePosition`/`AbsoluteSize` are computed, read off the instance.**
+  `M.D[d].props.AbsolutePosition` is simply `nil`.
+- **The headless mock does not subtract `UIPadding`.** Never gate layout against
+  something whose size depends on padding.
