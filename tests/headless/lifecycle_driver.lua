@@ -535,6 +535,75 @@ elseif H_SCENARIO == "mobile" then
 		"mobile: the footer is only %d tall -- a thumb needs more than a mouse does",
 		fs and fs.Y or -1))
 	H.log("mobile footer  | version chip %dx%d (desktop is 52x22)", fs.X, fs.Y)
+
+	-- THE INVITE DRAWER HAS TO STAY ON THE SCREEN, IN BOTH ORIENTATIONS.
+	--
+	-- It normally hangs below the window, which is fine on a desktop and fine
+	-- on a phone held upright. Held SIDEWAYS there are about eight pixels
+	-- between the window and the bottom of the screen, so a drawer that always
+	-- dropped downward would open almost entirely off-screen -- and to the
+	-- player that is indistinguishable from a button that does nothing. It is
+	-- also the single most likely thing to be wrong on a real Android or iOS
+	-- device while every desktop check passes, which is exactly why it is here.
+	local mobileBadge = nil
+	if mobileRoot then
+		for _, d in ipairs(M.descendants(mobileRoot)) do
+			if M.D[d].className == "TextButton" and M.D[d].props.BackgroundColor3 == BLURPLE then
+				mobileBadge = d
+			end
+		end
+	end
+	H.check(mobileBadge ~= nil, "mobile: the window has no Discord badge")
+
+	local mobileDrawer = nil
+	if mobileBadge then
+		for _, kid in ipairs(M.D[M.D[mobileBadge].props.Parent].children) do
+			local kd = M.D[kid]
+			if kd.className == "TextLabel" and type(kd.props.Text) == "string"
+				and kd.props.Text:find("discord.gg", 1, true) then
+				mobileDrawer = kid
+			end
+		end
+	end
+	H.check(mobileDrawer ~= nil, "mobile: the Discord badge has no invite drawer")
+
+	-- `want` is "down" or "up": the DIRECTION matters, not only that the drawer
+	-- landed somewhere visible. Opening upward is always on-screen, so a change
+	-- that made it open upward everywhere would pass every other check here
+	-- while quietly undoing the drop-down the bar was redesigned around.
+	local function drawerOnScreen(tag, want)
+		-- A phone sends no MouseEnter, so the TAP is the only way it ever opens.
+		M.click(mobileBadge)
+		M.run(1)
+		local p, sz = mobileDrawer.AbsolutePosition, mobileDrawer.AbsoluteSize
+		local v = M.Viewport
+		H.check(sz.Y >= 18, ("%s: tapping the badge did not open the drawer (%d tall)"):format(tag, sz.Y))
+		H.check(p.Y >= 0 and p.Y + sz.Y <= v.Y, ("%s: the drawer is off the screen vertically "
+			.. "(y %d..%d, screen is %d tall)"):format(tag, p.Y, p.Y + sz.Y, v.Y))
+		H.check(p.X >= 0 and p.X + sz.X <= v.X, ("%s: the drawer runs off the side "
+			.. "(x %d..%d, screen is %d wide)"):format(tag, p.X, p.X + sz.X, v.X))
+		local _, barTop, _, barBottom = box(M.D[mobileBadge].props.Parent)
+		local _, _, _, windowBottom = box(mobileRoot)
+	local went = p.Y >= barBottom and "down" or "up"
+		H.log("mobile drawer  | %-8s drawer %dx%d at y %d..%d (bar %d..%d, window ends %d, screen %d) -> %s",
+			tag, sz.X, sz.Y, p.Y, p.Y + sz.Y, barTop, barBottom, windowBottom, v.Y,
+			went == "down" and "dropped DOWN" or "flipped UP")
+		H.check(went == want, ("%s: the drawer went %s, wanted %s -- with %d pixels below the "
+			.. "window and a %d-tall drawer, %s is the only way it stays on screen")
+			:format(tag, went, want, v.Y - windowBottom, sz.Y, want))
+	end
+
+	-- Upright there is room below, so it must drop DOWN and hang outside the bar.
+	drawerOnScreen("upright", "down")
+
+	-- and the cramped one: turned sideways, the window very nearly fills the
+	-- screen top to bottom.
+	setScreen(750, 381)
+	M.runThread(sizesChanged, 5)
+	M.run(0.5)
+	M.runThread(sizesChanged, 5)
+	M.run(0.5)
+	drawerOnScreen("sideways", "up")
 	H.close("x", S.W1, "Harness Hub A")
 elseif ONTOP then
 	-- v4.6.0: RvrseUI's screens sit at the top orders (PlayerGui by default, the
@@ -801,12 +870,65 @@ elseif H_SCENARIO == "discord" then
 	end
 	H.check(drawsSomething, "the Discord badge draws nothing at all -- no icon and no glyph")
 
-	-- Each half does its own job.
+	-- The drawer: it must be SHUT until you touch the badge, drop DOWN out of
+	-- the bar when you do, show the actual address, and shut again when you
+	-- leave. A drawer that is always open is no better than the cramped corner
+	-- it replaced, and one that never opens is the state this whole change
+	-- exists to get out of -- so both ends are checked, not just the open one.
+	local drawer = nil
+	for _, kid in ipairs(M.D[M.D[badge].props.Parent].children) do
+		local kd = M.D[kid]
+		if kd.className == "TextLabel" and type(kd.props.Text) == "string"
+			and kd.props.Text:find("discord.gg", 1, true) then
+			drawer = kid
+		end
+	end
+	H.check(drawer ~= nil, "the Discord badge has no invite drawer")
+
+	local function drawerHeight() return drawer.AbsoluteSize.Y end
+	H.check(drawerHeight() <= 1 and M.D[drawer].props.BackgroundTransparency == 1,
+		string.format("the drawer is already open at rest (%d tall)", drawerHeight()))
+
+	M.fire(badge, "MouseEnter")
+	M.run(2)
+	local openH = drawerHeight()
+	H.check(openH >= 18, string.format(
+		"hovering the Discord badge opened the drawer to only %d -- it did not drop down", openH))
+	H.check(M.D[drawer].props.BackgroundTransparency < 1, "the open drawer is invisible")
+	H.check(M.D[drawer].props.Text:find(H_INVITE:gsub("^https://", ""), 1, true) ~= nil,
+		"the open drawer does not show the invite, it says: " .. tostring(M.D[drawer].props.Text))
+
+	-- DOWN and OUT: below the bar, hanging past the bottom of the window.
+	-- Nothing clips it (root and content both set ClipsDescendants = false),
+	-- and there are only 8 pixels between the bar and the edge, so if it ever
+	-- starts being clipped this is what notices.
+	local fp, fs = box(M.D[badge].props.Parent)
+	H.check(drawer.AbsolutePosition.Y >= fp.Y + fs.Y, string.format(
+		"the drawer opens at y %d but the bar ends at y %d -- it is not dropping DOWN",
+		drawer.AbsolutePosition.Y, fp.Y + fs.Y))
+	local wp, ws = box(H.windowRoot("Harness Hub A"))
+	H.check(drawer.AbsolutePosition.Y + openH > wp.Y + ws.Y, string.format(
+		"the drawer ends at y %d, inside the window (bottom %d) -- it is not hanging OUT",
+		drawer.AbsolutePosition.Y + openH, wp.Y + ws.Y))
+
+	M.fire(badge, "MouseLeave")
+	M.run(2)
+	H.check(drawerHeight() <= 1, string.format(
+		"the drawer stayed %d tall after the pointer left", drawerHeight()))
+
+	-- Each half does its own job. The tap has to open the drawer AS WELL as
+	-- copy: a phone never sends MouseEnter, so the tap is the only chance the
+	-- player gets to be told it worked.
 	M.clipboard = nil
 	M.click(badge)
 	M.run(2)
 	H.check(M.clipboard == H_INVITE, "clicking the Discord badge put " ..
 		tostring(M.clipboard) .. " on the clipboard, not the invite")
+	H.check(drawerHeight() >= 18, string.format(
+		"tapping the badge left the drawer %d tall -- a phone gets no hover, so the "
+		.. "tap is the only feedback there is", drawerHeight()))
+	H.check(M.D[drawer].props.Text:lower():find("copied", 1, true) ~= nil,
+		"after copying, the drawer does not say so: " .. tostring(M.D[drawer].props.Text))
 
 	-- A hub that names NOTHING carries the library's own invite. The expected
 	-- value is read back out of the source rather than written here, because a
@@ -854,8 +976,22 @@ elseif H_SCENARIO == "discord" then
 	H.log("discord        | one box: discord %dx%d at x %d, version %dx%d at x %d (same y) | "
 		.. "hub invite copied | no invite = default (%s) | false = no badge, chip survives %dx%d",
 		bs.X, bs.Y, bp.X, vs.X, vs.Y, vp.X, DEFAULT, v3s.X, v3s.Y)
-	H.close("x", W3, "Harness Hub C")
+	-- A tap arms a timer that shuts the drawer a couple of seconds later. If
+	-- the player closes the hub in between -- which is exactly what someone
+	-- does after copying an invite -- that timer still fires, on a window that
+	-- no longer exists. This project has shipped a hook onto a dead field
+	-- before and heard about it from users, so prove the timer is harmless
+	-- rather than assuming the guard is right: tap, close, then sit through
+	-- longer than the timer and require that nothing threw.
+	local errorsBeforeTimer = #M.errors
+	M.click(badge2)
+	M.run(0.2)
 	H.close("x", W2, "Harness Hub B")
+	M.run(4)
+	H.check(H.errorsSince(errorsBeforeTimer, "DRAWER-TIMER") == 0,
+		"the drawer's close timer threw after its window was destroyed")
+
+	H.close("x", W3, "Harness Hub C")
 	H.close("x", S.W1, "Harness Hub A", S.RvrseUI)
 else
 	H.close(H_SCENARIO, S.W1, "Harness Hub A", S.RvrseUI)
