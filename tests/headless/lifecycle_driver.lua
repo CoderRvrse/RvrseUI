@@ -530,10 +530,24 @@ elseif H_SCENARIO == "mobile" then
 		end
 	end
 	H.check(footerHalf ~= nil, "mobile: the window has no version chip")
+	local mobileBadgeEarly = nil
+	if mobileRoot then
+		for _, d in ipairs(M.descendants(mobileRoot)) do
+			if M.D[d].className == "TextButton" and M.D[d].props.BackgroundColor3 == BLURPLE then
+				mobileBadgeEarly = d
+			end
+		end
+	end
 	local fs = footerHalf and footerHalf.AbsoluteSize
 	H.check(fs ~= nil and fs.Y >= 26, string.format(
 		"mobile: the footer is only %d tall -- a thumb needs more than a mouse does",
 		fs and fs.Y or -1))
+	local mobileTap = mobileBadgeEarly and mobileBadgeEarly.AbsoluteSize
+	if mobileTap then
+		H.check(mobileTap.X >= 26 and mobileTap.Y >= 26, string.format(
+			"mobile: the Discord half is %dx%d -- a thumb needs at least 26",
+			mobileTap.X, mobileTap.Y))
+	end
 	H.log("mobile footer  | version chip %dx%d", fs.X, fs.Y)
 
 	-- THE INVITE DRAWER HAS TO STAY ON THE SCREEN, IN BOTH ORIENTATIONS.
@@ -848,8 +862,29 @@ elseif H_SCENARIO == "discord" then
 	H.check(bs.Y >= 20 and vs.Y >= 20, string.format(
 		"the footer is only %dx%d / %dx%d -- too small to hit",
 		bs.X, bs.Y, vs.X, vs.Y))
-	H.check(bs.X >= 24, string.format("the Discord half is %d wide, too narrow to hit", bs.X))
-	H.check(vs.X >= 40, string.format("the version chip is %d wide, too narrow to read", vs.X))
+	H.check(bs.X >= 20, string.format("the Discord half is %d wide, too narrow for a mouse", bs.X))
+
+	-- "Wide enough to read" measured against the text it actually holds, rather
+	-- than against a number picked to match whatever was shipped last. Gotham
+	-- Bold runs about 0.55 of its TextSize per character for digits and dots,
+	-- so this also fails the day the version string grows a digit and quietly
+	-- stops fitting -- which no fixed floor would catch.
+	local vText = M.D[version].props.Text
+	local vSize = M.D[version].props.TextSize
+	local needed = math.ceil(#vText * vSize * 0.55)
+	H.check(vs.X >= needed, string.format(
+		"the version chip is %d wide but %q at text size %d needs about %d",
+		vs.X, vText, vSize, needed))
+
+	-- Sitting on the window's own bottom line, not floating above it.
+	do
+		-- NB: this scenario's box() returns (position, size) -- two values. The
+		-- mobile scenario further down has its OWN box() returning four edges.
+		local wp2, ws2 = box(H.windowRoot("Harness Hub A"))
+		local gap = (wp2.Y + ws2.Y) - (vp.Y + vs.Y)
+		H.check(gap >= 0 and gap <= 5, string.format(
+			"the bar leaves a %d pixel gap under it -- it should sit on the hub's line", gap))
+	end
 
 	-- The bar must sit INSIDE the tab rail's column, never stick out past it.
 	--

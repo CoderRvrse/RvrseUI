@@ -1101,9 +1101,14 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	local railWidth = 80 -- Narrower for icon-only design
 	local tabWidth = railWidth - 16 -- TabBuilder: tabBtn.Size = (1, -16, 0, 56)
 
-	local footH = isMobile and 28 or 22
-	local discordW = isMobile and 28 or 24
-	local versionW = tabWidth - discordW
+	-- Trimmed a little from the first fitted size, and sat down on the window's
+	-- own bottom line rather than floating above it. The phone keeps the larger
+	-- of each number: a thumb needs the room a mouse does not.
+	local footH = isMobile and 26 or 20
+	local barW = tabWidth - 6
+	local discordW = isMobile and 26 or 22
+	local versionW = barW - discordW
+	local footGap = 3 -- the sliver left between the bar and the window's edge
 
 	local discordInvite = cfg.DiscordInvite
 	if discordInvite == nil then
@@ -1116,8 +1121,8 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	footer.BackgroundColor3 = pal.Card
 	footer.BackgroundTransparency = 0.25
 	footer.BorderSizePixel = 0
-	footer.Position = UDim2.new(0, 8, 1, -(footH + 8))
-	footer.Size = UDim2.new(0, tabWidth, 0, footH)
+	footer.Position = UDim2.new(0, 8, 1, -(footH + footGap))
+	footer.Size = UDim2.new(0, barW, 0, footH)
 	-- ABOVE the tab rail. The rail is `Size = (0, railWidth, 1, 0)` -- full
 	-- height, and the bar sits in the same corner, so without this the bar is
 	-- drawn underneath it and reads as a smudge behind the tab icons.
@@ -1131,7 +1136,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	versionBadge.Name = Obfuscation.getObfuscatedName("badge")
 	versionBadge.BackgroundTransparency = 1
 	versionBadge.Position = UDim2.new(0, showDiscord and discordW or 0, 0, 0)
-	versionBadge.Size = UDim2.new(0, showDiscord and versionW or tabWidth, 1, 0)
+	versionBadge.Size = UDim2.new(0, showDiscord and versionW or barW, 1, 0)
 	versionBadge.Font = Enum.Font.GothamBold
 	versionBadge.TextSize = isMobile and 11 or 10
 	versionBadge.TextColor3 = pal.Accent
@@ -1249,7 +1254,7 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 		-- `content` have ClipsDescendants = false, so it is free to overhang.
 		local inviteText = discordInvite:gsub("^https?://", "")
 		local drawerH = isMobile and 26 or 22
-		local drawerW = math.max(tabWidth, (isMobile and 7 or 6) * #inviteText + 20)
+		local drawerW = math.max(barW, (isMobile and 7 or 6) * #inviteText + 20)
 
 		local drawer = Instance.new("TextLabel")
 		drawer.Name = Obfuscation.getObfuscatedName("badge")
