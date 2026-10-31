@@ -4,7 +4,7 @@
 
 All documentation, demos, changelogs, and troubleshooting guides now live on the RvrseUI GitHub Pages site.
 
-**Current release: v4.10.0.**
+**Current release: v4.10.0**
 
 - **Visit the docs:** https://coderrvrse.github.io/RvrseUI/
 - **Source + issues:** https://github.com/CoderRvrse/RvrseUI

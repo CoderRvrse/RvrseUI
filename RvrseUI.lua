@@ -1,5 +1,5 @@
--- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-31T00:46:38.575Z
+-- RvrseUI v4.10.0 | Modern Professional UI Framework
+-- Compiled from modular architecture (build 20261030b)
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}

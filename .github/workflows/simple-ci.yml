@@ -27,8 +27,29 @@ jobs:
           mkdir -p build
           rojo build default.project.json --output build/RvrseUI.rbxlx
 
+      # The anti-drift gate.
+      #
+      # The docs site sat at v4.6.0 and "491 KB" for four releases, this file
+      # said v4.3.19 for seven, and the library's own header announced v4.5.2
+      # -- all because each was a number typed by hand with nothing to notice
+      # when it went stale. They are generated now, and this step fails if a
+      # pull request did not regenerate them.
+      #
+      # It only works because the build is reproducible: the header used to
+      # carry a wall-clock timestamp, so every build "changed" the file and a
+      # diff could never mean anything.
+      - name: Docs and monolith match their sources
+        run: |
+          node tools/build.js
+          if ! git diff --exit-code -- RvrseUI.lua docs/index.html README.md; then
+            echo "::error::Rebuilding changed tracked files. Run 'node tools/build.js' and commit the result."
+            exit 1
+          fi
+          echo "✅ RvrseUI.lua, the docs site and the README all match src/ and VERSION.json"
+
       - name: Success
         run: |
+          VERSION=$(node -p "require('./VERSION.json').version.full")
           echo "✅ RvrseUI build successful!"
-          echo "📦 Version: v4.3.19"
+          echo "📦 Version: v$VERSION"
           echo "📊 Size: $(du -h build/RvrseUI.rbxlx | cut -f1)"

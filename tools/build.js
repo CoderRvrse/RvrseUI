@@ -40,8 +40,22 @@ const Modules = [
     "src/WindowBuilder.lua"
 ];
 
-const HEADER = `-- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on ${new Date().toISOString()}
+// The header is BUILT, not typed. It used to be a hardcoded `v4.5.2` plus
+// `new Date()`, which caused two separate problems:
+//
+//   1. The shipped library announced itself as 4.5.2 for five releases.
+//   2. A wall-clock timestamp makes the build unreproducible, so every rebuild
+//      shows as a change and `git diff` can never answer "does the committed
+//      monolith actually match its sources?" -- which is the one question that
+//      would have caught the first problem.
+//
+// Both now come from VERSION.json, so the same sources always produce the same
+// bytes and `node tools/build.js && git diff --exit-code RvrseUI.lua` is a
+// real check.
+function buildHeader() {
+    const v = JSON.parse(fs.readFileSync('VERSION.json', 'utf8')).version;
+    return `-- RvrseUI v${v.full} | Modern Professional UI Framework
+-- Compiled from modular architecture (build ${v.build})
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -51,6 +65,7 @@ const HEADER = `-- RvrseUI v4.5.2 | Modern Professional UI Framework
 -- Source: https://github.com/CoderRvrse/RvrseUI/tree/main/src
 -- For modular version, use: require(script.init) instead of this file
 `;
+}
 
 const SERVICES = `
 local TweenService = game:GetService("TweenService")
@@ -559,11 +574,100 @@ _G.RvrseUI_LucideIconsData = ${sanitized}
     return marker + 'do\n' + contents.replace(/\s+$/, '') + '\nend\n';
 }
 
+// --------------------------------------------------------------------------
+// Numbers the docs quote about the build, GENERATED rather than remembered.
+//
+// The site sat at "v4.6.0" and "BUILD SIZE 491 KB" for four releases while the
+// library went to 4.10.0 and 567 KB, because both were typed by hand and there
+// was nothing anywhere to notice. This banner said v4.5.2 for the same reason.
+//
+// Anything on a page that restates a fact the build already knows will drift.
+// The fix is not to be more careful; it is to stop having two copies. These
+// are written from the source of truth on every build, and `--check` fails
+// without writing, so a gate can catch a stale page in a pull request.
+// --------------------------------------------------------------------------
+function docStats() {
+    const version = JSON.parse(fs.readFileSync('VERSION.json', 'utf8')).version.full;
+    const sizeKB = Math.round(fs.statSync('RvrseUI.lua').size / 1024);
+    // Counted from the source, so adding an element updates the page by itself.
+    const section = fs.readFileSync('src/SectionBuilder.lua', 'utf8');
+    const elements = new Set(
+        [...section.matchAll(/function\s+SectionAPI:Create([A-Za-z]+)/g)].map(m => m[1])
+    ).size;
+    return { version, sizeKB, elements };
+}
+
+// Each rule is anchored to the markup AROUND the number, never to the number
+// itself: a pattern loose enough to find "567 KB" anywhere would eventually
+// rewrite something else that happened to look like it.
+function docRules(st) {
+    return [
+        {
+            file: 'docs/index.html',
+            subs: [
+                [/(<span class="hero-badge">v)[\d.]+/, `$1${st.version}`],
+                [/(<p>RvrseUI v)[\d.]+/, `$1${st.version}`],
+                [/(<span>Build Size<\/span>\s*<strong>)[^<]*/, `$1${st.sizeKB} KB`],
+                [/(<span>Elements<\/span>\s*<strong>)[^<]*/, `$1${st.elements}`],
+            ],
+        },
+        {
+            file: 'README.md',
+            subs: [[/(\*\*Current release: v)[\d.]+/, `$1${st.version}`]],
+        },
+    ];
+}
+
+function syncDocs(check) {
+    const st = docStats();
+    let stale = [];
+
+    for (const { file, subs } of docRules(st)) {
+        let text;
+        try {
+            text = fs.readFileSync(file, 'utf8');
+        } catch {
+            continue; // the docs are not required to be present to build
+        }
+        let out = text;
+        for (const [pattern, replacement] of subs) {
+            if (!pattern.test(out)) {
+                // A rule that matches nothing is itself a bug: the markup moved
+                // and this stopped protecting anything, silently.
+                console.error(`❌ ${file}: nothing matched ${pattern} — the markup changed, fix tools/build.js`);
+                process.exit(1);
+            }
+            out = out.replace(pattern, replacement);
+        }
+        if (out !== text) {
+            stale.push(file);
+            if (!check) fs.writeFileSync(file, out, 'utf8');
+        }
+    }
+
+    if (check) {
+        if (stale.length) {
+            console.error(`❌ docs are stale: ${stale.join(', ')}`);
+            console.error(`   expected v${st.version}, ${st.sizeKB} KB, ${st.elements} elements`);
+            console.error('   run: node tools/build.js');
+            process.exit(1);
+        }
+        console.log(`✅ docs match the build (v${st.version}, ${st.sizeKB} KB, ${st.elements} elements)`);
+        return;
+    }
+    console.log(
+        stale.length
+            ? `📝 docs updated: ${stale.join(', ')} (v${st.version}, ${st.sizeKB} KB, ${st.elements} elements)`
+            : `📝 docs already matched (v${st.version}, ${st.sizeKB} KB, ${st.elements} elements)`
+    );
+}
+
 function build() {
-    console.log('🔨 RvrseUI v4.5.2 Build Script (Node.js)');
+    const declared = JSON.parse(fs.readFileSync('VERSION.json', 'utf8')).version.full;
+    console.log(`🔨 RvrseUI v${declared} Build Script (Node.js)`);
     console.log('==========================================');
 
-    const buffer = [HEADER, SERVICES];
+    const buffer = [buildHeader(), SERVICES];
 
     for (const modulePath of Modules) {
         console.log(`Packing ${modulePath}`);
@@ -593,6 +697,14 @@ function build() {
         console.error(`❌ Failed to write RvrseUI.lua: ${err.message}`);
         process.exit(1);
     }
+
+    syncDocs(false);
 }
 
-build();
+// `node tools/build.js --check` verifies the docs without building or writing
+// anything, which is what a gate should run.
+if (process.argv.includes('--check')) {
+    syncDocs(true);
+} else {
+    build();
+}
