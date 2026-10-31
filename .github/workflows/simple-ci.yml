@@ -16,18 +16,13 @@ jobs:
         with:
           version: v0.3.0
 
-      - name: Format Code
-        run: |
-          echo "Formatting Lua code with Stylua..."
-          stylua src/ init.lua tools/ examples/
-
-      - name: Verify Rojo Build
-        run: |
-          echo "Building Roblox place with Rojo..."
-          mkdir -p build
-          rojo build default.project.json --output build/RvrseUI.rbxlx
-
-      # The anti-drift gate.
+      # The anti-drift gate. MUST RUN BEFORE "Format Code".
+      #
+      # stylua REWRITES src/ in place. Rebuilding after it compares the
+      # committed monolith against sources CI itself just reformatted, so
+      # the diff is enormous and meaningless -- 613 KB against a committed
+      # 568 KB on the first run of this gate. The check only means anything
+      # against the sources as they were committed.
       #
       # The docs site sat at v4.6.0 and "491 KB" for four releases, this file
       # said v4.3.19 for seven, and the library's own header announced v4.5.2
@@ -46,6 +41,17 @@ jobs:
             exit 1
           fi
           echo "✅ RvrseUI.lua, the docs site and the README all match src/ and VERSION.json"
+
+      - name: Format Code
+        run: |
+          echo "Formatting Lua code with Stylua..."
+          stylua src/ init.lua tools/ examples/
+
+      - name: Verify Rojo Build
+        run: |
+          echo "Building Roblox place with Rojo..."
+          mkdir -p build
+          rojo build default.project.json --output build/RvrseUI.rbxlx
 
       - name: Success
         run: |
