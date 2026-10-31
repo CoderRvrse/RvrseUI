@@ -155,7 +155,14 @@ KeySystem:Initialize({
 	Animator = Animator,
 	UIHelpers = UIHelpers,
 	Debug = Debug,
-	Obfuscation = Obfuscation
+	Obfuscation = Obfuscation,
+	-- The key window names the build it belongs to, so a player can read it
+	-- back when something is wrong.
+	Version = Version,
+	-- ...and draws the SAME Discord mark the main window draws. Without this
+	-- the key window had no icon set to reach and fell back to a bare dot,
+	-- while the main window showed a real mark two windows apart.
+	Icons = Icons
 })
 
 -- Initialize Particles (needs Theme and RunService)

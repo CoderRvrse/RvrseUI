@@ -1129,8 +1129,209 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		FreeStroke.Parent = FreeBtn
 	end
 
+	-- Footer bar: the Discord badge and the build chip, side by side
+	--
+	-- The same pair the main window carries, and the key window is where both
+	-- matter MOST. It is the first thing a player sees, and when something is
+	-- wrong it is often the ONLY thing they see -- so this is exactly where a
+	-- player needs the invite within reach, and where the team needs to be able
+	-- to ask "what does the chip say?" and get an answer that identifies the
+	-- build.
+	--
+	-- The geometry is this window's own, deliberately. The main window sizes its
+	-- bar off the tab rail (`railWidth`); the key window has no rail -- it is a
+	-- 500-wide dialog -- so reusing those numbers would wedge a tab-shaped bar
+	-- into a dialog. What IS shared is the part that must never disagree: the
+	-- invite (UIHelpers.resolveDiscordInvite) and the clipboard
+	-- (UIHelpers.copyText).
+	local discordInvite = deps.UIHelpers.resolveDiscordInvite(settings)
+	local license = keySettings.License
+	local hubBuildId = type(license) == "table" and license.BuildId or nil
+	local version = deps.Version
+
+	local FOOT_H = 24
+	local FOOT_GAP = 12
+	local FOOT_PAD = 20
+	local DISCORD_W = 30
+	local footerHeight = FOOT_H + FOOT_GAP
+
+	local Footer = Instance.new("Frame")
+	Footer.Name = deps.Obfuscation:Generate("KeyFooter")
+	Footer.BackgroundColor3 = colors.Card
+	Footer.BackgroundTransparency = 0.25
+	Footer.BorderSizePixel = 0
+	Footer.AnchorPoint = Vector2.new(0, 1)
+	Footer.Position = UDim2.new(0, FOOT_PAD, 1, -FOOT_GAP)
+	Footer.ZIndex = Container.ZIndex + 5
+	Footer.Parent = Container
+
+	local FooterCorner = Instance.new("UICorner")
+	FooterCorner.CornerRadius = UDim.new(0, 6)
+	FooterCorner.Parent = Footer
+
+	local FooterStroke = Instance.new("UIStroke")
+	FooterStroke.Color = colors.Border
+	FooterStroke.Thickness = 1
+	FooterStroke.Transparency = 0.5
+	FooterStroke.Parent = Footer
+
+	-- The chip names the build. Two numbers, because they answer two different
+	-- questions: RvrseUI's own version says which UI the player is running, and
+	-- the hub's build id says which HUB -- and that second one is the one that
+	-- decides whether their key is even allowed to open it.
+	local buildText = "v" .. tostring(version and version.Full or "?")
+	if hubBuildId then
+		buildText = buildText .. "  ·  " .. string.sub(tostring(hubBuildId), 1, 8)
+	end
+
+	local BuildChip = Instance.new("TextButton")
+	BuildChip.Name = "BuildChip"
+	BuildChip.BackgroundTransparency = 1
+	BuildChip.Position = UDim2.new(0, discordInvite and DISCORD_W or 0, 0, 0)
+	BuildChip.Font = Enum.Font.GothamBold
+	BuildChip.TextSize = 11
+	BuildChip.TextColor3 = colors.Accent
+	BuildChip.Text = buildText
+	BuildChip.AutoButtonColor = false
+	BuildChip.ZIndex = Footer.ZIndex + 1
+	BuildChip.Parent = Footer
+
+	-- Width is measured off the text, so a longer version string or a build id
+	-- that grows a character cannot quietly overflow the bar.
+	local chipW = 0
+	pcall(function()
+		local TextService = game:GetService("TextService")
+		chipW = TextService:GetTextSize(buildText, BuildChip.TextSize,
+			BuildChip.Font, Vector2.new(400, 100)).X
+	end)
+	if chipW <= 0 then chipW = #buildText * 7 end
+	chipW = chipW + 16
+	BuildChip.Size = UDim2.new(0, chipW, 1, 0)
+	Footer.Size = UDim2.new(0, (discordInvite and DISCORD_W or 0) + chipW, 0, FOOT_H)
+
+	-- A tap hands the whole thing over, because a player reading a chip aloud
+	-- gets it wrong and a screenshot of a 11px chip is unreadable.
+	local function flash(button, original, word)
+		button.Text = word
+		task.delay(1.2, function()
+			if button and button.Parent then
+				button.Text = original
+			end
+		end)
+	end
+
+	BuildChip.MouseButton1Click:Connect(function()
+		local line = string.format("RvrseUI %s (build %s, hash %s, %s)",
+			tostring(version and version.Full or "?"),
+			tostring(version and version.Build or "?"),
+			tostring(version and version.Hash or "?"),
+			tostring(version and version.Channel or "?"))
+		if hubBuildId then
+			line = line .. " | hub " .. tostring(hubBuildId)
+		end
+		if deps.UIHelpers.copyText(line) then
+			flash(BuildChip, buildText, "Copied")
+		end
+	end)
+
+	-- Discord half: the left end of the bar, in blurple so it reads as itself.
+	if discordInvite then
+		local DiscordBadge = Instance.new("TextButton")
+		DiscordBadge.Name = "DiscordBadge"
+		DiscordBadge.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+		DiscordBadge.BackgroundTransparency = 0.15
+		DiscordBadge.BorderSizePixel = 0
+		DiscordBadge.Position = UDim2.new(0, 0, 0, 0)
+		DiscordBadge.Size = UDim2.new(0, DISCORD_W, 1, 0)
+		DiscordBadge.Text = ""
+		DiscordBadge.AutoButtonColor = false
+		DiscordBadge.ZIndex = Footer.ZIndex + 1
+		DiscordBadge.Parent = Footer
+
+		local DiscordCorner = Instance.new("UICorner")
+		DiscordCorner.CornerRadius = UDim.new(0, 6)
+		DiscordCorner.Parent = DiscordBadge
+
+		-- Square off the inner edge so the two halves meet flush instead of
+		-- leaving a rounded notch in the middle of the bar, and part them with
+		-- the same hairline the main window uses. Same bar, same seam.
+		local Joiner = Instance.new("Frame")
+		Joiner.BackgroundColor3 = DiscordBadge.BackgroundColor3
+		Joiner.BackgroundTransparency = DiscordBadge.BackgroundTransparency
+		Joiner.BorderSizePixel = 0
+		Joiner.Position = UDim2.new(1, -6, 0, 0)
+		Joiner.Size = UDim2.new(0, 6, 1, 0)
+		Joiner.ZIndex = DiscordBadge.ZIndex
+		Joiner.Parent = DiscordBadge
+
+		local Divider = Instance.new("Frame")
+		Divider.BackgroundColor3 = colors.Border
+		Divider.BackgroundTransparency = 0.4
+		Divider.BorderSizePixel = 0
+		Divider.Position = UDim2.new(0, DISCORD_W, 0, 4)
+		Divider.Size = UDim2.new(0, 1, 1, -8)
+		Divider.ZIndex = Footer.ZIndex + 2
+		Divider.Parent = Footer
+
+		-- THE MARK. The main window resolves `DiscordIcon or "icon://chat"` and
+		-- draws it as an image; this window drew a bare dot, because KeySystem
+		-- was never handed the icon set at all. Two windows, one bar, two
+		-- different marks -- and the one a player meets FIRST was the dot.
+		-- Same call and same fallback as the main window, so a hub that names
+		-- its own DiscordIcon gets it in both places without saying so twice.
+		local badgeIcon, badgeIconType
+		if deps.Icons and deps.Icons.resolveIcon then
+			badgeIcon, badgeIconType = deps.Icons.resolveIcon(settings.DiscordIcon or "icon://chat")
+		end
+		if badgeIconType == "image" or badgeIconType == "sprite" then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.Position = UDim2.new(0.5, 0, 0.5, 0)
+			img.Size = UDim2.new(0, FOOT_H - 10, 0, FOOT_H - 10)
+			img.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			if badgeIconType == "sprite" then
+				img.Image = "rbxassetid://" .. badgeIcon.id
+				img.ImageRectSize = badgeIcon.imageRectSize
+				img.ImageRectOffset = badgeIcon.imageRectOffset
+			else
+				img.Image = badgeIcon
+			end
+			img.ZIndex = DiscordBadge.ZIndex + 1
+			img.Parent = DiscordBadge
+		else
+			-- No icon set reachable: still a mark, never an empty blurple square.
+			DiscordBadge.Font = Enum.Font.GothamBold
+			DiscordBadge.TextSize = 14
+			DiscordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
+			DiscordBadge.Text = badgeIcon and tostring(badgeIcon) or "●"
+		end
+
+		-- The tick confirms the copy, and it replaces the TEXT -- so when the
+		-- mark is an image the image steps aside for those 1.2 seconds and comes
+		-- back after. Left alone, the tick lands on top of the mark and the badge
+		-- reads as neither one.
+		local markImage = DiscordBadge:FindFirstChildOfClass("ImageLabel")
+		DiscordBadge.MouseButton1Click:Connect(function()
+			if deps.UIHelpers.copyText(discordInvite) then
+				local was = DiscordBadge.Text
+				if markImage then markImage.Visible = false end
+				DiscordBadge.Font = Enum.Font.GothamBold
+				DiscordBadge.TextSize = 14
+				DiscordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
+				DiscordBadge.Text = "✓"
+				task.delay(1.2, function()
+					if DiscordBadge and DiscordBadge.Parent then
+						DiscordBadge.Text = was
+						if markImage then markImage.Visible = true end
+					end
+				end)
+			end
+		end)
+	end
+
 	-- Calculate final container height
-	local finalHeight = 320 + noteButtonHeight + freeButtonHeight
+	local finalHeight = 320 + noteButtonHeight + freeButtonHeight + footerHeight
 
 	-- The window asks for 500 x finalHeight. A phone held upright is about
 	-- 380 across, and one held sideways has about 320 of height below
@@ -1188,6 +1389,8 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		FreeBtn.BackgroundTransparency = 1
 		FreeBtn.TextTransparency = 1
 	end
+	Footer.BackgroundTransparency = 1
+	FooterStroke.Transparency = 1
 
 	task.wait(0.1)
 
@@ -1207,6 +1410,13 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		deps.Animator:Tween(FreeBtn, {BackgroundTransparency = 0, TextTransparency = 0}, deps.Animator.Spring.Glide)
 	end
 	deps.Animator:Tween(Border, {Transparency = 0.5}, deps.Animator.Spring.Glide)
+	-- The footer fades in with the rest. Hiding something for an entrance and
+	-- then not tweening it back is a bug that looks like a design decision: the
+	-- chip and the badge carry their own colours, so they appeared on their own
+	-- and only the card and border behind them stayed invisible -- for the whole
+	-- life of the window, on every launch.
+	deps.Animator:Tween(Footer, {BackgroundTransparency = 0.25}, deps.Animator.Spring.Glide)
+	deps.Animator:Tween(FooterStroke, {Transparency = 0.5}, deps.Animator.Spring.Glide)
 
 	-- Validation function
 	local function validateInput()

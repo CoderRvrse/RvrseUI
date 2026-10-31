@@ -1,18 +1,18 @@
 {
   "version": {
     "major": 4,
-    "minor": 9,
+    "minor": 10,
     "patch": 0,
-    "full": "4.9.0",
-    "build": "20261030a",
-    "hash": "RVDISCORD90",
+    "full": "4.10.0",
+    "build": "20261030b",
+    "hash": "RVKEYBUILD10",
     "channel": "Stable"
   },
   "release": {
     "date": "2026-10-30",
-    "name": "Come and Say Hello",
-    "codename": "One Tap to the Invite",
-    "notes": "A tiny Discord badge now sits just above the version badge and puts a community invite on the player's clipboard, because Roblox cannot open a browser and copying is the only hand-off available. Every hub built on RvrseUI carries the library's invite unless it names its own with DiscordInvite, or refuses it with DiscordInvite = false. Only a never-expiring invite belongs in that default: a 7-day link dies a week after a hub ships and nobody finds out, because a dead invite looks exactly like a working one until someone taps it. The search for the executor's clipboard function moved into UIHelpers.copyText as the single implementation, and was fixed on the way: it read the environment with rawget, which walks straight past a metatable, so on every executor that serves setclipboard through one the key window reported that it could not copy the ad link -- on an executor that copies perfectly well. That is the one screen where losing the link costs the player their free key."
+    "name": "Say Which Build",
+    "codename": "The Key Window Names Itself",
+    "notes": "The key window now carries the same footer bar the main window does: a Discord badge that copies the invite, and a chip that names the build. The key window is where both matter most -- it is the first thing a player sees, and when something is wrong it is often the only thing they see, so it is exactly where a player needs the invite within reach and where support needs to be able to ask \"what does the chip say?\" and get an answer that identifies the build. The chip shows two numbers because they answer two different questions: RvrseUI's own version says which UI is running, and the hub build id says which HUB -- and that second one decides whether the player's key is allowed to open it at all, which is the single most common cause of a key being refused. A hub still names its Discord invite ONCE: the default and the opt-out rule moved into UIHelpers.resolveDiscordInvite, read by both windows, because WindowBuilder already hands the key system the same config table. Two windows quietly disagreeing about the invite is a bug nobody reports -- players just stop finding the Discord."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -647,6 +647,17 @@
         "Added: UIHelpers.copyText, now the only clipboard implementation in the library.",
         "Fixed: the clipboard search read the environment with rawget, so it missed every executor that serves setclipboard through a metatable -- which looked exactly like an executor that cannot copy. This was in the key window's ad-link hand-off, where it costs the player a free key.",
         "Tests: harness scenario 'discord' (badge present, above the version badge, tiny, draws something, a hub's own invite wins, no invite named carries the library default, and DiscordInvite = false shows no badge) and licence scenarios 'adlink' / 'adlink_meta' (the ad link reaches the clipboard, including through a metatable). All verified by mutation."
+      ]
+    },
+    "4.10.0": {
+      "date": "2026-10-30",
+      "hash": "RVKEYBUILD10",
+      "changes": [
+        "Added: a footer bar on the KEY window, carrying the same pair the main window has -- a Discord badge that copies the invite, and a chip naming the build. The key window is the first thing a player sees and often the only thing they see when something is wrong.",
+        "Added: the build chip shows RvrseUI's version and, when KeySettings.License.BuildId is set, the first 8 characters of the hub's build id. Tapping it copies the full line (version, build, hash, channel, hub build id) because a player reading an 11px chip aloud gets it wrong.",
+        "Added: UIHelpers.resolveDiscordInvite and UIHelpers.DEFAULT_DISCORD_INVITE -- ONE definition of the invite and the opt-out rule, read by both windows. A hub names DiscordInvite once in CreateWindow and the key window honours it with no extra plumbing, because WindowBuilder already passes the same config table to KeySystem:Process.",
+        "Changed: the key window footer uses its own geometry rather than the main window's. The main bar is sized off the tab rail (railWidth) and the key window has no rail -- it is a 500-wide dialog -- so sharing those numbers would wedge a tab-shaped bar into a dialog. The invite and the clipboard are shared; the geometry deliberately is not.",
+        "Changed: KeySystem now receives the Version module, so the key window can name the build it belongs to."
       ]
     }
   },

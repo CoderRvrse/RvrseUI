@@ -7,7 +7,7 @@
 --     not VALID — falls back to a real server call, exactly as before.
 -- Every scenario counts the calls the window makes, so a regression that
 -- quietly re-checks every launch fails here.
--- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow,dummyparity,savedkey,adlink,adlink_meta
+-- SCENARIOS: receipt,noreceipt,stale,wrongkey,badstatus,unit,freekey,keywindow,keyfooter,dummyparity,savedkey,adlink,adlink_meta
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -430,6 +430,165 @@ elseif H_SCENARIO == "keywindow" then
 	H.check(reason == KeySystem.ClosedReason,
 		"it says the player closed the window, not that a key was refused (said " .. tostring(reason) .. ")")
 	
+elseif H_SCENARIO == "keyfooter" then
+	-- The key window's footer: the Discord badge and the build chip.
+	--
+	-- Two things are being proved, and the second is the point. The first is
+	-- that the badge and the chip are there and do what they say. The second is
+	-- that the invite is INHERITED: the hub names DiscordInvite once, on
+	-- CreateWindow, and the key window honours it WITHOUT it being repeated in
+	-- KeySettings. If that ever stops working, a hub author has to name the
+	-- invite twice, and the day they update one and not the other the two
+	-- windows start handing players different links -- which nobody reports,
+	-- they just stop finding the Discord.
+	local function find(pred)
+		for _, root in ipairs({ M.PlayerGui, M.CoreGui }) do
+			for _, d in ipairs(M.descendants(root)) do
+				if pred(d, M.D[d]) then return d end
+			end
+		end
+		return nil
+	end
+	local function named(name)
+		return find(function(_, d) return d.props.Name == name end)
+	end
+
+	-- Read the version off the library rather than writing it here: a second
+	-- copy in the tests is the drift bug again, one file further along.
+	local VER = tostring(RvrseUI:GetVersionString()):match("%d+%.%d+%.%d+")
+	H.check(VER ~= nil, "could not read RvrseUI's version out of the library")
+
+	local HUB_INVITE = "https://discord.gg/keyfooter-test"
+	local BUILD = "4dfd04209ec5b7fa"
+
+	M.genv.request = function()
+		return { StatusCode = 200, Body = '{"status":"INVALID"}' }
+	end
+	M.run(1)
+
+	local co = coroutine.create(function()
+		RvrseUI:CreateWindow({
+			Name = "KeyFooterTest",
+			-- named ONCE, here, and never mentioned in KeySettings below
+			DiscordInvite = HUB_INVITE,
+			KeySystem = true,
+			KeySettings = {
+				Title = "KeyFooterTest",
+				SaveKey = false,
+				KickOnFailure = false,
+				License = {
+					Endpoint = "https://license.invalid/api/v1/licensing/validate",
+					BuildId = BUILD,
+					FreeKey = false,
+				},
+			},
+		})
+	end)
+	M.resume(co)
+	M.run(2)
+
+	local chip = named("BuildChip")
+	local badge = named("DiscordBadge")
+	H.check(named("Container") ~= nil, "the key window opened")
+	H.check(chip ~= nil, "the key window has no build chip -- nobody can say which build they are on")
+	H.check(badge ~= nil, "the key window has no Discord badge")
+
+	-- The chip names BOTH builds, because they answer different questions.
+	local chipText = chip and M.D[chip].props.Text or ""
+	H.check(chipText:find(VER, 1, true) ~= nil, string.format(
+		"the chip says %q, which does not name RvrseUI's version (%s)", chipText, VER))
+	H.check(chipText:find(BUILD:sub(1, 8), 1, true) ~= nil, string.format(
+		"the chip says %q, which does not name the hub build %s -- that id is what "
+		.. "decides whether a key may open this hub at all", chipText, BUILD:sub(1, 8)))
+
+	-- It has to be big enough to hit and to read, same as the main window's.
+	-- AbsoluteSize is computed and read off the INSTANCE; M.D[d].props.AbsoluteSize
+	-- is simply nil.
+	local cs = chip.AbsoluteSize
+	H.check(cs.X > 0 and cs.Y >= 18, string.format(
+		"the build chip is %dx%d -- too small to hit or read", cs.X, cs.Y))
+	local needed = math.ceil(#chipText * M.D[chip].props.TextSize * 0.55)
+	H.check(cs.X >= needed, string.format(
+		"the build chip is %d wide but %q at text size %d needs about %d",
+		cs.X, chipText, M.D[chip].props.TextSize, needed))
+
+	-- VISIBLE, not merely present. The entrance hides every piece and tweens it
+	-- back, and the footer was hidden and then never tweened back: the chip and
+	-- the badge carry their own colours, so they turned up on their own while
+	-- the card and the border behind them stayed invisible for the whole life of
+	-- the window, on every launch. A scenario that only looks for instances
+	-- cannot tell those two states apart, so it passed -- which is why this
+	-- reads the transparency the entrance actually left behind.
+	local footer = chip.Parent
+	local ft = M.D[footer].props.BackgroundTransparency
+	H.check(type(ft) == "number" and ft < 1, string.format(
+		"the footer bar is invisible after the entrance (BackgroundTransparency %s): "
+		.. "it is hidden for the fade and has to be tweened back, or the chip and the "
+		.. "badge float with no bar behind them", tostring(ft)))
+	local fstroke
+	for _, d in ipairs(M.descendants(footer)) do
+		if M.D[d].props.ClassName == "UIStroke" then fstroke = d end
+	end
+	H.check(fstroke ~= nil, "the footer bar has no border stroke")
+	local st = fstroke and M.D[fstroke].props.Transparency
+	H.check(type(st) == "number" and st < 1, string.format(
+		"the footer's border is invisible after the entrance (Transparency %s)",
+		tostring(st)))
+
+	-- THE SAME MARK AS THE MAIN WINDOW, not a stand-in for one.
+	--
+	-- KeySystem was initialised without the icon set, so resolveIcon was
+	-- unreachable and the badge fell back to a bare "●" while the main
+	-- window, two windows along the same bar, drew a real mark. Nothing failed
+	-- and nothing was logged; it just looked unfinished, which is the whole
+	-- reason this is asserted rather than left to the eye.
+	-- Whatever the icon set resolves is what BOTH windows must draw, so this
+	-- asks the icon set rather than naming a glyph here -- a second copy of
+	-- the answer in the tests is the drift bug again, one file further along.
+	local wantIcon, wantType = Icons.resolveIcon("icon://chat")
+	local markImage, markText
+	for _, d in ipairs(M.descendants(badge)) do
+		if M.D[d].props.ClassName == "ImageLabel" then
+			markImage = tostring(M.D[d].props.Image)
+		end
+	end
+	markText = tostring(M.D[badge].props.Text)
+	local drew = markImage or markText
+	if wantType == "image" or wantType == "sprite" then
+		H.check(markImage ~= nil, "the Discord badge drew no image, but the icon "
+			.. "set resolves icon://chat to one")
+	else
+		H.check(markText == tostring(wantIcon), string.format(
+			"the key window's Discord badge draws %q, the main window draws %q "
+			.. "for the same icon://chat -- KeySystem is not being handed Icons, "
+			.. "so it has fallen back to its own stand-in", markText, tostring(wantIcon)))
+	end
+	H.check(drew ~= "●", "the Discord badge is still the bare dot it fell "
+		.. "back to when KeySystem could not reach the icon set")
+
+	-- THE INHERITANCE. KeySettings never mentioned an invite.
+	M.clipboard = nil
+	M.click(badge)
+	M.run(1)
+	H.check(M.clipboard == HUB_INVITE, string.format(
+		"tapping the key window's badge put %s on the clipboard, not the hub's own "
+		.. "invite (%s) -- the key window is not inheriting DiscordInvite, so a hub "
+		.. "author now has to name it twice", tostring(M.clipboard), HUB_INVITE))
+
+	-- The chip hands over the whole line, because an 11px chip read aloud is
+	-- how a support thread gets the build wrong.
+	M.clipboard = nil
+	M.click(chip)
+	M.run(1)
+	local copied = tostring(M.clipboard)
+	H.check(copied:find(VER, 1, true) ~= nil and copied:find(BUILD, 1, true) ~= nil,
+		"tapping the chip copied " .. copied .. " -- it must carry the full version AND "
+		.. "the whole hub build id, not the 8 characters the chip shows")
+
+	H.log("keyfooter      | chip %q (%dx%d) | bar faded in (background %s, border %s) | "
+		.. "badge mark %s | badge copied the hub's own invite | chip copied the full line",
+		chipText, cs.X, cs.Y, tostring(ft), tostring(st), drew)
+
 elseif H_SCENARIO == "dummyparity" then
 	-- When a key is refused, or the player closes the key window, CreateWindow
 	-- hands the hub a DUMMY window so its script does not explode. That only

@@ -226,4 +226,33 @@ function UIHelpers.copyText(text)
 	return false
 end
 
+-- === the community invite ==============================================
+-- ONE definition, read by BOTH windows: the main window's footer bar and the
+-- key window's. It lives here rather than in either window because a hub that
+-- names its own invite must not have to name it twice -- and because the two
+-- silently disagreeing is the kind of bug nobody reports, they just stop
+-- finding the Discord.
+--
+-- A hub sets `DiscordInvite` once in CreateWindow and both honour it, with no
+-- extra plumbing: WindowBuilder hands the SAME config table to the key system
+-- (`KeySystem:Process(cfg, ...)`), so the key window is already holding it.
+--
+-- Verified permanent when it went in (Discord reports expires_at: null).
+UIHelpers.DEFAULT_DISCORD_INVITE = "https://discord.gg/FJxrnAcawn"
+
+-- Resolve the invite a window should show:
+--   nothing said  -> the default above
+--   a string      -> the hub's own
+--   false         -> opted out, show no badge at all
+function UIHelpers.resolveDiscordInvite(cfg)
+	local invite = cfg and cfg.DiscordInvite
+	if invite == nil then
+		invite = UIHelpers.DEFAULT_DISCORD_INVITE
+	end
+	if type(invite) == "string" and invite ~= "" then
+		return invite
+	end
+	return nil
+end
+
 return UIHelpers
