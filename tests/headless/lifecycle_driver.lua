@@ -993,9 +993,17 @@ elseif H_SCENARIO == "discord" then
 	-- value is read back out of the source rather than written here, because a
 	-- second copy of the invite in the tests is just the drift bug again, one
 	-- file further along.
-	local DEFAULT = RVRSEUI_SRC:match('local DEFAULT_DISCORD_INVITE = "([^"]*)"')
+	-- It lives on UIHelpers so the KEY window reads the very same value; two
+	-- windows disagreeing about the invite is a bug nobody reports, they just
+	-- stop finding the Discord.
+	local DEFAULT = RVRSEUI_SRC:match('UIHelpers%\.DEFAULT_DISCORD_INVITE = "([^"]*)"')
 	H.check(DEFAULT ~= nil,
-		"could not find DEFAULT_DISCORD_INVITE in the source -- did it get renamed?")
+		"could not find UIHelpers.DEFAULT_DISCORD_INVITE in the source -- did it get renamed?")
+	-- And exactly ONE definition of it, or the two windows can drift apart.
+	local defs = select(2, RVRSEUI_SRC:gsub('DEFAULT_DISCORD_INVITE = "', ""))
+	H.check(defs == 1, string.format(
+		"the default invite is defined %d times in the source -- there must be exactly "
+		.. "one, or the main window and the key window can disagree", defs))
 	H.check(DEFAULT:match("^https://discord%.gg/%w+$") ~= nil,
 		"the library default is " .. tostring(DEFAULT) .. ", which is not a Discord invite link")
 

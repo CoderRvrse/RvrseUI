@@ -1,5 +1,20 @@
 # RvrseUI Releases
 
+## Version 4.10.0 "Say Which Build" - The Key Window Names Itself
+**Release Date**: October 30, 2026
+**Build**: 20261030b
+**Hash**: `RVKEYBUILD10`
+**Channel**: Stable
+
+- **The key window now carries the same footer bar the main window does: a Discord badge and a chip naming the build.** The key window is where both matter most. It is the first thing a player sees, and when something is wrong it is very often the *only* thing they see - so it is exactly where a player needs the invite within reach, and where support needs to be able to ask "what does the chip say?" and get an answer that identifies the build.
+- **The chip shows two numbers, because they answer two different questions.** RvrseUI's own version says which UI is running; the hub build id (the first 8 characters of `KeySettings.License.BuildId`) says which **hub** - and that second one decides whether the player's key is allowed to open it at all. A key locks to the first hub it opens, so a build-id mismatch is the single most common reason a perfectly good key is refused, and until now nothing on screen named it.
+- **Tapping the chip copies the whole line** - version, build, hash, channel, and the *full* hub build id - because an 11-pixel chip read aloud is how a support thread gets the build wrong, and a screenshot of it is unreadable.
+- **A hub still names its Discord invite ONCE.** `DiscordInvite` on `CreateWindow` is now honoured by the key window too, with no extra plumbing: `WindowBuilder` already hands `KeySystem:Process` the same config table. The default and the opt-out rule moved into `UIHelpers.resolveDiscordInvite`, read by both windows. **Do not write a second copy of the invite.** Two windows quietly disagreeing about it is a bug nobody reports - players just stop finding the Discord. `DiscordInvite = false` still removes the badge from both.
+- **The key window's footer uses its own geometry, deliberately.** The main window's bar is sized off the tab rail (`railWidth`); the key window has no rail - it is a 500-wide dialog - so reusing those numbers would wedge a tab-shaped bar into a dialog. What is shared is the part that must never disagree: the invite and the clipboard.
+- **Fixed: the main window's version chip stopped fitting its own text at 4.10.0.** The chip was a fixed width derived from the tab rail, and `v4.10.0` is a character longer than `v4.9.0` - the first double-digit minor version silently overflowed it. A fixed width is a bug with a date on it. The chip is now measured from the text it will actually hold and the bar grows past the rail only when it has to, so short versions still line up exactly as before.
+- **Fixed: `tools/build.js` carries its own copy of the module wiring,** separate from `init.lua` and `tools/build.lua`. Adding a dependency in the other two changes nothing in the shipped file; the key window's chip read `v?` until the builder itself was updated. If you add a module dependency, **patch `tools/build.js`** - it is the one that ships.
+- **New gate: licence scenario `keyfooter`.** Proves the badge and chip exist, are big enough to hit and read, that the chip names both builds and copies the full line, and - the one that matters - that the invite is *inherited* from `CreateWindow` and never named twice. Mutation-verified: breaking the inheritance fails with the reason in words. The `discord` scenario additionally now asserts there is exactly **one** definition of the default invite in the source.
+
 ## Version 4.9.0 "Come and Say Hello" - One Tap to the Invite
 **Release Date**: October 30, 2026
 **Build**: 20261030a

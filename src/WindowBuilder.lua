@@ -15,7 +15,8 @@ local WindowBuilder = {}
 --
 -- Verified permanent when it went in (Discord reports expires_at: null).
 -- A hub opts out with `DiscordInvite = false`, and names its own with a string.
-local DEFAULT_DISCORD_INVITE = "https://discord.gg/FJxrnAcawn"
+-- Defined in UIHelpers so the key window reads the very same value; see
+-- UIHelpers.resolveDiscordInvite for why that matters.
 
 -- Dependencies will be injected via Initialize()
 local Theme, Animator, State, Config, UIHelpers, Icons, TabBuilder, SectionBuilder, WindowManager, NotificationsService
@@ -1105,16 +1106,22 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	-- own bottom line rather than floating above it. The phone keeps the larger
 	-- of each number: a thumb needs the room a mouse does not.
 	local footH = isMobile and 26 or 20
-	local barW = tabWidth - 6
 	local discordW = isMobile and 26 or 22
+	-- The bar lines up with the tab rail, but the VERSION STRING sets the floor.
+	-- "v4.10.0" is a character longer than "v4.9.0", and on the first double-digit
+	-- minor the chip silently stopped fitting its own text -- a fixed width is a
+	-- bug with a date on it. Gotham Bold runs about 0.55 of its TextSize per
+	-- character, so measure the text the chip will actually hold and let the bar
+	-- grow past the rail only when it has to. Short versions still line up.
+	local versionSize = isMobile and 11 or 10
+	local versionText = "v" .. Version.Full
+	local versionNeeded = math.ceil(#versionText * versionSize * 0.55) + 4
+	local barW = math.max(tabWidth - 6, discordW + versionNeeded)
 	local versionW = barW - discordW
 	local footGap = 3 -- the sliver left between the bar and the window's edge
 
-	local discordInvite = cfg.DiscordInvite
-	if discordInvite == nil then
-		discordInvite = DEFAULT_DISCORD_INVITE
-	end
-	local showDiscord = type(discordInvite) == "string" and discordInvite ~= ""
+	local discordInvite = UIHelpers.resolveDiscordInvite(cfg)
+	local showDiscord = discordInvite ~= nil
 
 	local footer = Instance.new("Frame")
 	footer.Name = Obfuscation.getObfuscatedName("footer")
@@ -1138,9 +1145,9 @@ function WindowBuilder:CreateWindow(RvrseUI, cfg, host)
 	versionBadge.Position = UDim2.new(0, showDiscord and discordW or 0, 0, 0)
 	versionBadge.Size = UDim2.new(0, showDiscord and versionW or barW, 1, 0)
 	versionBadge.Font = Enum.Font.GothamBold
-	versionBadge.TextSize = isMobile and 11 or 10
+	versionBadge.TextSize = versionSize
 	versionBadge.TextColor3 = pal.Accent
-	versionBadge.Text = "v" .. Version.Full
+	versionBadge.Text = versionText
 	versionBadge.AutoButtonColor = false
 	versionBadge.ZIndex = footer.ZIndex + 1
 	versionBadge.Parent = footer

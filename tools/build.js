@@ -180,7 +180,10 @@ KeySystem:Initialize({
     Animator = Animator,
     UIHelpers = UIHelpers,
     Debug = Debug,
-    Obfuscation = Obfuscation
+    Obfuscation = Obfuscation,
+    -- The key window names the build it belongs to, so a player can read it
+    -- back when something is wrong.
+    Version = Version
 })
 
 Particles:Initialize({
