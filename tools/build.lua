@@ -36,8 +36,27 @@ local Modules = {
     "src/WindowBuilder.lua"
 }
 
-local HEADER = [[-- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on ]] .. os.date("!%Y-%m-%dT%H:%M:%SZ") .. [[
+-- The version and build id come from VERSION.json, NOT from a literal here and
+-- NOT from the clock. build.js does the same, and these two builders must keep
+-- producing identical output -- see CRITICAL WARNING #0.
+--
+-- A wall-clock timestamp made every rebuild "change" the file, which meant a
+-- diff could never answer "does the committed monolith match its sources?".
+-- That is exactly how this header kept saying v4.5.2 for five releases.
+local function versionInfo()
+	local f = assert(io.open("VERSION.json", "r"), "VERSION.json not found -- run from the repo root")
+	local raw = f:read("*a")
+	f:close()
+	local full = raw:match('"full"%s*:%s*"([^"]+)"')
+	local build = raw:match('"build"%s*:%s*"([^"]+)"')
+	assert(full and build, "VERSION.json is missing version.full or version.build")
+	return full, build
+end
+
+local VERSION_FULL, VERSION_BUILD = versionInfo()
+
+local HEADER = [[-- RvrseUI v]] .. VERSION_FULL .. [[ | Modern Professional UI Framework
+-- Compiled from modular architecture (build ]] .. VERSION_BUILD .. [[)
 
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API

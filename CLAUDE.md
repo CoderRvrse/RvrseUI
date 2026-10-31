@@ -2,10 +2,41 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# RvrseUI – Maintainer Notes (v4.6.0)
+# RvrseUI – Maintainer Notes
 
 > **⚠️ CRITICAL: Read this entire document before making ANY changes to the codebase.**
 > This file documents the architecture, build system, common pitfalls, and strict workflows that MUST be followed.
+
+---
+
+## ⛔ CRITICAL WARNING #00: `git status` can tell you a file is CLEAN when it is NOT
+
+**Run `node tools/doctor.js` before you build or commit. Every time.**
+
+`core.autocrlf` (the Windows default, and set globally on the machine this repo
+is usually built on) rewrites line endings on checkout. Git's **stat cache**
+then reports the rewritten file as clean — it never re-reads the contents.
+
+On 2026-10-31 this shipped a wrong artifact: `RvrseUI.lua` was packed from a
+working copy of `src/lucide-icons-data.lua` ending CRLF while the blob in git
+ended LF. `git status`, `git diff` and `git diff --stat` all said clean. The
+committed monolith was built from **a source file that does not exist in the
+repository**, and every other machine produced something one byte different.
+
+It survived because every local re-run reproduced the same corruption. Only CI
+— which had never held that working copy — could see it. **Checking locally was
+circular and could never have caught it.**
+
+- **Detect:** `node tools/doctor.js` (compares bytes on disk against the stored blob)
+- **Fix one file:** `rm "<file>" && git checkout -- "<file>"` — delete it FIRST,
+  because a plain checkout does nothing while git believes the file is clean
+- **Never remove `* -text` from `.gitattributes`.** A build cannot be
+  deterministic while a checkout can change the bytes it reads.
+- **Never test a reproducibility gate where you built it.** Use a fresh clone
+  made with `core.autocrlf=true` — the hostile case.
+
+Full write-up, including why the CI gate must run **before** `stylua`:
+[`docs/LINE-ENDINGS.md`](docs/LINE-ENDINGS.md).
 
 ---
 
@@ -17,7 +48,7 @@ private top-level locals private. The 4.4.x builds dropped the wrapping, so `Win
 line after it, and the monolith died on load with `attempt to index nil with 'Initialize'` — on every executor.
 
 - Module tables still become shared globals (`local Theme = {}` → `Theme = {}`); everything else stays block-local.
-- `build.js` and `build.lua` must produce **identical** output (only the timestamp line differs). After touching
+- `build.js` and `build.lua` must produce **byte-identical** output. There is no longer a timestamp line to excuse a difference: both read the version and build id from `VERSION.json`, so a rebuild changes nothing and `git diff` after one is meaningful. After touching
   either, run both and diff them.
 - Before pushing a build, run `node tests/headless/run.js` — a bad build breaks every hub instantly, because
   hubs load `main/RvrseUI.lua` live. (The 4.4.x build fails it at load.)

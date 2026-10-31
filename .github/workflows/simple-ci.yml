@@ -16,6 +16,12 @@ jobs:
         with:
           version: v0.3.0
 
+      # A canary for `.gitattributes`. A fresh checkout should always match
+      # the blobs it came from; if it does not, line-ending conversion is back
+      # and every build from this tree is suspect. See docs/LINE-ENDINGS.md.
+      - name: Working tree matches what git stores
+        run: node tools/doctor.js
+
       # The anti-drift gate. MUST RUN BEFORE "Format Code".
       #
       # stylua REWRITES src/ in place. Rebuilding after it compares the
