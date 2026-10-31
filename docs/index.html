@@ -112,6 +112,12 @@ local Window = RvrseUI:CreateWindow({
     Icon = "lucide://layout-dashboard",
     Theme = "Dark",
     ToggleUIKeybind = "K",
+
+    -- Your Discord, read by the main window's badge AND
+    -- the key window's footer. Omit it and players see
+    -- the RvrseUI community invite; set false for none.
+    DiscordInvite = "https://discord.gg/yourserver",
+
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "MyHub",
@@ -172,6 +178,11 @@ Window:Show() -- loads config then renders UI</code></pre>
           <article class="glass-card">
             <h3>Your Discord, One Line</h3>
             <p>Set <code>DiscordInvite</code> once in <code>CreateWindow</code>. The main window&rsquo;s badge <em>and</em> the key window&rsquo;s footer both use it &mdash; one definition, so they can never drift apart.</p>
+            <div class="mini-code" data-copy-container>
+              <button class="copy-btn floating" type="button">Copy</button>
+<pre><code>DiscordInvite = "https://discord.gg/yourserver"</code></pre>
+            </div>
+            <p><a href="#docs">Full example and all three states &rarr;</a></p>
           </article>
           <article class="glass-card">
             <h3>Notifications + Theme</h3>
