@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-31T00:24:12.083Z
+-- Compiled from modular architecture on 2026-10-31T00:33:42.943Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -5000,6 +5000,13 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		deps.Animator:Tween(FreeBtn, {BackgroundTransparency = 0, TextTransparency = 0}, deps.Animator.Spring.Glide)
 	end
 	deps.Animator:Tween(Border, {Transparency = 0.5}, deps.Animator.Spring.Glide)
+	-- The footer fades in with the rest. Hiding something for an entrance and
+	-- then not tweening it back is a bug that looks like a design decision: the
+	-- chip and the badge carry their own colours, so they appeared on their own
+	-- and only the card and border behind them stayed invisible -- for the whole
+	-- life of the window, on every launch.
+	deps.Animator:Tween(Footer, {BackgroundTransparency = 0.25}, deps.Animator.Spring.Glide)
+	deps.Animator:Tween(FooterStroke, {Transparency = 0.5}, deps.Animator.Spring.Glide)
 
 	-- Validation function
 	local function validateInput()

@@ -512,6 +512,29 @@ elseif H_SCENARIO == "keyfooter" then
 		"the build chip is %d wide but %q at text size %d needs about %d",
 		cs.X, chipText, M.D[chip].props.TextSize, needed))
 
+	-- VISIBLE, not merely present. The entrance hides every piece and tweens it
+	-- back, and the footer was hidden and then never tweened back: the chip and
+	-- the badge carry their own colours, so they turned up on their own while
+	-- the card and the border behind them stayed invisible for the whole life of
+	-- the window, on every launch. A scenario that only looks for instances
+	-- cannot tell those two states apart, so it passed -- which is why this
+	-- reads the transparency the entrance actually left behind.
+	local footer = chip.Parent
+	local ft = M.D[footer].props.BackgroundTransparency
+	H.check(type(ft) == "number" and ft < 1, string.format(
+		"the footer bar is invisible after the entrance (BackgroundTransparency %s): "
+		.. "it is hidden for the fade and has to be tweened back, or the chip and the "
+		.. "badge float with no bar behind them", tostring(ft)))
+	local fstroke
+	for _, d in ipairs(M.descendants(footer)) do
+		if M.D[d].props.ClassName == "UIStroke" then fstroke = d end
+	end
+	H.check(fstroke ~= nil, "the footer bar has no border stroke")
+	local st = fstroke and M.D[fstroke].props.Transparency
+	H.check(type(st) == "number" and st < 1, string.format(
+		"the footer's border is invisible after the entrance (Transparency %s)",
+		tostring(st)))
+
 	-- THE INHERITANCE. KeySettings never mentioned an invite.
 	M.clipboard = nil
 	M.click(badge)
@@ -531,8 +554,9 @@ elseif H_SCENARIO == "keyfooter" then
 		"tapping the chip copied " .. copied .. " -- it must carry the full version AND "
 		.. "the whole hub build id, not the 8 characters the chip shows")
 
-	H.log("keyfooter      | chip %q (%dx%d) | badge copied the hub's own invite | "
-		.. "chip copied the full line", chipText, cs.X, cs.Y)
+	H.log("keyfooter      | chip %q (%dx%d) | bar faded in (background %s, border %s) | "
+		.. "badge copied the hub's own invite | chip copied the full line",
+		chipText, cs.X, cs.Y, tostring(ft), tostring(st))
 
 elseif H_SCENARIO == "dummyparity" then
 	-- When a key is refused, or the player closes the key window, CreateWindow
