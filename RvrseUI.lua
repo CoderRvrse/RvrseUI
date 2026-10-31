@@ -1,5 +1,5 @@
 -- RvrseUI v4.5.2 | Modern Professional UI Framework
--- Compiled from modular architecture on 2026-10-31T00:33:42.943Z
+-- Compiled from modular architecture on 2026-10-31T00:46:38.575Z
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -4889,11 +4889,7 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		DiscordBadge.BorderSizePixel = 0
 		DiscordBadge.Position = UDim2.new(0, 0, 0, 0)
 		DiscordBadge.Size = UDim2.new(0, DISCORD_W, 1, 0)
-		DiscordBadge.Font = Enum.Font.GothamBold
-		DiscordBadge.TextSize = 11
-		DiscordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
-		DiscordBadge.Text = "Discord"
-		DiscordBadge.TextScaled = false
+		DiscordBadge.Text = ""
 		DiscordBadge.AutoButtonColor = false
 		DiscordBadge.ZIndex = Footer.ZIndex + 1
 		DiscordBadge.Parent = Footer
@@ -4902,18 +4898,78 @@ function KeySystem:CreateUI(settings, onSuccess, onFailure)
 		DiscordCorner.CornerRadius = UDim.new(0, 6)
 		DiscordCorner.Parent = DiscordBadge
 
-		-- The badge is narrower than the word, so the word is the tooltip's job
-		-- and the badge itself shows the mark.
-		DiscordBadge.Text = "●"
-		DiscordBadge.TextSize = 14
+		-- Square off the inner edge so the two halves meet flush instead of
+		-- leaving a rounded notch in the middle of the bar, and part them with
+		-- the same hairline the main window uses. Same bar, same seam.
+		local Joiner = Instance.new("Frame")
+		Joiner.BackgroundColor3 = DiscordBadge.BackgroundColor3
+		Joiner.BackgroundTransparency = DiscordBadge.BackgroundTransparency
+		Joiner.BorderSizePixel = 0
+		Joiner.Position = UDim2.new(1, -6, 0, 0)
+		Joiner.Size = UDim2.new(0, 6, 1, 0)
+		Joiner.ZIndex = DiscordBadge.ZIndex
+		Joiner.Parent = DiscordBadge
 
+		local Divider = Instance.new("Frame")
+		Divider.BackgroundColor3 = colors.Border
+		Divider.BackgroundTransparency = 0.4
+		Divider.BorderSizePixel = 0
+		Divider.Position = UDim2.new(0, DISCORD_W, 0, 4)
+		Divider.Size = UDim2.new(0, 1, 1, -8)
+		Divider.ZIndex = Footer.ZIndex + 2
+		Divider.Parent = Footer
+
+		-- THE MARK. The main window resolves `DiscordIcon or "icon://chat"` and
+		-- draws it as an image; this window drew a bare dot, because KeySystem
+		-- was never handed the icon set at all. Two windows, one bar, two
+		-- different marks -- and the one a player meets FIRST was the dot.
+		-- Same call and same fallback as the main window, so a hub that names
+		-- its own DiscordIcon gets it in both places without saying so twice.
+		local badgeIcon, badgeIconType
+		if deps.Icons and deps.Icons.resolveIcon then
+			badgeIcon, badgeIconType = deps.Icons.resolveIcon(settings.DiscordIcon or "icon://chat")
+		end
+		if badgeIconType == "image" or badgeIconType == "sprite" then
+			local img = Instance.new("ImageLabel")
+			img.BackgroundTransparency = 1
+			img.AnchorPoint = Vector2.new(0.5, 0.5)
+			img.Position = UDim2.new(0.5, 0, 0.5, 0)
+			img.Size = UDim2.new(0, FOOT_H - 10, 0, FOOT_H - 10)
+			img.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			if badgeIconType == "sprite" then
+				img.Image = "rbxassetid://" .. badgeIcon.id
+				img.ImageRectSize = badgeIcon.imageRectSize
+				img.ImageRectOffset = badgeIcon.imageRectOffset
+			else
+				img.Image = badgeIcon
+			end
+			img.ZIndex = DiscordBadge.ZIndex + 1
+			img.Parent = DiscordBadge
+		else
+			-- No icon set reachable: still a mark, never an empty blurple square.
+			DiscordBadge.Font = Enum.Font.GothamBold
+			DiscordBadge.TextSize = 14
+			DiscordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
+			DiscordBadge.Text = badgeIcon and tostring(badgeIcon) or "●"
+		end
+
+		-- The tick confirms the copy, and it replaces the TEXT -- so when the
+		-- mark is an image the image steps aside for those 1.2 seconds and comes
+		-- back after. Left alone, the tick lands on top of the mark and the badge
+		-- reads as neither one.
+		local markImage = DiscordBadge:FindFirstChildOfClass("ImageLabel")
 		DiscordBadge.MouseButton1Click:Connect(function()
 			if deps.UIHelpers.copyText(discordInvite) then
 				local was = DiscordBadge.Text
+				if markImage then markImage.Visible = false end
+				DiscordBadge.Font = Enum.Font.GothamBold
+				DiscordBadge.TextSize = 14
+				DiscordBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
 				DiscordBadge.Text = "✓"
 				task.delay(1.2, function()
 					if DiscordBadge and DiscordBadge.Parent then
 						DiscordBadge.Text = was
+						if markImage then markImage.Visible = true end
 					end
 				end)
 			end
@@ -13660,7 +13716,11 @@ KeySystem:Initialize({
     Obfuscation = Obfuscation,
     -- The key window names the build it belongs to, so a player can read it
     -- back when something is wrong.
-    Version = Version
+    Version = Version,
+    -- ...and draws the SAME Discord mark the main window draws. Without this
+    -- the key window had no icon set to reach and fell back to a bare dot,
+    -- while the main window showed a real mark two windows apart.
+    Icons = Icons
 })
 
 Particles:Initialize({

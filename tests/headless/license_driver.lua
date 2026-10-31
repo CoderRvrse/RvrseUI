@@ -535,6 +535,37 @@ elseif H_SCENARIO == "keyfooter" then
 		"the footer's border is invisible after the entrance (Transparency %s)",
 		tostring(st)))
 
+	-- THE SAME MARK AS THE MAIN WINDOW, not a stand-in for one.
+	--
+	-- KeySystem was initialised without the icon set, so resolveIcon was
+	-- unreachable and the badge fell back to a bare "●" while the main
+	-- window, two windows along the same bar, drew a real mark. Nothing failed
+	-- and nothing was logged; it just looked unfinished, which is the whole
+	-- reason this is asserted rather than left to the eye.
+	-- Whatever the icon set resolves is what BOTH windows must draw, so this
+	-- asks the icon set rather than naming a glyph here -- a second copy of
+	-- the answer in the tests is the drift bug again, one file further along.
+	local wantIcon, wantType = Icons.resolveIcon("icon://chat")
+	local markImage, markText
+	for _, d in ipairs(M.descendants(badge)) do
+		if M.D[d].props.ClassName == "ImageLabel" then
+			markImage = tostring(M.D[d].props.Image)
+		end
+	end
+	markText = tostring(M.D[badge].props.Text)
+	local drew = markImage or markText
+	if wantType == "image" or wantType == "sprite" then
+		H.check(markImage ~= nil, "the Discord badge drew no image, but the icon "
+			.. "set resolves icon://chat to one")
+	else
+		H.check(markText == tostring(wantIcon), string.format(
+			"the key window's Discord badge draws %q, the main window draws %q "
+			.. "for the same icon://chat -- KeySystem is not being handed Icons, "
+			.. "so it has fallen back to its own stand-in", markText, tostring(wantIcon)))
+	end
+	H.check(drew ~= "●", "the Discord badge is still the bare dot it fell "
+		.. "back to when KeySystem could not reach the icon set")
+
 	-- THE INHERITANCE. KeySettings never mentioned an invite.
 	M.clipboard = nil
 	M.click(badge)
@@ -555,8 +586,8 @@ elseif H_SCENARIO == "keyfooter" then
 		.. "the whole hub build id, not the 8 characters the chip shows")
 
 	H.log("keyfooter      | chip %q (%dx%d) | bar faded in (background %s, border %s) | "
-		.. "badge copied the hub's own invite | chip copied the full line",
-		chipText, cs.X, cs.Y, tostring(ft), tostring(st))
+		.. "badge mark %s | badge copied the hub's own invite | chip copied the full line",
+		chipText, cs.X, cs.Y, tostring(ft), tostring(st), drew)
 
 elseif H_SCENARIO == "dummyparity" then
 	-- When a key is refused, or the player closes the key window, CreateWindow
