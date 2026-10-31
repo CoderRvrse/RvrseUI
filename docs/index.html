@@ -59,7 +59,7 @@
       <header class="hero" id="top">
         <div class="hero-grid">
           <div class="hero-copy">
-            <span class="hero-badge">v4.6.0 &middot; Production Ready</span>
+            <span class="hero-badge">v4.10.0 &middot; Production Ready</span>
             <h1>Operator UI Toolkit for Roblox Executors</h1>
             <p>
               Build neon dashboards, hydrate Lucide-powered tabs, and wire key systems in minutes. RvrseUI ships with the same cyber grid aesthetic players expect from premium executors.
@@ -71,7 +71,7 @@
             <div class="hero-stats">
               <div class="stat-card">
                 <span>Build Size</span>
-                <strong>491 KB</strong>
+                <strong>567 KB</strong>
               </div>
               <div class="stat-card">
                 <span>Elements</span>
@@ -167,7 +167,11 @@ Window:Show() -- loads config then renders UI</code></pre>
           </article>
           <article class="glass-card">
             <h3>Key System Built-In</h3>
-            <p>Handle VIP keys, webhooks, and clipboard buttons without importing extra modules.</p>
+            <p>Local keys, server-checked licences, and a built-in free-key run &mdash; no extra modules. The key window is a real window: it fits a phone, it moves, it closes.</p>
+          </article>
+          <article class="glass-card">
+            <h3>Your Discord, One Line</h3>
+            <p>Set <code>DiscordInvite</code> once in <code>CreateWindow</code>. The main window&rsquo;s badge <em>and</em> the key window&rsquo;s footer both use it &mdash; one definition, so they can never drift apart.</p>
           </article>
           <article class="glass-card">
             <h3>Notifications + Theme</h3>
@@ -438,11 +442,12 @@ Section:CreateSection("Combat")
           </article>
           <article class="glass-card">
             <h3>Security + Keys</h3>
-            <p>Ship gated hubs without external libraries. Configure multi-keys, rotating validators, Discord logging, and clipboard buttons in one block.</p>
+            <p>Ship gated hubs without external libraries. Local keys, a licence server, a free-key run and clipboard buttons all configure from one block.</p>
             <ul>
-              <li><strong>Flows:</strong> Single key, multi-key, URL fetch</li>
+              <li><strong>Flows:</strong> Single key, multi-key, URL fetch, or <code>License</code> against your own server</li>
+              <li><strong>Licensed:</strong> <code>License = { Endpoint, BuildId }</code> &mdash; checked once per launch, bound to the device</li>
+              <li><strong>Free keys:</strong> the button appears on its own when the server offers them, and removes itself when it does not</li>
               <li><strong>Callbacks:</strong> <code>OnKeyValid</code>, <code>OnKeyInvalid</code>, <code>OnAttemptsExhausted</code></li>
-              <li><strong>UX:</strong> Get-Key button with clipboard + notify</li>
             </ul>
           </article>
         </div>
@@ -460,6 +465,14 @@ Section:CreateSection("Combat")
             <p>Master toggles freeze child sliders and buttons while keeping saved values intact.</p>
           </article>
           <article class="glass-card">
+            <h3>Above Everything, On Request</h3>
+            <p><code>CreateWindow{ AlwaysOnTop = true }</code> moves every RvrseUI screen into the executor&rsquo;s hidden container so game UI cannot cover it. Off by default, because screens must stay in <code>PlayerGui</code> for hubs that look for them there.</p>
+          </article>
+          <article class="glass-card">
+            <h3>Silent Unless Asked</h3>
+            <p>Nothing is printed to a player&rsquo;s console. <code>RvrseUI:EnableDebug(true)</code> turns the diagnostics on while you are building, and off is the default so your users never see them.</p>
+          </article>
+          <article class="glass-card">
             <h3>Token Icon Control</h3>
             <p>Swap the minimize chip globally or per window with lucid, emoji, or asset IDs.</p>
           </article>
@@ -470,7 +483,7 @@ Section:CreateSection("Combat")
         <div class="section-heading">
           <span>Developer Docs</span>
           <h2>Ship RvrseUI Like An Operator</h2>
-          <p>Four precise plays: boot the library, persist configs, lock entry with the built-in key system, and close without leaving a trace. No fluff—just execution.</p>
+          <p>Five precise plays: boot the library, persist configs, lock entry with the built-in key system, send players to your Discord, and close without leaving a trace. No fluff—just execution.</p>
         </div>
         <div class="doc-flow">
           <article class="doc-step">
@@ -533,37 +546,73 @@ RvrseUI:LoadConfiguration()</code></pre>
           <article class="doc-step">
             <div class="step-label">03</div>
             <h3>Gate entry with keys</h3>
-            <p>Wire VIP keys, Discord logging, and clipboard buttons from the same block. Supports single, multi, or remote fetch flows.</p>
+            <p>Local keys for a simple gate, or <code>License</code> to check every key against your own server. <code>DiscordInvite</code> is named <em>once</em> and both windows pick it up.</p>
             <div class="mini-code" data-copy-container>
               <button class="copy-btn floating" type="button">Copy</button>
 <pre><code>local Window = RvrseUI:CreateWindow({
+    Name = "My Hub",
+
+    -- Named ONCE. The main window's badge and the key
+    -- window's footer both read this. Set it to false
+    -- to show no badge at all.
+    DiscordInvite = "https://discord.gg/yourserver",
+
     KeySystem = true,
     KeySettings = {
-        Title = "RvrseUI Access",
-        Note = "Click to grab your key",
-        Keys = {"DevKey", "VIPKey"},
+        Title = "My Hub Access",
+        Note = "Paste your key below",
         SaveKey = true,
-        WebhookURL = "https://discord.com/api/webhooks/...",
-        NoteButton = {
-            Text = "Get Key",
-            Callback = function()
-                setclipboard("https://myhub.gg/key")
-            end
+
+        -- Checked against YOUR server, bound to the
+        -- device, and asked only once per launch.
+        -- BuildId locks a key to this build: leave it
+        -- out and a key that opened another hub is
+        -- refused as WRONG_HUB.
+        License = {
+            Endpoint = "https://your-server/api/v1/licensing/validate",
+            BuildId  = "4dfd04209ec5b7fa",
         },
+
+        -- Or no server at all: just a list of keys.
+        -- Keys = {"DevKey", "VIPKey"},
+
         OnKeyValid = function(key)
-            print("Unlocked with", key)
+            print("Unlocked")
         end
     }
 })</code></pre>
             </div>
             <ul class="step-points">
               <li><code>OnKeyValid</code>, <code>OnKeyInvalid</code>, and <code>OnAttemptsExhausted</code> are ready-made hooks.</li>
-              <li>Swap <code>NoteButton</code> for your own link shortener or hosted key page.</li>
+              <li><strong>If you use <code>License</code>, set <code>BuildId</code>.</strong> Without it a key that has already opened a different hub is refused as <code>WRONG_HUB</code> &mdash; which a player reads as &ldquo;invalid key&rdquo;.</li>
+              <li>A free-key button appears by itself when your licence server offers free keys, and removes itself when it does not. Opt out with <code>License.FreeKey = false</code>.</li>
             </ul>
           </article>
 
           <article class="doc-step">
             <div class="step-label">04</div>
+            <h3>Point players at your Discord</h3>
+            <p>One setting, read by every window RvrseUI draws. Tapping the badge copies the invite; there is nothing else to wire up.</p>
+            <div class="mini-code" data-copy-container>
+              <button class="copy-btn floating" type="button">Copy</button>
+<pre><code>-- Your own server
+RvrseUI:CreateWindow({ DiscordInvite = "https://discord.gg/yourserver" })
+
+-- No badge anywhere
+RvrseUI:CreateWindow({ DiscordInvite = false })
+
+-- Left out entirely: the RvrseUI community server is used
+RvrseUI:CreateWindow({ })</code></pre>
+            </div>
+            <ul class="step-points">
+              <li><strong>Leaving it out is a choice too.</strong> An unset <code>DiscordInvite</code> shows the RvrseUI community invite, so set your own &mdash; or <code>false</code> &mdash; if you would rather it did not.</li>
+              <li>Named once in <code>CreateWindow</code>: the main window&rsquo;s badge and the key window&rsquo;s footer both read the same value, so they cannot disagree.</li>
+              <li>The key window&rsquo;s footer also shows the version and build it is about to open, so a player reporting a problem can tell you exactly what they ran.</li>
+            </ul>
+          </article>
+
+          <article class="doc-step">
+            <div class="step-label">05</div>
             <h3>Close without a trace</h3>
             <p>However the window closes (X button, <code>Window:Destroy()</code>, <code>RvrseUI:Destroy()</code> or the destroy key), RvrseUI releases everything it started. Hook your own features to the same moment.</p>
             <div class="mini-code" data-copy-container>
@@ -654,7 +703,7 @@ end)</code></pre>
       </section>
 
       <footer>
-        <p>RvrseUI v4.6.0 &middot; MIT License &middot; Built by CoderRvrse</p>
+        <p>RvrseUI v4.10.0 &middot; MIT License &middot; Built by CoderRvrse</p>
         <p>GitHub Pages site generated from the /docs folder.</p>
       </footer>
     </div>
