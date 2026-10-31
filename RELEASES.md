@@ -1,5 +1,41 @@
 # RvrseUI Releases
 
+## Maintenance - October 31, 2026 (no library change)
+
+`RvrseUI.lua` is unchanged in behaviour; this is build tooling and
+documentation. It is written down here because the fault it closes had already
+shipped a wrong artifact and was invisible while it was happening.
+
+- **`git status` was reporting a file as CLEAN when it was not.** `core.autocrlf`
+  rewrote line endings on checkout and git's **stat cache** hid it, so
+  `RvrseUI.lua` was packed from a working copy of `src/lucide-icons-data.lua`
+  ending CRLF while the blob in git ended LF - a source file **that does not
+  exist in the repository**. Every other machine built something one byte
+  different. It survived because every *local* re-run reproduced the same
+  corruption; only CI, which had never held that working copy, could see it.
+- **`tools/doctor.js`** compares every tracked file's bytes on disk against the
+  blob git stores - the question `git status` will not answer. **Run it before
+  you build or commit.** It found three more diverged files on its first run,
+  including `aftman.toml`, which CI's toolchain step reads.
+- **`.gitattributes` now freezes line endings (`* -text`).** No file's content
+  changes; only git's meddling. A build cannot be deterministic while a
+  checkout is free to change the bytes it reads.
+- **The build is reproducible.** `build.js` and `build.lua` take the version and
+  build id from `VERSION.json` instead of embedding `new Date()` / `os.date()`.
+  A wall-clock timestamp made every rebuild "change" the file, so `git diff`
+  could never answer *does the committed monolith match its sources* - which is
+  exactly how the shipped header kept announcing **v4.5.2 for five releases**.
+- **CI rebuilds and fails on any difference**, and runs *before* `stylua`:
+  stylua rewrites `src/` in place, so rebuilding after it compares the committed
+  monolith against sources CI itself just reformatted.
+- **The docs site had not moved since v4.6.0** while the library was 4.10.0, and
+  `DiscordInvite` appeared nowhere on it - so every hub silently shipped the
+  RvrseUI community invite without its author being told that was the default.
+  The version, build size and element count are now generated from the source
+  of truth on every build, so they cannot drift again.
+- Full write-up and recovery steps: **`docs/LINE-ENDINGS.md`**. Also
+  `CLAUDE.md` CRITICAL WARNING #00 and the README.
+
 ## Version 4.10.0 "Say Which Build" - The Key Window Names Itself
 **Release Date**: October 30, 2026
 **Build**: 20261030b
