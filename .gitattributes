@@ -15,3 +15,20 @@
 # Tool directories
 tools/** linguist-vendored
 scripts/** linguist-vendored
+
+# Line endings are FROZEN AS STORED. Do not remove this.
+#
+# `core.autocrlf` is true on a lot of Windows machines, including the one this
+# repo is usually built on, and it converts line endings on checkout. That made
+# a working copy of src/lucide-icons-data.lua end CRLF while the blob in git
+# ended LF -- and git reported the file as CLEAN, because its stat cache
+# matched and it never re-read the contents.
+#
+# The monolith built from that working copy therefore differed by one byte from
+# the monolith anyone else builds, and the reproducibility gate failed in CI
+# with a diff nobody could reproduce locally. The build cannot be deterministic
+# while a checkout can quietly change the bytes it reads.
+#
+# -text means: store what you are given, hand back exactly that, on every
+# platform. It changes no file's content, only git's meddling.
+* -text
