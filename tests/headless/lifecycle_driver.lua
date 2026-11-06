@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui,discord
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,textfit,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui,discord
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -429,6 +429,55 @@ elseif H_SCENARIO == "selecttab" then
 		local okLate, late = pcall(W.SelectTab, W, 1)
 		H.check(okLate and late == false, "SelectTab after close: " .. tostring(okLate) .. ", " .. tostring(late) .. " (want no error, false)")
 	end
+elseif H_SCENARIO == "textfit" then
+	-- A card holding wrapped text (Paragraph, Label) is as tall as ALL of its
+	-- text, whatever text it held before. The engine's TextBounds counts only
+	-- the lines that FIT in a wrapped label, so 4.10.0's cards, sized from it,
+	-- could shrink but never grow again: a hub's status line Set to a longer
+	-- text stayed cut after one line (Delta + Studio, 2026-11-06).
+	-- The first cards are made while the font is still loading (as a window
+	-- built at once is: Studio measured the same text 338 px wide, then 388),
+	-- and checked after it lands, which fires nothing.
+	local LONG = "Walking to S3:5_4. Collected 529 (484 Wheat, 35 Corn, 6 Carrot, 4 Strawberry), your pets took 12. Ripe: 3, growing: 71, not reached: 2."
+	local LIST = "Buying Strawberry Seeds.\nBought this run: 3 (1 Strawberry, 1 Corn, 1 Wheat), $990 spent.\nFree cells: 5. Seeds in your bag: 3. To buy: 2.\nCash: $10."
+	local para, label
+	M.fontsLoadAt = M.now + 1
+	M.runThread(function()
+		local sec = S.ui1.tab1:CreateSection("Fit")
+		para = sec:CreateParagraph({ Text = "Off." })
+		sec:CreateParagraph({ Text = LONG .. " " .. LONG })
+		label = sec:CreateLabel({ Text = LONG })
+	end, 5)
+	M.run(1.5)
+	H.check(M.now >= M.fontsLoadAt, "textfit: the font has loaded before the cards are checked")
+	local function fits(what, text, atLeast, cardHeight)
+		local l = H.find(function(_, dd) return dd.className == "TextLabel" and dd.props.Text == text end)
+		if not H.check(l ~= nil, "textfit " .. what .. ": no label shows its text") then return end
+		local card = M.D[l].props.Parent
+		local box, lines = l.AbsoluteSize, M.textLines(text, l.TextSize, l.AbsoluteSize.X)
+		H.log("textfit %-20s| %d line(s): label %dx%d, card %d tall, TextFits %s", what, lines, box.X, box.Y, card.AbsoluteSize.Y, tostring(l.TextFits))
+		H.check(l.TextFits == true, ("textfit %s: the text is cut -- %d line(s) of %d px in a label %d tall"):format(what, lines, l.TextSize, box.Y))
+		H.check(lines >= (atLeast or 1), ("textfit %s: %d line(s), the case wants at least %d"):format(what, lines, atLeast or 1))
+		if cardHeight then
+			H.check(card.AbsoluteSize.Y == cardHeight, ("textfit %s: the card is %d tall (want %d)"):format(what, card.AbsoluteSize.Y, cardHeight))
+		end
+	end
+	fits("short, as made", "Off.", 1, 48)
+	fits("long, as made", LONG .. " " .. LONG, 4)
+	fits("label, as made", LONG, 2)
+	M.runThread(function() para:Set(LONG) end, 5)
+	M.run(0.5)
+	fits("Set short -> long", LONG, 2)
+	M.runThread(function() para:Set(LIST) end, 5)
+	M.run(0.5)
+	fits("Set a 4-line list", LIST, 4)
+	M.runThread(function() para:Set("Off.") end, 5)
+	M.run(0.5)
+	fits("Set back to short", "Off.", 1, 48)
+	M.runThread(function() label:Set("Label. " .. LONG .. " " .. LONG) end, 5)
+	M.run(0.5)
+	fits("label Set longer", "Label. " .. LONG .. " " .. LONG, 4)
+	H.close("x", S.W1, "Harness Hub A")
 elseif H_SCENARIO == "mobile" then
 	-- v4.5.2: everything of the window is on a phone's screen, below Roblox's top
 	-- bar: sideways (750x381), then the phone turned upright (381x750).

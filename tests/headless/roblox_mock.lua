@@ -684,7 +684,7 @@ M.Defaults = {
 M.TextDefaults = {
 	TextColor3 = M.Color3.fromRGB(27, 42, 53), TextSize = 14, TextTransparency = 0, TextStrokeTransparency = 1,
 	TextStrokeColor3 = B, TextWrapped = false, TextScaled = false, RichText = false, LineHeight = 1,
-	MaxVisibleGraphemes = -1, TextFits = true, Font = "<enum:Font.Legacy>", TextXAlignment = "<enum:TextXAlignment.Center>",
+	MaxVisibleGraphemes = -1, TextFits = true, Font = "<enum:Font.Legacy>", FontFace = { Family = "rbxasset://fonts/families/LegacyArial.json" }, TextXAlignment = "<enum:TextXAlignment.Center>",
 	TextYAlignment = "<enum:TextYAlignment.Center>", TextTruncate = "<enum:TextTruncate.None>",
 	PlaceholderText = "", PlaceholderColor3 = M.Color3.fromRGB(178, 178, 178), ClearTextOnFocus = true,
 	MultiLine = false, TextEditable = true, CursorPosition = 1, SelectionStart = -1, ShowNativeInput = true,
@@ -739,13 +739,33 @@ end
 
 -- Computed read-only geometry (approximate layout: enough for code that reads it).
 M.Viewport = M.V2(1920, 1080)
+-- The room a GUI object gives its children, as the engine lays them out: its
+-- size less its UIPadding, starting at the padding's top left. (RvrseUI's
+-- cards pad 12 on every side, so a label filling a 48-tall card is 24 tall.)
+function M.paddingOf(inst, size)
+	local d = M.D[inst]
+	for _, c in ipairs(d and d.children or {}) do
+		if M.D[c].className == "UIPadding" then
+			local l, t, r, b = c.PaddingLeft, c.PaddingTop, c.PaddingRight, c.PaddingBottom
+			return l.Scale * size.X + l.Offset, t.Scale * size.Y + t.Offset, r.Scale * size.X + r.Offset, b.Scale * size.Y + b.Offset
+		end
+	end
+	return 0, 0, 0, 0
+end
+function M.contentBox(parent)
+	local ps = M.absSize(parent)
+	local d = M.D[parent]
+	if not (d and M.isA(d.className, "GuiObject")) then return ps, M.V2(0, 0) end
+	local l, t, r, b = M.paddingOf(parent, ps)
+	return M.V2(math.max(0, ps.X - l - r), math.max(0, ps.Y - t - b)), M.V2(l, t)
+end
 function M.absSize(inst)
 	local d = M.D[inst]
 	if not d then return M.V2(0, 0) end
 	if M.isA(d.className, "LayerCollector") then return M.Viewport end
 	if not M.isA(d.className, "GuiObject") then return M.V2(0, 0) end
 	local parent = d.props.Parent
-	local ps = parent and M.absSize(parent) or M.Viewport
+	local ps = parent and M.contentBox(parent) or M.Viewport
 	local s = inst.Size
 	return M.V2(ps.X * s.X.Scale + s.X.Offset, ps.Y * s.Y.Scale + s.Y.Offset)
 end
@@ -754,9 +774,36 @@ function M.absPos(inst)
 	if not d or not M.isA(d.className, "GuiObject") then return M.V2(0, 0) end
 	local parent = d.props.Parent
 	local pp = parent and M.absPos(parent) or M.V2(0, 0)
-	local ps = parent and M.absSize(parent) or M.Viewport
+	local ps, inset = M.Viewport, M.V2(0, 0)
+	if parent then ps, inset = M.contentBox(parent) end
 	local p, me, ap = inst.Position, M.absSize(inst), inst.AnchorPoint
-	return M.V2(pp.X + ps.X * p.X.Scale + p.X.Offset - ap.X * me.X, pp.Y + ps.Y * p.Y.Scale + p.Y.Offset - ap.Y * me.Y)
+	return M.V2(pp.X + inset.X + ps.X * p.X.Scale + p.X.Offset - ap.X * me.X, pp.Y + inset.Y + ps.Y * p.Y.Scale + p.Y.Offset - ap.Y * me.Y)
+end
+-- Text, as the engine lays it out. The mock's font: every character half its
+-- TextSize wide (Gotham 13 measured 6.5 a character in Studio); "\n" starts a
+-- line; a wrapped line breaks at the box's width (the engine breaks at words:
+-- near enough for code that sizes a box to its text).
+-- A font is not there at once: until M.fontsLoadAt, text is measured with a
+-- fallback's narrower metrics (Studio: the same text read 338 px wide before
+-- Gotham loaded, 388 after), and NOTHING fires when the real font lands.
+M.fontsLoadAt = 0
+function M.charWidth(size)
+	return size * ((M.now >= M.fontsLoadAt) and 0.5 or 0.44)
+end
+function M.textWidth(text, size)
+	local most = 0
+	for segment in (tostring(text) .. "\n"):gmatch("(.-)\n") do
+		most = math.max(most, (utf8.len(segment) or #segment) * M.charWidth(size))
+	end
+	return most
+end
+function M.textLines(text, size, width)
+	local lines = 0
+	for segment in (tostring(text) .. "\n"):gmatch("(.-)\n") do
+		local w = (utf8.len(segment) or #segment) * M.charWidth(size)
+		lines += (width > 0 and w > width) and math.ceil(w / width) or 1
+	end
+	return math.max(lines, 1)
 end
 M.Computed = {
 	AbsoluteSize = M.absSize,
@@ -780,8 +827,23 @@ M.Computed = {
 	end,
 	TextBounds = function(inst)
 		local t = tostring(inst.Text or "")
-		local n = utf8.len(t) or #t
-		return M.V2(n * inst.TextSize * 0.5, inst.TextSize)
+		if not inst.TextWrapped then
+			local n = utf8.len(t) or #t
+			return M.V2(n * inst.TextSize * 0.5, inst.TextSize)
+		end
+		-- As the real engine (Studio, 2026-11-06): a WRAPPED label's TextBounds
+		-- counts only the lines that FIT in its height. A 4-line text in a label
+		-- one line tall reads one line tall, and its TextFits is false.
+		local size, box = inst.TextSize, M.absSize(inst)
+		local lines = M.textLines(t, size, box.X)
+		local room = math.max(1, math.floor(box.Y / size + 1e-6))
+		local width = M.textWidth(t, size)
+		return M.V2(box.X > 0 and math.min(width, box.X) or width, math.min(lines, room) * size)
+	end,
+	TextFits = function(inst)
+		if not inst.TextWrapped then return true end
+		local box = M.absSize(inst)
+		return M.textLines(inst.Text, inst.TextSize, box.X) * inst.TextSize <= box.Y + 1e-6
 	end,
 	ContentText = function(inst) return (tostring(inst.Text or ""):gsub("<[^>]->", "")) end,
 }
@@ -841,9 +903,29 @@ M.InstMT.__newindex = function(self, k, v)
 	if old ~= v then
 		M.fire(self, "Changed", k)
 		if d.propSignals[k] then M.fireSignal(d.propSignals[k]) end
+		M.textBoundsMayMove(self, k)
 	end
 end
 M.InstMT.__tostring = function(self) return tostring(M.D[self].props.Name) end
+
+-- The engine fires a label's TextBounds when its text lays out again: its text
+-- or font changes, or its own box or its parent's box does. (Only for labels
+-- something listens to; the first change after listening always fires.)
+local TEXT_LAYOUT = { Text = true, TextSize = true, TextWrapped = true, Font = true, Size = true }
+function M.textBoundsMayMove(inst, k)
+	if not TEXT_LAYOUT[k] then return end
+	local function check(label)
+		local ld = M.D[label]
+		if not (ld and ld.propSignals.TextBounds and ld.className:find("^Text")) then return end
+		local now, was = M.Computed.TextBounds(label), ld.lastTextBounds
+		ld.lastTextBounds = now
+		if not was or was.X ~= now.X or was.Y ~= now.Y then M.fireSignal(ld.propSignals.TextBounds) end
+	end
+	check(inst)
+	if k == "Size" then
+		for _, c in ipairs(M.D[inst].children) do check(c) end
+	end
+end
 
 function M.new(className, parent, opts)
 	local o = setmetatable({}, M.InstMT)
@@ -1301,7 +1383,19 @@ M.service("SoundService")
 M.service("Teams")
 M.service("ContentProvider", { PreloadAsync = function() end })
 M.service("TextService", {
-	GetTextSize = function(_, text, size) return M.V2(#tostring(text) * size * 0.5, size) end,
+	-- The whole text, wrapped at frameSize.X when it is wider (the engine's).
+	GetTextSize = function(_, text, size, _, frame)
+		local width = M.textWidth(text, size)
+		if frame and frame.X and frame.X > 0 and width > frame.X then
+			return M.V2(frame.X, M.textLines(text, size, frame.X) * size)
+		end
+		return M.V2(width, M.textLines(text, size, 0) * size)
+	end,
+	-- The same, but it WAITS for the font (GetTextBoundsParams: Text, Font, Size, Width).
+	GetTextBoundsAsync = function(self, params)
+		while M.now < M.fontsLoadAt do M.task.wait(0.05) end
+		return M.services.TextService.GetTextSize(self, params.Text, params.Size, params.Font, M.V2(params.Width or 0, math.huge))
+	end,
 })
 M.service("RbxAnalyticsService", { GetClientId = function() return "MOCK-CLIENT-ID-0001" end })
 M.service("MarketplaceService", {

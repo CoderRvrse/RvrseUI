@@ -143,10 +143,51 @@ function SectionBuilder.CreateSection(sectionTitle, page, dependencies)
 
 	-- ✅ v4.5.2: a card that holds wrapped text is as tall as its text really is
 	-- (it used to guess 50 characters a line, which cut the text on a phone).
+	-- ✅ v4.10.1: the height is MEASURED (TextService), never read back from the
+	-- label. A wrapped label's TextBounds counts only the lines that fit in it:
+	-- in Studio, 2026-11-06, a 4-line status in a 1-line label read 13 px tall
+	-- with TextFits false. A card sized from that could shrink but never grow
+	-- again, so a paragraph Set to a longer text stayed cut after its first line
+	-- ("Collected 529 (484 Wheat, 35 Corn, 6 Carrot, 4"). GetTextSize measures
+	-- the whole text at the label's width, whatever the label's height is now.
+	-- And again once the label's FONT has loaded: a card made with the window is
+	-- measured before Gotham arrives, with a fallback's narrower metrics (the
+	-- same text read 338 px wide, then 388), and nothing fires when the real
+	-- font lands. GetTextBoundsAsync waits for the font; `token` keeps a late
+	-- answer from overwriting a newer text's.
+	local TextService = game:GetService("TextService")
 	local function fitHeight(c, label, minHeight)
-		local function fit()
-			c.Size = UDim2.new(1, 0, 0, math.max(minHeight, math.ceil(label.TextBounds.Y) + 24))
+		local token = 0
+		local function apply(height)
+			c.Size = UDim2.new(1, 0, 0, math.max(minHeight, math.ceil(height) + 24))
 		end
+		local function fit()
+			token += 1
+			local mine = token
+			local width = label.AbsoluteSize.X
+			if width <= 0 then
+				apply(label.TextBounds.Y)
+				return
+			end
+			local ok, size = pcall(TextService.GetTextSize, TextService, label.Text, label.TextSize, label.Font,
+				Vector2.new(width, math.huge))
+			apply(ok and size and size.Y or label.TextBounds.Y)
+			task.spawn(function()
+				pcall(function()
+					local params = Instance.new("GetTextBoundsParams")
+					params.Text = label.Text
+					params.Font = label.FontFace
+					params.Size = label.TextSize
+					params.Width = width
+					local bounds = TextService:GetTextBoundsAsync(params)
+					if bounds and mine == token and c.Parent then
+						apply(bounds.Y)
+					end
+				end)
+			end)
+		end
+		label:GetPropertyChangedSignal("Text"):Connect(fit)
+		label:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 		label:GetPropertyChangedSignal("TextBounds"):Connect(fit)
 		fit()
 	end
