@@ -1,5 +1,48 @@
 # RvrseUI Releases
 
+## Version 4.10.1 "Every Line Shows" - The Status Line Grows
+**Release Date**: November 6, 2026
+**Build**: 20261106a
+**Hash**: `RVFITTEXT101`
+**Channel**: Stable
+
+- **Fixed: a Paragraph or Label Set to a longer text stayed cut after its
+  first line.** A hub's status line, updated as it works, read
+  "Collected 529 (484 Wheat, 35 Corn, 6 Carrot, 4" on a player's phone and
+  nothing more. Studio reproduced the exact cut on the live 4.10.0.
+- **Why:** since 4.5.2, `fitHeight` sized a card from its label's
+  `TextBounds`, and the engine's `TextBounds` counts only the lines that FIT in
+  a wrapped label. Measured in Studio: a 4-line status in a 1-line label read
+  **13 px tall, with `TextFits` false**; `TextService:GetTextSize` gave 52 for
+  the same text at the same width. So a card could shrink (a short text, or a
+  moment before the window was laid out) and then never grow again: every later
+  measurement saw one line, because one line was all that fit.
+- **And a second cause, found while proving the first:** a card made with the
+  window is measured before its font (Gotham) has loaded. The engine then uses
+  a fallback's narrower metrics (the same text measured 338 px wide, and 388
+  once Gotham arrived), and **nothing fires when the real font lands**, so a
+  starting text that needed two lines kept a one-line card.
+- **Now:** the card's height is measured with `TextService:GetTextSize` at the
+  label's width (independent of how tall the label is right now), again on
+  every change of the text or of the width, and once more with
+  `GetTextBoundsAsync`, which waits for the font. A counter keeps a late answer
+  from overwriting a newer text's. A short text still gives the same 48 px card
+  as before. Studio, on this build: all 8 bench cases fit (made with the
+  window, Set longer, a 4-line text, 12 quick Sets, Set while its tab is
+  hidden, then shown), where 4.10.0 cut all 8.
+- **Tests:** harness scenario `textfit`: a paragraph made short, Set long, Set
+  to a 4-line list and back; one made long; a Label made long and Set longer.
+  Every text fits, and a one-line card stays 48 tall. The mock now lays text out
+  the way the engine does: a card's `UIPadding` shrinks its children's room, a
+  wrapped label's `TextBounds` counts only the lines that fit, `TextFits` is
+  computed, `GetTextSize` wraps at the width it is given, `TextBounds` fires
+  when a label's text lays out again, and a font can load late
+  (`M.fontsLoadAt`: narrower metrics until then, `GetTextBoundsAsync` waits for
+  it, nothing fires when it lands). Its numbers match Studio's (label 400x24,
+  card 48). `textfit` fails on 4.10.0 and on three broken fixes (the card's
+  padding forgotten; the text measured without the width; no measuring again
+  once the font loads), and the other 17 scenarios pass on the new layout.
+
 ## Maintenance - October 31, 2026 (no library change)
 
 `RvrseUI.lua` is unchanged in behaviour; this is build tooling and
