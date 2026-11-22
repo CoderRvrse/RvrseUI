@@ -3,7 +3,7 @@
 -- and fails if anything RvrseUI made is still running or still on screen.
 -- Works against old builds (no lifecycle API) and new ones (OnClose etc.):
 -- scenarios that need the v4.5.0 lifecycle API FAIL on builds without it.
--- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,textfit,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui,discord
+-- SCENARIOS: x,destroy,rvrseui,escape,two,overlays,reopen,togglesoff,track,selecttab,quiet,textfit,mobile,ontop,ontop_hidden,ontop_coregui,ontop_playergui,discord,perf
 local H = { fails = {} }
 
 function H.check(ok, what)
@@ -429,6 +429,90 @@ elseif H_SCENARIO == "selecttab" then
 		local okLate, late = pcall(W.SelectTab, W, 1)
 		H.check(okLate and late == false, "SelectTab after close: " .. tostring(okLate) .. ", " .. tostring(late) .. " (want no error, false)")
 	end
+elseif H_SCENARIO == "perf" then
+	-- v4.10.2: notifications are capped and merged, and the bubbles do no
+	-- work while nobody can see them. Every check here fails on 4.10.1.
+	local RvrseUI, W = S.RvrseUI, S.W1
+
+	local function notifyRoot()
+		return H.find(function(_, dd)
+			return dd.className == "Frame" and tostring(dd.props.Name):match("^NotifyRoot_") ~= nil
+		end)
+	end
+	local function cards()
+		local root = notifyRoot()
+		local out = {}
+		if root then
+			for _, child in ipairs(M.D[root].children) do
+				if M.D[child].className == "Frame" then table.insert(out, child) end
+			end
+		end
+		return out
+	end
+	local function titleOf(card)
+		for _, child in ipairs(M.D[card].children) do
+			local dd = M.D[child]
+			if dd.className == "TextLabel" and dd.props.Font == Enum.Font.GothamBold and dd.props.TextSize == 14 then
+				return dd.props.Text
+			end
+		end
+		return nil
+	end
+
+	M.run(4) -- let the build's own notifications leave
+	local before = #cards()
+	-- the same message ten times: ONE card, counted up
+	M.runThread(function()
+		for _ = 1, 10 do RvrseUI:Notify({ Title = "Same", Message = "again", Type = "info", Duration = 2 }) end
+	end, 5)
+	M.run(0.5)
+	local same = cards()
+	H.check(#same - before == 1, "10 identical notifications made " .. (#same - before) .. " cards (want 1)")
+	local counted = false
+	for _, card in ipairs(same) do
+		if titleOf(card) == "Same  ×10" then counted = true end
+	end
+	H.check(counted, "the repeated card does not read 'Same  ×10'")
+	M.run(3)
+	-- ten different ones: never more than 4 on screen
+	M.runThread(function()
+		for i = 1, 10 do RvrseUI:Notify({ Title = "Burst " .. i, Type = "info", Duration = 2 }) end
+	end, 5)
+	M.run(0.5)
+	H.check(#cards() <= 4, "a burst of 10 left " .. #cards() .. " cards on screen (want at most 4)")
+	M.run(3)
+	H.check(#cards() == 0, #cards() .. " card(s) still there after their time (want 0)")
+
+	-- bubbles: while the window is hidden, not one of them moves
+	local layer = H.find(function(_, dd) return dd.props.Name == "ParticleLayer" end)
+	H.check(layer ~= nil, "no ParticleLayer")
+	if layer then
+		local function bubblePositions()
+			local out = {}
+			for _, child in ipairs(M.D[layer].children) do
+				local dd = M.D[child]
+				if dd.className == "Frame" then out[child] = dd.props.Position end
+			end
+			return out
+		end
+		M.run(1)
+		local shown = bubblePositions()
+		local count = 0
+		for _ in pairs(shown) do count += 1 end
+		H.check(count > 0, "no bubbles on the shown window (the check below would prove nothing)")
+		M.runThread(function() W:Hide() end, 5)
+		M.run(0.3)
+		local hiddenAt = bubblePositions()
+		M.run(2)
+		local moved = 0
+		for child, pos in pairs(bubblePositions()) do
+			if hiddenAt[child] ~= nil and pos ~= hiddenAt[child] then moved += 1 end
+		end
+		H.check(moved == 0, moved .. " bubble(s) moved while the window was hidden (want 0)")
+		H.log("perf           | toasts: 10 same -> %d card, burst of 10 -> %d on screen | bubbles: %d shown, %d moved while hidden",
+			#same - before, math.min(#cards(), 99), count, moved)
+	end
+	H.close("x", W, "Harness Hub A")
 elseif H_SCENARIO == "textfit" then
 	-- A card holding wrapped text (Paragraph, Label) is as tall as ALL of its
 	-- text, whatever text it held before. The engine's TextBounds counts only

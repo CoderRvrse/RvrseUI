@@ -2,17 +2,17 @@
   "version": {
     "major": 4,
     "minor": 10,
-    "patch": 1,
-    "full": "4.10.1",
-    "build": "20261106a",
-    "hash": "RVFITTEXT101",
+    "patch": 2,
+    "full": "4.10.2",
+    "build": "20261122a",
+    "hash": "RVSMOOTH102",
     "channel": "Stable"
   },
   "release": {
-    "date": "2026-11-06",
-    "name": "Every Line Shows",
-    "codename": "The Status Line Grows",
-    "notes": "A Paragraph or Label whose text grows now grows with it. Since 4.5.2 a card holding wrapped text sized itself from its label's TextBounds, and the engine's TextBounds counts only the lines that FIT in a wrapped label: in Studio a 4-line status in a 1-line label read 13 px tall with TextFits false. So a card could shrink but never grow again, and a hub's status line Set to a longer text stayed cut after one line -- a player saw \"Collected 529 (484 Wheat, 35 Corn, 6 Carrot, 4\" and nothing more. The card's height is now measured with TextService:GetTextSize at the label's width, which does not depend on how tall the label is now, and is measured again whenever the text or the width changes -- and once more with GetTextBoundsAsync, because a card made with the window is measured before its font has loaded (a fallback's narrower metrics: the same text read 338 px wide, then 388) and nothing fires when the real font lands."
+    "date": "2026-11-22",
+    "name": "Smooth Bubbles",
+    "codename": "Nothing Works Unseen",
+    "notes": "Smoother with the bubbles on, and toasts that never pile up. The bubble effect kept its full per-frame work while the window was hidden or minimized; it now does nothing until the window shows again. Its lag guard could never act: a fixed floor of 20 (phone) or 40 bubbles overruled it, so a game at 5 fps still animated them all; the floor now shrinks with the frame rate, and at a normal frame rate the counts are what they were. Each bubble wrote three properties every frame (its colour never changes); now only its position, and its transparency while it fades. Notifications: at most 4 on screen, and a repeat of a card still showing counts up on it instead of stacking another card."
   },
   "compatibility": {
     "roblox": "Latest",
@@ -667,6 +667,18 @@
         "Fixed: a Paragraph or Label Set to a longer text stayed cut after its first line. fitHeight sized the card from the label's TextBounds, which the engine reports only for the lines that fit (Studio: a 4-line text in a 1-line label read 13 px tall, TextFits false), so a card could shrink but never grow again. It now measures the whole text with TextService:GetTextSize at the label's width, on every change of the text or the width.",
         "Fixed: a Paragraph or Label MADE with a text that needs two lines or more could keep a one-line card: it is measured before its font has loaded, with a fallback's narrower metrics, and nothing fires when the real font lands. fitHeight measures once more with TextService:GetTextBoundsAsync, which waits for the font; a counter keeps a late answer from overwriting a newer text's.",
         "Tests: harness scenario 'textfit' (a paragraph made short then Set long, Set to a 4-line list, Set back to short; one made long; a Label made long and Set longer: every text fits, and a 1-line card stays 48 tall). The mock now lays text out as the engine does: a card's UIPadding shrinks its children's room, a wrapped label's TextBounds counts only the lines that fit, TextFits is computed, GetTextSize wraps at the width it is given, and TextBounds fires when a label's text lays out again. textfit fails on 4.10.0 and on three broken fixes (no padding allowance; measured without the width; not measured again once the font loads). The mock can load a font late (M.fontsLoadAt)."
+      ]
+    },
+    "4.10.2": {
+      "date": "2026-11-22",
+      "hash": "RVSMOOTH102",
+      "changes": [
+        "Fixed: the bubble effect (Particles) kept animating while the window was hidden or minimized to its chip -- full per-frame work on a window nobody could see. It now checks 10 times a second whether its layer is shown (every GuiObject up to the ScreenGui Visible, the ScreenGui Enabled) and does nothing while it is not; the bubbles hold still and carry on when the window shows.",
+        "Fixed: the bubble lag guard could never act. calculateParticleCount clamped to a fixed floor of 20 (phone) or 40, which overruled both the adaptive multiplier and the idle trickle, so a game at 5 fps still animated 20-40 bubbles. The floor now scales with the multiplier; the frame rate is smoothed and the multiplier moves per second, not per frame (at 5 fps it took 14 s to react), and below 30 fps it falls further, to 0.15. At a normal frame rate the multiplier is 1 and the counts are unchanged.",
+        "Changed: each bubble wrote Position, BackgroundTransparency and BackgroundColor3 every frame. The colour (and the additive blend's brighter colour) is now written once at spawn, the transparency only while it is fading in or out, the position every frame. Each GUI write makes the engine redraw.",
+        "Changed: a bubble's sideways sway strength (8-18 px/s) is chosen once at spawn; it was a new random number every frame, extra work and a visible jitter. The soft-glow UIGradient is enabled only on bubbles of 18 px and up, as its own comment always said.",
+        "Fixed: notifications had no limit. A hub notifying in a burst stacked a card per call -- 6-8 instances, two tweens in and two out, and the column laid out again on every add and remove -- most of them off the top of the screen. At most 4 are shown now (the oldest leaves for a new one), and a notification identical to a card still showing (Title, Message and Type) counts up on that card ('Title  x3') and keeps it a little longer instead of stacking another.",
+        "Tests: harness scenario 'perf' -- 10 identical notifications make 1 card reading 'Same  x10'; a burst of 10 leaves at most 4 on screen and none after their time; with the window hidden, not one bubble moves. It fails on 4.10.1 in all four ways (10 cards, no count, 10 on screen, 20 of 20 bubbles moving while hidden)."
       ]
     }
   },

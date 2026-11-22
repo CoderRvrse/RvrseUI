@@ -16,6 +16,43 @@ local Theme, Animator, host, Icons
 local notifyRoot
 local RvrseUI -- Reference to main RvrseUI table for NotificationsEnabled flag
 
+-- v4.10.2: a hub that notifies in a burst used to stack a card per call --
+-- each 6-8 instances, two tweens in and two out, and the whole column laid
+-- out again on every add and remove -- most of them off the top of the
+-- screen. Now at most MAX_VISIBLE are shown (the oldest leaves for a new one)
+-- and a repeat of a card still on screen counts up on that card ("x3").
+local MAX_VISIBLE = 4
+local activeCards = {} -- oldest first: { key, card, stripe, title, baseTitle, count, expires, leaving }
+
+local function dismissCard(entry)
+	if entry.leaving then return end
+	entry.leaving = true
+	local index = table.find(activeCards, entry)
+	if index then
+		table.remove(activeCards, index)
+	end
+	local card = entry.card
+	if card and card.Parent then
+		Animator:Tween(card, {Position = UDim2.new(1, 20, 0, 0), BackgroundTransparency = 1}, Animator.Spring.Fast)
+		Animator:Tween(entry.stripe, {Size = UDim2.new(0, 0, 1, 0)}, Animator.Spring.Fast)
+		task.delay(0.2, function()
+			if card then card:Destroy() end
+		end)
+	end
+end
+
+-- Leave when the (possibly extended) time is up
+local function scheduleDismiss(entry)
+	task.delay(math.max(0.05, entry.expires - os.clock()), function()
+		if entry.leaving then return end
+		if os.clock() < entry.expires - 0.01 then
+			scheduleDismiss(entry) -- a repeat extended it
+		else
+			dismissCard(entry)
+		end
+	end)
+end
+
 -- Initialize the notifications module
 function Notifications:Init(dependencies)
 	-- Extract dependencies
@@ -61,6 +98,18 @@ function Notifications:Notify(opt)
 		opt = { Title = tostring(opt) }
 	end
 	local pal = Theme:Get()
+	local dur = tonumber(opt.Duration) or 3
+
+	-- The same card still on screen: count it up and keep it a little longer
+	local key = tostring(opt.Title) .. "\0" .. tostring(opt.Message) .. "\0" .. tostring(opt.Type)
+	for _, entry in ipairs(activeCards) do
+		if entry.key == key and not entry.leaving and entry.card and entry.card.Parent then
+			entry.count = entry.count + 1
+			entry.title.Text = entry.baseTitle .. "  ×" .. entry.count
+			entry.expires = math.max(entry.expires, os.clock() + dur)
+			return
+		end
+	end
 
 	-- Notification card
 	local card = Instance.new("Frame")
@@ -188,16 +237,24 @@ function Notifications:Notify(opt)
 	Animator:Tween(card, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}, Animator.Spring.Snappy)
 	Animator:Tween(stripe, {Size = UDim2.new(0, 4, 1, 0)}, Animator.Spring.Smooth)
 
+	-- Track it; past MAX_VISIBLE the oldest leaves to make room
+	local entry = {
+		key = key,
+		card = card,
+		stripe = stripe,
+		title = title,
+		baseTitle = title.Text,
+		count = 1,
+		expires = os.clock() + dur,
+		leaving = false,
+	}
+	table.insert(activeCards, entry)
+	while #activeCards > MAX_VISIBLE do
+		dismissCard(activeCards[1])
+	end
+
 	-- Auto-dismiss
-	local dur = tonumber(opt.Duration) or 3
-	task.delay(dur, function()
-		if card and card.Parent then
-			Animator:Tween(card, {Position = UDim2.new(1, 20, 0, 0), BackgroundTransparency = 1}, Animator.Spring.Fast)
-			Animator:Tween(stripe, {Size = UDim2.new(0, 0, 1, 0)}, Animator.Spring.Fast)
-			task.wait(0.2)
-			card:Destroy()
-		end
-	end)
+	scheduleDismiss(entry)
 end
 
 -- Initialize method (called by init.lua)
