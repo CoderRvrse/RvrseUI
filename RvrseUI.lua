@@ -1,5 +1,5 @@
--- RvrseUI v4.10.1 | Modern Professional UI Framework
--- Compiled from modular architecture (build 20261106a)
+-- RvrseUI v4.10.2 | Modern Professional UI Framework
+-- Compiled from modular architecture (build 20261122a)
 
 -- Features: Lucide icon system, Organic Particle System, Unified Dropdowns, ColorPicker, Key System, Spring Animations, FilterableList, Lifecycle API
 -- API: CreateWindow → CreateTab → CreateSection → {All 11 Elements}
@@ -40,10 +40,10 @@ Version = {}
 Version.Data = {
 	Major = 4,
 	Minor = 10,
-	Patch = 1,
-	Build = "20261106a",  -- YYYYMMDD format
-	Full = "4.10.1",
-	Hash = "RVFITTEXT101",  -- Release hash for integrity verification
+	Patch = 2,
+	Build = "20261122a",  -- YYYYMMDD format
+	Full = "4.10.2",
+	Hash = "RVSMOOTH102",  -- Release hash for integrity verification
 	Channel = "Stable"   -- Stable, Beta, Dev
 }
 
@@ -2748,6 +2748,43 @@ local Theme, Animator, host, Icons
 local notifyRoot
 -- [Removed conflicting local RvrseUI]
 
+-- v4.10.2: a hub that notifies in a burst used to stack a card per call --
+-- each 6-8 instances, two tweens in and two out, and the whole column laid
+-- out again on every add and remove -- most of them off the top of the
+-- screen. Now at most MAX_VISIBLE are shown (the oldest leaves for a new one)
+-- and a repeat of a card still on screen counts up on that card ("x3").
+local MAX_VISIBLE = 4
+local activeCards = {} -- oldest first: { key, card, stripe, title, baseTitle, count, expires, leaving }
+
+local function dismissCard(entry)
+	if entry.leaving then return end
+	entry.leaving = true
+	local index = table.find(activeCards, entry)
+	if index then
+		table.remove(activeCards, index)
+	end
+	local card = entry.card
+	if card and card.Parent then
+		Animator:Tween(card, {Position = UDim2.new(1, 20, 0, 0), BackgroundTransparency = 1}, Animator.Spring.Fast)
+		Animator:Tween(entry.stripe, {Size = UDim2.new(0, 0, 1, 0)}, Animator.Spring.Fast)
+		task.delay(0.2, function()
+			if card then card:Destroy() end
+		end)
+	end
+end
+
+-- Leave when the (possibly extended) time is up
+local function scheduleDismiss(entry)
+	task.delay(math.max(0.05, entry.expires - os.clock()), function()
+		if entry.leaving then return end
+		if os.clock() < entry.expires - 0.01 then
+			scheduleDismiss(entry) -- a repeat extended it
+		else
+			dismissCard(entry)
+		end
+	end)
+end
+
 -- Initialize the notifications module
 function Notifications:Init(dependencies)
 	-- Extract dependencies
@@ -2793,6 +2830,18 @@ function Notifications:Notify(opt)
 		opt = { Title = tostring(opt) }
 	end
 	local pal = Theme:Get()
+	local dur = tonumber(opt.Duration) or 3
+
+	-- The same card still on screen: count it up and keep it a little longer
+	local key = tostring(opt.Title) .. "\0" .. tostring(opt.Message) .. "\0" .. tostring(opt.Type)
+	for _, entry in ipairs(activeCards) do
+		if entry.key == key and not entry.leaving and entry.card and entry.card.Parent then
+			entry.count = entry.count + 1
+			entry.title.Text = entry.baseTitle .. "  ×" .. entry.count
+			entry.expires = math.max(entry.expires, os.clock() + dur)
+			return
+		end
+	end
 
 	-- Notification card
 	local card = Instance.new("Frame")
@@ -2920,16 +2969,24 @@ function Notifications:Notify(opt)
 	Animator:Tween(card, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}, Animator.Spring.Snappy)
 	Animator:Tween(stripe, {Size = UDim2.new(0, 4, 1, 0)}, Animator.Spring.Smooth)
 
+	-- Track it; past MAX_VISIBLE the oldest leaves to make room
+	local entry = {
+		key = key,
+		card = card,
+		stripe = stripe,
+		title = title,
+		baseTitle = title.Text,
+		count = 1,
+		expires = os.clock() + dur,
+		leaving = false,
+	}
+	table.insert(activeCards, entry)
+	while #activeCards > MAX_VISIBLE do
+		dismissCard(activeCards[1])
+	end
+
 	-- Auto-dismiss
-	local dur = tonumber(opt.Duration) or 3
-	task.delay(dur, function()
-		if card and card.Parent then
-			Animator:Tween(card, {Position = UDim2.new(1, 20, 0, 0), BackgroundTransparency = 1}, Animator.Spring.Fast)
-			Animator:Tween(stripe, {Size = UDim2.new(0, 0, 1, 0)}, Animator.Spring.Fast)
-			task.wait(0.2)
-			card:Destroy()
-		end
-	end)
+	scheduleDismiss(entry)
 end
 
 -- Initialize method (called by init.lua)
@@ -5514,6 +5571,27 @@ local lastFPS = 60
 local lastFrameTime = 0
 local adaptiveDensityMultiplier = 1
 
+-- Whether anyone can see the layer (window hidden, minimized, or its
+-- ScreenGui disabled). Asked 10 times a second, not every frame; while it is
+-- hidden the bubbles do no work at all (v4.10.2: they used to keep animating
+-- on a window nobody could see).
+local layerShown = true
+local shownCheckedAt = 0
+local SHOWN_CHECK_EVERY = 0.1
+
+local function isLayerShown(layer)
+	local node = layer
+	while node do
+		if node:IsA("GuiObject") then
+			if not node.Visible then return false end
+		elseif node:IsA("LayerCollector") then
+			return node.Enabled
+		end
+		node = node.Parent
+	end
+	return false
+end
+
 -- Perlin noise implementation (3D)
 PerlinNoise = {}
 local permutation = {}
@@ -5709,8 +5787,10 @@ local function createParticleInstance()
 	corner.CornerRadius = UDim.new(1, 0) -- Perfect circle
 	corner.Parent = particle
 
-	-- Optional gradient for larger particles (soft bloom)
+	-- Soft bloom for LARGER particles only: spawnParticle switches it on for
+	-- 18 px and up (it used to be drawn on every particle)
 	local gradient = Instance.new("UIGradient")
+	gradient.Name = "Bloom"
 	gradient.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 0.3), -- Center more opaque
 		NumberSequenceKeypoint.new(1, 1)    -- Edges transparent (bloom effect)
@@ -5797,13 +5877,35 @@ local function spawnParticle(bounds)
 		-- Easing timings
 		fadeInDuration = math.random() * (0.18 - 0.12) + 0.12, -- 120-180ms
 		fadeOutDuration = math.random() * (0.22 - 0.18) + 0.18, -- 180-220ms
+
+		-- Lateral sway strength, chosen ONCE (8-18 px/s). It was a new random
+		-- number every frame: extra work, and a visible jitter.
+		swayAmp = math.random() * (18 - 8) + 8,
+
+		-- The transparency last written, so a frame only writes it when it moved
+		shownTransparency = nil,
 	}
 
-	-- Setup instance
+	-- Setup instance. The colour is written ONCE here (it never changes); the
+	-- additive look is a brighter colour, so it is worked out here as well.
+	local shownColor = data.color
+	if Config.Blend == "additive" then
+		local bright = 1.3
+		shownColor = Color3.new(
+			math.min(1, data.color.R * bright),
+			math.min(1, data.color.G * bright),
+			math.min(1, data.color.B * bright)
+		)
+	end
+	local bloom = particle:FindFirstChild("Bloom")
+	if bloom then
+		bloom.Enabled = size >= 18
+	end
 	particle.Size = UDim2.new(0, size, 0, size)
 	particle.Position = UDim2.new(0, x, 0, y)
-	particle.BackgroundColor3 = data.color
+	particle.BackgroundColor3 = shownColor
 	particle.BackgroundTransparency = 1 - data.currentOpacity
+	data.shownTransparency = particle.BackgroundTransparency
 	particle.Parent = particleLayer
 
 	table.insert(activeParticles, data)
@@ -5816,16 +5918,20 @@ local function updateParticles(dt)
 	local bounds = particleLayer.AbsoluteSize
 	local time = tick()
 
-	-- Track FPS for adaptive density
+	-- Track FPS for adaptive density. Smoothed (one frame's hitch no longer
+	-- swings it), and the step is per SECOND, not per frame: a game at 5 fps
+	-- used to take 14 s to thin the bubbles out, at the frame rate that needed
+	-- it most.
 	if lastFrameTime > 0 then
-		local frameDelta = time - lastFrameTime
-		lastFPS = 1 / frameDelta
+		local frameDelta = math.max(time - lastFrameTime, 1e-3)
+		lastFPS = lastFPS + (1 / frameDelta - lastFPS) * math.min(1, frameDelta * 4)
 
-		-- Reduce density if FPS drops below 50
-		if lastFPS < 50 then
-			adaptiveDensityMultiplier = math.max(0.3, adaptiveDensityMultiplier - 0.01)
+		if lastFPS < 30 then
+			adaptiveDensityMultiplier = math.max(0.15, adaptiveDensityMultiplier - 1.2 * frameDelta)
+		elseif lastFPS < 50 then
+			adaptiveDensityMultiplier = math.max(0.3, adaptiveDensityMultiplier - 0.6 * frameDelta)
 		elseif lastFPS > 55 then
-			adaptiveDensityMultiplier = math.min(1.0, adaptiveDensityMultiplier + 0.005)
+			adaptiveDensityMultiplier = math.min(1.0, adaptiveDensityMultiplier + 0.3 * frameDelta)
 		end
 	end
 	lastFrameTime = time
@@ -5861,7 +5967,7 @@ local function updateParticles(dt)
 			)
 
 			-- Apply noise to velocity (±8-18 px/s lateral, ±6 px/s vertical)
-			data.velX = noiseX * (math.random() * (18 - 8) + 8)
+			data.velX = noiseX * data.swayAmp
 			data.velY = data.baseVelY + noiseY * 6
 
 			-- Update position
@@ -5892,20 +5998,15 @@ local function updateParticles(dt)
 
 			data.currentOpacity = data.baseOpacity * opacityAlpha
 
-			-- Update instance
+			-- Update instance: the position every frame; the transparency only
+			-- while it is fading (it holds still in between); the colour never
+			-- (set once at spawn). Each write makes the engine redraw it, and this
+			-- wrote three properties per bubble per frame.
 			data.instance.Position = UDim2.new(0, data.x, 0, data.y)
-			data.instance.BackgroundTransparency = 1 - data.currentOpacity
-
-			-- Additive blend (brighten color for additive effect)
-			if Config.Blend == "additive" then
-				local bright = 1.3
-				data.instance.BackgroundColor3 = Color3.new(
-					math.min(1, data.color.R * bright),
-					math.min(1, data.color.G * bright),
-					math.min(1, data.color.B * bright)
-				)
-			else
-				data.instance.BackgroundColor3 = data.color
+			local transparency = 1 - data.currentOpacity
+			if transparency ~= data.shownTransparency then
+				data.shownTransparency = transparency
+				data.instance.BackgroundTransparency = transparency
 			end
 		end
 	end
@@ -5941,9 +6042,12 @@ local function calculateParticleCount(state)
 	-- Apply adaptive density (reduces if FPS drops)
 	local finalCount = math.floor(baseCount * stateMultiplier * adaptiveDensityMultiplier)
 
-	-- Clamp (40-80 desktop, 20-40 mobile approximation)
+	-- Clamp (40-80 desktop, 20-40 mobile approximation). The floor shrinks with
+	-- the adaptive multiplier: a fixed floor of 20/40 used to overrule it, so a
+	-- game at 5 fps still animated 20-40 bubbles. At a normal frame rate the
+	-- multiplier is 1 and the counts are exactly what they were.
 	local isMobile = pixelArea < 300000 -- Rough mobile detection
-	local minCount = isMobile and 20 or 40
+	local minCount = math.floor((isMobile and 20 or 40) * adaptiveDensityMultiplier)
 	local maxCount = isMobile and 40 or 80
 
 	return math.clamp(finalCount, minCount, maxCount)
@@ -5977,6 +6081,18 @@ end
 -- Main update loop (RunService heartbeat)
 local function onHeartbeat(dt)
 	if not Config.Enabled or not isPlaying then return end
+
+	-- Nobody can see them: do nothing (the bubbles freeze where they are and
+	-- carry on when the window shows again)
+	local now = os.clock()
+	if now - shownCheckedAt >= SHOWN_CHECK_EVERY then
+		shownCheckedAt = now
+		layerShown = particleLayer ~= nil and isLayerShown(particleLayer)
+	end
+	if not layerShown then
+		lastFrameTime = 0 -- the pause is not a slow frame
+		return
+	end
 
 	spawnLoop(dt)
 	updateParticles(dt)

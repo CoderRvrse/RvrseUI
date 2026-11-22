@@ -1,5 +1,47 @@
 # RvrseUI Releases
 
+## Version 4.10.2 "Smooth Bubbles" - Nothing Works Unseen
+**Release Date**: November 22, 2026
+**Build**: 20261122a
+**Hash**: `RVSMOOTH102`
+
+A hub owner on Delta: the bubble animation and the notifications seemed to
+lag the game, and players who like the bubbles should not have to turn them
+off to play smoothly. Nothing is taken out; the look is the same at a normal
+frame rate.
+
+### The bubbles (`src/Particles.lua`)
+- **They animated on a window nobody could see.** Hiding the window or
+  minimizing it to its chip left the full per-frame work running. The layer
+  is now checked 10 times a second (every GuiObject up to the ScreenGui
+  Visible, the ScreenGui Enabled); while hidden, the bubbles do nothing.
+- **The lag guard could never act.** The count was clamped to a fixed floor
+  of 20 (phone) or 40, which overruled the frame-rate multiplier and the idle
+  trickle: a game at 5 fps still animated 20-40 bubbles. The floor now scales
+  with the multiplier, the frame rate is smoothed, the multiplier moves per
+  second rather than per frame (at 5 fps it took 14 s to react), and below
+  30 fps it can fall to 0.15.
+- **Three writes per bubble per frame.** The colour never changes and is now
+  written once; the transparency only while fading; the position every frame.
+- The sideways sway is chosen once per bubble (it was a new random number
+  every frame: work, and jitter), and the glow gradient is on bubbles of
+  18 px and up only.
+
+### Notifications (`src/Notifications.lua`)
+- **No limit.** A burst stacked a card per call, most off the top of the
+  screen, each laid out again with every add and remove. At most 4 now; the
+  oldest leaves for a new one.
+- **No merging.** A notification identical to a card still showing (Title,
+  Message, Type) counts up on that card (`Title  ×3`) and keeps it longer.
+
+### Tests
+Harness scenario `perf`: 10 identical notifications make 1 card reading
+`Same  ×10`; a burst of 10 leaves at most 4 and none after their time; with
+the window hidden, not one bubble moves. It fails on 4.10.1 in all four ways
+(10 cards, no count, 10 on screen, 20 of 20 bubbles moving while hidden).
+
+---
+
 ## Version 4.10.1 "Every Line Shows" - The Status Line Grows
 **Release Date**: November 6, 2026
 **Build**: 20261106a
